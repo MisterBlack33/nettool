@@ -1,9 +1,9 @@
 package networktool_v3.misc;
 
-import main.java.networktool_v3.gui.notification.LocalToast;
-import main.java.networktool_v3.gui.notification.NotificationListener;
-import main.java.networktool_v3.gui.security.NoteEncryption;
-import main.java.networktool_v3.logic.analysis.WakeOnLan;
+import networktool_v3.gui.notification.LocalToast;
+import networktool_v3.gui.notification.NotificationListener;
+import networktool_v3.gui.security.NoteEncryption;
+import networktool_v3.logic.analysis.WakeOnLan;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;

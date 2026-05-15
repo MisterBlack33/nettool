@@ -1,7 +1,7 @@
 package main.java.networktool_v3.gui;
 
-import main.java.networktool_v3.security.AuditLogger;
 import main.java.networktool_v3.security.UserAuth;
+import main.java.networktool_v3.security.AuditLogger;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -241,7 +241,7 @@ public final class GuiSidebar {
 
     private static JPanel buildHeader(String label, String icon, GroupEntry entry) {
         JPanel p = new JPanel(new BorderLayout(4, 0));
-        p.setBackground(isDark() ? new Color(0x10, 0x14, 0x11) : new Color(0xE0, 0xDE, 0xD8));
+        p.setBackground(GuiTheme.isDark() ? new Color(0x10, 0x14, 0x11) : new Color(0xE0, 0xDE, 0xD8));
         p.setBorder(new CompoundBorder(
                 new MatteBorder(1, 0, 0, 0, BORDER),
                 new EmptyBorder(7, 10, 7, 10)));
@@ -251,7 +251,7 @@ public final class GuiSidebar {
         String text = (icon != null ? icon + "  " : "") + label;
         JLabel lbl = new JLabel("  " + text);
         lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 9));
-        lbl.setForeground(isDark() ? new Color(0x80, 0x78, 0x50) : new Color(0x72, 0x58, 0x18));
+        lbl.setForeground(GuiTheme.isDark() ? new Color(0x80, 0x78, 0x50) : new Color(0x72, 0x58, 0x18));
 
         JLabel arrow = new JLabel("▶");
         arrow.setFont(new Font("JetBrains Mono", Font.PLAIN, 8));
@@ -266,15 +266,15 @@ public final class GuiSidebar {
                 lbl.setForeground(ACCENT);
             }
             public void mouseExited(MouseEvent e) {
-                p.setBackground(isDark() ? new Color(0x10, 0x14, 0x11) : new Color(0xE0, 0xDE, 0xD8));
-                lbl.setForeground(isDark() ? new Color(0x80, 0x78, 0x50) : new Color(0x72, 0x58, 0x18));
+                p.setBackground(GuiTheme.isDark() ? new Color(0x10, 0x14, 0x11) : new Color(0xE0, 0xDE, 0xD8));
+                lbl.setForeground(GuiTheme.isDark() ? new Color(0x80, 0x78, 0x50) : new Color(0x72, 0x58, 0x18));
             }
         });
         return p;
     }
 
     private static JButton buildMenuBtn(String label) {
-        Color fg = isDark() ? new Color(0xD8, 0xD4, 0xC4) : new Color(0x18, 0x1A, 0x16);
+        Color fg = GuiTheme.isDark() ? new Color(0xD8, 0xD4, 0xC4) : new Color(0x18, 0x1A, 0x16);
         JButton btn = new JButton("    " + label);
         btn.setFont(BTN_F_S);
         btn.setForeground(fg);

@@ -1,11 +1,7 @@
 package networktool_v3.storage;
 
-import main.java.networktool_v3.storage.DataExportImport;
-import main.java.networktool_v3.storage.NetworkStore;
-import main.java.networktool_v3.model.HostResult;
-import main.java.networktool_v3.model.ScanProfile;
-import main4.networktool_v3.storage.NetworkStorePersistence;
-import main.java.networktool_v3.storage.ScanProfileStore;
+import networktool_v3.model.HostResult;
+import networktool_v3.model.ScanProfile;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -234,7 +230,7 @@ class DataExportImportTest {
 
     private void seedStore() {
         // Ensure at least one host in store for export
-        NetworkStore ns = NetworkStore.getInstance();
+        networktool_v3.storage.NetworkStore ns = networktool_v3.storage.NetworkStore.getInstance();
         if (ns.getNetworkNames().stream().noneMatch(n -> n.equals("TestNet")))
             ns.createNetwork("TestNet", "");
         ns.save(new HostResult("9.9.9.9", "test-export-host", "Linux", null, null, "note"), "TestNet");

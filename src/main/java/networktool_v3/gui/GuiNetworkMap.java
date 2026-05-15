@@ -33,13 +33,13 @@ public final class GuiNetworkMap {
         dlg.setLocationRelativeTo(null);
         dlg.setResizable(true);
 
-        Color bg = isDark() ? new Color(0x06, 0x09, 0x07) : new Color(0xF2, 0xF0, 0xEC);
+        Color bg = GuiTheme.isDark() ? new Color(0x06, 0x09, 0x07) : new Color(0xF2, 0xF0, 0xEC);
 
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(bg);
 
         JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 6));
-        toolbar.setBackground(isDark() ? new Color(0x0A, 0x0E, 0x0B) : new Color(0xE4, 0xE2, 0xDC));
+        toolbar.setBackground(GuiTheme.isDark() ? new Color(0x0A, 0x0E, 0x0B) : new Color(0xE4, 0xE2, 0xDC));
         toolbar.setBorder(new MatteBorder(0, 0, 1, 0, BORDER));
 
         JLabel title = new JLabel("  Netzwerk-Karte  –  "
@@ -158,7 +158,7 @@ public final class GuiNetworkMap {
             g2.setColor(bg); g2.fillRect(0, 0, w, h);
 
             // Grid
-            g2.setColor(isDark() ? new Color(0x12, 0x18, 0x12) : new Color(0xE4, 0xE2, 0xDC));
+            g2.setColor(GuiTheme.isDark() ? new Color(0x12, 0x18, 0x12) : new Color(0xE4, 0xE2, 0xDC));
             for (int x = 0; x < w; x += 60) g2.drawLine(x, 0, x, h);
             for (int y = 0; y < h; y += 60) g2.drawLine(0, y, w, y);
 
@@ -168,7 +168,7 @@ public final class GuiNetworkMap {
             // Verbindungslinien: alle Hosts → Gateway
             g2.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
                     1f, new float[]{4f, 4f}, 0f));
-            g2.setColor(isDark() ? new Color(0x30, 0x45, 0x30) : new Color(0xC0, 0xBC, 0xB4));
+            g2.setColor(GuiTheme.isDark() ? new Color(0x30, 0x45, 0x30) : new Color(0xC0, 0xBC, 0xB4));
             if (gw != null) {
                 for (Node n : nodes) {
                     if (n == gw) continue;
@@ -195,7 +195,7 @@ public final class GuiNetworkMap {
             g2.setColor(new Color(col.getRed(), col.getGreen(), col.getBlue(), 40));
             g2.fillOval(n.x-r-6, n.y-r-6, (r+6)*2, (r+6)*2);
 
-            g2.setColor(isDark() ? new Color(0x08, 0x0C, 0x08) : new Color(0xF4, 0xF2, 0xEE));
+            g2.setColor(GuiTheme.isDark() ? new Color(0x08, 0x0C, 0x08) : new Color(0xF4, 0xF2, 0xEE));
             g2.fillOval(n.x-r, n.y-r, r*2, r*2);
             g2.setColor(col);
             g2.drawOval(n.x-r, n.y-r, r*2, r*2);
@@ -214,7 +214,7 @@ public final class GuiNetworkMap {
             // IP
             g2.setFont(new Font("JetBrains Mono", Font.PLAIN, 9));
             fm = g2.getFontMetrics();
-            g2.setColor(isDark() ? new Color(0xA0, 0x9C, 0x90) : new Color(0x40, 0x42, 0x3E));
+            g2.setColor(GuiTheme.isDark() ? new Color(0xA0, 0x9C, 0x90) : new Color(0x40, 0x42, 0x3E));
             g2.drawString(n.ip, n.x - fm.stringWidth(n.ip)/2, n.y + r + 14);
 
             // Hostname
@@ -231,17 +231,17 @@ public final class GuiNetworkMap {
             int lx = 10, ly = h - 110;
             g2.setFont(new Font("JetBrains Mono", Font.PLAIN, 9));
             Object[][] legend = {
-                {"★", "Ich (dieser PC)",   ACCENT2},
-                {"G", "Gateway",            NET_COL},
-                {"W", "Windows",            WIN_COL},
-                {"L", "Linux",              LIN_COL},
-                {"M", "macOS",              APL_COL},
-                {"A", "Android",            AND_COL},
+                    {"★", "Ich (dieser PC)",   ACCENT2},
+                    {"G", "Gateway",            NET_COL},
+                    {"W", "Windows",            WIN_COL},
+                    {"L", "Linux",              LIN_COL},
+                    {"M", "macOS",              APL_COL},
+                    {"A", "Android",            AND_COL},
             };
             for (int i = 0; i < legend.length; i++) {
                 g2.setColor((Color) legend[i][2]);
                 g2.fillOval(lx, ly + i*16, 10, 10);
-                g2.setColor(isDark() ? FG_DIM : new Color(0x50, 0x52, 0x4E));
+                g2.setColor(GuiTheme.isDark() ? FG_DIM : new Color(0x50, 0x52, 0x4E));
                 g2.drawString((String) legend[i][1], lx + 15, ly + i*16 + 9);
             }
         }
@@ -327,7 +327,7 @@ public final class GuiNetworkMap {
         JButton b = new JButton(text);
         b.setFont(new Font("JetBrains Mono", Font.BOLD, 11));
         b.setForeground(fg);
-        b.setBackground(isDark() ? new Color(0x18, 0x22, 0x18) : new Color(0xDC, 0xDA, 0xD4));
+        b.setBackground(GuiTheme.isDark() ? new Color(0x18, 0x22, 0x18) : new Color(0xDC, 0xDA, 0xD4));
         b.setBorder(new CompoundBorder(new LineBorder(fg.darker(), 1), new EmptyBorder(4, 10, 4, 10)));
         b.setFocusPainted(false);
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));

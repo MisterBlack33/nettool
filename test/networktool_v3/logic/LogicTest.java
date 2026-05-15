@@ -1,10 +1,10 @@
 package networktool_v3.logic;
 
-import main.java.networktool_v3.logic.analysis.OsDetector;
-import main.java.networktool_v3.logic.analysis.OuiDatabase;
-import main.java.networktool_v3.logic.analysis.TracerouteRunner;
-import main.java.networktool_v3.logic.scan.RemoteNetScanner;
-import main.java.networktool_v3.util.CIDRUtils;
+import networktool_v3.logic.analysis.OsDetector;
+import networktool_v3.logic.analysis.OuiDatabase;
+import networktool_v3.logic.analysis.TracerouteRunner;
+import networktool_v3.logic.scan.RemoteNetScanner;
+import networktool_v3.util.CIDRUtils;
 import org.junit.jupiter.api.*;
 
 import java.util.List;
