@@ -1,9 +1,7 @@
 package networktool_v3.filter;
 
-import main.java.networktool_v3.filter.HostResultFilter;
-import main.java.networktool_v3.filter.ScanFilter;
-import main.java.networktool_v3.model.HostResult;
-import main.java.networktool_v3.model.ScanResult;
+import networktool_v3.model.HostResult;
+import networktool_v3.model.ScanResult;
 import org.junit.jupiter.api.*;
 
 import java.util.*;

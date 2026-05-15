@@ -1,7 +1,7 @@
-package main.java.networktool_v3.gui;
+package networktool_v3.gui;
 
-import main.java.networktool_v3.model.HostResult;
-import main.java.networktool_v3.storage.NetworkStore;
+import networktool_v3.model.HostResult;
+import networktool_v3.storage.NetworkStore;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -10,7 +10,7 @@ import java.awt.event.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static main.java.networktool_v3.gui.GuiTheme.*;
+import static networktool_v3.gui.GuiTheme.*;
 
 /**
  * Schnellsuche über gespeicherte Hosts.
@@ -28,7 +28,7 @@ public final class GuiSearchBar extends JPanel {
 
     public GuiSearchBar() {
         setLayout(new BorderLayout(0, 0));
-        setBackground(isDark() ? new Color(0x0A, 0x0E, 0x0B) : new Color(0xE8, 0xE6, 0xE0));
+        setBackground(GuiTheme.isDark() ? new Color(0x0A, 0x0E, 0x0B) : new Color(0xE8, 0xE6, 0xE0));
         setBorder(new CompoundBorder(
                 new MatteBorder(0, 0, 1, 0, BORDER),
                 new EmptyBorder(6, 10, 6, 10)));
@@ -39,8 +39,8 @@ public final class GuiSearchBar extends JPanel {
 
         field = new JTextField();
         field.setFont(MONO_S);
-        field.setForeground(isDark() ? new Color(0xE8, 0xE4, 0xD8) : new Color(0x14, 0x16, 0x12));
-        field.setBackground(isDark() ? new Color(0x10, 0x14, 0x11) : Color.WHITE);
+        field.setForeground(GuiTheme.isDark() ? new Color(0xE8, 0xE4, 0xD8) : new Color(0x14, 0x16, 0x12));
+        field.setBackground(GuiTheme.isDark() ? new Color(0x10, 0x14, 0x11) : Color.WHITE);
         field.setCaretColor(ACCENT);
         field.setBorder(new CompoundBorder(new LineBorder(BORDER, 1), new EmptyBorder(3, 8, 3, 8)));
         field.putClientProperty("JTextField.placeholderText", "IP, Hostname, OS, Notiz...");
@@ -68,7 +68,7 @@ public final class GuiSearchBar extends JPanel {
 
         resultPanel = new JPanel();
         resultPanel.setLayout(new BoxLayout(resultPanel, BoxLayout.Y_AXIS));
-        resultPanel.setBackground(isDark() ? new Color(0x08, 0x0B, 0x09) : Color.WHITE);
+        resultPanel.setBackground(GuiTheme.isDark() ? new Color(0x08, 0x0B, 0x09) : Color.WHITE);
 
         resultScroll = new JScrollPane(resultPanel,
                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
@@ -165,8 +165,8 @@ public final class GuiSearchBar extends JPanel {
     }
 
     private JPanel buildResultRow(HostResult h) {
-        Color rowBg  = isDark() ? new Color(0x0C, 0x10, 0x0D) : new Color(0xF4, 0xF2, 0xEE);
-        Color rowHov = isDark() ? new Color(0x18, 0x22, 0x18) : new Color(0xE4, 0xE2, 0xDC);
+        Color rowBg  = GuiTheme.isDark() ? new Color(0x0C, 0x10, 0x0D) : new Color(0xF4, 0xF2, 0xEE);
+        Color rowHov = GuiTheme.isDark() ? new Color(0x18, 0x22, 0x18) : new Color(0xE4, 0xE2, 0xDC);
 
         JPanel row = new JPanel(new BorderLayout(8, 0));
         row.setBackground(rowBg);
@@ -185,7 +185,7 @@ public final class GuiSearchBar extends JPanel {
                 ? h.hostname.substring(0, h.hostname.indexOf(" [")) : h.hostname;
         JLabel hnLbl = new JLabel(hn != null ? hn : "");
         hnLbl.setFont(MONO_XS);
-        hnLbl.setForeground(isDark() ? new Color(0xC0, 0xBC, 0xB0) : new Color(0x30, 0x32, 0x2E));
+        hnLbl.setForeground(GuiTheme.isDark() ? new Color(0xC0, 0xBC, 0xB0) : new Color(0x30, 0x32, 0x2E));
 
         JLabel osLbl = new JLabel(h.os != null ? h.os : "");
         osLbl.setFont(MONO_XS);

@@ -1,4 +1,4 @@
-package main.java.networktool_v3.gui;
+package networktool_v3.gui;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -7,7 +7,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.util.*;
 
-import static main.java.networktool_v3.gui.GuiTheme.*;
+import static networktool_v3.gui.GuiTheme.*;
 
 /**
  * Privatsphäre & Tarnung Panel (Menü-ID "30").
@@ -31,8 +31,8 @@ public final class GuiPrivacyPanel {
     private static void embedPanel(GuiOutputPanel output) {
         output.appendText("\n🔒 Privatsphäre & Tarnung\n\n", ACCENT);
 
-        Color bg    = isDark() ? new Color(0x08, 0x0B, 0x09) : new Color(0xF4, 0xF2, 0xEE);
-        Color panBg = isDark() ? new Color(0x0F, 0x13, 0x10) : new Color(0xE8, 0xE6, 0xE0);
+        Color bg    = GuiTheme.isDark() ? new Color(0x08, 0x0B, 0x09) : new Color(0xF4, 0xF2, 0xEE);
+        Color panBg = GuiTheme.isDark() ? new Color(0x0F, 0x13, 0x10) : new Color(0xE8, 0xE6, 0xE0);
 
         JPanel outer = new JPanel(new BorderLayout(0, 8));
         outer.setBackground(bg);
@@ -68,7 +68,7 @@ public final class GuiPrivacyPanel {
 
         // Infoleiste
         JLabel info = new JLabel(
-            "<html><small>⚠ MAC-Randomisierung und VPN-Kontrolle können Root-Rechte benötigen.</small></html>");
+                "<html><small>⚠ MAC-Randomisierung und VPN-Kontrolle können Root-Rechte benötigen.</small></html>");
         info.setFont(new Font("JetBrains Mono", Font.PLAIN, 10));
         info.setForeground(FG_DIM);
         info.setBorder(new EmptyBorder(4, 8, 4, 8));
@@ -123,7 +123,7 @@ public final class GuiPrivacyPanel {
         try {
             if (isWin) {
                 log("Hinweis: Unter Windows MAC-Spoofing über Geräte-Manager oder\n"
-                    + "  registry: HKLM\\...\\NetworkAdapters\\{...}\\NetworkAddress", log);
+                        + "  registry: HKLM\\...\\NetworkAdapters\\{...}\\NetworkAddress", log);
             } else {
                 exec(new String[]{"ip", "link", "set", iface, "down"}, log);
                 exec(new String[]{"ip", "link", "set", iface, "address", newMac}, log);
@@ -318,7 +318,7 @@ public final class GuiPrivacyPanel {
         JTextArea a = new JTextArea();
         a.setFont(new Font("JetBrains Mono", Font.PLAIN, 11));
         a.setForeground(new Color(0xA0, 0xE0, 0xA0));
-        a.setBackground(isDark() ? new Color(0x06, 0x09, 0x06) : new Color(0xF0, 0xF8, 0xF0));
+        a.setBackground(GuiTheme.isDark() ? new Color(0x06, 0x09, 0x06) : new Color(0xF0, 0xF8, 0xF0));
         a.setEditable(false);
         a.setLineWrap(true);
         a.setWrapStyleWord(true);

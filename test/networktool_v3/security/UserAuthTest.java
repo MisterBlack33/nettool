@@ -1,6 +1,5 @@
 package networktool_v3.security;
 
-import main.java.networktool_v3.security.UserAuth;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 

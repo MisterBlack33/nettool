@@ -1,7 +1,5 @@
 package networktool_v3.model;
 
-import main.java.networktool_v3.model.HostResult;
-import main.java.networktool_v3.model.ScanResult;
 import org.junit.jupiter.api.*;
 
 import java.util.Map;

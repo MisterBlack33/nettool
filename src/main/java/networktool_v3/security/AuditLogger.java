@@ -1,6 +1,6 @@
-package main.java.networktool_v3.security;
+package networktool_v3.security;
 
-import java.io.*;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.time.LocalDateTime;
@@ -9,24 +9,21 @@ import java.util.*;
 import java.util.concurrent.*;
 
 /**
- * Audit-Logger: Protokolliert alle Benutzeraktionen.
+ * Audit-Logger: Protokolliert alle Benutzeraktionen instanzübergreifend.
  *
- * Speicherort: txt/audit.log (JSON-Lines, eine JSON-Zeile pro Eintrag)
+ * Format: Tab-getrennt, eine Zeile pro Eintrag:
+ *   2026-05-11 09:59:54\tadmin\tMENU\t20
  *
- * Jeder Eintrag:
- * {"timestamp":"2026-04-30 14:32:01","user":"admin","action":"CIDR-Scan","detail":"192.168.1.0/24"}
- *
- * Thread-sicher. Schreibt asynchron in einen Hintergrundthread,
- * damit die UI nie blockiert.
- * Singleton.
+ * Persistenz:  txt/audit.log  – APPEND über Neustarts hinweg erhalten.
+ * Rotation:    ab 200.000 Zeilen → audit_YYYYMMDD_HHmmss.log
+ * Rückwärtskompatibel mit alten JSON-Lines-Einträgen.
  */
 public final class AuditLogger {
 
     private static final class Holder { static final AuditLogger INSTANCE = new AuditLogger(); }
     public static AuditLogger getInstance() { return Holder.INSTANCE; }
 
-    private static final String  FILE_NAME  = "audit.log";
-    private static final int     MAX_LINES  = 10_000;   // Rotation ab 10k Einträgen
+    static final int MAX_LINES = 200_000;
     private static final DateTimeFormatter FMT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -40,55 +37,45 @@ public final class AuditLogger {
 
     private AuditLogger() {}
 
-    /** Muss vor der ersten Nutzung aufgerufen werden. */
+    /** Einmalig beim Start. Bestehende Logs bleiben erhalten (APPEND). */
     public void init(Path txtDir) {
         try { Files.createDirectories(txtDir); } catch (IOException ignored) {}
-        this.logFile = txtDir.resolve(FILE_NAME);
+        this.logFile = txtDir.resolve("audit.log");
     }
 
     // ── Öffentliche API ───────────────────────────────────────────────────
 
-    /** Loggt eine Aktion ohne Detail. */
-    public void log(String action) {
-        log(action, "");
-    }
+    public void log(String action) { log(action, ""); }
 
-    /** Loggt eine Aktion mit Detail (z.B. CIDR, IP, Dateiname). */
     public void log(String action, String detail) {
         if (logFile == null) return;
         String user = UserAuth.getInstance().getCurrentUser();
         if (user == null) user = "system";
-        final String u = user;
+        final String u  = user;
         final String ts = LocalDateTime.now().format(FMT);
-        writer.submit(() -> write(ts, u, action, detail));
+        writer.submit(() -> write(ts, u, action, detail != null ? detail : ""));
     }
 
-    /** Liest die letzten {@code maxLines} Einträge (neueste zuerst). */
+    /** Neueste Einträge zuerst, max. {@code maxLines} zurück. */
     public List<LogEntry> readRecent(int maxLines) {
         if (logFile == null || !Files.exists(logFile)) return Collections.emptyList();
         try {
             List<String> lines = Files.readAllLines(logFile, StandardCharsets.UTF_8);
-            List<LogEntry> entries = new ArrayList<>();
-            for (int i = lines.size() - 1; i >= 0 && entries.size() < maxLines; i--) {
+            List<LogEntry> result = new ArrayList<>();
+            for (int i = lines.size() - 1; i >= 0 && result.size() < maxLines; i--) {
                 LogEntry e = parse(lines.get(i));
-                if (e != null) entries.add(e);
+                if (e != null) result.add(e);
             }
-            return Collections.unmodifiableList(entries);
-        } catch (IOException e) {
-            return Collections.emptyList();
-        }
+            return Collections.unmodifiableList(result);
+        } catch (IOException e) { return Collections.emptyList(); }
     }
 
-    /** Gibt alle Einträge für einen bestimmten Benutzer zurück. */
     public List<LogEntry> readByUser(String username) {
-        List<LogEntry> all   = readRecent(MAX_LINES);
-        List<LogEntry> result = new ArrayList<>();
-        for (LogEntry e : all)
-            if (username.equalsIgnoreCase(e.user)) result.add(e);
-        return Collections.unmodifiableList(result);
+        return readRecent(MAX_LINES).stream()
+                .filter(e -> username.equalsIgnoreCase(e.user))
+                .toList();
     }
 
-    /** Löscht das Audit-Log (nur für Admins gedacht). */
     public synchronized void clear() {
         if (logFile == null) return;
         try { Files.deleteIfExists(logFile); } catch (IOException ignored) {}
@@ -103,16 +90,11 @@ public final class AuditLogger {
         public final String action;
         public final String detail;
 
-        public LogEntry(String timestamp, String user, String action, String detail) {
-            this.timestamp = timestamp;
+        public LogEntry(String ts, String user, String action, String detail) {
+            this.timestamp = ts;
             this.user      = user;
             this.action    = action;
-            this.detail    = detail;
-        }
-
-        public String formatted() {
-            return "[" + timestamp + "]  " + user + "  →  " + action
-                    + (detail != null && !detail.isBlank() ? "  (" + detail + ")" : "");
+            this.detail    = detail != null ? detail : "";
         }
     }
 
@@ -121,25 +103,13 @@ public final class AuditLogger {
     private synchronized void write(String ts, String user, String action, String detail) {
         try {
             Files.createDirectories(logFile.getParent());
-            // Log-Rotation wenn zu groß
-            if (Files.exists(logFile)) {
-                long lines = countLines(logFile);
-                if (lines >= MAX_LINES) rotate();
-            }
-            String entry = buildJson(ts, user, action, detail != null ? detail : "");
-            Files.writeString(logFile, entry + System.lineSeparator(),
-                    StandardCharsets.UTF_8,
-                    StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            if (Files.exists(logFile) && countLines(logFile) >= MAX_LINES) rotate();
+            String line = ts + "\t" + san(user) + "\t" + san(action) + "\t" + san(detail);
+            Files.writeString(logFile, line + System.lineSeparator(),
+                    StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         } catch (IOException e) {
             System.err.println("[AuditLogger] Schreibfehler: " + e.getMessage());
         }
-    }
-
-    private static String buildJson(String ts, String user, String action, String detail) {
-        return "{\"timestamp\":\"" + esc(ts) + "\","
-                + "\"user\":\""       + esc(user)   + "\","
-                + "\"action\":\""     + esc(action) + "\","
-                + "\"detail\":\""     + esc(detail) + "\"}";
     }
 
     private void rotate() throws IOException {
@@ -150,22 +120,31 @@ public final class AuditLogger {
     }
 
     private static long countLines(Path f) throws IOException {
-        try (var reader = Files.newBufferedReader(f, StandardCharsets.UTF_8)) {
-            return reader.lines().count();
+        try (var r = Files.newBufferedReader(f, StandardCharsets.UTF_8)) {
+            return r.lines().count();
         }
     }
 
-    private static LogEntry parse(String line) {
-        if (line == null || !line.startsWith("{")) return null;
-        String ts     = extractStr(line, "timestamp");
-        String user   = extractStr(line, "user");
-        String action = extractStr(line, "action");
-        String detail = extractStr(line, "detail");
-        if (ts == null || user == null || action == null) return null;
-        return new LogEntry(ts, user, action, detail != null ? detail : "");
+    // ── Parser ────────────────────────────────────────────────────────────
+
+    static LogEntry parse(String line) {
+        if (line == null || line.isBlank()) return null;
+        if (line.startsWith("{")) return parseLegacyJson(line);  // alter JSON-Eintrag
+        String[] p = line.split("\t", 4);
+        if (p.length < 3) return null;
+        return new LogEntry(p[0], p[1], p[2], p.length >= 4 ? p[3] : "");
     }
 
-    private static String extractStr(String json, String field) {
+    private static LogEntry parseLegacyJson(String json) {
+        String ts     = extractJson(json, "timestamp");
+        String user   = extractJson(json, "user");
+        String action = extractJson(json, "action");
+        String detail = extractJson(json, "detail");
+        if (ts == null || user == null || action == null) return null;
+        return new LogEntry(ts, user, action, detail);
+    }
+
+    private static String extractJson(String json, String field) {
         String key = "\"" + field + "\"";
         int ki = json.indexOf(key);
         if (ki < 0) return null;
@@ -185,9 +164,8 @@ public final class AuditLogger {
         return sb.toString();
     }
 
-    private static String esc(String s) {
+    private static String san(String s) {
         if (s == null) return "";
-        return s.replace("\\", "\\\\").replace("\"", "\\\"")
-                .replace("\n", "\\n").replace("\r", "");
+        return s.replace("\t", " ").replace("\n", " ").replace("\r", "");
     }
 }

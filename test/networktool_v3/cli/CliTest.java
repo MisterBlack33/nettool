@@ -1,11 +1,11 @@
 package networktool_v3.cli;
 
-import main.java.networktool_v3.cli.MenuPrinter;
-import main.java.networktool_v3.filter.JsonExporter;
-import main.java.networktool_v3.logic.analysis.OsDetector;
-import main.java.networktool_v3.logic.scan.PingSweep;
-import main.java.networktool_v3.logic.scan.RemoteNetScanner;
-import main.java.networktool_v3.model.ScanResult;
+import networktool_v3.filter.JsonExporter;
+import networktool_v3.filter.ScanFilter;
+import networktool_v3.logic.analysis.OsDetector;
+import networktool_v3.logic.scan.PingSweep;
+import networktool_v3.logic.scan.RemoteNetScanner;
+import networktool_v3.model.ScanResult;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -210,7 +210,7 @@ class MenuPrinterTest {
         // Redirect stdout to avoid polluting test output
         java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
         System.setOut(new java.io.PrintStream(baos));
-        assertDoesNotThrow(MenuPrinter::print);
+        assertDoesNotThrow(networktool_v3.cli.MenuPrinter::print);
         System.setOut(System.out);
         String output = baos.toString();
         assertTrue(output.contains("Netzwerk Tool"));
@@ -220,7 +220,7 @@ class MenuPrinterTest {
     void printContainsAllMenuItems() {
         java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
         System.setOut(new java.io.PrintStream(baos));
-        MenuPrinter.print();
+        networktool_v3.cli.MenuPrinter.print();
         System.setOut(System.out);
         String output = baos.toString();
         assertTrue(output.contains("0"));  // Beenden

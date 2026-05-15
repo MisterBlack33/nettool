@@ -1,10 +1,7 @@
 package networktool_v3.transfer;
 
-import main.java.networktool_v3.logic.ports.BannerGrabber;
-import main.java.networktool_v3.logic.ports.PortScanner;
-import main.java.networktool_v3.transfer.BandwidthTester;
-import main.java.networktool_v3.transfer.FileClient;
-import main.java.networktool_v3.transfer.FileServer;
+import networktool_v3.logic.ports.BannerGrabber;
+import networktool_v3.logic.ports.PortScanner;
 import org.junit.jupiter.api.*;
 
 import java.net.ServerSocket;
