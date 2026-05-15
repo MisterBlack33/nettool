@@ -1,4 +1,4 @@
-package networktool_v3.gui;
+package main.java.networktool_v3.gui;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -8,7 +8,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 
-import static networktool_v3.gui.GuiTheme.*;
+import static main.java.networktool_v3.gui.GuiTheme.*;
 
 /**
  * Haupt-Ausgabebereich der GUI.

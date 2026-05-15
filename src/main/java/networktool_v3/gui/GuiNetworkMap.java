@@ -1,8 +1,8 @@
-package networktool_v3.gui;
+package main.java.networktool_v3.gui;
 
-import networktool_v3.logic.scan.RemoteNetScanner;
-import networktool_v3.model.HostResult;
-import networktool_v3.storage.NetworkStore;
+import main.java.networktool_v3.logic.scan.RemoteNetScanner;
+import main.java.networktool_v3.model.HostResult;
+import main.java.networktool_v3.storage.NetworkStore;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -12,7 +12,7 @@ import java.net.InetAddress;
 import java.util.*;
 import java.util.List;
 
-import static networktool_v3.gui.GuiTheme.*;
+import static main.java.networktool_v3.gui.GuiTheme.*;
 
 /**
  * Netzwerk-Topologie-Karte.

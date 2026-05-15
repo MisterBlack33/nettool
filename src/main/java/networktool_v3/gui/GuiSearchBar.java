@@ -1,7 +1,7 @@
-package networktool_v3.gui;
+package main.java.networktool_v3.gui;
 
-import networktool_v3.model.HostResult;
-import networktool_v3.storage.NetworkStore;
+import main.java.networktool_v3.model.HostResult;
+import main.java.networktool_v3.storage.NetworkStore;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -10,7 +10,7 @@ import java.awt.event.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static networktool_v3.gui.GuiTheme.*;
+import static main.java.networktool_v3.gui.GuiTheme.*;
 
 /**
  * Schnellsuche über gespeicherte Hosts.

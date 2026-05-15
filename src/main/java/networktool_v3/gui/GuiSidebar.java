@@ -1,6 +1,7 @@
-package networktool_v3.gui;
+package main.java.networktool_v3.gui;
 
-import networktool_v3.security.UserAuth;
+import main.java.networktool_v3.security.UserAuth;
+import main.java.networktool_v3.security.AuditLogger;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -10,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static networktool_v3.gui.GuiTheme.*;
+import static main.java.networktool_v3.gui.GuiTheme.*;
 
 /**
  * Linke Seitenleiste als aufklappbares Accordion-Menü.
@@ -359,7 +360,7 @@ public final class GuiSidebar {
         m.add(pItem("↺  Neustart    Ctrl+R", new Color(0xFF, 0xD0, 0x50), onRestart));
         m.addSeparator();
         m.add(pItem("🚪  Abmelden", new Color(0x80, 0xC8, 0xFF), () -> {
-            networktool_v3.security.AuditLogger.getInstance()
+            AuditLogger.getInstance()
                     .log("LOGOUT", UserAuth.getInstance().getCurrentUser());
             UserAuth.getInstance().logout();
             onRestart.run();
@@ -378,7 +379,7 @@ public final class GuiSidebar {
                     "Beenden", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
             if (r != JOptionPane.YES_OPTION) return;
         }
-        networktool_v3.security.AuditLogger.getInstance()
+        AuditLogger.getInstance()
                 .log("APP_EXIT", UserAuth.getInstance().getCurrentUser());
         System.exit(0);
     }

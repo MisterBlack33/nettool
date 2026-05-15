@@ -1,27 +1,27 @@
-package networktool_v3.gui;
+package main.java.networktool_v3.gui;
 
-import networktool_v3.logic.analysis.IpInspector;
-import networktool_v3.logic.analysis.PingMonitor;
-import networktool_v3.logic.analysis.ArpMonitor;
-import networktool_v3.logic.messaging.MessageSender;
-import networktool_v3.logic.scan.*;
-import networktool_v3.logic.ports.PortScanner;
-import networktool_v3.model.ScanProfile;
-import networktool_v3.model.ScanResult;
-import networktool_v3.security.AuditLogger;
-import networktool_v3.storage.DataExportImport;
-import networktool_v3.storage.NetworkStore;
-import networktool_v3.storage.NotificationHistory;
-import networktool_v3.storage.ScanProfileStore;
-import networktool_v3.transfer.BandwidthTester;
-import networktool_v3.transfer.FileClient;
-import networktool_v3.transfer.FileServer;
+import main.java.networktool_v3.logic.analysis.IpInspector;
+import main.java.networktool_v3.logic.analysis.PingMonitor;
+import main.java.networktool_v3.logic.analysis.ArpMonitor;
+import main.java.networktool_v3.logic.messaging.MessageSender;
+import main.java.networktool_v3.logic.scan.*;
+import main.java.networktool_v3.logic.ports.PortScanner;
+import main.java.networktool_v3.model.ScanProfile;
+import main.java.networktool_v3.model.ScanResult;
+import main.java.networktool_v3.security.AuditLogger;
+import main.java.networktool_v3.storage.DataExportImport;
+import main.java.networktool_v3.storage.NetworkStore;
+import main.java.networktool_v3.storage.NotificationHistory;
+import main.java.networktool_v3.storage.ScanProfileStore;
+import main.java.networktool_v3.transfer.BandwidthTester;
+import main.java.networktool_v3.transfer.FileClient;
+import main.java.networktool_v3.transfer.FileServer;
 
 import javax.swing.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static networktool_v3.gui.GuiTheme.*;
+import static main.java.networktool_v3.gui.GuiTheme.*;
 
 /**
  * Verarbeitet Sidebar-Klicks und startet Aktionen asynchron.
@@ -53,9 +53,9 @@ public class GuiMenuHandler {
         AuditLogger.getInstance().log("MENU", num);
         switch (num) {
             case "01" -> input.ask("Netzwerkinfo starten? [Enter]",
-                    _ -> runAsync(() -> { AuditLogger.getInstance().log("SCAN_MINIMAL",""); networktool_v3.logic.scan.NetworkInfo.showMinimalInfo(); }));
+                    _ -> runAsync(() -> { AuditLogger.getInstance().log("SCAN_MINIMAL",""); main.java.networktool_v3.logic.scan.NetworkInfo.showMinimalInfo(); }));
             case "02" -> input.ask("Vollständige Info starten? [Enter]",
-                    _ -> runAsync(() -> { AuditLogger.getInstance().log("SCAN_FULL",""); networktool_v3.logic.scan.NetworkInfo.showFullInfo(); }));
+                    _ -> runAsync(() -> { AuditLogger.getInstance().log("SCAN_FULL",""); main.java.networktool_v3.logic.scan.NetworkInfo.showFullInfo(); }));
             case "03" -> handleDiagnose();
             case "04" -> input.ask("Port:", p -> runAsync(() -> {
                 AuditLogger.getInstance().log("FILE_SERVER","port="+p);
@@ -134,7 +134,7 @@ public class GuiMenuHandler {
                     final String ft = topic.trim();
                     if (!ft.isEmpty()) {
                         NetworkStore.getInstance().saveNtfyTopic(ft);
-                        networktool_v3.gui.notification.NotificationListener.subscribeNewTopic(ft);
+                        main.java.networktool_v3.gui.notification.NotificationListener.subscribeNewTopic(ft);
                     }
                     AuditLogger.getInstance().log("MSG_SEND", ip + " topic=" + ft);
                     runAsync(() -> MessageSender.send(ip, msg, ft));
@@ -241,12 +241,12 @@ public class GuiMenuHandler {
         status.set("Profil: " + profile.name, ACCENT);
         if (!profile.ports.isEmpty()) PortScanner.setActivePorts(profile.ports);
         if (profile.cidrs.isEmpty()) {
-            networktool_v3.logic.scan.NetworkInfo.showMinimalInfo();
+            main.java.networktool_v3.logic.scan.NetworkInfo.showMinimalInfo();
         } else {
             List<ScanResult> all = new ArrayList<>();
             for (String cidr : profile.cidrs) {
                 if (Thread.currentThread().isInterrupted()) break;
-                all.addAll(networktool_v3.logic.scan.NetworkScanner.scanCIDR(cidr));
+                all.addAll(main.java.networktool_v3.logic.scan.NetworkScanner.scanCIDR(cidr));
             }
             tables.showScanTable(all);
         }
@@ -265,17 +265,17 @@ public class GuiMenuHandler {
             input.ask("CIDR A (alt):", cidrA ->
                     input.ask("CIDR B (neu):", cidrB -> runAsync(() -> {
                         AuditLogger.getInstance().log("SCAN_DELTA", cidrA + " vs " + cidrB);
-                        List<ScanResult> before = networktool_v3.logic.scan.NetworkScanner.scanCIDR(cidrA);
-                        List<ScanResult> after  = networktool_v3.logic.scan.NetworkScanner.scanCIDR(cidrB);
+                        List<ScanResult> before = main.java.networktool_v3.logic.scan.NetworkScanner.scanCIDR(cidrA);
+                        List<ScanResult> after  = main.java.networktool_v3.logic.scan.NetworkScanner.scanCIDR(cidrB);
                         ScanDelta.compare(before, after, cidrA, cidrB);
                     })));
         } else {
             input.ask("CIDR:", cidr -> runAsync(() -> {
                 AuditLogger.getInstance().log("SCAN_DELTA_LIVE", cidr);
-                List<ScanResult> fresh = networktool_v3.logic.scan.NetworkScanner.scanCIDR(cidr);
-                List<networktool_v3.model.HostResult> saved = NetworkStore.getInstance().getAllHosts();
+                List<ScanResult> fresh = main.java.networktool_v3.logic.scan.NetworkScanner.scanCIDR(cidr);
+                List<main.java.networktool_v3.model.HostResult> saved = NetworkStore.getInstance().getAllHosts();
                 ScanDelta.compareHosts(saved, fresh.stream().map(r ->
-                                new networktool_v3.model.HostResult(r.getIp(),
+                                new main.java.networktool_v3.model.HostResult(r.getIp(),
                                         r.getHostname(), r.getOsGuess())).toList(),
                         "Gespeichert", "Aktuell");
             }));
@@ -371,8 +371,8 @@ public class GuiMenuHandler {
     // ── Sicherheits-Monitor ───────────────────────────────────────────────
 
     private void handleSecurityMonitor() {
-        networktool_v3.security.SecurityMonitor secMon =
-                networktool_v3.security.SecurityMonitor.getInstance();
+        main.java.networktool_v3.security.SecurityMonitor secMon =
+                main.java.networktool_v3.security.SecurityMonitor.getInstance();
         ArpMonitor       arpMon  = ArpMonitor.getInstance();
         PortChangeMonitor portMon = PortChangeMonitor.getInstance();
 

@@ -1,4 +1,4 @@
-package networktool_v3.gui;
+package main.java.networktool_v3.gui;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -7,7 +7,7 @@ import java.awt.event.*;
 import java.io.*;
 import java.util.*;
 
-import static networktool_v3.gui.GuiTheme.*;
+import static main.java.networktool_v3.gui.GuiTheme.*;
 
 /**
  * Privatsphäre & Tarnung Panel (Menü-ID "30").
