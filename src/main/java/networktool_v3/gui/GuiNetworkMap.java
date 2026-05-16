@@ -1,7 +1,9 @@
 package main.java.networktool_v3.gui;
 
 import main.java.networktool_v3.logic.scan.RemoteNetScanner;
+import main.java.networktool_v3.logic.scan.ScanHistory;
 import main.java.networktool_v3.model.HostResult;
+import main.java.networktool_v3.model.ScanResult;
 import main.java.networktool_v3.storage.NetworkStore;
 
 import javax.swing.*;
@@ -16,7 +18,7 @@ import static main.java.networktool_v3.gui.GuiTheme.*;
 
 /**
  * Netzwerk-Topologie-Karte.
- * Zeigt: eigenen Rechner (SELF), Gateway, alle gespeicherten Hosts.
+ * Zeigt: SELF, Gateway, gespeicherte Hosts UND zuletzt gescannte Hosts.
  * Doppelklick → Host-Details. Drag → verschieben. Scroll → Zoom.
  */
 public final class GuiNetworkMap {
@@ -34,46 +36,56 @@ public final class GuiNetworkMap {
         dlg.setResizable(true);
 
         Color bg = GuiTheme.isDark() ? new Color(0x06, 0x09, 0x07) : new Color(0xF2, 0xF0, 0xEC);
-
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(bg);
 
-        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 6));
-        toolbar.setBackground(GuiTheme.isDark() ? new Color(0x0A, 0x0E, 0x0B) : new Color(0xE4, 0xE2, 0xDC));
-        toolbar.setBorder(new MatteBorder(0, 0, 1, 0, BORDER));
+        MapCanvas canvas = new MapCanvas(bg);
 
-        JLabel title = new JLabel("  Netzwerk-Karte  –  "
-                + NetworkStore.getInstance().getAllHosts().size() + " Hosts");
-        title.setFont(new Font("JetBrains Mono", Font.BOLD, 12));
-        title.setForeground(ACCENT);
-        toolbar.add(title);
-
-        JButton refreshBtn = mapBtn("↻ Aktualisieren", ACCENT2);
-        JButton layoutBtn  = mapBtn("⊞ Layout",        INFO);
-        toolbar.add(refreshBtn);
-        toolbar.add(layoutBtn);
+        JPanel toolbar = buildToolbar(canvas, bg);
         root.add(toolbar, BorderLayout.NORTH);
 
-        MapCanvas canvas = new MapCanvas(bg);
         JScrollPane sp = new JScrollPane(canvas);
         sp.setBorder(null);
         sp.getViewport().setBackground(bg);
         root.add(sp, BorderLayout.CENTER);
 
-        refreshBtn.addActionListener(e -> canvas.reload());
-        layoutBtn.addActionListener(e -> { canvas.autoLayout(); canvas.repaint(); });
         sp.addMouseWheelListener(e -> canvas.zoom(e.getWheelRotation() < 0 ? 1.1 : 0.9));
 
         dlg.setContentPane(root);
         dlg.setVisible(true);
     }
 
+    private static JPanel buildToolbar(MapCanvas canvas, Color bg) {
+        Color barBg = GuiTheme.isDark() ? new Color(0x0A, 0x0E, 0x0B) : new Color(0xE4, 0xE2, 0xDC);
+        JPanel toolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 6));
+        toolbar.setBackground(barBg);
+        toolbar.setBorder(new MatteBorder(0, 0, 1, 0, BORDER));
+
+        JLabel title = new JLabel();
+        title.setFont(new Font("JetBrains Mono", Font.BOLD, 12));
+        title.setForeground(ACCENT);
+
+        Runnable updateTitle = () -> title.setText("  Netzwerk-Karte  –  " + canvas.nodeCount() + " Hosts");
+        updateTitle.run();
+
+        JButton refreshBtn = mapBtn("↻ Aktualisieren", ACCENT2);
+        JButton layoutBtn  = mapBtn("⊞ Layout",        INFO);
+        toolbar.add(title);
+        toolbar.add(refreshBtn);
+        toolbar.add(layoutBtn);
+
+        refreshBtn.addActionListener(e -> { canvas.reload(); updateTitle.run(); });
+        layoutBtn.addActionListener(e -> { canvas.autoLayout(); canvas.repaint(); });
+
+        return toolbar;
+    }
+
     // ── Canvas ────────────────────────────────────────────────────────────
 
     private static class MapCanvas extends JPanel {
         private final List<Node> nodes = new ArrayList<>();
-        private double scale    = 1.0;
-        private Node   dragging = null;
+        private double scale = 1.0;
+        private Node   dragging;
         private Point  dragOffset;
         private final Color bg;
 
@@ -85,36 +97,48 @@ public final class GuiNetworkMap {
             installMouse();
         }
 
+        int nodeCount() {
+            return (int) nodes.stream().filter(n -> n.type == NodeType.HOST).count();
+        }
+
         void reload() {
             nodes.clear();
+            Set<String> seen = new LinkedHashSet<>();
 
             // Gateway
             String gw = RemoteNetScanner.detectDefaultGateway();
-            if (gw != null) nodes.add(new Node(gw, "Gateway", "Router / Netzwerkgerät", NodeType.GATEWAY));
+            if (gw != null) {
+                nodes.add(new Node(gw, "Gateway", "Router / Netzwerkgerät", NodeType.GATEWAY));
+                seen.add(gw);
+            }
 
-            // Eigener Rechner (SELF)
+            // Eigener Rechner
             try {
                 InetAddress self = InetAddress.getLocalHost();
-                String selfIp   = self.getHostAddress();
-                String selfName = self.getHostName();
-                nodes.add(new Node(selfIp, selfName + " (ich)", getCurrentOs(), NodeType.SELF));
+                String selfIp = self.getHostAddress();
+                if (seen.add(selfIp))
+                    nodes.add(new Node(selfIp, self.getHostName() + " (ich)", currentOs(), NodeType.SELF));
             } catch (Exception ignored) {}
 
             // Gespeicherte Hosts
             for (HostResult h : NetworkStore.getInstance().getAllHosts()) {
-                String hn = h.hostname != null && h.hostname.contains(" [")
-                        ? h.hostname.substring(0, h.hostname.indexOf(" [")) : h.hostname;
-                nodes.add(new Node(h.ip, hn, h.os, NodeType.HOST));
+                if (seen.add(h.ip)) {
+                    String hn = cleanHostname(h.hostname);
+                    nodes.add(new Node(h.ip, hn, h.os, NodeType.HOST));
+                }
             }
+
+            // Zuletzt gescannte Hosts aus ScanHistory (alle Einträge)
+            for (ScanHistory.Entry entry : ScanHistory.getInstance().getAll()) {
+                for (ScanResult r : entry.results) {
+                    if (seen.add(r.getIp())) {
+                        nodes.add(new Node(r.getIp(), r.getHostname(), r.getOsGuess(), NodeType.HOST));
+                    }
+                }
+            }
+
             autoLayout();
             repaint();
-        }
-
-        private static String getCurrentOs() {
-            String os = System.getProperty("os.name", "").toLowerCase();
-            if (os.contains("win")) return "Windows";
-            if (os.contains("mac")) return "macOS";
-            return "Linux/Unix";
         }
 
         void autoLayout() {
@@ -124,17 +148,14 @@ public final class GuiNetworkMap {
             Node gw   = nodes.stream().filter(n -> n.type == NodeType.GATEWAY).findFirst().orElse(null);
             Node self = nodes.stream().filter(n -> n.type == NodeType.SELF).findFirst().orElse(null);
 
-            if (gw != null) { gw.x = cx;       gw.y = cy; }
-            if (self != null) {
-                // Eigener Rechner oben-links vom Gateway
-                self.x = cx - 120; self.y = cy - 120;
-            }
+            if (gw   != null) { gw.x   = cx;       gw.y   = cy; }
+            if (self != null) { self.x  = cx - 120; self.y = cy - 120; }
 
             List<Node> hosts = nodes.stream().filter(n -> n.type == NodeType.HOST).toList();
             int count = hosts.size();
             if (count == 0) return;
-            double step = 2 * Math.PI / Math.max(count, 1);
-            int radius = Math.min(cx, cy) - 80;
+            double step   = 2 * Math.PI / Math.max(count, 1);
+            int    radius = Math.min(cx, cy) - 80;
             for (int i = 0; i < count; i++) {
                 double angle = i * step - Math.PI / 2;
                 hosts.get(i).x = (int)(cx + radius * Math.cos(angle));
@@ -165,19 +186,16 @@ public final class GuiNetworkMap {
             Node gw   = nodes.stream().filter(n -> n.type == NodeType.GATEWAY).findFirst().orElse(null);
             Node self = nodes.stream().filter(n -> n.type == NodeType.SELF).findFirst().orElse(null);
 
-            // Verbindungslinien: alle Hosts → Gateway
-            g2.setStroke(new BasicStroke(1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
+            // Verbindungslinien: alle → Gateway
+            g2.setStroke(new BasicStroke(1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
                     1f, new float[]{4f, 4f}, 0f));
             g2.setColor(GuiTheme.isDark() ? new Color(0x30, 0x45, 0x30) : new Color(0xC0, 0xBC, 0xB4));
-            if (gw != null) {
-                for (Node n : nodes) {
-                    if (n == gw) continue;
-                    g2.drawLine(gw.x, gw.y, n.x, n.y);
-                }
-            }
-            // Self → Gateway (dicker)
+            if (gw != null)
+                for (Node n : nodes) { if (n != gw) g2.drawLine(gw.x, gw.y, n.x, n.y); }
+
+            // Self → Gateway dicker
             if (gw != null && self != null) {
-                g2.setStroke(new BasicStroke(2.0f));
+                g2.setStroke(new BasicStroke(2f));
                 g2.setColor(ACCENT2);
                 g2.drawLine(self.x, self.y, gw.x, gw.y);
             }
@@ -194,13 +212,11 @@ public final class GuiNetworkMap {
 
             g2.setColor(new Color(col.getRed(), col.getGreen(), col.getBlue(), 40));
             g2.fillOval(n.x-r-6, n.y-r-6, (r+6)*2, (r+6)*2);
-
             g2.setColor(GuiTheme.isDark() ? new Color(0x08, 0x0C, 0x08) : new Color(0xF4, 0xF2, 0xEE));
             g2.fillOval(n.x-r, n.y-r, r*2, r*2);
             g2.setColor(col);
             g2.drawOval(n.x-r, n.y-r, r*2, r*2);
 
-            // Icon
             String icon = switch (n.type) {
                 case GATEWAY -> "G";
                 case SELF    -> "★";
@@ -211,15 +227,13 @@ public final class GuiNetworkMap {
             g2.setColor(col);
             g2.drawString(icon, n.x - fm.stringWidth(icon)/2, n.y + fm.getAscent()/2 - 1);
 
-            // IP
             g2.setFont(new Font("JetBrains Mono", Font.PLAIN, 9));
             fm = g2.getFontMetrics();
             g2.setColor(GuiTheme.isDark() ? new Color(0xA0, 0x9C, 0x90) : new Color(0x40, 0x42, 0x3E));
             g2.drawString(n.ip, n.x - fm.stringWidth(n.ip)/2, n.y + r + 14);
 
-            // Hostname
             if (n.hostname != null && !n.hostname.equals(n.ip)) {
-                String hn = n.hostname.length() > 16 ? n.hostname.substring(0,15) + "…" : n.hostname;
+                String hn = n.hostname.length() > 16 ? n.hostname.substring(0, 15) + "…" : n.hostname;
                 g2.setFont(new Font("JetBrains Mono", Font.PLAIN, 8));
                 fm = g2.getFontMetrics();
                 g2.setColor(n.type == NodeType.SELF ? ACCENT2 : FG_DIM);
@@ -231,12 +245,12 @@ public final class GuiNetworkMap {
             int lx = 10, ly = h - 110;
             g2.setFont(new Font("JetBrains Mono", Font.PLAIN, 9));
             Object[][] legend = {
-                    {"★", "Ich (dieser PC)",   ACCENT2},
-                    {"G", "Gateway",            NET_COL},
-                    {"W", "Windows",            WIN_COL},
-                    {"L", "Linux",              LIN_COL},
-                    {"M", "macOS",              APL_COL},
-                    {"A", "Android",            AND_COL},
+                    {"★", "Ich (dieser PC)", ACCENT2},
+                    {"G", "Gateway",         NET_COL},
+                    {"W", "Windows",         WIN_COL},
+                    {"L", "Linux",           LIN_COL},
+                    {"M", "macOS",           APL_COL},
+                    {"A", "Android",         AND_COL},
             };
             for (int i = 0; i < legend.length; i++) {
                 g2.setColor((Color) legend[i][2]);
@@ -244,25 +258,6 @@ public final class GuiNetworkMap {
                 g2.setColor(GuiTheme.isDark() ? FG_DIM : new Color(0x50, 0x52, 0x4E));
                 g2.drawString((String) legend[i][1], lx + 15, ly + i*16 + 9);
             }
-        }
-
-        private static Color nodeColor(Node n) {
-            return switch (n.type) {
-                case SELF    -> ACCENT2;
-                case GATEWAY -> NET_COL;
-                default      -> osColor(n.os);
-            };
-        }
-
-        private static String osIcon(String os) {
-            if (os == null) return "?";
-            String l = os.toLowerCase();
-            if (l.contains("windows")) return "W";
-            if (l.contains("linux"))   return "L";
-            if (l.contains("mac") || l.contains("ios")) return "M";
-            if (l.contains("android")) return "A";
-            if (l.contains("router"))  return "R";
-            return "?";
         }
 
         private void installMouse() {
@@ -277,14 +272,13 @@ public final class GuiNetworkMap {
                 }
                 public void mouseReleased(MouseEvent e) { dragging = null; }
                 public void mouseClicked(MouseEvent e) {
-                    if (e.getClickCount() == 2) {
-                        Point sp = scale(e.getPoint());
-                        nodes.stream()
-                                .filter(n -> Math.hypot(n.x-sp.x, n.y-sp.y) < 28)
-                                .findFirst()
-                                .ifPresent(n -> HostDetailsPanel.show(n.ip, n.hostname, n.os,
-                                        NetworkStore.getInstance().findNetwork(n.ip)));
-                    }
+                    if (e.getClickCount() != 2) return;
+                    Point sp = scale(e.getPoint());
+                    nodes.stream()
+                            .filter(n -> Math.hypot(n.x-sp.x, n.y-sp.y) < 28)
+                            .findFirst()
+                            .ifPresent(n -> HostDetailsPanel.show(n.ip, n.hostname, n.os,
+                                    NetworkStore.getInstance().findNetwork(n.ip)));
                 }
             });
             addMouseMotionListener(new MouseMotionAdapter() {
@@ -297,10 +291,8 @@ public final class GuiNetworkMap {
                 }
                 public void mouseMoved(MouseEvent e) {
                     Point sp = scale(e.getPoint());
-                    boolean over = nodes.stream()
-                            .anyMatch(n -> Math.hypot(n.x-sp.x, n.y-sp.y) < 28);
-                    setCursor(over ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-                            : Cursor.getDefaultCursor());
+                    boolean over = nodes.stream().anyMatch(n -> Math.hypot(n.x-sp.x, n.y-sp.y) < 28);
+                    setCursor(over ? Cursor.getPredefinedCursor(Cursor.HAND_CURSOR) : Cursor.getDefaultCursor());
                 }
             });
         }
@@ -310,17 +302,39 @@ public final class GuiNetworkMap {
         }
     }
 
-    // ── Datenklassen ──────────────────────────────────────────────────────
+    // ── Hilfsmethoden ────────────────────────────────────────────────────
 
-    private enum NodeType { GATEWAY, SELF, HOST }
+    private static Color nodeColor(Node n) {
+        return switch (n.type) {
+            case SELF    -> ACCENT2;
+            case GATEWAY -> NET_COL;
+            default      -> osColor(n.os);
+        };
+    }
 
-    private static class Node {
-        String ip, hostname, os;
-        NodeType type;
-        int x, y;
-        Node(String ip, String hn, String os, NodeType t) {
-            this.ip = ip; this.hostname = hn; this.os = os; this.type = t;
-        }
+    private static String osIcon(String os) {
+        if (os == null) return "?";
+        String l = os.toLowerCase();
+        if (l.contains("windows")) return "W";
+        if (l.contains("linux"))   return "L";
+        if (l.contains("mac") || l.contains("ios")) return "M";
+        if (l.contains("android")) return "A";
+        if (l.contains("router") || l.contains("fritz")) return "R";
+        if (l.contains("drucker") || l.contains("printer")) return "P";
+        return "?";
+    }
+
+    private static String cleanHostname(String hostname) {
+        if (hostname == null) return "";
+        int idx = hostname.indexOf(" [");
+        return idx < 0 ? hostname : hostname.substring(0, idx).trim();
+    }
+
+    private static String currentOs() {
+        String os = System.getProperty("os.name", "").toLowerCase();
+        if (os.contains("win")) return "Windows";
+        if (os.contains("mac")) return "macOS";
+        return "Linux/Unix";
     }
 
     private static JButton mapBtn(String text, Color fg) {
@@ -332,5 +346,18 @@ public final class GuiNetworkMap {
         b.setFocusPainted(false);
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return b;
+    }
+
+    // ── Datenklassen ────────────────────────────────────────────────────
+
+    private enum NodeType { GATEWAY, SELF, HOST }
+
+    private static class Node {
+        String ip, hostname, os;
+        NodeType type;
+        int x, y;
+        Node(String ip, String hn, String os, NodeType t) {
+            this.ip = ip; this.hostname = hn; this.os = os; this.type = t;
+        }
     }
 }
