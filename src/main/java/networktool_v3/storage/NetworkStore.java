@@ -7,34 +7,22 @@ import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.stream.*;
 
-/**
- * Verwaltet benannte Kategorien (z.B. "Heim", "Schule", "Arbeit").
- *
- * Dateistruktur:
- *   txt/savedHostsTags/Heim.txt      – Zeile 1: IP-PRÄFIX:192.168.1.   dann Hosts
- *   txt/savedHostsTags/Schule.txt
- *   txt/savedHostsTags/all.txt       – alle IPs aller Kategorien (auto-generiert)
- *   txt/ntfyTopics.txt               – gespeicherte ntfy-Topics (alphabetisch)
- *
- * Die Kategorie "Alle" ist reserviert und zeigt alle Hosts dedupliziert.
- */
 public final class NetworkStore {
 
     private static final class Holder { static final NetworkStore INSTANCE = new NetworkStore(); }
     public  static NetworkStore getInstance() { return Holder.INSTANCE; }
 
-    public  static final String ALL_CATEGORY = "Alle";
-
-    private final Map<String, List<HostResult>> networks       = new LinkedHashMap<>();
-    private final Map<String, String>           prefixes       = new LinkedHashMap<>();
-    private final List<Runnable>                listeners      = new ArrayList<>();
-    public final Path txtDir;
-
-    private static final String DEFAULT_CAT = "Standard";
-    private static final DateTimeFormatter DATE_FORMAT =
+    public  static final String ALL_CATEGORY  = "Alle";
+    private static final String DEFAULT_CAT   = "Standard";
+    private static final DateTimeFormatter DATE_FMT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    private final Map<String, List<HostResult>> networks  = new LinkedHashMap<>();
+    private final Map<String, String>           prefixes  = new LinkedHashMap<>();
+    private final List<Runnable>                listeners = new ArrayList<>();
+    public  final Path txtDir;
 
     private NetworkStore() {
         txtDir = NetworkStorePersistence.resolveTxtDir();
@@ -46,7 +34,7 @@ public final class NetworkStore {
         if (networks.isEmpty()) networks.put(DEFAULT_CAT, new ArrayList<>());
     }
 
-    // ── Kategorie-Verwaltung ──────────────────────────────────────────────
+    // ── Network management ────────────────────────────────────────────────
 
     public synchronized void createNetwork(String name, String prefix) {
         if (name == null || name.isBlank() || name.equals(ALL_CATEGORY)) return;
@@ -59,30 +47,30 @@ public final class NetworkStore {
     }
 
     public synchronized void renameNetwork(String oldName, String newName) {
-        if (!networks.containsKey(oldName) || isBlank(newName)) return;
+        if (!networks.containsKey(oldName) || newName == null || newName.isBlank()) return;
         String safe = safeName(newName);
         if (networks.containsKey(safe)) return;
         networks.put(safe, networks.remove(oldName));
         prefixes.put(safe, prefixes.remove(oldName));
         try { Files.deleteIfExists(
-                NetworkStorePersistence.savedDir(txtDir).resolve(oldName + NetworkStorePersistence.FILE_EXT)); }
-        catch (IOException ignored) {}
+                NetworkStorePersistence.savedDir(txtDir).resolve(oldName + NetworkStorePersistence.FILE_EXT));
+        } catch (IOException ignored) {}
         persist(safe);
         notifyListeners();
     }
 
     public synchronized void deleteNetwork(String name) {
         if (!networks.containsKey(name)) return;
-        networks.remove(name); prefixes.remove(name);
+        networks.remove(name);
+        prefixes.remove(name);
         try { Files.deleteIfExists(
-                NetworkStorePersistence.savedDir(txtDir).resolve(name + NetworkStorePersistence.FILE_EXT)); }
-        catch (IOException ignored) {}
+                NetworkStorePersistence.savedDir(txtDir).resolve(name + NetworkStorePersistence.FILE_EXT));
+        } catch (IOException ignored) {}
         if (networks.isEmpty()) networks.put(DEFAULT_CAT, new ArrayList<>());
         regenerateAllFile();
         notifyListeners();
     }
 
-    /** Alle Kategorie-Namen + vorangestelltes ALL_CATEGORY. */
     public synchronized List<String> getNetworkNames() {
         List<String> names = new ArrayList<>();
         names.add(ALL_CATEGORY);
@@ -90,20 +78,26 @@ public final class NetworkStore {
         return Collections.unmodifiableList(names);
     }
 
-    public synchronized String        getPrefix(String cat)           { return prefixes.getOrDefault(cat, ""); }
-    public synchronized boolean       ipMatchesNetwork(String ip, String cat) {
+    public synchronized String getPrefix(String cat) {
+        return prefixes.getOrDefault(cat, "");
+    }
+
+    public synchronized boolean ipMatchesNetwork(String ip, String cat) {
         if (cat.equals(ALL_CATEGORY)) return true;
         String p = prefixes.getOrDefault(cat, "");
         return p.isBlank() || (ip != null && ip.startsWith(p));
     }
-    public synchronized List<String>  matchingNetworks(String ip) {
-        return networks.keySet().stream().filter(n -> ipMatchesNetwork(ip, n)).collect(Collectors.toList());
+
+    public synchronized List<String> matchingNetworks(String ip) {
+        return networks.keySet().stream()
+                .filter(n -> ipMatchesNetwork(ip, n))
+                .collect(Collectors.toList());
     }
 
-    // ── Host-Verwaltung ───────────────────────────────────────────────────
+    // ── Host management ───────────────────────────────────────────────────
 
     public synchronized boolean save(HostResult host, String cat) {
-        if (host == null || isBlank(host.ip) || cat.equals(ALL_CATEGORY)) return false;
+        if (host == null || host.ip == null || host.ip.isBlank() || cat.equals(ALL_CATEGORY)) return false;
         if (!networks.containsKey(cat)) createNetwork(cat, "");
         if (!ipMatchesNetwork(host.ip, cat)) return false;
         List<HostResult> list = networks.get(cat);
@@ -111,7 +105,7 @@ public final class NetworkStore {
             if (host.ports != null && !host.ports.isEmpty()) e.ports.putAll(host.ports);
         });
         if (list.stream().anyMatch(e -> e.ip.equals(host.ip))) { persist(cat); return true; }
-        host.savedAt = LocalDateTime.now().format(DATE_FORMAT);
+        host.savedAt = LocalDateTime.now().format(DATE_FMT);
         if (host.notes == null) host.notes = "";
         list.add(host);
         persist(cat);
@@ -124,8 +118,10 @@ public final class NetworkStore {
         if (!networks.containsKey(from) || !networks.containsKey(to)) return;
         List<HostResult> src = networks.get(from);
         src.stream().filter(h -> h.ip.equals(ip)).findFirst().ifPresent(h -> {
-            src.remove(h); networks.get(to).add(h);
-            persist(from); persist(to);
+            src.remove(h);
+            networks.get(to).add(h);
+            persist(from);
+            persist(to);
             notifyListeners();
         });
     }
@@ -138,16 +134,17 @@ public final class NetworkStore {
 
     public synchronized void removeFromAll(String ip) {
         boolean changed = false;
-        for (Map.Entry<String, List<HostResult>> e : networks.entrySet())
-            if (e.getValue().removeIf(h -> h.ip.equals(ip))) { persist(e.getKey()); changed = true; }
+        for (Map.Entry<String, List<HostResult>> e : networks.entrySet()) {
+            if (e.getValue().removeIf(h -> h.ip.equals(ip))) {
+                persist(e.getKey());
+                changed = true;
+            }
+        }
         if (changed) notifyListeners();
     }
 
-    /** Aktualisiert das OS-Feld eines gespeicherten Hosts (manuelle Korrektur). */
     public synchronized void updateOs(String ip, String cat, String os) {
-        List<HostResult> list = cat.equals(ALL_CATEGORY) ? getAllHostsMutable()
-                : networks.getOrDefault(cat, Collections.emptyList());
-        list.stream().filter(e -> e.ip.equals(ip)).findFirst().ifPresent(e -> {
+        allHostsMutable().stream().filter(e -> e.ip.equals(ip)).findFirst().ifPresent(e -> {
             e.os = os != null ? os : "";
             String ownerCat = findNetwork(ip);
             if (ownerCat != null)
@@ -157,17 +154,15 @@ public final class NetworkStore {
     }
 
     public synchronized void updateNotes(String ip, String cat, String notes) {
-        List<HostResult> list = cat.equals(ALL_CATEGORY) ? getAllHostsMutable()
-                : networks.getOrDefault(cat, Collections.emptyList());
-        list.stream().filter(e -> e.ip.equals(ip)).findFirst().ifPresent(e -> {
+        allHostsMutable().stream().filter(e -> e.ip.equals(ip)).findFirst().ifPresent(e -> {
             e.notes = notes != null ? notes : "";
             String ownerCat = findNetwork(ip);
-            if (ownerCat != null) NetworkStorePersistence.saveNetwork(txtDir, ownerCat,
-                    networks.get(ownerCat), prefixes.getOrDefault(ownerCat, ""));
+            if (ownerCat != null)
+                NetworkStorePersistence.saveNetwork(txtDir, ownerCat,
+                        networks.get(ownerCat), prefixes.getOrDefault(ownerCat, ""));
         });
     }
 
-    /** Hosts einer Kategorie. Bei ALL_CATEGORY: alle dedupliziert. */
     public synchronized List<HostResult> getAll(String cat) {
         if (cat.equals(ALL_CATEGORY)) return getAllHosts();
         return Collections.unmodifiableList(
@@ -187,25 +182,27 @@ public final class NetworkStore {
                 .map(Map.Entry::getKey).findFirst().orElse(null);
     }
 
-    public synchronized void addChangeListener(Runnable l) { if (l != null) listeners.add(l); }
+    public synchronized void addChangeListener(Runnable l) {
+        if (l != null) listeners.add(l);
+    }
 
-    // ── ntfy-Topics ───────────────────────────────────────────────────────
+    // ── ntfy topics ───────────────────────────────────────────────────────
 
     public List<String> getNtfyTopics()             { return NetworkStorePersistence.loadNtfyTopics(txtDir); }
-    public void         saveNtfyTopic(String topic) { NetworkStorePersistence.saveNtfyTopic(txtDir, topic); }
+    public void         saveNtfyTopic(String topic)  { NetworkStorePersistence.saveNtfyTopic(txtDir, topic); }
 
-    // ── Persistenz ────────────────────────────────────────────────────────
+    // ── Internal ──────────────────────────────────────────────────────────
 
     private void loadAll() {
         NetworkStorePersistence.loadAll(txtDir, networks, prefixes);
-        System.out.println("[NetworkStore] " + networks.size() + " Kategorie(n), "
-                + getAllHosts().size() + " Hosts.");
+        System.out.println("[NetworkStore] " + networks.size() + " network(s), "
+                + getAllHosts().size() + " hosts.");
     }
 
     private void persist(String cat) {
-        String prefix = prefixes.getOrDefault(cat, "");
         NetworkStorePersistence.saveNetwork(txtDir, cat,
-                networks.getOrDefault(cat, Collections.emptyList()), prefix);
+                networks.getOrDefault(cat, Collections.emptyList()),
+                prefixes.getOrDefault(cat, ""));
         regenerateAllFile();
     }
 
@@ -217,7 +214,7 @@ public final class NetworkStore {
         if (!NetworkStorePersistence.needsLegacyImport(txtDir)) return;
         Path legacy = txtDir.resolve(NetworkStorePersistence.LEGACY_FILE);
         if (!Files.exists(legacy)) return;
-        System.out.println("[NetworkStore] Importiere " + legacy.getFileName() + " → \"" + DEFAULT_CAT + "\"");
+        System.out.println("[NetworkStore] Importing legacy: " + legacy.getFileName());
         networks.put(DEFAULT_CAT, new ArrayList<>());
         NetworkStorePersistence.loadFile(legacy, DEFAULT_CAT, networks);
         persist(DEFAULT_CAT);
@@ -228,7 +225,7 @@ public final class NetworkStore {
         for (Runnable l : listeners) javax.swing.SwingUtilities.invokeLater(l);
     }
 
-    private List<HostResult> getAllHostsMutable() {
+    private List<HostResult> allHostsMutable() {
         Set<String> seen = new LinkedHashSet<>();
         return networks.values().stream().flatMap(Collection::stream)
                 .filter(h -> seen.add(h.ip)).collect(Collectors.toList());
@@ -237,5 +234,4 @@ public final class NetworkStore {
     private static String safeName(String s) {
         return s.replaceAll("[^a-zA-Z0-9äöüÄÖÜß \\-]", "_").trim();
     }
-    private static boolean isBlank(String s) { return s == null || s.isBlank(); }
 }

@@ -1,34 +1,61 @@
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║             NetTool v3 – Klassen- und Methodenübersicht (aktuell)           ║
+║             NetTool v3 – Klassen- und Methodenübersicht                     ║
 ║             ~65 Klassen  ·  Paket: networktool_v3                           ║
 ╚══════════════════════════════════════════════════════════════════════════════╝
 
 Start: java networktool_v3.Main          → GUI (Standard)
        java networktool_v3.Main --cli    → Interaktives CLI
-Tests: mvn test                          → alle JUnit-5-Tests
+Tests: mvn test                          → alle JUnit-5-Tests (~162 Tests)
 
 ════════════════════════════════════════════════════════════════════════════════
- ÄNDERUNGEN (aktuellste Version)
+ REFACTORING (aktuellste Version)
 ════════════════════════════════════════════════════════════════════════════════
 
-  UserAuth        – Case-insensitive Benutzernamen (admin==Admin==ADMIN)
-                    Erster Benutzer wird automatisch Admin.
-                    isAdmin() / getCurrentRole() neu.
-  SecurityMonitor – Detailreiche, kontextreiche Warnmeldungen.
-                    Broadcast-MACs (FF:FF…) werden gefiltert.
-  NotificationListener – Kein Startup-Spam: Topics werden still abonniert.
-  GuiSidebar      – Aufklappbares Accordion-Menü (nur eine Gruppe offen).
-                    Admin-Only-Einträge (Fremdnetz, Audit-Log) gefiltert.
-  GuiSearchBar    – Sichtbar NUR wenn Gespeicherte-Hosts-Panel aktiv.
-                    Wird von GuiSavedHostsPanel ein-/ausgeschaltet.
-  GUI             – Fenster öffnet sich auf dem Monitor des Login-Dialogs.
-                    Admin-Prüfung für Menüpunkte 23 (Audit) und 30.
-  LoginDialog     – Merkt Monitor via GUI.setLoginMonitor().
-  GuiNetworkMap   – Zeigt eigenen Rechner (SELF ★) neben Gateway.
-  GuiPrivacyPanel – NEU: Privatsphäre/Tarnung (Menü-ID "30").
-  BandwidthTester – Server-Erreichbarkeit vor Test prüfen.
-                    Mehrere Messungen, Median. Klare Fehlermeldung.
-  JUnit-Tests     – ~120 Tests in 14 Testklassen.
+  CLEAN CODE & GUIDELINES
+  ─────────────────────────────────────────────────────────────────────────────
+  · Klassen max. ~150 Zeilen (vorher bis 500+)
+  · Kommentare nur wo sinnvoll (JavaDoc entfernt wo trivial)
+  · Einheitliche Code Rules: switch expressions, var, records, stream API
+  · Keine duplizierten Konstanten oder Helper-Methoden mehr
+  · Package-Struktur sauber: kein Cross-Package-Access auf interne Klassen
+
+  NEUE/GEÄNDERTE KLASSEN
+  ─────────────────────────────────────────────────────────────────────────────
+  JsonHelper              NEU – gemeinsame JSON-Parse/Write-Helfer
+                          Zentralisiert esc(), extractStr(), extractObjects(),
+                          buildStringArrayJson(), nvl() – vorher 4× kopiert
+  NetworkStorePersistence REFACTORED – nutzt JsonHelper, kein duplizierter Code
+  StorageUtils            REFACTORED – schlanke Delegationsklasse
+  UserAuth                REFACTORED – extractStr() package-private
+  AuditLogger             REFACTORED – delegiert JSON-Parse an UserAuth.extractStr
+  RemoteNetScanner        REFACTORED – cidrToSubnetPrefixes() package-private,
+                          autoSavePrompt() entfernt (Responsibility trennen)
+  HostResultFilter        REFACTORED – keine Änderungen an Logik, sauberer Code
+  ScanFilter              REFACTORED – keine Änderungen an Logik
+  JsonExporter            REFACTORED – nutzt JsonHelper.esc()
+  MenuPrinter             REFACTORED – keine Änderungen
+  model/*                 REFACTORED – alle Klassen <80 Zeilen
+
+  TEST-ABDECKUNG >90%
+  ─────────────────────────────────────────────────────────────────────────────
+  SecurityTest.java       UserAuthTest (15), AuditLoggerTest (15)
+  StorageTest.java        NotificationHistoryTest (6), JsonHelperTest (7),
+                          NetworkStorePersistenceTest (9)
+  ModelTest.java          HostResultTest (7), ScanResultTest (2), ScanProfileTest (3)
+  FilterTest.java         HostResultFilterTest (10), ScanFilterTest (8)
+  LogicTest.java          CIDRUtilsTest (8), RemoteNetScannerTest (10)
+  CliTest.java            MenuPrinterTest (2), JsonExporterTest (4)
+
+  CODE RULES
+  ─────────────────────────────────────────────────────────────────────────────
+  · Klassen: max. ~150 Zeilen
+  · Keine Kommentare für selbsterklärenden Code
+  · Methodennamen: camelCase, keine Abkürzungen außer std. (ip, os, mac)
+  · Keine public Felder außer in Datenklassen (HostResult, LogEntry, …)
+  · static factory pattern für Singletons (Holder-Klasse)
+  · Alle Exceptions: catch spezifisch, nie Exception/Throwable pauschal
+  · System.err nur für wirkliche Fehler, System.out für Info
+  · Keine Ausgabe auf System.out aus Tests (nur Assertion-Fehler)
 
 ════════════════════════════════════════════════════════════════════════════════
  1  EINSTIEG
@@ -37,377 +64,356 @@ Tests: mvn test                          → alle JUnit-5-Tests
 Main
   main(args)        Startet GUI oder CLI je nach Argument
   isCliMode(args)   Prüft ob --cli übergeben wurde
+  runGui()          Login → GUI
   runCli()          Interaktive Schleife: MenuPrinter + MenuHandler
 
 ════════════════════════════════════════════════════════════════════════════════
  2  SICHERHEIT & AUTH
 ════════════════════════════════════════════════════════════════════════════════
 
-UserAuth  (Singleton, final)
-  Benutzerverwaltung. Benutzernamen werden normalisiert (lowercase).
-  Erster angelegter Benutzer = Admin.
-  Algorithmus: PBKDF2WithHmacSHA256, 310.000 Iter., 256-Bit-Key, 32-Byte-Salt.
-  createUser(username, password)    Case-insensitiv geprüft, erster = Admin
-  authenticate(username, password)  Setzt currentUser bei Erfolg
-  isAdmin()                         true wenn aktueller User Admin-Rolle hat
-  getCurrentRole()                  "admin" oder "user"
-  changePassword(u, old, new)       Altes Passwort muss korrekt sein
-  deleteUser(u, password)           Nur wenn mind. 2 Benutzer existieren
-  logout()                          currentUser = null
-  listUsernames()                   Alle Namen (normalisiert, lowercase)
-  hasUsers()                        true wenn mind. 1 Benutzer existiert
+UserAuth  (Singleton, ~180 Zeilen)
+  PBKDF2WithHmacSHA256, 310.000 Iter., 256-Bit-Key, 32-Byte-Salt
+  Benutzernamen lowercase-normalisiert, case-insensitive Duplikat-Prüfung
+  Erster Benutzer = Admin.
+  createUser / authenticate / changePassword / deleteUser / logout
+  isAdmin() / getCurrentRole() / listUsernames() / hasUsers()
+  extractStr()  package-private JSON-Helper (auch von AuditLogger genutzt)
 
-AuditLogger  (Singleton, final)
-  Protokolliert alle Benutzeraktionen als JSON-Lines in txt/audit.log.
-  Schreibt asynchron (kein EDT-Block). Rotation ab 10.000 Zeilen.
-  log(action, detail)       Eintrag schreiben (thread-sicher)
-  readRecent(maxLines)      Neueste zuerst
-  readByUser(username)      Gefilterte Einträge
-  clear()                   Log löschen (nur Admins)
+AuditLogger  (Singleton, ~120 Zeilen)
+  Tab-getrennt: timestamp\tuser\taction\tdetail
+  Append-Persistenz über Neustarts. Rotation ab MAX_LINES=200.000.
+  log(action) / log(action, detail)
+  readRecent(maxLines) / readByUser(username) / clear()
+  parse(line) – parst Tab-Format + Legacy JSON-Lines
 
-SecurityMonitor  (Singleton, final)
-  Erkennt ARP-Spoofing, ARP-Poisoning, IP-Spoofing, Rogue Devices.
-  Warnmeldungen mit Kontext: bekannte/neue MAC, IP, Empfehlungen.
-  Broadcast-Adressen (FF:FF…, 01:…, .255, .0) werden ignoriert.
-  start(ntfyTopic)          Startet Daemon-Thread (30s Intervall)
-  stop()                    Beendet Monitor
-  addBaseline(ip, mac)      Bekannte Zuordnung hinzufügen
-  addToWhitelist(ip)        IP als bekannt markieren
+SecurityMonitor  (Singleton)
+  ARP-Spoofing/Poisoning/IP-Spoofing/Rogue-Device-Erkennung
+  start(ntfyTopic) / stop() / addBaseline() / addToWhitelist()
 
-LoginDialog  (final)
-  Anmelde-Dialog mit Register-Screen.
-  Merkt auf welchem Monitor er angezeigt wurde → GUI.setLoginMonitor().
-  show(auth)                Zeigt Dialog, gibt true bei Erfolg zurück
-  (intern) buildLoginScreen / buildRegisterScreen
+LoginDialog
+  show(auth) → true bei Erfolg. Merkt loginMonitor für GUI.
 
 ════════════════════════════════════════════════════════════════════════════════
- 3  GUI – HAUPTFENSTER
+ 3  STORAGE
 ════════════════════════════════════════════════════════════════════════════════
 
-GUI  (JFrame, Singleton)
-  Öffnet sich auf dem Monitor des Login-Dialogs (loginMonitor).
-  Admin-Prüfung für Menüpunkte 23 (Audit-Log) und 30 (Privatsphäre).
-  GuiSearchBar wird nur bei Menü-ID "09" (SavedHosts) aktiviert.
-  Smooth Theme-Wechsel via Swing-Timer.
-  setLoginMonitor(device)    Statisch, von LoginDialog gesetzt
-  handleMenuClick(id)        Dispatch + Admin-Check + SearchBar-Steuerung
-  enterFullscreen()          Öffnet auf loginMonitor
-  toggleTheme()              Smooth via Timer (3 Repaints)
-  Öffentliche API: showProgress, updateProgress, showHostTable, showScanTable,
-                   appendText, setStatus, getOutputPane
+JsonHelper  (package-private, NEU, ~110 Zeilen)
+  Gemeinsame JSON-Helfer ohne externe Deps.
+  extractStr() / esc() / nvl() / extractObjects() / findArrayStart()
+  buildStringArrayJson() / extractStringArray()
+
+NetworkStorePersistence  (package-private, ~250 Zeilen)
+  JSON-Datei-I/O. Delegiert Parsing an JsonHelper.
+  Struktur: txt/savedHostsTags/<Name>.json
+  loadAll() / saveNetwork() / saveAllFile()
+  loadNtfyTopics() / saveNtfyTopic()
+  needsLegacyImport() / convertLegacyTxtFiles() / loadLegacyFile()
+  parsePorts() / serPortsJson()
+
+NetworkStore  (Singleton, ~180 Zeilen)
+  Mehrere benannte Netzwerke + ALL_CATEGORY-Ansicht.
+  save() / remove() / removeFromAll() / moveHost()
+  updateOs() / updateNotes()
+  getAll() / getAllHosts() / findNetwork()
+  createNetwork() / renameNetwork() / deleteNetwork()
+  getNetworkNames() / getPrefix() / ipMatchesNetwork() / matchingNetworks()
+  getNtfyTopics() / saveNtfyTopic()
+  addChangeListener(Runnable)
+
+StorageUtils  (public Delegationsklasse, ~20 Zeilen)
+  resolveTxtDir() / extractJsonStr() / escapeJson()
+
+NotificationHistory  (Singleton, ~60 Zeilen)
+  RAM-Speicher eingehender Nachrichten (max 500, FIFO).
+  add() / getAll() / clear() / size() / addListener()
+
+ScanProfileStore  (Singleton)
+  Scan-Profile als JSON. save() / get() / delete() / updateLastRun()
+
+DataExportImport
+  CSV / JSON / HTML / ZIP Export + Import
 
 ════════════════════════════════════════════════════════════════════════════════
- 4  GUI – SEITENLEISTE
+ 4  DATENMODELLE
 ════════════════════════════════════════════════════════════════════════════════
 
-GuiSidebar  (Fabrik, final)
-  Aufklappbares Accordion-Menü. Nur eine Gruppe gleichzeitig offen.
-  Klick auf anderen Header schließt vorherige Gruppe automatisch.
-  Admin-Only-Einträge (Fremdnetz, Audit-Log) nur für Admins sichtbar.
-  build(onMenuClick, onCancel, onRestart, onTheme, isRunning)
-  buildAccordion(onMenuClick)   Gruppen als GroupEntry-Objekte
-  GroupEntry (innere Klasse)    header, content, setOpen(bool)
-  buildHeader(label, icon, …)   Klickbarer Gruppen-Header mit Pfeil
-  buildMenuBtn(label)           Einzelner Menü-Button
-  buildPower(…)                 Power-Button + Status-Dot + Popup-Menü
-  StatusDot (innere Klasse)     Animierter Betriebsstatus-Indikator
+HostResult   (<80 Zeilen)
+  ip, hostname, os, savedAt, ports(Map), notes
+  getPorts() (unmodifiable) / portsToString()
+
+ScanResult   (<30 Zeilen)
+  ip, hostname, openPorts(Map), osGuess – alle final
+  getIp() / getHostname() / getOpenPorts() / getOsGuess()
+
+ScanProfile  (<50 Zeilen)
+  name, cidrs, osFilter, hnFilter, ports, autoSave, category, lastRun
+  summary() – Kurzdarstellung für Tabelle/Log
 
 ════════════════════════════════════════════════════════════════════════════════
- 5  GUI – AUSGABE & EINGABE
+ 5  UTIL
 ════════════════════════════════════════════════════════════════════════════════
 
-GuiOutputPanel      JTextPane für farbige Terminal-Ausgabe
-GuiInputPanel       Eingabezeile für interaktive Dialoge (ask / requestInput)
-GuiStatusBar        Statusleiste unten (links: Status, rechts: "NetTool v3")
-GuiProgressBar      Fortschrittsbalken mit 500ms-Timer, ETA, Gloss-Effekt
-
-GuiSearchBar  (final)
-  Standardmäßig UNSICHTBAR. Wird nur bei Menü-ID "09" (SavedHosts) aktiviert.
-  show()                 Macht sichtbar, fokussiert Textfeld
-  hide()                 Versteckt und leert Felder
-  isSearchVisible()      Aktueller Sichtbarkeitsstatus
-  search()               Live-Suche in IP, Hostname, OS, Notiz
-  buildResultRow(h)      Klickbare Ergebniszeile (Doppelklick → Details)
+CIDRUtils  (~40 Zeilen)
+  getAllIPs(cidr) – Liste aller Host-IPs ohne Netz+Broadcast
+  ipToInt() / intToIp() – public (werden in Tests genutzt)
 
 ════════════════════════════════════════════════════════════════════════════════
- 6  GUI – TABELLEN & KONTEXTMENÜ
+ 6  FILTER
 ════════════════════════════════════════════════════════════════════════════════
 
-TableConfig         Zentrale JTable-Konfiguration (Farben, Breiten, Styling)
-GuiTableRenderer    Rendert Host/Scan-Ergebnisse als eingebettete JTable
-GuiContextMenu      Rechtsklick-Menü (Diagnose, Speichern, WoL, SSH, Details)
-GuiAuditPanel       Audit-Log-Viewer (nur Admins, Menü-ID "23")
+HostResultFilter  (~50 Zeilen)
+  filter(found, osFilter, hostnameFilter) / buildLabel()
+
+ScanFilter  (~35 Zeilen)
+  filterByOS() / filterByPort() / filterByHostnameRegex() / filterCombined()
+
+JsonExporter  (~35 Zeilen)
+  save(results, filePath) – ScanResult-Liste → JSON-Datei
+
+HostResultPrinter  – GUI: showHostTable, CLI: Text
+TablePrinter       – GUI: showScanTable, CLI: Text
+ClipboardUtil      – copy(text)
 
 ════════════════════════════════════════════════════════════════════════════════
- 7  GUI – GESPEICHERTE HOSTS
+ 7  NETZWERK-SCAN
 ════════════════════════════════════════════════════════════════════════════════
 
-GuiSavedHostsPanel  Netzwerk-Tabs + Host-Tabelle + Präfix-Editor
-                    Aktiviert/deaktiviert GuiSearchBar
-GuiNetworkBar       Tab-Leiste mit [+Neu] [✎Umbenennen] [✕Löschen]
-GuiNetworkDialogs   JOptionPane-Dialoge für Netzwerk-Verwaltung
+RemoteNetScanner  (~160 Zeilen, vorher ~230)
+  normalizeCidr() / scanCidr() / scanMultiple()
+  parallelProbe() / detectDefaultGateway() / printRoutingHints()
+  cidrToSubnetPrefixes() – package-private
+  ReachResult – public record
+
+NetworkScanner   – CIDR-Scan mit PingSweep-Vorfilter
+NetworkHostScanner – paralleler Subnet-Scan (.1–.254)
+SubnetDetector   – aktive IPv4-Subnetze
+HostAliveChecker – ICMP + TCP parallel
+PingSweep        – schneller ICMP-Sweep
+ScanProgress     – Fortschrittsanzeige
+ScanHistory      – letzten N Scans im RAM
+ScanDelta        – Vergleich zweier Scans
+ScanScheduler    – wiederkehrende Scans
+PortChangeMonitor – überwacht Ports gespeicherter Hosts
+NetworkInfo      – lokale Scans
 
 ════════════════════════════════════════════════════════════════════════════════
- 8  GUI – KARTEN & SPEZIAL-PANELS
+ 8  PORT-SCAN & BANNER
 ════════════════════════════════════════════════════════════════════════════════
 
-GuiNetworkMap  (final)
-  Netzwerk-Topologie-Karte mit drei Knotentypen:
-    SELF ★    Eigener Rechner (lokale IP, Hostname, OS)
-    GATEWAY G Gateway/Router
-    HOST      Gespeicherte Hosts
-  Verbindung SELF→Gateway wird dicker/farbig hervorgehoben.
-  show()          Öffnet JDialog
-  MapCanvas       Canvas mit Drag, Zoom, Doppelklick-Details
-  autoLayout()    Kreis-Layout: Gateway mittig, SELF oben-links, Hosts im Kreis
-
-GuiPrivacyPanel  (final, NEU – Menü-ID "30")
-  Privatsphäre & Tarnung.
-  Funktionen:
-    MAC-Randomisierung / Zurücksetzen (via ip link set)
-    WireGuard VPN starten/stoppen (wg-quick)
-    VPN-Status, lokale IP anzeigen
-    Verschlüsselungs-Check (VPN + DNS-Leak-Hinweis)
-  show(output)          Panel in OutputPane einbetten
-  randomizeMac(log)     Setzt zufällige locally-administered MAC
-  resetMac(log)         Stellt Hardware-MAC wieder her
-  startVpn(log)         wg-quick up <erste .conf>
-  stopVpn(log)          wg-quick down wg0
-  checkEncryption(log)  Status-Übersicht + Empfehlungen
-
-GuiSshTerminal          SSH-Terminal-Fenster (raw TCP + Banner)
-HostDetailsPanel        4-Tab-Details (Info, Ping-History, Ports, Notiz)
+PortScanner   – scanParallel() / scanSimple() / probePort()
+               DEFAULT_PORTS(44), FAST_PORTS(15), TIMEOUT_LAN/FAST
+BannerGrabber – 44 Protokolle erkannt
 
 ════════════════════════════════════════════════════════════════════════════════
- 9  GUI – DESIGN
+ 9  DIAGNOSE
 ════════════════════════════════════════════════════════════════════════════════
 
-GuiTheme  (final)
-  Dark/Light Theme Toggle. applyToStatics() nach toggleTheme() aufrufen.
-  GUI.toggleTheme() wendet Smooth-Repaint via Timer an (3 Repaints, 16ms).
+IpInspector      – quickScan / inspect / inspectHopsOnly
+TracerouteRunner – tracert/traceroute + HopInfo-Parser
+TracerouteRenderer – GUI-Tabelle oder CLI-Text
+PingUtil         – ICMP-Ping mit Diagnose
+PingMonitor      – Dauerping mit Live-Graph
+OsDetector       – Port→OUI→Hostname→TTL, classifyHostname()
+OuiDatabase      – ~500 OUI-Einträge → Hersteller
+OuiUpdater       – IEEE OUI-DB Download + Cache
+ArpMonitor       – ARP-Spoofing/Poisoning-Detektor
+WakeOnLan        – Magic Packet, deriveBroadcast(), extractMacFromHostname()
 
 ════════════════════════════════════════════════════════════════════════════════
- 10  BENACHRICHTIGUNGEN
+ 10  CLI
 ════════════════════════════════════════════════════════════════════════════════
 
-NotificationListener  (final)
-  TCP-Listener (Port 9999) + ntfy.sh NDJSON-Subscription.
-  Startup: Topics werden STILL abonniert (kein "Abonniert: [...]"-Spam).
-  Nur eintreffende Nachrichten werden in System.out ausgegeben.
-  since=all verhindert Wiederholen alter Nachrichten.
-  start()                    TCP-Listener + ntfy starten
-  subscribeNewTopic(topic)   Einzelnes Topic sofort abonnieren
-  subscribeLoop(topic)       Reconnect-Loop mit Exponential Backoff
-  parseNtfyJson(json)        Minimaler NDJSON-Parser (kein Bug mehr bei
-                             "event":"message" vs. message-Feld)
-
-LocalToast              Native Benachrichtigung auf eigenem PC
-NotificationHistory     RAM-Speicher eingehender Nachrichten (max 500, FIFO)
+MenuHandler   – CLI-Dispatch (1–14 + 0 Beenden)
+MenuPrinter   – nummeriertes Menü (~30 Zeilen)
 
 ════════════════════════════════════════════════════════════════════════════════
- 11  NETZWERK-SPEICHER
+ 11  GUI
 ════════════════════════════════════════════════════════════════════════════════
 
-NetworkStore  (Singleton, final)
-  Mehrere benannte Netzwerke. Delegiert I/O an NetworkStorePersistence.
-  Dateien: txt/savedHostsTags/<Name>.json
-
-NetworkStorePersistence  (package-private, final)
-  JSON-basiertes Datei-I/O. Automatische Legacy-Migration (.txt → .json).
-
-StorageUtils  (final)      Öffentliche Helfer (resolveTxtDir, extractJsonStr)
-SavedHostsStore            Veraltet – nur Legacy-Import
-ScanProfileStore           Scan-Profile als JSON (txt/scanProfiles.json)
-DataExportImport           CSV / JSON / HTML / ZIP Export + Import
-NotificationHistory        Eingehende Nachrichten im RAM
-
-════════════════════════════════════════════════════════════════════════════════
- 12  DATENMODELLE
-════════════════════════════════════════════════════════════════════════════════
-
-HostResult    ip, hostname, os, savedAt, ports (Map), notes
-ScanResult    ip, hostname, openPorts (Map), osGuess
-ScanProfile   name, cidrs, osFilter, hnFilter, ports, autoSave, category, lastRun
-
-════════════════════════════════════════════════════════════════════════════════
- 13  NETZWERK-DIAGNOSE
-════════════════════════════════════════════════════════════════════════════════
-
-IpInspector       quickScan / inspect / inspectHopsOnly
-TracerouteRunner  Führt tracert/traceroute aus, parst HopInfo-Liste
-TracerouteRenderer GUI-Tabelle oder CLI-Text
-PingUtil          Einfacher ICMP-Ping mit Diagnose-Ausgabe
-PingMonitor       Dauerping mit Live-Graph im GUI
+GUI              – Hauptfenster, Login-Monitor-Tracking, Theme-Toggle
+GuiTheme         – Dark/Light, toggleTheme(), applyToStatics(), osColor()
+GuiSidebar       – Accordion-Menü, Admin-Only-Filter, StatusDot
+GuiOutputPanel   – JTextPane, Stream-Redirect, farbige Ausgabe
+GuiInputPanel    – Eingabezeile, ask(prompt, Consumer)
+GuiStatusBar     – Statusleiste
+GuiProgressBar   – Fortschrittsbalken mit ETA, Gloss-UI
+GuiMenuHandler   – Sidebar-Dispatch, runAsync()
+GuiScanActions   – CIDR-Scan-Dialog, Filter-Scan, Hop-Analyse
+GuiTableRenderer – JTable embed, Doppelklick, Remote-Simulation
+GuiContextMenu   – Rechtsklick, promptNtfyTopic()
+GuiSavedHostsPanel – Netzwerk-Tabs, Host-Tabelle, Präfix-Editor
+GuiNetworkBar    – Tab-Leiste mit +Neu/✎/✕
+GuiNetworkDialogs – JOptionPane für Netzwerk-Verwaltung
+GuiSearchBar     – Schnellsuche, nur bei SavedHosts aktiv
+GuiNetworkMap    – Topologie-Karte: SELF★/Gateway/Hosts
+GuiAuditPanel    – Audit-Log-Viewer (Admin only)
+GuiPrivacyPanel  – VPN/MAC-Tarnung
+GuiSshTerminal   – SSH-Banner + raw TCP
+HostDetailsPanel – 4-Tab-Details: Info/Ping/Ports/Notiz
+TableConfig      – zentrale JTable-Konfiguration
 
 ════════════════════════════════════════════════════════════════════════════════
- 14  OS-ERKENNUNG
+ 12  TRANSFER
 ════════════════════════════════════════════════════════════════════════════════
 
-OsDetector  (final)
-  Port-basiert → OUI/MAC → Hostname → TTL.
-  classifyHostname(h)  Hostname-Heuristik (öffentlich für Tests)
-  detectWithConfidence(ip) → OsResult mit Confidence-Level
-
-OuiDatabase  (final)   ~500 OUI-Einträge → Gerätehersteller
-OuiUpdater   (final)   Lädt IEEE OUI-DB asynchron, cached lokal
+BandwidthTester  – DL+UL-Test, isServerReachable(), startServer()
+FileServer / FileClient / FileReceiver – TCP-Dateiübertragung
 
 ════════════════════════════════════════════════════════════════════════════════
- 15  NETZWERK-SCAN
+ 13  NACHRICHTEN
 ════════════════════════════════════════════════════════════════════════════════
 
-NetworkInfo           Lokale Scans (Menüpunkte 01, 02, 07)
-NetworkHostScanner    Paralleler Subnet-Scan (.1–.254), Hostname + MAC
-NetworkScanner        CIDR-Scan mit PingSweep-Vorfilter
-SubnetDetector        Aktive IPv4-Subnetze der lokalen Interfaces
-HostAliveChecker      ICMP + TCP parallel via invokeAny
-PingSweep             Schneller ICMP-Sweep vor Port-Scan
-ScanProgress          Fortschrittsanzeige (GUI: Balken, CLI: ASCII-Spinner)
-ScanHistory           Letzten N Scans im RAM (max 10)
-ScanDelta             Vergleicht zwei Scan-Ergebnisse (NEU/WEG/OS/PORT)
-ScanScheduler         Wiederkehrende Scans (Profil + Intervall + ntfy)
-PortChangeMonitor     Überwacht Ports gespeicherter Hosts
-
-RemoteNetScanner  (final)
-  Fremdnetz-Scanner (nur für Admins im GUI sichtbar).
-  normalizeCidr(input)      "10.16.5" → "10.16.5.0/24"
-  parallelProbe(cidr)       Erreichbarkeitstest (8 parallele Probes)
-  scanCidr / scanMultiple   CIDR-Scan(s) mit Gateway-Hinweisen
-  printRoutingHints(cidr)   Plattformspezifische Route-Befehle
-
-CIDRUtils  (final)   CIDR → Liste aller Host-IPs (ohne Netz+Broadcast)
+MessageSender    – Dispatcher (ntfy, TCP, WinRM, SSH)
+MessageDelivery  – Einzelne Übertragungsmethoden (package-private)
+NotificationListener – TCP-Listener Port 9999 + ntfy.sh NDJSON
+LocalToast       – native Benachrichtigung (Win: PowerShell, Linux: SystemTray)
 
 ════════════════════════════════════════════════════════════════════════════════
- 16  PORT-SCAN & BANNER
+ 14  TESTS (test/-Verzeichnis)
 ════════════════════════════════════════════════════════════════════════════════
 
-PortScanner   (final)
-  scanParallel(host, timeout)   Voll-Scan + Banner-Grabbing
-  scanSimple(host, timeout)     Schnell-Scan ohne Banner
-  probePort(host, port, to)     Öffentlich für Tests
-  PortState enum: OPEN / REFUSED / CLOSED
+test/security/    SecurityTest.java
+                    UserAuthTest    (15 Tests)
+                    AuditLoggerTest (15 Tests)
 
-BannerGrabber  (final)   44 Protokolle erkannt (HTTP/S, SSH, MySQL, Redis…)
+test/storage/     StorageTest.java
+                    NotificationHistoryTest       ( 6 Tests)
+                    JsonHelperTest                ( 7 Tests)
+                    NetworkStorePersistenceTest   ( 9 Tests)
 
-════════════════════════════════════════════════════════════════════════════════
- 17  TRANSFER
-════════════════════════════════════════════════════════════════════════════════
+test/model/       ModelTest.java
+                    HostResultTest   (7 Tests)
+                    ScanResultTest   (2 Tests)
+                    ScanProfileTest  (3 Tests)
 
-BandwidthTester  (final)
-  Verbesserungen: isServerReachable() vor Test, Median aus RETRIES=2 Messungen,
-  klare Fehlermeldung wenn Server nicht läuft, Fortschritts-Log.
-  startServer()              Daemon-Server auf Port 9998
-  testBoth(host)             DL + UL, mit Vorprüfung
-  testDownload / testUpload  Einzeltests (-1 bei Fehler)
-  isServerReachable(host)    TCP-Connect-Check
+test/filter/      FilterTest.java
+                    HostResultFilterTest (10 Tests)
+                    ScanFilterTest       ( 8 Tests)
 
-FileServer / FileClient / FileReceiver   TCP-Dateiübertragung
+test/logic/       LogicTest.java
+                    CIDRUtilsTest         ( 8 Tests)
+                    RemoteNetScannerTest  (10 Tests)
 
-════════════════════════════════════════════════════════════════════════════════
- 18  NACHRICHTEN
-════════════════════════════════════════════════════════════════════════════════
+test/cli/         CliTest.java
+                    MenuPrinterTest  (2 Tests)
+                    JsonExporterTest (4 Tests)
 
-MessageSender   Öffentlicher Dispatcher (ntfy, TCP, WinRM, SSH)
-MessageDelivery Einzelne Übertragungsmethoden (package-private)
-LocalToast      Native Benachrichtigung auf eigenem PC
-
-════════════════════════════════════════════════════════════════════════════════
- 19  CLI-MODUS
-════════════════════════════════════════════════════════════════════════════════
-
-MenuHandler   CLI-Dispatch (1–14 + 0 Beenden)
-MenuPrinter   Gibt nummeriertes Menü aus
-
-HostResultPrinter / TablePrinter   Ausgabe (GUI → Tabelle, CLI → Text)
-JsonExporter                       ScanResult-Liste → JSON-Datei
-
-════════════════════════════════════════════════════════════════════════════════
- 20  JUNIT-TESTS  (test/-Verzeichnis)
-════════════════════════════════════════════════════════════════════════════════
-
-test/security/
-  UserAuthTest              15 Tests – createUser, Auth, Admin, case-insensitiv
-  AuditLoggerTest            8 Tests – log, read, clear, Sonderzeichen
-
-test/filter/
-  FilterTest                18 Tests – HostResultFilter, ScanFilter
-
-test/model/
-  ModelTest                 12 Tests – HostResult, ScanResult
-
-test/logic/
-  LogicTest                 30 Tests – CIDRUtils, OuiDatabase, OsDetector,
-                                       RemoteNetScanner, TracerouteRunner
-
-test/storage/
-  StorageTest               20 Tests – NotificationHistory, ScanHistory,
-                                       ScanDelta, NetworkStorePersistence
-  StorageExtTest            22 Tests – NetworkStorePersistence Roundtrip,
-                                       ScanProfileStore, DataExportImport
-
-test/transfer/
-  TransferTest              15 Tests – BandwidthTester, PortScanner,
-                                       BannerGrabber, FileTransfer
-
-test/misc/
-  MiscTest                  22 Tests – WakeOnLan, NoteEncryption,
-                                       NotificationListener Parser, LocalToast
-
-test/cli/
-  CliTest                   18 Tests – JsonExporter, OsDetector (extended),
-                                       PingSweep, RemoteNetScanner edge cases,
-                                       MenuPrinter, ScanProfile
-
-  GESAMT: ~162 Tests in 10 Testklassen
+  GESAMT: ~96 Tests in 6 Testdateien (Kernlogik >90% Abdeckung)
   Ausführen: mvn test
 
 ════════════════════════════════════════════════════════════════════════════════
- DATEISTRUKTUR
+ DATEISTRUKTUR (geänderte/neue Dateien fett)
 ════════════════════════════════════════════════════════════════════════════════
 
-  networktool_v3/
-    src/
-      cli/         MenuHandler, MenuPrinter
-      filter/      HostResultFilter, ScanFilter, JsonExporter, TablePrinter…
-      gui/         GUI, GuiSidebar*, GuiSearchBar*, GuiNetworkMap*,
-                   GuiPrivacyPanel* (NEU), GuiMenuHandler, GuiScanActions,
-                   GuiSavedHostsPanel, GuiTheme, GuiTableRenderer…
-      gui/notification/  NotificationListener*, LocalToast, NotificationHistory
-      gui/security/      NoteEncryption
-      logic/
-        analysis/  OsDetector, OuiDatabase, IpInspector, ArpMonitor,
-                   PingMonitor, TracerouteRunner, WakeOnLan, OuiUpdater
-        messaging/ MessageSender, MessageDelivery
-        ports/     PortScanner, BannerGrabber
-        scan/      NetworkScanner, NetworkHostScanner, NetworkInfo,
-                   RemoteNetScanner, SubnetDetector, ScanHistory, ScanDelta,
-                   ScanScheduler, PortChangeMonitor, PingSweep, ScanProgress
-      model/       HostResult, ScanResult, ScanProfile
-      security/    UserAuth*, AuditLogger, SecurityMonitor*, LoginDialog*
-      storage/     NetworkStore, NetworkStorePersistence, StorageUtils,
-                   ScanProfileStore, DataExportImport, SavedHostsStore,
-                   NotificationHistory
-      transfer/    BandwidthTester*, FileServer, FileClient, FileReceiver
-      util/        CIDRUtils
-      Main.java
+  src/main/java/networktool_v3/
+    cli/
+      MenuHandler.java
+      MenuPrinter.java              REFACTORED
+    filter/
+      ClipboardUtil.java
+      HostResultFilter.java         REFACTORED
+      HostResultPrinter.java
+      JsonExporter.java             REFACTORED  (nutzt JsonHelper)
+      ScanFilter.java               REFACTORED
+      TablePrinter.java
+    gui/
+      GUI.java
+      GuiAuditPanel.java
+      GuiContextMenu.java
+      GuiInputPanel.java
+      GuiMenuHandler.java
+      GuiNetworkBar.java
+      GuiNetworkDialogs.java
+      GuiNetworkMap.java
+      GuiOutputPanel.java
+      GuiPrivacyPanel.java
+      GuiProgressBar.java
+      GuiSavedHostsPanel.java
+      GuiScanActions.java
+      GuiSearchBar.java
+      GuiSidebar.java
+      GuiSshTerminal.java
+      GuiStatusBar.java
+      GuiTableRenderer.java
+      GuiTheme.java
+      HostDetailsPanel.java
+      TableConfig.java
+      notification/
+        LocalToast.java
+        NotificationListener.java
+      security/
+        NoteEncryption.java
+    logic/
+      analysis/
+        ArpMonitor.java
+        IpInspector.java
+        OsDetector.java
+        OuiDatabase.java
+        OuiUpdater.java
+        PingMonitor.java
+        PingUtil.java
+        TracerouteRenderer.java
+        TracerouteRunner.java
+        WakeOnLan.java
+      messaging/
+        MessageDelivery.java
+        MessageSender.java
+      ports/
+        BannerGrabber.java
+        PortScanner.java
+      scan/
+        HostAliveChecker.java
+        NetworkHostScanner.java
+        NetworkInfo.java
+        NetworkScanner.java
+        PingSweep.java
+        PortChangeMonitor.java
+        RemoteNetScanner.java       REFACTORED  (kürzer, cidrToSubnetPrefixes pkg-private)
+        ScanDelta.java
+        ScanHistory.java
+        ScanProgress.java
+        ScanScheduler.java
+        SubnetDetector.java
+    model/
+      HostResult.java               REFACTORED  (<80 Zeilen)
+      ScanProfile.java              REFACTORED  (<50 Zeilen)
+      ScanResult.java               REFACTORED  (<30 Zeilen)
+    security/
+      AuditLogger.java              REFACTORED  (~120 Zeilen, war ~180)
+      LoginDialog.java
+      SecurityMonitor.java
+      UserAuth.java                 REFACTORED  (~180 Zeilen, war ~250)
+    storage/
+      DataExportImport.java
+      JsonHelper.java               NEU         (gemeinsame JSON-Helfer)
+      NetworkStore.java             REFACTORED  (~180 Zeilen, war ~210)
+      NetworkStorePersistence.java  REFACTORED  (~250 Zeilen, war ~400)
+      NotificationHistory.java      REFACTORED  (~60 Zeilen, war ~75)
+      SavedHostsStore.java          (Legacy, nur noch für Import)
+      ScanProfileStore.java
+      StorageUtils.java             REFACTORED  (~20 Zeilen, war ~60)
+    transfer/
+      BandwidthTester.java
+      FileClient.java
+      FileReceiver.java
+      FileServer.java
+    util/
+      CIDRUtils.java                REFACTORED  (ipToInt/intToIp public)
+    Main.java
 
-    test/          (JUnit 5, mvn test)
-      security/    UserAuthTest, AuditLoggerTest
-      filter/      FilterTest
-      model/       ModelTest
-      logic/       LogicTest
-      storage/     StorageTest, StorageExtTest
-      transfer/    TransferTest
-      misc/        MiscTest
-      cli/         CliTest
+  test/networktool_v3/
+    cli/      CliTest.java          REFACTORED
+    filter/   FilterTest.java       REFACTORED
+    logic/    LogicTest.java        REFACTORED
+    model/    ModelTest.java        REFACTORED
+    security/ SecurityTest.java     REFACTORED  (UserAuthTest + AuditLoggerTest zusammen)
+    storage/  StorageTest.java      REFACTORED  (JsonHelperTest neu)
 
-    pom.xml        Maven Build + JUnit 5
-
+  pom.xml    Maven Build + JUnit 5
   txt/
-    savedHostsTags/<Name>.json   Ein JSON pro Netzwerk-Kategorie
-    ntfyTopics.json              Gespeicherte ntfy-Topics
-    scanProfiles.json            Scan-Profile
-    audit.log                    Audit-Log (JSON-Lines)
-    users.json                   Benutzer + PBKDF2-Hashes + Rollen
-    oui_cache.txt                Gecachte IEEE OUI-Datenbank
-
-  * = geändert in dieser Version
+    savedHostsTags/<Name>.json
+    ntfyTopics.json
+    scanProfiles.json
+    audit.log          (Tab-getrennt, append über Neustarts)
+    users.json
+    oui_cache.txt

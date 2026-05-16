@@ -1,15 +1,12 @@
 package main.java.networktool_v3.cli;
 
-/**
- * Gibt das CLI-Hauptmenü aus.
- */
 public final class MenuPrinter {
 
     private MenuPrinter() {}
 
     private static final String[][] MENU_ITEMS = {
             {"1",  "Minimale Netzwerkinfo"},
-            {"2",  "Vollstaendige Netzwerkinfo"},
+            {"2",  "Vollständige Netzwerkinfo"},
             {"3",  "Diagnose & Analyse  (Schnell / Voll)"},
             {"4",  "File-Server starten"},
             {"5",  "Datei senden"},

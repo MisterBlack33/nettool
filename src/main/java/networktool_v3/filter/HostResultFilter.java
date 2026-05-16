@@ -5,17 +5,10 @@ import main.java.networktool_v3.model.HostResult;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Filtert eine Liste von {@link HostResult}s nach OS und/oder Hostname.
- */
 public final class HostResultFilter {
 
     private HostResultFilter() {}
 
-    /**
-     * Filtert nach OS-Typ und Hostname-Fragment.
-     * Ein leerer oder "alle"-Filter wird ignoriert.
-     */
     public static List<HostResult> filter(List<HostResult> found,
                                           String osFilter,
                                           String hostnameFilter) {
@@ -24,14 +17,13 @@ public final class HostResultFilter {
 
         List<HostResult> result = new ArrayList<>();
         for (HostResult r : found) {
-            boolean osMatch       = !filterOs   || r.os.toLowerCase().contains(osFilter.toLowerCase());
-            boolean hostnameMatch = !filterHost || matchesHostname(r, hostnameFilter);
-            if (osMatch && hostnameMatch) result.add(r);
+            boolean osMatch   = !filterOs   || r.os.toLowerCase().contains(osFilter.toLowerCase());
+            boolean hostMatch = !filterHost || matchesHostname(r, hostnameFilter);
+            if (osMatch && hostMatch) result.add(r);
         }
         return result;
     }
 
-    /** Erstellt ein beschreibendes Label für die verwendeten Filter. */
     public static String buildLabel(String osFilter, String hostnameFilter) {
         if (!isActive(osFilter) && !isActive(hostnameFilter)) return "Alle Geräte";
         List<String> parts = new ArrayList<>();

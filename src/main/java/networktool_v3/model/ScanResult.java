@@ -2,16 +2,12 @@ package main.java.networktool_v3.model;
 
 import java.util.Map;
 
-/**
- * Ergebnis eines CIDR-Scans für einen einzelnen Host.
- * Enthält IP, Hostname, OS-Vermutung und offene Ports.
- */
 public final class ScanResult {
 
-    private final String              ip;
-    private final String              hostname;
+    private final String ip;
+    private final String hostname;
     private final Map<Integer, String> openPorts;
-    private final String              osGuess;
+    private final String osGuess;
 
     public ScanResult(String ip, String hostname, Map<Integer, String> openPorts, String osGuess) {
         this.ip        = ip;
@@ -20,8 +16,8 @@ public final class ScanResult {
         this.osGuess   = osGuess;
     }
 
-    public String              getIp()        { return ip; }
-    public String              getHostname()  { return hostname; }
+    public String               getIp()        { return ip; }
+    public String               getHostname()  { return hostname; }
     public Map<Integer, String> getOpenPorts() { return openPorts; }
-    public String              getOsGuess()   { return osGuess; }
+    public String               getOsGuess()   { return osGuess; }
 }

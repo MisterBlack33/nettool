@@ -4,27 +4,15 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
-/**
- * Repräsentiert einen gefundenen oder gespeicherten Netzwerk-Host.
- *
- * Felder:
- *   ip        – IPv4-Adresse
- *   hostname  – Hostname oder IP falls kein DNS
- *   os        – erkanntes Betriebssystem
- *   savedAt   – Speicherzeitpunkt (gesetzt von SavedHostsStore)
- *   ports     – offene Ports → Banner-Text
- *   notes     – freie Notiz (editierbar in der Gespeicherte-Hosts-Tabelle)
- */
 public class HostResult {
 
-    public String              ip;
-    public String              hostname;
-    public String              os;
-    public String              savedAt;
+    public String ip;
+    public String hostname;
+    public String os;
+    public String savedAt;
     public Map<Integer, String> ports;
-    public String              notes;
+    public String notes;
 
-    /** Vollständiger Konstruktor. */
     public HostResult(String ip, String hostname, String os, String savedAt,
                       Map<Integer, String> ports, String notes) {
         this.ip       = ip;
@@ -53,7 +41,6 @@ public class HostResult {
     }
 
     public String portsToString() {
-        if (ports == null || ports.isEmpty()) return "";
-        return ports.keySet().toString();
+        return (ports == null || ports.isEmpty()) ? "" : ports.keySet().toString();
     }
 }
