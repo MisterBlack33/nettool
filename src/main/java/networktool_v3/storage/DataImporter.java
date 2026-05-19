@@ -4,19 +4,21 @@ import main.java.networktool_v3.model.HostResult;
 
 import java.io.*;
 import java.nio.file.*;
-import java.util.List;
+import java.util.zip.*;
 
+/**
+ * Import von Hosts aus CSV / JSON / ZIP-Backup.
+ */
 public final class DataImporter {
 
     private DataImporter() {}
 
     public static int importCsv(Path file) throws IOException {
-        List<String> lines = Files.readAllLines(file);
         int count = 0;
-        for (String line : lines) {
+        for (String line : Files.readAllLines(file)) {
             if (line.isBlank() || line.startsWith("IP;")) continue;
             String[] p = line.split(";", 7);
-            if (p.length < 1) continue;
+            if (p.length < 1 || p[0].isBlank()) continue;
             String ip    = p[0].trim();
             String hn    = p.length > 1 ? p[1].trim() : ip;
             String os    = p.length > 2 ? p[2].trim() : "";
@@ -24,9 +26,7 @@ public final class DataImporter {
             String notes = p.length > 5 ? p[5].trim() : "";
             String cat   = p.length > 6 ? p[6].trim() : "Import";
             if (ip.isBlank()) continue;
-            if (NetworkStore.getInstance().save(
-                    new HostResult(ip, hn, os, date, null, notes),
-                    ensureNetwork(cat))) count++;
+            if (saveHost(ip, hn, os, date, notes, cat)) count++;
         }
         return count;
     }
@@ -42,11 +42,7 @@ public final class DataImporter {
             String notes = extractJsonStr(obj, "notes");
             String cat   = extractJsonStr(obj, "category");
             if (ip == null || ip.isBlank()) continue;
-            if (cat == null || cat.isBlank()) cat = "Import";
-            if (NetworkStore.getInstance().save(
-                    new HostResult(ip, hn != null ? hn : ip, os != null ? os : "",
-                            date, null, notes != null ? notes : ""),
-                    ensureNetwork(cat))) count++;
+            if (saveHost(ip, nvl(hn, ip), nvl(os, ""), date, nvl(notes, ""), nvl(cat, "Import"))) count++;
         }
         return count;
     }
@@ -54,12 +50,11 @@ public final class DataImporter {
     public static int restoreBackup(Path zipFile) throws IOException {
         Path targetDir = NetworkStorePersistence.resolveTxtDir();
         int[] count = {0};
-        try (java.util.zip.ZipInputStream zis = new java.util.zip.ZipInputStream(
-                new FileInputStream(zipFile.toFile()))) {
-            java.util.zip.ZipEntry entry;
+        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile.toFile()))) {
+            ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 Path dest = targetDir.resolve(entry.getName()).normalize();
-                if (!dest.startsWith(targetDir)) continue;
+                if (!dest.startsWith(targetDir)) continue; // Zip-Slip-Schutz
                 Files.createDirectories(dest.getParent());
                 Files.copy(zis, dest, StandardCopyOption.REPLACE_EXISTING);
                 count[0]++;
@@ -68,12 +63,14 @@ public final class DataImporter {
         return count[0];
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────
+    // ── Hilfsmethoden ────────────────────────────────────────────────────
 
-    private static String ensureNetwork(String cat) {
-        if (!NetworkStore.getInstance().getNetworkNames().contains(cat))
-            NetworkStore.getInstance().createNetwork(cat, "");
-        return cat;
+    private static boolean saveHost(String ip, String hn, String os,
+                                    String date, String notes, String cat) {
+        NetworkStore store = NetworkStore.getInstance();
+        if (!store.getNetworkNames().contains(cat))
+            store.createNetwork(cat, "");
+        return store.save(new HostResult(ip, hn, os, date, null, notes), cat);
     }
 
     private static String extractJsonStr(String json, String field) {
@@ -93,5 +90,9 @@ public final class DataImporter {
             else sb.append(c);
         }
         return sb.toString();
+    }
+
+    private static String nvl(String s, String fb) {
+        return (s == null || s.isBlank()) ? fb : s;
     }
 }

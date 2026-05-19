@@ -1,6 +1,7 @@
 package main.java.networktool_v3.security;
 
 import main.java.networktool_v3.gui.GUI;
+import main.java.networktool_v3.gui.GuiLoginRateLimiter;
 import main.java.networktool_v3.gui.GuiTheme;
 
 import javax.swing.*;
@@ -11,8 +12,7 @@ import java.util.List;
 
 /**
  * Anmelde-Dialog – erscheint beim Programmstart.
- * Merkt sich auf welchem Monitor er angezeigt wurde
- * → GUI.setLoginMonitor() → Hauptfenster öffnet sich dort.
+ * Integriert GuiLoginRateLimiter (max. 5 Versuche, 30s Sperre).
  */
 public final class LoginDialog extends JDialog {
 
@@ -30,24 +30,17 @@ public final class LoginDialog extends JDialog {
         });
     }
 
-    // ── Öffentliche Fabrik-Methode ────────────────────────────────────────
-
     public static boolean show(UserAuth auth) {
+        GuiLoginRateLimiter.reset();
         LoginDialog dlg = new LoginDialog();
-        if (!auth.hasUsers()) {
-            dlg.buildRegisterScreen(auth, true);
-        } else {
-            dlg.buildLoginScreen(auth);
-        }
+        if (!auth.hasUsers()) dlg.buildRegisterScreen(auth, true);
+        else                  dlg.buildLoginScreen(auth);
         dlg.pack();
         dlg.setMinimumSize(new Dimension(440, dlg.getHeight()));
         dlg.setLocationRelativeTo(null);
         dlg.setVisible(true);
-
-        // Monitor merken auf dem der Dialog angezeigt wurde
         GraphicsConfiguration gc = dlg.getGraphicsConfiguration();
         if (gc != null) GUI.setLoginMonitor(gc.getDevice());
-
         return dlg.authenticated;
     }
 
@@ -65,7 +58,7 @@ public final class LoginDialog extends JDialog {
         GridBagConstraints gc = defaultGc();
 
         List<String> users = auth.listUsernames();
-        Component    userComp;
+        Component userComp;
         JComboBox<String> userBox   = null;
         JTextField        userField = null;
 
@@ -81,21 +74,20 @@ public final class LoginDialog extends JDialog {
 
         JPasswordField pwField  = pwField(260);
         JLabel         errLabel = errLbl();
+        JButton        loginBtn = mainBtn("Anmelden");
 
         addFormRow(form, gc, 0, "Benutzername", userComp);
         addFormRow(form, gc, 1, "Passwort",     pwField);
         addSpan   (form, gc, 2, errLabel);
         root.add(form, BorderLayout.CENTER);
 
-        JPanel footer = bg(new BorderLayout(0, 0));
+        JPanel footer = bg(new BorderLayout());
         footer.setBorder(new EmptyBorder(0, 40, 24, 40));
         JButton newAccBtn = linkBtn("+ Neues Konto anlegen");
         newAccBtn.addActionListener(e -> { buildRegisterScreen(auth, false); repack(); });
         footer.add(newAccBtn, BorderLayout.WEST);
-
         JPanel btns = bg(new FlowLayout(FlowLayout.RIGHT, 8, 0));
-        JButton quitBtn  = secondBtn("Beenden");
-        JButton loginBtn = mainBtn("Anmelden");
+        JButton quitBtn = secondBtn("Beenden");
         btns.add(quitBtn); btns.add(loginBtn);
         footer.add(btns, BorderLayout.EAST);
         root.add(footer, BorderLayout.SOUTH);
@@ -104,20 +96,36 @@ public final class LoginDialog extends JDialog {
         final JComboBox<String> finalBox   = userBox;
         final JTextField        finalField = userField;
 
+        // Rate-Limit: Sperre prüfen und Timer starten falls aktiv
+        updateLoginButtonState(loginBtn, errLabel);
+
         Runnable doLogin = () -> {
-            String u = finalBox  != null ? (String) finalBox.getSelectedItem()
-                    :  finalField != null ? finalField.getText().trim() : "";
+            if (GuiLoginRateLimiter.isLocked()) {
+                errLabel.setText("Gesperrt – noch " + GuiLoginRateLimiter.remainingSeconds() + "s");
+                return;
+            }
+            String u = finalBox != null ? (String) finalBox.getSelectedItem()
+                    : finalField != null ? finalField.getText().trim() : "";
             String p = new String(pwField.getPassword());
             if (u == null || u.isBlank()) { shake(errLabel, "Benutzername fehlt."); return; }
             if (auth.authenticate(u, p)) {
+                GuiLoginRateLimiter.recordSuccess();
                 AuditLogger.getInstance().log("LOGIN", u);
-                authenticated = true; dispose();
+                authenticated = true;
+                dispose();
             } else {
-                shake(errLabel, "Falsches Passwort.");
+                boolean locked = GuiLoginRateLimiter.recordFailure();
+                AuditLogger.getInstance().log("LOGIN_FAILED", u);
                 pwField.setText("");
                 pwField.requestFocus();
-                loginBtn.setEnabled(false);
-                oneshot(1500, ev -> loginBtn.setEnabled(true));
+                if (locked) {
+                    errLabel.setText("Zu viele Versuche – " + GuiLoginRateLimiter.remainingSeconds() + "s gesperrt.");
+                    loginBtn.setEnabled(false);
+                    startLockoutTimer(loginBtn, errLabel);
+                } else {
+                    int rem = GuiLoginRateLimiter.MAX_ATTEMPTS - GuiLoginRateLimiter.getAttempts();
+                    shake(errLabel, "Falsches Passwort. (" + rem + " Versuch(e) verbleibend)");
+                }
             }
         };
 
@@ -128,6 +136,30 @@ public final class LoginDialog extends JDialog {
                 (users.size() == 1 ? pwField : userComp).requestFocus());
     }
 
+    /** Aktualisiert Button-Zustand beim Öffnen (falls Sperre noch aktiv). */
+    private void updateLoginButtonState(JButton loginBtn, JLabel errLabel) {
+        if (GuiLoginRateLimiter.isLocked()) {
+            loginBtn.setEnabled(false);
+            errLabel.setText("Gesperrt – noch " + GuiLoginRateLimiter.remainingSeconds() + "s");
+            startLockoutTimer(loginBtn, errLabel);
+        }
+    }
+
+    /** Tickt jede Sekunde, entsperrt wenn Zeit abgelaufen. */
+    private void startLockoutTimer(JButton loginBtn, JLabel errLabel) {
+        Timer t = new Timer(1000, null);
+        t.addActionListener(e -> {
+            if (!GuiLoginRateLimiter.isLocked()) {
+                t.stop();
+                loginBtn.setEnabled(true);
+                errLabel.setText(" ");
+            } else {
+                errLabel.setText("Gesperrt – noch " + GuiLoginRateLimiter.remainingSeconds() + "s");
+            }
+        });
+        t.start();
+    }
+
     // ── Registrieren ──────────────────────────────────────────────────────
 
     private void buildRegisterScreen(UserAuth auth, boolean isFirst) {
@@ -136,8 +168,8 @@ public final class LoginDialog extends JDialog {
 
         JPanel root = bg(new BorderLayout());
         root.add(buildHeader("Konto erstellen",
-                isFirst ? "Lege deinen ersten Account an."
-                        : "Neuen Benutzer anlegen."), BorderLayout.NORTH);
+                        isFirst ? "Lege deinen ersten Account an." : "Neuen Benutzer anlegen."),
+                BorderLayout.NORTH);
 
         JPanel form = bg(new GridBagLayout());
         form.setBorder(new EmptyBorder(28, 40, 12, 40));
@@ -162,10 +194,9 @@ public final class LoginDialog extends JDialog {
             if (pw.matches(".*[0-9].*"))        s++;
             if (pw.matches(".*[^A-Za-z0-9].*")) s++;
             strength.setValue(s);
-            strength.setForeground(
-                    s <= 1 ? GuiTheme.WARN :
-                    s == 2 ? new Color(0xFF,0xA0,0x30) :
-                    s == 3 ? GuiTheme.ACCENT : GuiTheme.ACCENT2);
+            strength.setForeground(s <= 1 ? GuiTheme.WARN
+                    : s == 2 ? new Color(0xFF,0xA0,0x30)
+                    : s == 3 ? GuiTheme.ACCENT : GuiTheme.ACCENT2);
         }));
 
         addFormRow(form, gc, 0, "Benutzername",    userField);
@@ -196,19 +227,16 @@ public final class LoginDialog extends JDialog {
             String u  = userField.getText().trim();
             String p1 = new String(pw1.getPassword());
             String p2 = new String(pw2.getPassword());
-            if (u.length() < 3)     { shake(errLabel, "Benutzername mind. 3 Zeichen."); return; }
-            if (u.contains(" "))    { shake(errLabel, "Benutzername ohne Leerzeichen."); return; }
-            if (p1.length() < 6)    { shake(errLabel, "Passwort mind. 6 Zeichen."); return; }
-            if (!p1.equals(p2))     { shake(errLabel, "Passwörter stimmen nicht überein."); pw2.setText(""); return; }
-            // createUser prüft case-insensitiv auf Duplikate
-            if (!auth.createUser(u, p1)) {
-                shake(errLabel, "Benutzername bereits vergeben.");
-                return;
-            }
+            if (u.length() < 3)  { shake(errLabel, "Benutzername mind. 3 Zeichen."); return; }
+            if (u.contains(" ")) { shake(errLabel, "Benutzername ohne Leerzeichen."); return; }
+            if (p1.length() < 6) { shake(errLabel, "Passwort mind. 6 Zeichen."); return; }
+            if (!p1.equals(p2))  { shake(errLabel, "Passwörter stimmen nicht überein."); pw2.setText(""); return; }
+            if (!auth.createUser(u, p1)) { shake(errLabel, "Benutzername bereits vergeben."); return; }
             auth.authenticate(u, p1);
             AuditLogger.getInstance().log("USER_CREATED", u);
             AuditLogger.getInstance().log("LOGIN", u);
-            authenticated = true; dispose();
+            authenticated = true;
+            dispose();
         };
 
         createBtn.addActionListener(e -> doCreate.run());
@@ -232,7 +260,7 @@ public final class LoginDialog extends JDialog {
         titleLbl.setFont(new Font("JetBrains Mono", Font.BOLD, 20));
         titleLbl.setForeground(GuiTheme.ACCENT);
         titleLbl.setBorder(new EmptyBorder(8, 0, sub != null ? 4 : 0, 0));
-        p.add(logo,     BorderLayout.NORTH);
+        p.add(logo, BorderLayout.NORTH);
         p.add(titleLbl, BorderLayout.CENTER);
         if (sub != null) {
             JLabel subLbl = new JLabel(sub);
@@ -243,8 +271,7 @@ public final class LoginDialog extends JDialog {
         return p;
     }
 
-    private static void addFormRow(JPanel f, GridBagConstraints gc,
-                                   int row, String label, Component field) {
+    private static void addFormRow(JPanel f, GridBagConstraints gc, int row, String label, Component field) {
         gc.gridwidth = 1;
         gc.gridx = 0; gc.gridy = row; gc.weightx = 0;
         gc.fill  = GridBagConstraints.NONE;
@@ -282,8 +309,7 @@ public final class LoginDialog extends JDialog {
         f.setFont(new Font("JetBrains Mono", Font.PLAIN, 13));
         f.setForeground(GuiTheme.FG); f.setBackground(INPUT_BG);
         f.setCaretColor(GuiTheme.ACCENT);
-        f.setBorder(new CompoundBorder(new LineBorder(GuiTheme.BORDER, 1),
-                new EmptyBorder(6, 8, 6, 8)));
+        f.setBorder(new CompoundBorder(new LineBorder(GuiTheme.BORDER, 1), new EmptyBorder(6, 8, 6, 8)));
         f.setPreferredSize(new Dimension(w, 34));
         return f;
     }
@@ -293,8 +319,7 @@ public final class LoginDialog extends JDialog {
         f.setFont(new Font("JetBrains Mono", Font.PLAIN, 13));
         f.setForeground(GuiTheme.FG); f.setBackground(INPUT_BG);
         f.setCaretColor(GuiTheme.ACCENT);
-        f.setBorder(new CompoundBorder(new LineBorder(GuiTheme.BORDER, 1),
-                new EmptyBorder(6, 8, 6, 8)));
+        f.setBorder(new CompoundBorder(new LineBorder(GuiTheme.BORDER, 1), new EmptyBorder(6, 8, 6, 8)));
         f.setPreferredSize(new Dimension(w, 34));
         return f;
     }
@@ -323,8 +348,7 @@ public final class LoginDialog extends JDialog {
         JButton b = new JButton(t);
         b.setFont(new Font("JetBrains Mono", Font.PLAIN, 11));
         b.setForeground(GuiTheme.FG_DIM); b.setBackground(INPUT_BG);
-        b.setBorder(new CompoundBorder(new LineBorder(GuiTheme.BORDER, 1),
-                new EmptyBorder(7, 16, 7, 16)));
+        b.setBorder(new CompoundBorder(new LineBorder(GuiTheme.BORDER, 1), new EmptyBorder(7, 16, 7, 16)));
         b.setFocusPainted(false);
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return b;
@@ -375,10 +399,6 @@ public final class LoginDialog extends JDialog {
             win.setLocation(orig.x + offs[i[0]++], orig.y);
         });
         t.start();
-    }
-
-    private static void oneshot(int ms, ActionListener al) {
-        Timer t = new Timer(ms, al); t.setRepeats(false); t.start();
     }
 
     private static javax.swing.event.DocumentListener docListener(Runnable r) {

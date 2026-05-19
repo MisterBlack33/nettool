@@ -12,13 +12,11 @@ import static main.java.networktool_v3.gui.GuiTheme.*;
 
 /**
  * Haupt-Ausgabebereich der GUI.
- *
- * Reduktion der Textmenge:
- *  - Kein "Menü-Hinweis" im Banner
- *  - System.out-Ausgaben werden zusammengefasst (kein Zeilenspam)
- *  - Fortlaufende Zeilen mit gleichem Prefix werden aktualisiert statt angehängt
+ * Text-Limit: MAX_CHARS – älteste Zeichen werden automatisch entfernt.
  */
 public class GuiOutputPanel {
+
+    static final int MAX_CHARS = 50_000;
 
     private final JTextPane    output;
     final         StyledDocument doc;
@@ -33,25 +31,15 @@ public class GuiOutputPanel {
         doc = output.getStyledDocument();
     }
 
-    private static Color terminalBg() {
-        return GuiTheme.isDark() ? new Color(0x04, 0x06, 0x05) : new Color(0xFF, 0xFF, 0xFE);
-    }
-
-    private static Color terminalFg() {
-        return GuiTheme.isDark() ? new Color(0xE8, 0xE4, 0xD8) : new Color(0x10, 0x12, 0x10);
-    }
-
     // ── Panel-Builder ─────────────────────────────────────────────────────
 
     public JPanel buildTopBar() {
         Color barBg = GuiTheme.isDark() ? new Color(0x0C,0x0F,0x0D) : new Color(0xE8,0xE6,0xE0);
         Color barFg = GuiTheme.isDark() ? new Color(0x55,0x60,0x55) : new Color(0x60,0x62,0x5E);
-
         JPanel bar = new JPanel(new BorderLayout());
         bar.setBackground(barBg);
         bar.setBorder(new MatteBorder(0, 0, 1, 0, BORDER));
         bar.setPreferredSize(new Dimension(0, 34));
-
         JLabel lbl = new JLabel("  OUTPUT");
         lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 10));
         lbl.setForeground(barFg);
@@ -77,6 +65,7 @@ public class GuiOutputPanel {
     public void appendText(String text, Color color) {
         SwingUtilities.invokeLater(() -> {
             try {
+                trimIfNeeded();
                 SimpleAttributeSet a = new SimpleAttributeSet();
                 StyleConstants.setForeground(a, color);
                 StyleConstants.setFontFamily(a, "JetBrains Mono");
@@ -87,7 +76,6 @@ public class GuiOutputPanel {
         });
     }
 
-    /** Kompakter Banner – nur Logo, keine langen Hinweistexte. */
     public void printBanner() {
         appendText(
                 "╔══════════════════════════════════╗\n" +
@@ -102,7 +90,15 @@ public class GuiOutputPanel {
         System.setErr(buildColoredStream(true));
     }
 
-    // ── Private Hilfsmethoden ─────────────────────────────────────────────
+    // ── Private ───────────────────────────────────────────────────────────
+
+    /** Entfernt vorne ~10 % des Inhalts wenn MAX_CHARS überschritten. */
+    private void trimIfNeeded() {
+        int len = doc.getLength();
+        if (len <= MAX_CHARS) return;
+        int remove = MAX_CHARS / 10;
+        try { doc.remove(0, remove); } catch (BadLocationException ignored) {}
+    }
 
     private JButton buildClearButton(Color barBg) {
         Color dimCol = GuiTheme.isDark() ? new Color(0x55,0x60,0x55) : new Color(0x70,0x72,0x6E);
@@ -130,40 +126,42 @@ public class GuiOutputPanel {
 
     private PrintStream buildColoredStream(boolean isError) {
         return new PrintStream(new OutputStream() {
-            private final java.io.ByteArrayOutputStream buf =
-                    new java.io.ByteArrayOutputStream();
-
+            private final java.io.ByteArrayOutputStream buf = new java.io.ByteArrayOutputStream();
             public void write(int b) {
                 if (b == '\r') return;
                 buf.write(b);
                 if (b == '\n') flush();
             }
-
             public void flush() {
                 if (buf.size() == 0) return;
                 String line = buf.toString(StandardCharsets.UTF_8);
                 buf.reset();
-                // Sehr kurze/leere Zeilen unterdrücken (reduziert Spam)
                 if (line.isBlank()) return;
-                Color color = isError ? WARN : classifyColor(line);
-                appendText(line, color);
+                appendText(line, isError ? WARN : classifyColor(line));
             }
         }, true, StandardCharsets.UTF_8);
     }
 
+    private static Color terminalBg() {
+        return GuiTheme.isDark() ? new Color(0x04,0x06,0x05) : new Color(0xFF,0xFF,0xFE);
+    }
+
+    private static Color terminalFg() {
+        return GuiTheme.isDark() ? new Color(0xE8,0xE4,0xD8) : new Color(0x10,0x12,0x10);
+    }
+
     private static Color classifyColor(String line) {
         boolean dark = GuiTheme.isDark();
-        if (line.contains("erreichbar") || line.contains("erfolgreich") || line.contains("Aktiv:"))
+        if (line.contains("erreichbar")||line.contains("erfolgreich")||line.contains("Aktiv:"))
             return dark ? ACCENT2 : new Color(0x18,0x90,0x38);
-        if (line.contains("===") || line.contains("═") || line.contains("╔") || line.contains("╚"))
+        if (line.contains("===")||line.contains("═")||line.contains("╔")||line.contains("╚"))
             return dark ? ACCENT : new Color(0x9A,0x6C,0x08);
-        if (line.contains("Fehler") || line.contains("NICHT") || line.contains("ERROR"))
+        if (line.contains("Fehler")||line.contains("NICHT")||line.contains("ERROR"))
             return WARN;
-        if (line.contains("Windows"))
-            return dark ? WIN_COL : new Color(0x18,0x60,0xB8);
-        if (line.contains("Linux") || line.contains("Android"))
+        if (line.contains("Windows"))  return dark ? WIN_COL : new Color(0x18,0x60,0xB8);
+        if (line.contains("Linux")||line.contains("Android"))
             return dark ? LIN_COL : new Color(0x18,0x80,0x28);
-        if (line.contains("Apple") || line.contains("iOS") || line.contains("macOS"))
+        if (line.contains("Apple")||line.contains("iOS")||line.contains("macOS"))
             return dark ? APL_COL : new Color(0x50,0x50,0x60);
         return terminalFg();
     }

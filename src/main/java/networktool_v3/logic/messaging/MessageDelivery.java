@@ -2,6 +2,7 @@ package main.java.networktool_v3.logic.messaging;
 
 import main.java.networktool_v3.gui.notification.LocalToast;
 import main.java.networktool_v3.logic.analysis.OsDetector;
+import main.java.networktool_v3.util.PlatformUtils;
 
 import java.io.*;
 import java.net.*;
@@ -10,11 +11,6 @@ import java.nio.charset.StandardCharsets;
 /**
  * Enthält die einzelnen Übertragungsmethoden für Nachrichten.
  * Wird ausschließlich von {@link MessageSender} aufgerufen.
- *
- *  tryListener  – NetTool-eigener TCP-Listener (Port 9999)
- *  tryNtfy      – Push via ntfy.sh (Android, iOS, Windows mit App)
- *  tryWinRM     – PowerShell-Remoting (Windows → Windows)
- *  trySsh       – SSH + notify-send / osascript (Linux / macOS)
  */
 final class MessageDelivery {
 
@@ -26,8 +22,7 @@ final class MessageDelivery {
 
     static boolean tryListener(String ip, String message) {
         if (!OsDetector.isOpen(ip, MessageSender.NETTOOL_LISTENER_PORT)) return false;
-        System.out.println("  Methode : NetTool-Listener (Port "
-                + MessageSender.NETTOOL_LISTENER_PORT + ")");
+        System.out.println("  Methode : NetTool-Listener (Port " + MessageSender.NETTOOL_LISTENER_PORT + ")");
         try (Socket s = new Socket()) {
             s.connect(new InetSocketAddress(ip, MessageSender.NETTOOL_LISTENER_PORT), TIMEOUT_MS);
             s.getOutputStream().write((message + "\n").getBytes(StandardCharsets.UTF_8));
@@ -72,16 +67,16 @@ final class MessageDelivery {
             return false;
         }
         System.out.println("  Methode : WinRM / PowerShell-Remoting");
-        String m = LocalToast.ps(message);
+        String m = PlatformUtils.escapePowerShell(message);
         String script =
                 "Add-Type -AssemblyName System.Windows.Forms; " +
-                "Add-Type -AssemblyName System.Drawing; " +
-                "$n = New-Object System.Windows.Forms.NotifyIcon; " +
-                "$n.Icon = [System.Drawing.SystemIcons]::Information; " +
-                "$n.Visible = $true; $n.BalloonTipTitle = 'NetTool'; " +
-                "$n.BalloonTipText = '" + m + "'; " +
-                "$n.BalloonTipIcon = [System.Windows.Forms.ToolTipIcon]::Info; " +
-                "$n.ShowBalloonTip(8000); Start-Sleep 9; $n.Dispose()";
+                        "Add-Type -AssemblyName System.Drawing; " +
+                        "$n = New-Object System.Windows.Forms.NotifyIcon; " +
+                        "$n.Icon = [System.Drawing.SystemIcons]::Information; " +
+                        "$n.Visible = $true; $n.BalloonTipTitle = 'NetTool'; " +
+                        "$n.BalloonTipText = '" + m + "'; " +
+                        "$n.BalloonTipIcon = [System.Windows.Forms.ToolTipIcon]::Info; " +
+                        "$n.ShowBalloonTip(8000); Start-Sleep 9; $n.Dispose()";
         try {
             Process p = Runtime.getRuntime().exec(new String[]{"powershell",
                     "-NonInteractive", "-WindowStyle", "Hidden", "-Command",
@@ -89,8 +84,8 @@ final class MessageDelivery {
             String err = readStream(p.getErrorStream());
             p.waitFor();
             if (p.exitValue() == 0) { System.out.println("  ✔ WinRM: BalloonTip gesendet."); return true; }
-            System.out.println("  ✕ WinRM: " + (err.isBlank() ? "fehlgeschlagen" :
-                    err.lines().findFirst().orElse("").trim()));
+            System.out.println("  ✕ WinRM: " + (err.isBlank() ? "fehlgeschlagen"
+                    : err.lines().findFirst().orElse("").trim()));
         } catch (Exception e) { System.out.println("  ✕ PowerShell: " + e.getMessage()); }
         return false;
     }
@@ -103,7 +98,8 @@ final class MessageDelivery {
             return false;
         }
         System.out.println("  Methode : SSH → " + (mac ? "osascript" : "notify-send"));
-        String safe = shell(message);
+        // PlatformUtils.escapeSshArg statt eigenem shell()-Helper
+        String safe = PlatformUtils.escapeSshArg(message);
         String cmd  = mac
                 ? "osascript -e 'display notification \"" + safe + "\" with title \"NetTool\"'"
                 : "DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus "
@@ -128,13 +124,9 @@ final class MessageDelivery {
         try (BufferedReader br = new BufferedReader(
                 new InputStreamReader(is, StandardCharsets.UTF_8))) {
             StringBuilder sb = new StringBuilder();
-            String l; while ((l = br.readLine()) != null) sb.append(l).append("\n");
+            String l;
+            while ((l = br.readLine()) != null) sb.append(l).append("\n");
             return sb.toString();
         } catch (IOException e) { return ""; }
-    }
-
-    private static String shell(String s) {
-        if (s == null) return "";
-        return s.replace("'","\'").replace("\"","\\\"").replace("\n"," ").replace("\r","");
     }
 }
