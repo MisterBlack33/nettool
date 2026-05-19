@@ -429,13 +429,13 @@ public class GuiMenuHandler {
         java.nio.file.Path outDir = java.nio.file.Paths.get(
                 System.getProperty("user.home"), "NetTool-Export");
         switch (choice) {
-            case 0 -> runAsync(() -> { java.nio.file.Path f = DataExportImport.exportCsv(outDir);  AuditLogger.getInstance().log("EXPORT_CSV",  f.toString()); output.appendText("  ✔ " + f.getFileName() + "\n", ACCENT2); });
-            case 1 -> runAsync(() -> { java.nio.file.Path f = DataExportImport.exportJson(outDir); AuditLogger.getInstance().log("EXPORT_JSON", f.toString()); output.appendText("  ✔ " + f.getFileName() + "\n", ACCENT2); });
-            case 2 -> runAsync(() -> { java.nio.file.Path f = DataExportImport.exportHtml(outDir); AuditLogger.getInstance().log("EXPORT_HTML", f.toString()); output.appendText("  ✔ " + f.getFileName() + "\n", ACCENT2); try { java.awt.Desktop.getDesktop().browse(f.toUri()); } catch (Exception ignored) {} });
-            case 3 -> runAsync(() -> { java.nio.file.Path f = DataExportImport.exportBackup(outDir); AuditLogger.getInstance().log("EXPORT_ZIP", f.toString()); output.appendText("  ✔ " + f.getFileName() + "\n", ACCENT2); });
-            case 4 -> input.ask("CSV-Pfad:", path -> runAsync(() -> { int n = DataExportImport.importCsv(java.nio.file.Paths.get(path.trim())); AuditLogger.getInstance().log("IMPORT_CSV", "n="+n); output.appendText("  ✔ " + n + " importiert\n", ACCENT2); }));
-            case 5 -> input.ask("JSON-Pfad:", path -> runAsync(() -> { int n = DataExportImport.importJson(java.nio.file.Paths.get(path.trim())); AuditLogger.getInstance().log("IMPORT_JSON", "n="+n); output.appendText("  ✔ " + n + " importiert\n", ACCENT2); }));
-            case 6 -> input.ask("ZIP-Pfad:", path -> runAsync(() -> { int n = DataExportImport.restoreBackup(java.nio.file.Paths.get(path.trim())); AuditLogger.getInstance().log("RESTORE_ZIP", "n="+n); output.appendText("  ✔ " + n + " Dateien wiederhergestellt\n", ACCENT2); }));
+            case 0 -> runAsync(() -> { java.nio.file.Path f = main.java.networktool_v3.storage.DataExporter.exportCsv(outDir);    AuditLogger.getInstance().log("EXPORT_CSV",  f.toString()); output.appendText("  ✔ " + f.getFileName() + "\n", ACCENT2); });
+            case 1 -> runAsync(() -> { java.nio.file.Path f = main.java.networktool_v3.storage.DataExporter.exportJson(outDir);   AuditLogger.getInstance().log("EXPORT_JSON", f.toString()); output.appendText("  ✔ " + f.getFileName() + "\n", ACCENT2); });
+            case 2 -> runAsync(() -> { java.nio.file.Path f = main.java.networktool_v3.storage.DataExporter.exportHtml(outDir);   AuditLogger.getInstance().log("EXPORT_HTML", f.toString()); output.appendText("  ✔ " + f.getFileName() + "\n", ACCENT2); try { java.awt.Desktop.getDesktop().browse(f.toUri()); } catch (Exception ignored) {} });
+            case 3 -> runAsync(() -> { java.nio.file.Path f = main.java.networktool_v3.storage.DataExporter.exportBackup(outDir); AuditLogger.getInstance().log("EXPORT_ZIP",  f.toString()); output.appendText("  ✔ " + f.getFileName() + "\n", ACCENT2); });
+            case 4 -> input.ask("CSV-Pfad:",  path -> runAsync(() -> { int n = main.java.networktool_v3.storage.DataImporter.importCsv(java.nio.file.Paths.get(path.trim()));         AuditLogger.getInstance().log("IMPORT_CSV",  "n="+n); output.appendText("  ✔ " + n + " importiert\n", ACCENT2); }));
+            case 5 -> input.ask("JSON-Pfad:", path -> runAsync(() -> { int n = main.java.networktool_v3.storage.DataImporter.importJson(java.nio.file.Paths.get(path.trim()));        AuditLogger.getInstance().log("IMPORT_JSON", "n="+n); output.appendText("  ✔ " + n + " importiert\n", ACCENT2); }));
+            case 6 -> input.ask("ZIP-Pfad:",  path -> runAsync(() -> { int n = main.java.networktool_v3.storage.DataImporter.restoreBackup(java.nio.file.Paths.get(path.trim())); AuditLogger.getInstance().log("RESTORE_ZIP", "n="+n); output.appendText("  ✔ " + n + " Dateien wiederhergestellt\n", ACCENT2); }));
         }
     }
 
