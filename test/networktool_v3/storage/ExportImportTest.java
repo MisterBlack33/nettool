@@ -1,7 +1,5 @@
-package networktool_v3.storage;
+package main.java.networktool_v3.storage;
 
-import main.java.networktool_v3.storage.DataExporter;
-import main.java.networktool_v3.storage.DataImporter;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -47,8 +45,25 @@ class ExportImportTest {
             assertFalse(result.contains(";"));
         }
 
+        @Test void csv_null_returnsEmpty() {
+            assertEquals("", DataExporter.csv(null));
+        }
+
+        @Test void csv_withComma_quoted() {
+            String result = DataExporter.csv("a,b");
+            assertTrue(result.startsWith("\""));
+        }
+
         @Test void esc_quotesEscaped() {
             assertTrue(DataExporter.esc("say \"hi\"").contains("\\\""));
+        }
+
+        @Test void esc_null_returnsEmpty() {
+            assertEquals("", DataExporter.esc(null));
+        }
+
+        @Test void esc_newlineEscaped() {
+            assertTrue(DataExporter.esc("a\nb").contains("\\n"));
         }
     }
 
@@ -74,7 +89,6 @@ class ExportImportTest {
         }
 
         @Test void restoreBackup_zipSlipBlocked() throws IOException {
-            // Create a zip with a traversal path
             Path zip = tmp.resolve("evil.zip");
             try (var zos = new java.util.zip.ZipOutputStream(
                     new java.io.FileOutputStream(zip.toFile()))) {
@@ -82,7 +96,6 @@ class ExportImportTest {
                 zos.write("bad".getBytes());
                 zos.closeEntry();
             }
-            // Should not throw, and the file should NOT exist outside targetDir
             assertDoesNotThrow(() -> DataImporter.restoreBackup(zip));
         }
     }
