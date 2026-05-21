@@ -63,18 +63,28 @@ public final class DataExporter {
         return file;
     }
 
+    // DataExporter.java — exportBackup fix: try-with-resources schützt gegen Hänger
     public static Path exportBackup(Path outDir) throws IOException {
+        return exportBackup(outDir, NetworkStorePersistence.resolveTxtDir());
+    }
+
+    public static Path exportBackup(Path outDir, Path srcDir) throws IOException {
         Files.createDirectories(outDir);
         Path zipFile = outDir.resolve("nettool_backup_" + now() + ".zip");
-        Path srcDir  = NetworkStorePersistence.resolveTxtDir();
-        try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFile.toFile()))) {
-            Files.walk(srcDir).filter(Files::isRegularFile).forEach(p -> {
-                try {
-                    zos.putNextEntry(new ZipEntry(srcDir.relativize(p).toString().replace('\\', '/')));
-                    Files.copy(p, zos);
-                    zos.closeEntry();
-                } catch (IOException ignored) {}
-            });
+        try (ZipOutputStream zos = new ZipOutputStream(
+                new FileOutputStream(zipFile.toFile()))) {
+            if (Files.isDirectory(srcDir)) {
+                try (var stream = Files.walk(srcDir)) {
+                    stream.filter(Files::isRegularFile).forEach(p -> {
+                        try {
+                            zos.putNextEntry(new ZipEntry(
+                                    srcDir.relativize(p).toString().replace('\\', '/')));
+                            Files.copy(p, zos);
+                            zos.closeEntry();
+                        } catch (IOException ignored) {}
+                    });
+                }
+            }
         }
         return zipFile;
     }

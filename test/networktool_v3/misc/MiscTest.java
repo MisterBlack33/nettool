@@ -317,7 +317,9 @@ class MiscTest {
 
         @Test
         void exportBackup_createsZip() throws IOException {
-            Path f = DataExportImport.exportBackup(tmp);
+            Path src = tmp.resolve("src");
+            Files.createDirectories(src);
+            Path f = DataExporter.exportBackup(tmp, src);
             assertTrue(Files.exists(f));
             assertTrue(f.toString().endsWith(".zip"));
         }
