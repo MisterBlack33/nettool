@@ -5,6 +5,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.nio.file.*;
+import org.junit.jupiter.api.Timeout;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -35,9 +37,14 @@ class ExportImportTest {
             assertTrue(Files.readString(f).contains("<!DOCTYPE html>"));
         }
 
-        @Test void exportBackup_isZip() throws IOException {
-            Path f = DataExporter.exportBackup(tmp);
+        @Test
+        @Timeout(value = 5, unit = TimeUnit.SECONDS)
+        void exportBackup_isZip() throws IOException {
+            Path src = tmp.resolve("src");
+            Files.createDirectories(src);
+            Path f = DataExporter.exportBackup(tmp, src);
             assertTrue(f.toString().endsWith(".zip"));
+            assertTrue(Files.exists(f));
         }
 
         @Test void csv_semicolonEscaped() {
