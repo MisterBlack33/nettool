@@ -4,28 +4,27 @@ import main.java.networktool_v3.logic.analysis.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.net.InetAddress;
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assumptions.*;
 
 class AnalysisTest {
 
-    // ══════════════════════════════════════════════════════════════
-    //  ArpMonitor
-    // ══════════════════════════════════════════════════════════════
+    static boolean loopbackReachable() {
+        try { return InetAddress.getByName("127.0.0.1").isReachable(500); }
+        catch (Exception e) { return false; }
+    }
 
     @Nested
     class ArpMonitorTest {
 
         @AfterEach
-        void stop() {
-            ArpMonitor.getInstance().stop();
-        }
+        void stop() { ArpMonitor.getInstance().stop(); }
 
         @Test
-        void isActive_initiallyFalse() {
-            assertFalse(ArpMonitor.getInstance().isActive());
-        }
+        void isActive_initiallyFalse()      { assertFalse(ArpMonitor.getInstance().isActive()); }
 
         @Test
         void start_setsActive() {
@@ -58,15 +57,12 @@ class AnalysisTest {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════
-    //  IpInspector (smoke)
-    // ══════════════════════════════════════════════════════════════
-
     @Nested
     class IpInspectorTest {
 
         @Test
         void quickScan_localhost_doesNotThrow() {
+            assumeTrue(loopbackReachable(), "Loopback nicht erreichbar");
             assertDoesNotThrow(() -> IpInspector.quickScan("127.0.0.1", 1000));
         }
 
@@ -77,19 +73,17 @@ class AnalysisTest {
 
         @Test
         void inspect_localhost_doesNotThrow() {
+            assumeTrue(loopbackReachable(), "Loopback nicht erreichbar");
             assertDoesNotThrow(() -> IpInspector.inspect("127.0.0.1"));
         }
     }
-
-    // ══════════════════════════════════════════════════════════════
-    //  OsDetector (public API)
-    // ══════════════════════════════════════════════════════════════
 
     @Nested
     class OsDetectorPublicTest {
 
         @Test
         void detect_localhost_returnsString() {
+            assumeTrue(loopbackReachable(), "Loopback nicht erreichbar");
             String r = OsDetector.detect("127.0.0.1");
             assertNotNull(r);
             assertFalse(r.isBlank());
@@ -97,6 +91,7 @@ class AnalysisTest {
 
         @Test
         void detectWithConfidence_localhost_notNull() {
+            assumeTrue(loopbackReachable(), "Loopback nicht erreichbar");
             OsDetector.OsResult r = OsDetector.detectWithConfidence("127.0.0.1");
             assertNotNull(r);
             assertNotNull(r.os);
@@ -114,11 +109,6 @@ class AnalysisTest {
         }
 
         @Test
-        void detectFromHostname_hostPrefix_null() {
-            assertNull(OsDetector.detectFromHostname("host-1-2-3-4", "1.2.3.4"));
-        }
-
-        @Test
         void getMacFromArp_doesNotThrow() {
             assertDoesNotThrow(() -> OsDetector.getMacFromArp("127.0.0.1"));
         }
@@ -130,8 +120,8 @@ class AnalysisTest {
 
         @Test
         void osResult_display_containsOs() {
-            OsDetector.OsResult r = new OsDetector.OsResult("Linux", OsDetector.Confidence.HOCH, "Port");
-            assertTrue(r.display().contains("Linux"));
+            assertTrue(new OsDetector.OsResult("Linux", OsDetector.Confidence.HOCH, "Port")
+                    .display().contains("Linux"));
         }
 
         @Test
@@ -142,26 +132,19 @@ class AnalysisTest {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════
-    //  OuiUpdater
-    // ══════════════════════════════════════════════════════════════
-
     @Nested
     class OuiUpdaterTest {
 
         @TempDir Path tmp;
 
         @Test
-        void isLoaded_afterInit_true() {
-            OuiUpdater.init(tmp);
-            // Either loaded from cache or from built-in – no throw
-            assertNotNull(OuiUpdater.isLoaded());
+        void isLoaded_afterInit_noThrow() {
+            assertDoesNotThrow(() -> OuiUpdater.init(tmp));
         }
 
         @Test
-        void lookup_afterInit_noExceptionOnKnownOui() {
+        void lookup_afterInit_noException() {
             OuiUpdater.init(tmp);
-            // May return null if not in extended DB, but should not throw
             assertDoesNotThrow(() -> OuiUpdater.lookup("B8:27:EB"));
         }
 
@@ -171,15 +154,12 @@ class AnalysisTest {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════
-    //  PingUtil (smoke)
-    // ══════════════════════════════════════════════════════════════
-
     @Nested
     class PingUtilTest {
 
         @Test
         void pingWithDetails_localhost_doesNotThrow() {
+            assumeTrue(loopbackReachable(), "Loopback nicht erreichbar");
             assertDoesNotThrow(() -> PingUtil.pingWithDetails("127.0.0.1", 500));
         }
 

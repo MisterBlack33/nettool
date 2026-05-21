@@ -3,10 +3,12 @@ package main.java.networktool_v3.storage;
 import main.java.networktool_v3.model.HostResult;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Timeout;
 
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,22 +16,16 @@ class DataExporterPackageTest {
 
     @TempDir Path tmp;
 
-    // ── DataExporter ─────────────────────────────────────────────
-
     @Test
     void forEachHost_doesNotThrow() {
         assertDoesNotThrow(() -> DataExporter.forEachHost((h, cat) -> {}));
     }
 
     @Test
-    void csv_normal() {
-        assertEquals("hello", DataExporter.csv("hello"));
-    }
+    void csv_normal()              { assertEquals("hello", DataExporter.csv("hello")); }
 
     @Test
-    void csv_semicolon_replaced() {
-        assertFalse(DataExporter.csv("a;b").contains(";"));
-    }
+    void csv_semicolon_replaced()  { assertFalse(DataExporter.csv("a;b").contains(";")); }
 
     @Test
     void csv_comma_quoted() {
@@ -38,55 +34,46 @@ class DataExporterPackageTest {
     }
 
     @Test
-    void csv_null_empty() {
-        assertEquals("", DataExporter.csv(null));
-    }
+    void csv_null_empty()          { assertEquals("", DataExporter.csv(null)); }
 
     @Test
-    void esc_quotes() {
-        assertTrue(DataExporter.esc("\"hi\"").contains("\\\""));
-    }
+    void esc_quotes()              { assertTrue(DataExporter.esc("\"hi\"").contains("\\\"")); }
 
     @Test
-    void esc_backslash() {
-        assertTrue(DataExporter.esc("a\\b").contains("\\\\"));
-    }
+    void esc_backslash()           { assertTrue(DataExporter.esc("a\\b").contains("\\\\")); }
 
     @Test
-    void esc_newline() {
-        assertTrue(DataExporter.esc("a\nb").contains("\\n"));
-    }
+    void esc_newline()             { assertTrue(DataExporter.esc("a\nb").contains("\\n")); }
 
     @Test
-    void esc_null_empty() {
-        assertEquals("", DataExporter.esc(null));
-    }
+    void esc_null_empty()          { assertEquals("", DataExporter.esc(null)); }
 
     @Test
     void exportCsv_hasHeader() throws IOException {
-        Path f = DataExporter.exportCsv(tmp);
-        assertTrue(Files.readString(f).startsWith("IP;"));
+        assertTrue(Files.readString(DataExporter.exportCsv(tmp)).startsWith("IP;"));
     }
 
     @Test
     void exportJson_isArray() throws IOException {
-        Path f = DataExporter.exportJson(tmp);
-        assertTrue(Files.readString(f).trim().startsWith("["));
+        assertTrue(Files.readString(DataExporter.exportJson(tmp)).trim().startsWith("["));
     }
 
     @Test
     void exportHtml_hasNetTool() throws IOException {
-        Path f = DataExporter.exportHtml(tmp);
-        assertTrue(Files.readString(f).contains("NetTool"));
+        assertTrue(Files.readString(DataExporter.exportHtml(tmp)).contains("NetTool"));
     }
 
     @Test
+    @Timeout(value = 5, unit = TimeUnit.SECONDS)
     void exportBackup_zip() throws IOException {
-        Path f = DataExporter.exportBackup(tmp);
+        Path src = tmp.resolve("src");
+        Files.createDirectories(src);
+        // Testdatei damit ZIP nicht leer ist
+        Files.writeString(src.resolve("test.txt"), "data");
+        Path f = DataExporter.exportBackup(tmp, src);
         assertTrue(f.toString().endsWith(".zip"));
+        assertTrue(Files.exists(f));
     }
-
-    // ── DataImporter ─────────────────────────────────────────────
 
     @Test
     void importCsv_headerOnly_zero() throws IOException {
@@ -108,8 +95,7 @@ class DataExporterPackageTest {
         Files.writeString(f,
                 "IP;Hostname;OS;Datum;Ports;Notiz;TestImportCat\n" +
                         "172.16.0.1;srv;Linux;2024-01-01;;note;TestImportCat\n");
-        int n = DataImporter.importCsv(f);
-        assertTrue(n >= 0);
+        assertTrue(DataImporter.importCsv(f) >= 0);
     }
 
     @Test
@@ -119,8 +105,7 @@ class DataExporterPackageTest {
                 "[{\"ip\":\"172.16.0.2\",\"hostname\":\"srv\"," +
                         "\"os\":\"Linux\",\"savedAt\":\"\",\"ports\":\"\"," +
                         "\"notes\":\"\",\"category\":\"TestImportCat\"}]");
-        int n = DataImporter.importJson(f);
-        assertTrue(n >= 0);
+        assertTrue(DataImporter.importJson(f) >= 0);
     }
 
     @Test
@@ -135,22 +120,12 @@ class DataExporterPackageTest {
         assertDoesNotThrow(() -> DataImporter.restoreBackup(zip));
     }
 
-    // ── HtmlReportBuilder ────────────────────────────────────────
+    @Test
+    void build_containsDoctype()  { assertTrue(HtmlReportBuilder.build().contains("<!DOCTYPE html>")); }
 
     @Test
-    void build_containsDoctype() {
-        assertTrue(HtmlReportBuilder.build().contains("<!DOCTYPE html>"));
-    }
+    void build_containsTable()    { assertTrue(HtmlReportBuilder.build().contains("<table>")); }
 
     @Test
-    void build_containsTable() {
-        assertTrue(HtmlReportBuilder.build().contains("<table>"));
-    }
-
-    @Test
-    void build_specialCharsEscaped() {
-        // ensure no raw < or > from data leaks into HTML tag context
-        String html = HtmlReportBuilder.build();
-        assertNotNull(html);
-    }
+    void build_notNull()          { assertNotNull(HtmlReportBuilder.build()); }
 }
