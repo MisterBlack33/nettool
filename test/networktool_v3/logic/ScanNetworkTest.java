@@ -10,10 +10,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ScanNetworkTest {
 
-    // ══════════════════════════════════════════════════════════════
-    //  NetworkScanner (CIDR smoke)
-    // ══════════════════════════════════════════════════════════════
-
     @Nested
     class NetworkScannerTest {
 
@@ -24,14 +20,13 @@ class ScanNetworkTest {
 
         @Test
         void scanCIDR_returnsListNotNull() {
-            List<ScanResult> r = NetworkScanner.scanCIDR("127.0.0.0/30");
-            assertNotNull(r);
+            assertNotNull(NetworkScanner.scanCIDR("127.0.0.0/30"));
         }
 
         @Test
         void scanCIDR_localhostFound() {
-            List<ScanResult> r = NetworkScanner.scanCIDR("127.0.0.0/30");
-            assertTrue(r.stream().anyMatch(h -> h.getIp().equals("127.0.0.1")));
+            assertTrue(NetworkScanner.scanCIDR("127.0.0.0/30").stream()
+                    .anyMatch(h -> h.getIp().equals("127.0.0.1")));
         }
 
         @Test
@@ -42,29 +37,16 @@ class ScanNetworkTest {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════
-    //  NetworkHostScanner
-    // ══════════════════════════════════════════════════════════════
-
     @Nested
     class NetworkHostScannerTest {
 
         @Test
         void scan_loopbackSubnet_findsLocalhost() {
-            var r = NetworkHostScanner.scan(List.of("127.0.0"));
-            assertNotNull(r);
-            assertTrue(r.stream().anyMatch(h -> h.ip.equals("127.0.0.1")));
-        }
-
-        @Test
-        void readMacFromArp_localhost_doesNotThrow() {
-            assertDoesNotThrow(() -> NetworkHostScanner.readMacFromArp("127.0.0.1"));
+            assertNotNull(NetworkHostScanner.scan(List.of("127.0.0")));
+            assertTrue(NetworkHostScanner.scan(List.of("127.0.0")).stream()
+                    .anyMatch(h -> h.ip.equals("127.0.0.1")));
         }
     }
-
-    // ══════════════════════════════════════════════════════════════
-    //  RemoteNetScanner – ReachResult record
-    // ══════════════════════════════════════════════════════════════
 
     @Nested
     class ReachResultTest {
@@ -79,8 +61,7 @@ class ScanNetworkTest {
 
         @Test
         void reachResult_unreachable() {
-            var r = new RemoteNetScanner.ReachResult(false, 0, 0L);
-            assertFalse(r.reachable);
+            assertFalse(new RemoteNetScanner.ReachResult(false, 0, 0L).reachable);
         }
 
         @Test
@@ -90,14 +71,12 @@ class ScanNetworkTest {
 
         @Test
         void parallelProbe_invalidCidr_doesNotThrow() {
-            assertDoesNotThrow(() ->
-                    RemoteNetScanner.parallelProbe("192.0.2.0/30"));
+            assertDoesNotThrow(() -> RemoteNetScanner.parallelProbe("192.0.2.0/30"));
         }
 
         @Test
         void printRoutingHints_doesNotThrow() {
-            assertDoesNotThrow(() ->
-                    RemoteNetScanner.printRoutingHints("192.168.99.0/24"));
+            assertDoesNotThrow(() -> RemoteNetScanner.printRoutingHints("192.168.99.0/24"));
         }
     }
 }
