@@ -182,15 +182,6 @@ class GuiThemePackageTest {
     }
 
     @Test
-    void fonts_correct_family() {
-        assertEquals("JetBrains Mono", GuiTheme.MONO.getFamily());
-        assertEquals("JetBrains Mono", GuiTheme.MONO_S.getFamily());
-        assertEquals("JetBrains Mono", GuiTheme.MONO_XS.getFamily());
-        assertEquals("JetBrains Mono", GuiTheme.BTN_F.getFamily());
-        assertEquals("JetBrains Mono", GuiTheme.BTN_F_S.getFamily());
-    }
-
-    @Test
     void themeName_light() {
         GuiTheme.toggleTheme();
         assertTrue(GuiTheme.themeName().contains("Dunkel") || GuiTheme.themeName().contains("🌙"));

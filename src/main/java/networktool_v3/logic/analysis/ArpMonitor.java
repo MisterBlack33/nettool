@@ -87,6 +87,7 @@ public final class ArpMonitor {
 
     /** Fügt eine bekannte IP→MAC Zuordnung manuell hinzu (Baseline). */
     public void addBaseline(String ip, String mac) {
+        if (ip == null || mac == null) return;  // <-- diese Zeile hinzufügen
         String macUpper = mac.toUpperCase();
         knownIpMac.put(ip, macUpper);
         macToIps.computeIfAbsent(macUpper, k -> new HashSet<>()).add(ip);

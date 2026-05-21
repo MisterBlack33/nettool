@@ -29,7 +29,9 @@ import java.util.List;
 public class GUI extends JFrame {
 
     private static GUI INSTANCE;
-    public static boolean isGuiActive() { return INSTANCE != null; }
+    public static boolean isGuiActive() {
+        return INSTANCE != null && INSTANCE.isDisplayable();
+    }
     public static GUI     instance()    { return INSTANCE; }
 
     /** Monitor auf dem der Login-Dialog angezeigt wurde. */
