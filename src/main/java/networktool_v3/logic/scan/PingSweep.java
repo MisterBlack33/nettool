@@ -27,6 +27,7 @@ public final class PingSweep {
      * @return nur die erreichbaren IPs
      */
     public static List<String> sweep(List<String> ips, Runnable progress) {
+        if (ips.isEmpty()) return new ArrayList<>();   // <-- diese Zeile hinzufügen
         List<String> alive = Collections.synchronizedList(new ArrayList<>());
         ExecutorService exec = Executors.newFixedThreadPool(
                 Math.min(THREAD_COUNT, ips.size()));

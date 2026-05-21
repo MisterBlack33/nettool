@@ -208,7 +208,7 @@ public final class SavedHostsStore {
     private void persistAndNotify() { saveToFile(); notifyListeners(); }
 
     private void notifyListeners() {
-        for (Runnable l : listeners) javax.swing.SwingUtilities.invokeLater(l);
+        for (Runnable l : listeners) l.run();  // direkt statt invokeLater
     }
 
     private static String sanitize(String s) {

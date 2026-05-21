@@ -1,21 +1,9 @@
 package main.java.networktool_v3.logic.scan;
 
 import java.net.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 
-/**
- * Prüft ob ein Host erreichbar ist.
- *
- * Strategie (parallel):
- *  1. ICMP isReachable()
- *  2. TCP-Connect auf bekannte Probe-Ports
- *
- * Alle Checks laufen gleichzeitig. Sobald einer antwortet,
- * wird true zurückgegeben. Gesamtdauer ≈ TIMEOUT_MS.
- */
 public final class HostAliveChecker {
 
     private HostAliveChecker() {}
@@ -29,15 +17,13 @@ public final class HostAliveChecker {
 
     public static boolean isAlive(String host) {
         ExecutorService exec = Executors.newCachedThreadPool();
+        CompletionService<Boolean> cs = new ExecutorCompletionService<>(exec);
         try {
-            // ICMP + alle Ports parallel
             List<Callable<Boolean>> tasks = new ArrayList<>();
-
             tasks.add(() -> {
                 try { return InetAddress.getByName(host).isReachable(TIMEOUT_MS); }
                 catch (Exception e) { return false; }
             });
-
             for (int port : PROBE_PORTS) {
                 final int p = port;
                 tasks.add(() -> {
@@ -47,15 +33,17 @@ public final class HostAliveChecker {
                     } catch (Exception e) { return false; }
                 });
             }
-
-            // Ersten positiven Treffer sofort zurückgeben
-            return exec.invokeAny(tasks,
-                    TIMEOUT_MS + 50L, TimeUnit.MILLISECONDS);
-
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            return false;
-        } catch (ExecutionException | TimeoutException e) {
+            int total = tasks.size();
+            tasks.forEach(cs::submit);
+            long deadline = System.currentTimeMillis() + TIMEOUT_MS + 50L;
+            for (int i = 0; i < total; i++) {
+                long remaining = deadline - System.currentTimeMillis();
+                if (remaining <= 0) break;
+                try {
+                    Future<Boolean> f = cs.poll(remaining, TimeUnit.MILLISECONDS);
+                    if (f != null && Boolean.TRUE.equals(f.get())) return true;
+                } catch (Exception ignored) {}
+            }
             return false;
         } finally {
             exec.shutdownNow();

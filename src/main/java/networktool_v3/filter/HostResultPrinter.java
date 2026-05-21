@@ -3,6 +3,7 @@ package main.java.networktool_v3.filter;
 import main.java.networktool_v3.gui.GUI;
 import main.java.networktool_v3.model.HostResult;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
@@ -26,11 +27,12 @@ public final class HostResultPrinter {
     }
 
     private static void printCli(List<HostResult> list, String label) {
-        list.sort(Comparator.comparingInt(r -> ipToInt(r.ip)));
-        System.out.println("\n=== " + label + " (" + list.size() + " Gerät(e)) ===");
+        List<HostResult> sorted = new ArrayList<>(list);  // <-- mutable Kopie
+        sorted.sort(Comparator.comparingInt(r -> ipToInt(r.ip)));
+        System.out.println("\n=== " + label + " (" + sorted.size() + " Gerät(e)) ===");
         System.out.printf(CLI_HEADER_FORMAT, "IP", "Hostname [MAC]", "OS / Gerät");
         System.out.println(CLI_SEPARATOR);
-        for (HostResult r : list) {
+        for (HostResult r : sorted) {
             System.out.printf(CLI_HEADER_FORMAT, r.ip, r.hostname, r.os);
         }
     }
