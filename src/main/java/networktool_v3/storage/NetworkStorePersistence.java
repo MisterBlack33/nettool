@@ -37,7 +37,9 @@ final class NetworkStorePersistence {
         return Paths.get(System.getProperty("user.dir"), "networktool_v3", "txt");
     }
 
-    static Path savedDir(Path txtDir) { return txtDir.resolve(SAVED_SUBDIR); }
+    static Path savedDir(Path txtDir) {
+        return txtDir.resolve(SAVED_SUBDIR);
+    }
 
     // ── Load ──────────────────────────────────────────────────────────────
 
@@ -64,7 +66,6 @@ final class NetworkStorePersistence {
             String json   = Files.readString(file, StandardCharsets.UTF_8);
             String prefix = JsonHelper.extractStr(json, "prefix");
             if (prefixes != null && prefix != null) prefixes.put(name, prefix);
-
             List<HostResult> list = networks.computeIfAbsent(name, k -> new ArrayList<>());
             int arrStart = JsonHelper.findArrayStart(json, "hosts");
             if (arrStart < 0) return;
@@ -116,117 +117,39 @@ final class NetworkStorePersistence {
         } catch (IOException ignored) {}
     }
 
-    // ── ntfy topics ───────────────────────────────────────────────────────
+    // ── ntfy topics — delegated ───────────────────────────────────────────
 
     static List<String> loadNtfyTopics(Path txtDir) {
-        Path file = txtDir.resolve(NTFY_FILE);
-        if (!Files.exists(file)) return new ArrayList<>();
-        try {
-            return JsonHelper.extractStringArray(
-                    Files.readString(file, StandardCharsets.UTF_8), "topics");
-        } catch (IOException e) { return new ArrayList<>(); }
+        return NetworkStoreNtfy.loadTopics(txtDir);
     }
 
     static void saveNtfyTopic(Path txtDir, String topic) {
-        if (topic == null || topic.isBlank()) return;
-        try {
-            Files.createDirectories(txtDir);
-            List<String> existing = new ArrayList<>(loadNtfyTopics(txtDir));
-            if (existing.contains(topic)) return;
-            existing.add(topic);
-            Collections.sort(existing);
-            Files.writeString(txtDir.resolve(NTFY_FILE),
-                    JsonHelper.buildStringArrayJson("topics", existing),
-                    StandardCharsets.UTF_8,
-                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        } catch (IOException ignored) {}
+        NetworkStoreNtfy.saveTopic(txtDir, topic);
     }
 
-    // ── Legacy migration ──────────────────────────────────────────────────
+    // ── Legacy migration — delegated ──────────────────────────────────────
 
     static boolean needsLegacyImport(Path txtDir) {
-        Path newSaved = savedDir(txtDir);
-        Path oldSaved = txtDir.resolve("saved");
-        if (Files.isDirectory(oldSaved) && !Files.isDirectory(newSaved)) {
-            try { Files.move(oldSaved, newSaved); } catch (IOException ignored) {}
-        }
-        if (Files.isDirectory(newSaved)) convertLegacyTxtFiles(newSaved);
-        try {
-            if (!Files.isDirectory(newSaved)) return true;
-            return Files.list(newSaved)
-                    .noneMatch(p -> p.getFileName().toString().endsWith(FILE_EXT)
-                            && !p.getFileName().toString().equals(ALL_FILE));
-        } catch (IOException e) { return true; }
-    }
-
-    private static void convertLegacyTxtFiles(Path dir) {
-        try {
-            Files.list(dir)
-                    .filter(p -> p.getFileName().toString().endsWith(LEGACY_EXT)
-                            && !p.getFileName().toString().equals("all.txt"))
-                    .forEach(f -> {
-                        String name = stripExt(f.getFileName().toString());
-                        Map<String, List<HostResult>> tmp  = new LinkedHashMap<>();
-                        Map<String, String>           prfx = new LinkedHashMap<>();
-                        loadLegacyFile(f, name, tmp, prfx);
-                        saveNetwork(dir.getParent(), name,
-                                tmp.getOrDefault(name, new ArrayList<>()),
-                                prfx.getOrDefault(name, ""));
-                        try { Files.delete(f); } catch (IOException ignored) {}
-                        System.out.println("[NetworkStore] Converted: " + name + ".txt → .json");
-                    });
-        } catch (IOException ignored) {}
+        return NetworkStoreLegacy.needsImport(txtDir);
     }
 
     static void loadFile(Path file, String name, Map<String, List<HostResult>> networks) {
-        loadLegacyFile(file, name, networks, null);
+        NetworkStoreLegacy.loadFile(file, name, networks, null);
     }
 
     static void loadLegacyFile(Path file, String name,
                                Map<String, List<HostResult>> networks,
                                Map<String, String> prefixes) {
-        List<HostResult> list = networks.computeIfAbsent(name, k -> new ArrayList<>());
-        try {
-            for (String line : Files.readAllLines(file)) {
-                if (line.isBlank() || line.startsWith("#")) continue;
-                if (line.startsWith("IP-PRÄFIX:")) {
-                    if (prefixes != null)
-                        prefixes.put(name, line.substring("IP-PRÄFIX:".length()).trim());
-                    continue;
-                }
-                String[] p = line.split(";", 6);
-                if (p.length < 1 || p[0].isBlank()) continue;
-                list.add(new HostResult(
-                        p[0].trim(),
-                        p.length >= 2 ? p[1].trim() : p[0].trim(),
-                        p.length >= 3 ? p[2].trim() : "",
-                        p.length >= 5 ? p[4].trim() : "",
-                        parsePorts(p.length >= 4 ? p[3].trim() : ""),
-                        p.length >= 6 ? p[5].trim() : ""
-                ));
-            }
-        } catch (IOException e) {
-            System.err.println("[NetworkStore] legacy load " + name + ": " + e.getMessage());
-        }
+        NetworkStoreLegacy.loadFile(file, name, networks, prefixes);
     }
-
-    // ── Port helpers (legacy CSV format) ─────────────────────────────────
 
     static Map<Integer, String> parsePorts(String s) {
-        Map<Integer, String> map = new TreeMap<>();
-        if (s == null || s.isBlank()) return map;
-        for (String e : s.split(",")) {
-            String[] kv = e.split(":", 2);
-            try { map.put(Integer.parseInt(kv[0].trim()),
-                    kv.length > 1 ? kv[1].trim() : "offen"); }
-            catch (NumberFormatException ignored) {}
-        }
-        return map;
+        return NetworkStoreLegacy.parsePorts(s);
     }
 
-    // Delegated for backward compat (StorageUtils, tests)
+    // Backward compat
     static String extractStr(String json, String field) { return JsonHelper.extractStr(json, field); }
-    static String esc(String s) { return JsonHelper.esc(s); }
+    static String esc(String s)                          { return JsonHelper.esc(s); }
 
     private static String stripExt(String filename) {
         int dot = filename.lastIndexOf('.');
