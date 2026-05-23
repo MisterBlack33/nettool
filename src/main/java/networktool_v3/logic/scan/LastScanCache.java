@@ -6,11 +6,7 @@ import main.java.networktool_v3.model.ScanResult;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/**
- * Statischer Cache der zuletzt in der GUI-Tabelle angezeigten Hosts.
- * Wird von GuiTableRenderer bei jedem showHostTable/showScanTable befüllt.
- * Ermöglicht GuiNetworkMap den Zugriff auf gescannte (aber nicht gespeicherte) Hosts.
- */
+/** Cache der zuletzt in der GUI-Tabelle angezeigten Hosts. Wird von GuiTableRenderer befüllt. */
 public final class LastScanCache {
 
     private static final List<CachedHost> hosts = new CopyOnWriteArrayList<>();
@@ -29,11 +25,8 @@ public final class LastScanCache {
             hosts.add(new CachedHost(r.getIp(), r.getHostname(), r.getOsGuess()));
     }
 
-    public static List<CachedHost> getAll() {
-        return Collections.unmodifiableList(hosts);
-    }
-
-    public static boolean isEmpty() { return hosts.isEmpty(); }
+    public static List<CachedHost> getAll()  { return Collections.unmodifiableList(hosts); }
+    public static boolean          isEmpty() { return hosts.isEmpty(); }
 
     private static String cleanHostname(String hostname) {
         if (hostname == null) return "";

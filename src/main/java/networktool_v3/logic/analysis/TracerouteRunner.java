@@ -6,12 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.*;
 
-/**
- * Führt einen Traceroute-Prozess aus und parst die Ausgabe.
- *
- * Unterstützt Windows (tracert) und Linux/macOS (traceroute).
- * Gibt eine Liste von {@link HopInfo}-Objekten zurück.
- */
 public final class TracerouteRunner {
 
     private TracerouteRunner() {}
@@ -21,11 +15,6 @@ public final class TracerouteRunner {
     private static final Pattern IP_PATTERN =
             Pattern.compile("\\b(\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3})\\b");
 
-    /**
-     * @param ip      Ziel-IP
-     * @param maxHops 0 = kein Limit (255 Hops, praktisch bis Ziel)
-     * @return geparste Hop-Liste
-     */
     public static List<HopInfo> run(String ip, int maxHops) throws Exception {
         boolean win   = System.getProperty("os.name", "").toLowerCase().contains("win");
         String  limit = maxHops > 0 ? String.valueOf(maxHops) : "255";
@@ -46,8 +35,6 @@ public final class TracerouteRunner {
         return hops;
     }
 
-    // ── Zeilen-Parser ─────────────────────────────────────────────────────
-
     static HopInfo parseLine(String line, boolean win) {
         if (line.isEmpty()) return null;
         Matcher num = Pattern.compile("^\\s*(\\d{1,3})\\b").matcher(line);
@@ -56,7 +43,8 @@ public final class TracerouteRunner {
         HopInfo hop = new HopInfo(Integer.parseInt(num.group(1)));
 
         if (line.contains("* * *") || (line.contains("*") && !MS_PATTERN.matcher(line).find())) {
-            hop.timeout = true; return hop;
+            hop.timeout = true;
+            return hop;
         }
 
         Matcher ipM = IP_PATTERN.matcher(line);
@@ -75,16 +63,13 @@ public final class TracerouteRunner {
         Matcher ms = MS_PATTERN.matcher(line);
         while (ms.find()) {
             String raw = ms.group().toLowerCase()
-                    .replace("ms","").replace(",",".").replace("<","").trim();
-            try { hop.msValues.add(Math.round(Double.parseDouble(raw)));; }
+                    .replace("ms", "").replace(",", ".").replace("<", "").trim();
+            try { hop.msValues.add(Math.round(Double.parseDouble(raw))); }
             catch (NumberFormatException ignored) {}
         }
         return hop;
     }
 
-    // ── Datenklasse ───────────────────────────────────────────────────────
-
-    /** Enthält die Daten eines einzelnen Traceroute-Hops. */
     public static class HopInfo {
         public final int        number;
         public boolean          timeout  = false;
