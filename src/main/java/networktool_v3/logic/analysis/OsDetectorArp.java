@@ -2,6 +2,8 @@ package main.java.networktool_v3.logic.analysis;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.*;
@@ -22,10 +24,10 @@ final class OsDetectorArp {
 
     static String getMacFromArp(String ip) {
         triggerArp(ip);
-        String[] cmds = isWin()
-                ? new String[]{"arp -a " + ip, "arp -a"}
-                : new String[]{"arp -n " + ip, "arp -a -n", "arp -a"};
-        for (String cmd : cmds) {
+        String[][] cmds = isWin()
+                ? new String[][]{{"arp", "-a", ip}, {"arp", "-a"}}
+                : new String[][]{{"arp", "-n", ip}, {"arp", "-a", "-n"}, {"arp", "-a"}};
+        for (String[] cmd : cmds) {
             String mac = queryArp(cmd, ip);
             if (mac != null) return mac;
         }
@@ -34,7 +36,10 @@ final class OsDetectorArp {
 
     static int getTtl(String ip) {
         try {
-            Process p = Runtime.getRuntime().exec(isWin() ? "ping -n 1 " + ip : "ping -c 1 " + ip);
+            String[] cmd = isWin()
+                    ? new String[]{"ping", "-n", "1", ip}
+                    : new String[]{"ping", "-c", "1", ip};
+            Process p = Runtime.getRuntime().exec(cmd);
             BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
             StringBuilder sb = new StringBuilder();
             String line;
@@ -48,14 +53,16 @@ final class OsDetectorArp {
 
     private static void triggerArp(String ip) {
         try {
-            String cmd = isWin() ? "ping -n 1 -w 300 " + ip : "ping -c 1 -W 1 " + ip;
+            String[] cmd = isWin()
+                    ? new String[]{"ping", "-n", "1", "-w", "300", ip}
+                    : new String[]{"ping", "-c", "1", "-W", "1", ip};
             Process p = Runtime.getRuntime().exec(cmd);
             p.waitFor(700, TimeUnit.MILLISECONDS);
             p.destroy();
         } catch (Exception ignored) {}
     }
 
-    private static String queryArp(String cmd, String targetIp) {
+    private static String queryArp(String[] cmd, String targetIp) {
         try {
             Process p = Runtime.getRuntime().exec(cmd);
             try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
