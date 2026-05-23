@@ -26,20 +26,21 @@ import static main.java.networktool_v3.gui.GuiTheme.*;
  *  1. Manuell markiert per Rechtsklick (Session-persistent)
  *  2. OS/Hostname enthält switch/hub/router/fritz/unifi/mikrotik...
  *  3. MAC-OUI bekannter Switch-/Router-Hersteller
- *  4. Dichtester Knoten im /24-Subnetz (meiste Nachbarn im gleichen Segment)
+ *  4. Fallback: Host mit niedrigstem Last-Octet im /24 (≥2 Peers)
  *
  * Routing-Logik:
  *  Hosts → nächster Switch im gleichen /24 → Gateway
- *  Kein Switch gefunden → direkt ans Gateway
+ *  Kein Switch → direkt ans Gateway
  */
 public final class GuiNetworkMap {
 
     private GuiNetworkMap() {}
 
     /** Session-persistent manuell markierte Switch-IPs. */
-    private static final Set<String> MANUAL_SWITCHES = Collections.synchronizedSet(new HashSet<>());
+    private static final Set<String> MANUAL_SWITCHES =
+            Collections.synchronizedSet(new HashSet<>());
 
-    /** MAC-OUI-Präfixe bekannter Switch/Router-Hersteller (erste 8 Zeichen: XX:XX:XX). */
+    /** MAC-OUI-Präfixe bekannter Switch/Router-Hersteller. */
     private static final Set<String> SWITCH_OUIS = Set.of(
             "00:00:0C","00:1A:A1","00:1B:54","00:1C:57","00:1D:70","00:1E:BD",
             "00:1F:CA","00:21:A0","00:22:90","00:23:AC","00:24:14","00:25:84",
@@ -159,7 +160,7 @@ public final class GuiNetworkMap {
             line.add(dot); line.add(lbl);
             panel.add(line);
         }
-        JLabel hint = new JLabel("  Rechtsklick = als Switch markieren");
+        JLabel hint = new JLabel("  Rechtsklick = Switch markieren");
         hint.setFont(new Font("JetBrains Mono", Font.PLAIN, 9));
         hint.setForeground(FG_DIM);
         panel.add(hint);
@@ -175,13 +176,14 @@ public final class GuiNetworkMap {
                 SwingUtilities.invokeLater(() -> statusLbl.setText("  Scanne Netzwerk..."));
                 List<String> subnets = SubnetDetector.getAllSubnets();
                 if (subnets.isEmpty()) {
-                    SwingUtilities.invokeLater(() -> statusLbl.setText("  Kein Subnetz gefunden."));
+                    SwingUtilities.invokeLater(() -> statusLbl.setText("  Kein Subnetz."));
                     return;
                 }
                 NetworkHostScanner.scan(subnets);
                 SwingUtilities.invokeLater(() -> {
                     canvas.reload();
-                    statusLbl.setText("  " + canvas.hostCount() + " Hosts  |  Rechtsklick auf Knoten = als Switch markieren");
+                    statusLbl.setText("  " + canvas.hostCount()
+                            + " Hosts  |  Rechtsklick → Switch markieren");
                 });
             } catch (Exception e) {
                 SwingUtilities.invokeLater(() -> statusLbl.setText("  Fehler: " + e.getMessage()));
@@ -234,7 +236,8 @@ public final class GuiNetworkMap {
             try {
                 InetAddress self = InetAddress.getLocalHost();
                 if (seen.add(self.getHostAddress()))
-                    selfNode = addNode(self.getHostAddress(), self.getHostName() + " (ich)", localOs(), NodeType.SELF);
+                    selfNode = addNode(self.getHostAddress(),
+                            self.getHostName() + " (ich)", localOs(), NodeType.SELF);
             } catch (Exception ignored) {}
 
             for (ScanHistory.Entry entry : ScanHistory.getInstance().getAll())
@@ -262,50 +265,46 @@ public final class GuiNetworkMap {
         }
 
         /**
-         * Switch-Erkennung (Priorität absteigend):
-         *  1. Manuell per Rechtsklick markiert
-         *  2. OS/Hostname-Keywords
-         *  3. MAC-OUI bekannter Switch-Hersteller
-         *  4. Dichtester Knoten im /24 (Fallback)
+         * Multi-pass Switch-Erkennung:
+         *  Pass 1: Manuell + OS/Hostname-Keywords
+         *  Pass 2: MAC-OUI bekannter Hersteller
+         *  Pass 3: Fallback — niedrigstes Last-Octet im /24 wenn ≥2 andere Hosts vorhanden
          */
         private void promoteSwitchNodes() {
-            // Pass 1: Manual + keyword
             for (Node n : nodes) {
                 if (n.type != NodeType.HOST) continue;
-                if (MANUAL_SWITCHES.contains(n.ip)) { n.type = NodeType.SWITCH; continue; }
-                if (isSwitchByKeyword(n)) n.type = NodeType.SWITCH;
+                if (MANUAL_SWITCHES.contains(n.ip) || isSwitchByKeyword(n))
+                    n.type = NodeType.SWITCH;
             }
-
-            // Pass 2: OUI check for remaining hosts
             for (Node n : nodes) {
-                if (n.type != NodeType.HOST) continue;
-                if (isSwitchByOui(n)) n.type = NodeType.SWITCH;
+                if (n.type == NodeType.HOST && isSwitchByOui(n))
+                    n.type = NodeType.SWITCH;
             }
+            // Fallback: wenn im /24 kein Switch, niedrigstes Octet nehmen (≥2 Peers nötig)
+            collectSubnets().forEach(subnet -> {
+                boolean hasSw = nodes.stream()
+                        .anyMatch(n -> n.type == NodeType.SWITCH && subnet.equals(subnet24(n.ip)));
+                if (hasSw) return;
 
-            // Pass 3: Density fallback — if no switches detected in a /24,
-            // promote the host with the lowest last-octet (likely .1/.2 = router/switch)
-            Set<String> subnets = nodes.stream()
+                List<Node> peers = nodes.stream()
+                        .filter(n -> subnet.equals(subnet24(n.ip))
+                                && n.type == NodeType.HOST
+                                && !n.ip.equals(RemoteNetScanner.detectDefaultGateway()))
+                        .collect(Collectors.toList());
+                if (peers.size() < 2) return;
+
+                peers.stream()
+                        .min(Comparator.comparingInt(n -> lastOctet(n.ip)))
+                        .ifPresent(n -> n.type = NodeType.SWITCH);
+            });
+        }
+
+        private Set<String> collectSubnets() {
+            return nodes.stream()
                     .filter(n -> n.type == NodeType.HOST || n.type == NodeType.SWITCH)
                     .map(n -> subnet24(n.ip))
                     .filter(Objects::nonNull)
                     .collect(Collectors.toSet());
-
-            for (String subnet : subnets) {
-                boolean hasSwitchInSubnet = nodes.stream()
-                        .anyMatch(n -> n.type == NodeType.SWITCH && subnet.equals(subnet24(n.ip)));
-                if (hasSwitchInSubnet) continue;
-
-                // Count peers per host in this subnet
-                List<Node> peers = nodes.stream()
-                        .filter(n -> subnet.equals(subnet24(n.ip)) && n.type == NodeType.HOST)
-                        .collect(Collectors.toList());
-                if (peers.size() < 3) continue; // not enough hosts to infer a switch
-
-                // Promote the host with lowest last octet as likely switch/router
-                peers.stream()
-                        .min(Comparator.comparingInt(n -> lastOctet(n.ip)))
-                        .ifPresent(n -> n.type = NodeType.SWITCH);
-            }
         }
 
         private static boolean isSwitchByKeyword(Node n) {
@@ -323,7 +322,6 @@ public final class GuiNetworkMap {
 
         private static boolean isSwitchByOui(Node n) {
             if (n.hostname == null) return false;
-            // Extract MAC from hostname if embedded like "host [AA:BB:CC:DD:EE:FF]"
             int s = n.hostname.indexOf('['), e = n.hostname.indexOf(']');
             if (s < 0 || e <= s) return false;
             String mac = n.hostname.substring(s + 1, e).trim();
@@ -334,7 +332,6 @@ public final class GuiNetworkMap {
 
         private void buildTopologyEdges(Node gwNode, Node selfNode) {
             if (gwNode == null) return;
-
             List<Node> switches = nodes.stream()
                     .filter(n -> n.type == NodeType.SWITCH)
                     .collect(Collectors.toList());
@@ -353,13 +350,12 @@ public final class GuiNetworkMap {
         }
 
         /**
-         * Finds the nearest switch in the same /24 subnet.
-         * Prefers lower last-octet distance (closer IP = more likely direct uplink).
+         * Nächsten Switch im selben /24 finden.
+         * Bevorzugt niedrigsten IP-Abstand (nähere IP = wahrscheinlicherer Uplink).
          */
         private static Node findNearestSwitch(Node host, List<Node> switches) {
             String hostSubnet = subnet24(host.ip);
             if (hostSubnet == null) return null;
-
             return switches.stream()
                     .filter(sw -> hostSubnet.equals(subnet24(sw.ip)))
                     .min(Comparator.comparingInt(sw ->
@@ -389,7 +385,6 @@ public final class GuiNetworkMap {
                     switches.get(i).y = (int)(cy + swRadius * Math.sin(angle));
                 }
             }
-
             placeHostsNearParents(cx, cy);
             repaint();
         }
@@ -401,17 +396,17 @@ public final class GuiNetworkMap {
                     groups.computeIfAbsent(e.to, k -> new ArrayList<>()).add(e.from);
 
             for (Map.Entry<Node, List<Node>> entry : groups.entrySet()) {
-                Node parent = entry.getKey();
-                List<Node> children = entry.getValue();
-                int n = children.size();
+                Node parent   = entry.getKey();
+                List<Node> ch = entry.getValue();
+                int n = ch.size();
                 if (n == 0) continue;
                 int radius = 80 + n * 8;
                 double step = 2 * Math.PI / n;
-                double baseAngle = Math.atan2(parent.y - cy, parent.x - cx);
+                double base = Math.atan2(parent.y - cy, parent.x - cx);
                 for (int i = 0; i < n; i++) {
-                    double angle = baseAngle + (i - n / 2.0) * step;
-                    children.get(i).x = parent.x + (int)(radius * Math.cos(angle));
-                    children.get(i).y = parent.y + (int)(radius * Math.sin(angle));
+                    double angle = base + (i - n / 2.0) * step;
+                    ch.get(i).x = parent.x + (int)(radius * Math.cos(angle));
+                    ch.get(i).y = parent.y + (int)(radius * Math.sin(angle));
                 }
             }
         }
@@ -445,10 +440,13 @@ public final class GuiNetworkMap {
             for (Edge e : edges) {
                 switch (e.type) {
                     case SELF_LINK -> { g2.setStroke(new BasicStroke(2f)); g2.setColor(ACCENT2); }
-                    case UPLINK    -> { g2.setStroke(new BasicStroke(1.5f)); g2.setColor(new Color(0xFF, 0xA0, 0x30, 180)); }
+                    case UPLINK    -> { g2.setStroke(new BasicStroke(1.5f));
+                        g2.setColor(new Color(0xFF, 0xA0, 0x30, 180)); }
                     default        -> {
-                        g2.setStroke(new BasicStroke(1f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1f, new float[]{4f, 4f}, 0f));
-                        g2.setColor(GuiTheme.isDark() ? new Color(0x30, 0x45, 0x30) : new Color(0xC0, 0xBC, 0xB4));
+                        g2.setStroke(new BasicStroke(1f, BasicStroke.CAP_ROUND,
+                                BasicStroke.JOIN_ROUND, 1f, new float[]{4f, 4f}, 0f));
+                        g2.setColor(GuiTheme.isDark()
+                                ? new Color(0x30, 0x45, 0x30) : new Color(0xC0, 0xBC, 0xB4));
                     }
                 }
                 g2.drawLine(e.from.x, e.from.y, e.to.x, e.to.y);
@@ -462,13 +460,10 @@ public final class GuiNetworkMap {
                 case SELF            -> 18;
                 default              -> 14;
             };
-            // Glow
             g2.setColor(new Color(col.getRed(), col.getGreen(), col.getBlue(), 35));
             g2.fillOval(n.x - r - 6, n.y - r - 6, (r + 6) * 2, (r + 6) * 2);
-            // Fill
             g2.setColor(GuiTheme.isDark() ? new Color(0x08, 0x0C, 0x08) : new Color(0xF4, 0xF2, 0xEE));
             g2.fillOval(n.x - r, n.y - r, r * 2, r * 2);
-            // Border
             g2.setColor(col);
             g2.setStroke(new BasicStroke(n.type == NodeType.SWITCH ? 2.5f : 1.5f));
             g2.drawOval(n.x - r, n.y - r, r * 2, r * 2);
@@ -476,7 +471,6 @@ public final class GuiNetworkMap {
                 g2.setStroke(new BasicStroke(1f));
                 g2.drawOval(n.x - r + 4, n.y - r + 4, (r - 4) * 2, (r - 4) * 2);
             }
-            // Icon
             String icon = switch (n.type) {
                 case GATEWAY -> "G"; case SELF -> "*"; case SWITCH -> "S";
                 default -> osIcon(n.os);
@@ -486,7 +480,6 @@ public final class GuiNetworkMap {
             g2.setColor(col);
             g2.setStroke(new BasicStroke(1f));
             g2.drawString(icon, n.x - fm.stringWidth(icon) / 2, n.y + fm.getAscent() / 2 - 1);
-            // Labels
             g2.setFont(new Font("JetBrains Mono", Font.PLAIN, 9));
             fm = g2.getFontMetrics();
             g2.setColor(GuiTheme.isDark() ? new Color(0xA0, 0x9C, 0x90) : new Color(0x40, 0x42, 0x3E));
@@ -521,7 +514,8 @@ public final class GuiNetworkMap {
                         }
                     } else if (SwingUtilities.isRightMouseButton(e)) {
                         Node hit = nodeAt(world);
-                        if (hit != null && hit.type != NodeType.GATEWAY && hit.type != NodeType.SELF)
+                        if (hit != null && hit.type != NodeType.GATEWAY
+                                && hit.type != NodeType.SELF)
                             showNodeContextMenu(hit, e.getComponent(), e.getX(), e.getY());
                         else { panning = true; panStart = e.getPoint();
                             setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR)); }
@@ -567,27 +561,22 @@ public final class GuiNetworkMap {
             menu.setBackground(new Color(0x10, 0x14, 0x10));
             menu.setBorder(new CompoundBorder(new LineBorder(BORDER, 1), new EmptyBorder(4, 0, 4, 0)));
 
-            boolean isSwitch = n.type == NodeType.SWITCH;
-            String label = isSwitch ? "✕  Als normalen Host markieren" : "S  Als Switch/Hub markieren";
-            Color  fg    = isSwitch ? WARN : new Color(0xFF, 0xA0, 0x30);
+            boolean isSw = n.type == NodeType.SWITCH;
+            String label = isSw ? "✕  Als normalen Host markieren" : "S  Als Switch/Hub markieren";
+            Color  fg    = isSw ? WARN : new Color(0xFF, 0xA0, 0x30);
 
-            JMenuItem item = new JMenuItem(label);
-            item.setFont(new Font("JetBrains Mono", Font.BOLD, 11));
-            item.setForeground(fg);
-            item.setBackground(new Color(0x10, 0x14, 0x10));
-            item.setBorder(new EmptyBorder(6, 14, 6, 20));
-            item.setOpaque(true);
-            item.addActionListener(ev -> {
-                if (isSwitch) {
-                    MANUAL_SWITCHES.remove(n.ip);
-                    n.type = NodeType.HOST;
-                } else {
-                    MANUAL_SWITCHES.add(n.ip);
-                    n.type = NodeType.SWITCH;
-                }
+            JMenuItem switchItem = new JMenuItem(label);
+            switchItem.setFont(new Font("JetBrains Mono", Font.BOLD, 11));
+            switchItem.setForeground(fg);
+            switchItem.setBackground(new Color(0x10, 0x14, 0x10));
+            switchItem.setBorder(new EmptyBorder(6, 14, 6, 20));
+            switchItem.setOpaque(true);
+            switchItem.addActionListener(ev -> {
+                if (isSw) { MANUAL_SWITCHES.remove(n.ip); n.type = NodeType.HOST; }
+                else      { MANUAL_SWITCHES.add(n.ip);    n.type = NodeType.SWITCH; }
                 reload();
             });
-            menu.add(item);
+            menu.add(switchItem);
 
             JMenuItem detailItem = new JMenuItem("🔍  Details anzeigen");
             detailItem.setFont(new Font("JetBrains Mono", Font.PLAIN, 11));
@@ -599,7 +588,6 @@ public final class GuiNetworkMap {
                     HostDetailsPanel.show(n.ip, n.hostname, n.os,
                             NetworkStore.getInstance().findNetwork(n.ip)));
             menu.add(detailItem);
-
             menu.show(comp, x, y);
         }
 
@@ -619,13 +607,13 @@ public final class GuiNetworkMap {
 
     // ── Helpers ───────────────────────────────────────────────────────────
 
-    private static String subnet24(String ip) {
+    static String subnet24(String ip) {
         if (ip == null) return null;
         int last = ip.lastIndexOf('.');
         return last > 0 ? ip.substring(0, last) : null;
     }
 
-    private static int lastOctet(String ip) {
+    static int lastOctet(String ip) {
         if (ip == null) return 999;
         int last = ip.lastIndexOf('.');
         try { return Integer.parseInt(ip.substring(last + 1)); }
