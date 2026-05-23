@@ -53,7 +53,7 @@ public final class GuiSearchBar extends JPanel {
         closeBtn.setContentAreaFilled(false);
         closeBtn.setFocusPainted(false);
         closeBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        closeBtn.addActionListener(e -> hide());
+        closeBtn.addActionListener(e -> hideSearch());
         closeBtn.addMouseListener(new MouseAdapter() {
             public void mouseEntered(MouseEvent e) { closeBtn.setForeground(WARN); }
             public void mouseExited(MouseEvent e)  { closeBtn.setForeground(FG_DIM); }
@@ -86,7 +86,7 @@ public final class GuiSearchBar extends JPanel {
         });
         field.addKeyListener(new KeyAdapter() {
             public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) hide();
+                if (e.getKeyCode() == KeyEvent.VK_ESCAPE) hideSearch();
             }
         });
 
@@ -97,7 +97,7 @@ public final class GuiSearchBar extends JPanel {
     // ── Öffentliche API ───────────────────────────────────────────────────
 
     /** Zeigt die Suchleiste (nur wenn SavedHosts aktiv). */
-    public void show() {
+    public void showSearch() {
         setVisible(true);
         visible = true;
         field.requestFocus();
@@ -105,7 +105,7 @@ public final class GuiSearchBar extends JPanel {
     }
 
     /** Versteckt die Suchleiste. */
-    public void hide() {
+    public void hideSearch() {
         if (!visible) return;
         visible = false;
         setVisible(false);
@@ -113,6 +113,18 @@ public final class GuiSearchBar extends JPanel {
         resultPanel.removeAll();
         resultScroll.setVisible(false);
     }
+
+    /**
+     * Called by GUI.java and GuiSavedHostsPanel to show the search bar.
+     * Delegates to {@link #showSearch()}.
+     */
+    public void show() { showSearch(); }
+
+    /**
+     * Called by GUI.java and GuiSavedHostsPanel to hide the search bar.
+     * Delegates to {@link #hideSearch()}.
+     */
+    public void hide() { hideSearch(); }
 
     public boolean isSearchVisible() { return visible; }
 
