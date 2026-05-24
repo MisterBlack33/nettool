@@ -25,8 +25,9 @@ import static main.java.networktool_v3.gui.GuiTheme.*;
  * Switch-Erkennung (Priorität):
  *  1. Manuell markiert per Rechtsklick (Session-persistent)
  *  2. OS/Hostname enthält switch/hub/router/fritz/unifi/mikrotik...
- *  3. MAC-OUI bekannter Switch-/Router-Hersteller
- *  4. Fallback: Host mit niedrigstem Last-Octet im /24 (≥2 Peers)
+ *  3. MAC-OUI bekannter Switch-/Router-Hersteller (inkl. HP/Aruba ProCurve)
+ *  4. Port-basiert: SNMP(161)/Telnet(23) ohne Drucker/PC-Ports
+ *  5. Fallback: niedrigstes Last-Octet im /24, nur wenn kein Drucker/PC erkennbar
  *
  * Routing-Logik:
  *  Hosts → nächster Switch im gleichen /24 → Gateway
@@ -40,13 +41,18 @@ public final class GuiNetworkMap {
     private static final Set<String> MANUAL_SWITCHES =
             Collections.synchronizedSet(new HashSet<>());
 
-    /** MAC-OUI-Präfixe bekannter Switch/Router-Hersteller. */
+    /** MAC-OUI-Präfixe bekannter Switch/Router-Hersteller (inkl. HP/Aruba/ProCurve). */
     private static final Set<String> SWITCH_OUIS = Set.of(
             "00:00:0C","00:1A:A1","00:1B:54","00:1C:57","00:1D:70","00:1E:BD",
             "00:1F:CA","00:21:A0","00:22:90","00:23:AC","00:24:14","00:25:84",
-            "00:26:CB","00:90:BF","C8:9C:1D","D0:72:DC","00:14:6A","00:1C:10",
-            "00:60:2F","00:E0:B1","08:00:07","A0:E0:AF","CC:46:D6","E8:40:F2",
-            "FC:FB:FB","00:1A:2F","00:24:B2","10:DA:43","14:91:82","18:59:36",
+            "00:26:CB","00:90:BF","C8:9C:1D","D0:72:DC",
+            "00:17:A4","00:18:71","00:1A:4B","00:1C:2E","00:1F:FE","00:21:5A",
+            "00:22:64","00:23:47","00:24:81","00:25:B3","00:26:55","00:30:C1",
+            "3C:D9:2B","40:B0:34","50:65:F3","5C:8A:38","64:51:06","6C:C2:17",
+            "78:AC:C0","80:C1:6E","84:34:97","88:51:FB","9C:8E:99","A0:1D:48",
+            "A8:97:DC","B4:39:D6","C4:34:6B","D8:C7:C8","F0:92:1C","F4:CE:46",
+            "00:14:6A","00:1C:10","00:60:2F","00:E0:B1","A0:E0:AF","CC:46:D6",
+            "E8:40:F2","FC:FB:FB","00:1A:2F","00:24:B2","10:DA:43","14:91:82",
             "50:C7:BF","AC:84:C9","C4:6E:1F","F8:1A:67","00:09:5B","00:0F:B5",
             "00:14:6C","00:18:4D","20:E5:2A","44:94:FC","60:38:E0","A0:40:A0",
             "B0:7F:B9","C0:3F:0E","C4:04:15","E0:91:F5"
@@ -183,7 +189,7 @@ public final class GuiNetworkMap {
                 SwingUtilities.invokeLater(() -> {
                     canvas.reload();
                     statusLbl.setText("  " + canvas.hostCount()
-                            + " Hosts  |  Rechtsklick → Switch markieren");
+                            + " Hosts  |  Unbekannter Switch? → Rechtsklick → \"Als Switch markieren\"");
                 });
             } catch (Exception e) {
                 SwingUtilities.invokeLater(() -> statusLbl.setText("  Fehler: " + e.getMessage()));
@@ -265,46 +271,75 @@ public final class GuiNetworkMap {
         }
 
         /**
-         * Multi-pass Switch-Erkennung:
-         *  Pass 1: Manuell + OS/Hostname-Keywords
-         *  Pass 2: MAC-OUI bekannter Hersteller
-         *  Pass 3: Fallback — niedrigstes Last-Octet im /24 wenn ≥2 andere Hosts vorhanden
+         * Switch-Erkennung — kein automatischer Fallback mehr (zu fehleranfällig).
+         *  Pass 1: Manuell per Rechtsklick markiert
+         *  Pass 2: OS/Hostname-Keywords
+         *  Pass 3: MAC-OUI bekannter Switch-Hersteller
+         *  Pass 4: Port-basiert (SNMP/Telnet ohne PC/Drucker-Ports)
+         *
+         *  Unbekannte Hosts bleiben HOST — Rechtsklick → "Als Switch markieren".
          */
         private void promoteSwitchNodes() {
             for (Node n : nodes) {
                 if (n.type != NodeType.HOST) continue;
-                if (MANUAL_SWITCHES.contains(n.ip) || isSwitchByKeyword(n))
-                    n.type = NodeType.SWITCH;
+                if (MANUAL_SWITCHES.contains(n.ip))  { n.type = NodeType.SWITCH; continue; }
+                if (isSwitchByKeyword(n))              { n.type = NodeType.SWITCH; continue; }
+                if (isSwitchByOui(n))                  { n.type = NodeType.SWITCH; continue; }
+                if (isSwitchByPorts(n))                  n.type = NodeType.SWITCH;
             }
-            for (Node n : nodes) {
-                if (n.type == NodeType.HOST && isSwitchByOui(n))
-                    n.type = NodeType.SWITCH;
-            }
-            // Fallback: wenn im /24 kein Switch, niedrigstes Octet nehmen (≥2 Peers nötig)
-            collectSubnets().forEach(subnet -> {
-                boolean hasSw = nodes.stream()
-                        .anyMatch(n -> n.type == NodeType.SWITCH && subnet.equals(subnet24(n.ip)));
-                if (hasSw) return;
-
-                List<Node> peers = nodes.stream()
-                        .filter(n -> subnet.equals(subnet24(n.ip))
-                                && n.type == NodeType.HOST
-                                && !n.ip.equals(RemoteNetScanner.detectDefaultGateway()))
-                        .collect(Collectors.toList());
-                if (peers.size() < 2) return;
-
-                peers.stream()
-                        .min(Comparator.comparingInt(n -> lastOctet(n.ip)))
-                        .ifPresent(n -> n.type = NodeType.SWITCH);
-            });
         }
 
-        private Set<String> collectSubnets() {
-            return nodes.stream()
-                    .filter(n -> n.type == NodeType.HOST || n.type == NodeType.SWITCH)
-                    .map(n -> subnet24(n.ip))
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toSet());
+        /**
+         * Gibt true zurück wenn OS/Hostname eindeutig auf ein Endgerät hinweist.
+         * Wird von isSwitchByKeyword implizit berücksichtigt (Switch-Keywords prüfen positiv).
+         */
+        private static boolean isEndDevice(Node n) {
+            String os = n.os != null ? n.os.toLowerCase() : "";
+            String hn = n.hostname != null ? n.hostname.toLowerCase() : "";
+            if (os.contains("windows") || os.contains("android") || os.contains("ios")
+                    || os.contains("ipad") || os.contains("macos") || os.contains("apple")
+                    || os.contains("drucker") || os.contains("printer")
+                    || os.contains("raspberry") || os.contains("linux")
+                    || os.contains("samsung") || os.contains("xiaomi")
+                    || os.contains("jetdirect") || os.contains("ipp") || os.contains("lpd"))
+                return true;
+            if (hn.contains("desktop") || hn.contains("laptop") || hn.contains("phone")
+                    || hn.contains("galaxy") || hn.contains("a21") || hn.contains("a51")
+                    || hn.contains("a52") || hn.contains("a71") || hn.contains("a72")
+                    || hn.contains("s20") || hn.contains("s21") || hn.contains("s22")
+                    || hn.contains("s23") || hn.contains("iphone") || hn.contains("ipad")
+                    || hn.contains("pixel") || hn.contains("redmi") || hn.contains("xiaomi")
+                    || hn.contains("printer") || hn.contains("drucker")
+                    || hn.contains("epson") || hn.contains("canon") || hn.contains("brother"))
+                return true;
+            return hasPcOrPrinterPorts(n.ip);
+        }
+
+        /** Prüft gespeicherte Ports auf typische PC/Drucker-Signaturen. */
+        private static boolean hasPcOrPrinterPorts(String ip) {
+            return NetworkStore.getInstance().getAllHosts().stream()
+                    .filter(h -> h.ip.equals(ip))
+                    .findFirst()
+                    .map(h -> h.ports.containsKey(3389) || h.ports.containsKey(445)
+                            || h.ports.containsKey(5985) || h.ports.containsKey(9100)
+                            || h.ports.containsKey(515)  || h.ports.containsKey(631))
+                    .orElse(false);
+        }
+
+        /**
+         * Port-basierte Switch-Erkennung: SNMP (161) oder Telnet (23)
+         * ohne Drucker- oder PC-Ports → wahrscheinlich Managed Switch.
+         * Endgeräte werden explizit ausgeschlossen.
+         */
+        private static boolean isSwitchByPorts(Node n) {
+            if (isEndDevice(n)) return false;
+            return NetworkStore.getInstance().getAllHosts().stream()
+                    .filter(h -> h.ip.equals(n.ip))
+                    .findFirst()
+                    .map(h -> (h.ports.containsKey(161) || h.ports.containsKey(23))
+                            && !h.ports.containsKey(9100) && !h.ports.containsKey(3389)
+                            && !h.ports.containsKey(445)  && !h.ports.containsKey(631))
+                    .orElse(false);
         }
 
         private static boolean isSwitchByKeyword(Node n) {
@@ -562,18 +597,27 @@ public final class GuiNetworkMap {
             menu.setBorder(new CompoundBorder(new LineBorder(BORDER, 1), new EmptyBorder(4, 0, 4, 0)));
 
             boolean isSw = n.type == NodeType.SWITCH;
-            String label = isSw ? "✕  Als normalen Host markieren" : "S  Als Switch/Hub markieren";
-            Color  fg    = isSw ? WARN : new Color(0xFF, 0xA0, 0x30);
 
-            JMenuItem switchItem = new JMenuItem(label);
+            JMenuItem header = new JMenuItem(n.ip + "  –  " + truncate(n.hostname, 22));
+            header.setFont(new Font("JetBrains Mono", Font.BOLD, 10));
+            header.setForeground(FG_DIM);
+            header.setBackground(new Color(0x10, 0x14, 0x10));
+            header.setEnabled(false);
+            header.setBorder(new EmptyBorder(4, 14, 4, 20));
+            menu.add(header);
+            menu.addSeparator();
+
+            JMenuItem switchItem = new JMenuItem(
+                    isSw ? "✕  Kein Switch  (zurücksetzen)" : "S  Als Switch/Hub markieren");
             switchItem.setFont(new Font("JetBrains Mono", Font.BOLD, 11));
-            switchItem.setForeground(fg);
+            switchItem.setForeground(isSw ? WARN : new Color(0xFF, 0xA0, 0x30));
             switchItem.setBackground(new Color(0x10, 0x14, 0x10));
             switchItem.setBorder(new EmptyBorder(6, 14, 6, 20));
             switchItem.setOpaque(true);
+            switchItem.addMouseListener(menuHover(switchItem));
             switchItem.addActionListener(ev -> {
-                if (isSw) { MANUAL_SWITCHES.remove(n.ip); n.type = NodeType.HOST; }
-                else      { MANUAL_SWITCHES.add(n.ip);    n.type = NodeType.SWITCH; }
+                if (isSw) MANUAL_SWITCHES.remove(n.ip);
+                else      MANUAL_SWITCHES.add(n.ip);
                 reload();
             });
             menu.add(switchItem);
@@ -584,11 +628,26 @@ public final class GuiNetworkMap {
             detailItem.setBackground(new Color(0x10, 0x14, 0x10));
             detailItem.setBorder(new EmptyBorder(6, 14, 6, 20));
             detailItem.setOpaque(true);
+            detailItem.addMouseListener(menuHover(detailItem));
             detailItem.addActionListener(ev ->
                     HostDetailsPanel.show(n.ip, n.hostname, n.os,
                             NetworkStore.getInstance().findNetwork(n.ip)));
             menu.add(detailItem);
             menu.show(comp, x, y);
+        }
+
+        private static java.awt.event.MouseAdapter menuHover(JMenuItem item) {
+            Color bg = new Color(0x10, 0x14, 0x10);
+            Color hov = new Color(0x1E, 0x26, 0x1E);
+            return new java.awt.event.MouseAdapter() {
+                public void mouseEntered(java.awt.event.MouseEvent e) { item.setBackground(hov); }
+                public void mouseExited (java.awt.event.MouseEvent e) { item.setBackground(bg); }
+            };
+        }
+
+        private static String truncate(String s, int max) {
+            if (s == null) return "";
+            return s.length() <= max ? s : s.substring(0, max - 1) + "…";
         }
 
         private Point toWorld(Point screen) {
