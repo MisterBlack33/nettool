@@ -20,28 +20,30 @@ import java.util.stream.Collectors;
 import static main.java.networktool_v3.gui.GuiTheme.*;
 
 /**
- * Netzwerk-Topologie-Karte mit mehrstufiger Topology-Inferenz.
+ * Netzwerk-Topologie-Karte.
  *
- * Switch-Erkennung (Priorität):
- *  1. Manuell markiert per Rechtsklick (Session-persistent)
- *  2. OS/Hostname enthält switch/hub/router/fritz/unifi/mikrotik...
- *  3. MAC-OUI bekannter Switch-/Router-Hersteller (inkl. HP/Aruba ProCurve)
- *  4. Port-basiert: SNMP(161)/Telnet(23) ohne Drucker/PC-Ports
- *  5. Fallback: niedrigstes Last-Octet im /24, nur wenn kein Drucker/PC erkennbar
+ * Switch-Erkennung (Reihenfolge):
+ *  1. Manuell per Rechtsklick gesetzt (MANUAL_SWITCHES, session-persistent)
+ *  2. OS/Hostname enthält eindeutige Switch/Router-Begriffe
+ *  3. MAC-OUI bekannter Switch-Hersteller UND kein Endgerät
+ *  4. Ports: SNMP(161)/Telnet(23) vorhanden, keine PC/Drucker-Ports
  *
- * Routing-Logik:
- *  Hosts → nächster Switch im gleichen /24 → Gateway
- *  Kein Switch → direkt ans Gateway
+ *  isEndDevice() ist Gate für Pass 2-4 und verhindert Fehlklassifikation
+ *  von PCs, Handys, Druckern und Tablets.
  */
 public final class GuiNetworkMap {
 
     private GuiNetworkMap() {}
 
     /** Session-persistent manuell markierte Switch-IPs. */
-    private static final Set<String> MANUAL_SWITCHES =
+    static final Set<String> MANUAL_SWITCHES =
             Collections.synchronizedSet(new HashSet<>());
 
-    /** MAC-OUI-Präfixe bekannter Switch/Router-Hersteller (inkl. HP/Aruba/ProCurve). */
+    /**
+     * OUI-Präfixe bekannter Switch/Router-Hersteller.
+     * Format: "XX:XX:XX" (erste 3 Bytes, Großbuchstaben, Doppelpunkt-getrennt).
+     * Enthält HP/Aruba ProCurve, Cisco, Netgear, TP-Link, Ubiquiti.
+     */
     private static final Set<String> SWITCH_OUIS = Set.of(
             "00:00:0C","00:1A:A1","00:1B:54","00:1C:57","00:1D:70","00:1E:BD",
             "00:1F:CA","00:21:A0","00:22:90","00:23:AC","00:24:14","00:25:84",
@@ -58,9 +60,31 @@ public final class GuiNetworkMap {
             "B0:7F:B9","C0:3F:0E","C4:04:15","E0:91:F5"
     );
 
+    /** OS-Strings die eindeutig kein Switch sind. */
+    private static final List<String> ENDDEVICE_OS = List.of(
+            "windows","android","ios","ipad","ipados","macos","apple","linux","unix",
+            "raspberry","samsung","xiaomi","huawei","oppo","realme","oneplus",
+            "drucker","printer","jetdirect","ipp","lpd","cups","bandwidth"
+    );
+
+    /** Hostname-Fragmente die eindeutig kein Switch sind. */
+    private static final List<String> ENDDEVICE_HN = List.of(
+            "desktop","laptop","phone","mobile","tablet","pad",
+            "iphone","ipad","galaxy","pixel","a21","a31","a51","a52","a71","a72",
+            "s20","s21","s22","s23","s24","note","redmi","poco","huawei","honor",
+            "printer","drucker","epson","canon","brother","kyocera","hp-color",
+            "macbook","imac","mac-mini"
+    );
+
+    /** Ports die auf PC oder Drucker hinweisen (kein Switch). */
+    private static final Set<Integer> ENDDEVICE_PORTS =
+            Set.of(3389, 445, 5985, 5986, 9100, 515, 631);
+
     public static void show() {
         SwingUtilities.invokeLater(GuiNetworkMap::buildWindow);
     }
+
+    // ── Window ────────────────────────────────────────────────────────────
 
     private static void buildWindow() {
         JDialog dlg = new JDialog((Frame) null, "Netzwerk-Karte", false);
@@ -69,78 +93,74 @@ public final class GuiNetworkMap {
         dlg.setResizable(true);
 
         Color bg = GuiTheme.isDark() ? new Color(0x06, 0x09, 0x07) : new Color(0xF2, 0xF0, 0xEC);
-        MapCanvas canvas = new MapCanvas(bg);
-        JLabel statusLbl = buildStatusLabel();
-        JPanel toolbar   = buildToolbar(canvas, statusLbl);
+        MapCanvas canvas   = new MapCanvas(bg);
+        JLabel    statusLbl = buildStatusLabel();
 
         JLayeredPane layered = new JLayeredPane() {
             @Override public void doLayout() {
                 int w = getWidth(), h = getHeight();
                 canvas.setBounds(0, 0, w, h);
-                Component legend = getComponentsInLayer(JLayeredPane.PALETTE_LAYER)[0];
-                Dimension ls = legend.getPreferredSize();
-                legend.setBounds(10, h - ls.height - 10, ls.width, ls.height);
+                Component leg = getComponentsInLayer(JLayeredPane.PALETTE_LAYER)[0];
+                Dimension ls = leg.getPreferredSize();
+                leg.setBounds(10, h - ls.height - 10, ls.width, ls.height);
             }
         };
         layered.setBackground(bg);
         layered.setOpaque(true);
-        layered.add(canvas, JLayeredPane.DEFAULT_LAYER);
-        layered.add(buildLegendOverlay(), JLayeredPane.PALETTE_LAYER);
+        layered.add(canvas,           JLayeredPane.DEFAULT_LAYER);
+        layered.add(buildLegend(),    JLayeredPane.PALETTE_LAYER);
 
         JPanel root = new JPanel(new BorderLayout());
         root.setBackground(bg);
-        root.add(toolbar,   BorderLayout.NORTH);
-        root.add(layered,   BorderLayout.CENTER);
-        root.add(statusLbl, BorderLayout.SOUTH);
+        root.add(buildToolbar(canvas), BorderLayout.NORTH);
+        root.add(layered,              BorderLayout.CENTER);
+        root.add(statusLbl,            BorderLayout.SOUTH);
+        canvas.setStatusLabel(statusLbl);
 
         dlg.setContentPane(root);
         dlg.setVisible(true);
-        startBackgroundScan(canvas, statusLbl);
+        startBackgroundScan(canvas);
     }
 
-    // ── Toolbar ───────────────────────────────────────────────────────────
-
-    private static JPanel buildToolbar(MapCanvas canvas, JLabel statusLbl) {
+    private static JPanel buildToolbar(MapCanvas canvas) {
         Color barBg = GuiTheme.isDark() ? new Color(0x0A, 0x0E, 0x0B) : new Color(0xE4, 0xE2, 0xDC);
         JPanel bar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 6));
         bar.setBackground(barBg);
         bar.setBorder(new MatteBorder(0, 0, 1, 0, BORDER));
 
-        JLabel title = new JLabel("  Netzwerk-Karte  -  0 Hosts");
+        JLabel title = new JLabel("  Netzwerk-Karte");
         title.setFont(new Font("JetBrains Mono", Font.BOLD, 12));
         title.setForeground(ACCENT);
         canvas.setTitleLabel(title);
 
-        JButton refreshBtn = mapBtn("Aktualisieren", ACCENT2);
-        JButton layoutBtn  = mapBtn("Layout",        INFO);
-        bar.add(title); bar.add(refreshBtn); bar.add(layoutBtn);
-
+        JButton refreshBtn = mapBtn("↻ Aktualisieren", ACCENT2);
+        JButton layoutBtn  = mapBtn("⊞ Layout",        INFO);
         refreshBtn.addActionListener(e -> canvas.reload());
         layoutBtn.addActionListener(e -> canvas.resetLayout());
+        bar.add(title); bar.add(refreshBtn); bar.add(layoutBtn);
         return bar;
     }
 
     private static JLabel buildStatusLabel() {
-        JLabel lbl = new JLabel("  Starte Scan...");
+        JLabel lbl = new JLabel("  Scanne...");
         lbl.setFont(new Font("JetBrains Mono", Font.PLAIN, 10));
         lbl.setForeground(FG_DIM);
         lbl.setBorder(new EmptyBorder(3, 8, 3, 8));
         return lbl;
     }
 
-    // ── Legende ───────────────────────────────────────────────────────────
-
-    private static JPanel buildLegendOverlay() {
-        Color legBg = new Color(0x08, 0x0C, 0x08, 200);
-        Object[][] items = {
-                {"*", "Ich",        ACCENT2},
-                {"G", "Gateway",    NET_COL},
-                {"S", "Switch/Hub", new Color(0xFF, 0xA0, 0x30)},
-                {"W", "Windows",    WIN_COL},
-                {"L", "Linux",      LIN_COL},
-                {"M", "macOS",      APL_COL},
-                {"A", "Android",    AND_COL},
-                {"?", "Unbekannt",  FG_DIM},
+    private static JPanel buildLegend() {
+        Color legBg = new Color(0x08, 0x0C, 0x08, 210);
+        Object[][] rows = {
+                {"*", "Ich (lokal)",   ACCENT2},
+                {"G", "Gateway",       NET_COL},
+                {"S", "Switch/Hub",    new Color(0xFF, 0xA0, 0x30)},
+                {"W", "Windows",       WIN_COL},
+                {"L", "Linux",         LIN_COL},
+                {"M", "macOS / iOS",   APL_COL},
+                {"A", "Android",       AND_COL},
+                {"P", "Drucker",       PRN_COL},
+                {"?", "Unbekannt",     FG_DIM},
         };
         JPanel panel = new JPanel() {
             @Override protected void paintComponent(Graphics g) {
@@ -154,7 +174,7 @@ public final class GuiNetworkMap {
         panel.setOpaque(false);
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(new EmptyBorder(6, 8, 6, 12));
-        for (Object[] row : items) {
+        for (Object[] row : rows) {
             JPanel line = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 1));
             line.setOpaque(false);
             JLabel dot = new JLabel("\u25CF");
@@ -166,35 +186,77 @@ public final class GuiNetworkMap {
             line.add(dot); line.add(lbl);
             panel.add(line);
         }
-        JLabel hint = new JLabel("  Rechtsklick = Switch markieren");
+        JLabel hint = new JLabel("  Rechtsklick → Switch markieren");
         hint.setFont(new Font("JetBrains Mono", Font.PLAIN, 9));
         hint.setForeground(FG_DIM);
+        hint.setBorder(new EmptyBorder(4, 0, 0, 0));
         panel.add(hint);
-        panel.setPreferredSize(new Dimension(200, items.length * 18 + 28));
+        panel.setPreferredSize(new Dimension(210, rows.length * 18 + 30));
         return panel;
     }
 
-    // ── Background scan ───────────────────────────────────────────────────
-
-    private static void startBackgroundScan(MapCanvas canvas, JLabel statusLbl) {
+    private static void startBackgroundScan(MapCanvas canvas) {
         new Thread(() -> {
             try {
-                SwingUtilities.invokeLater(() -> statusLbl.setText("  Scanne Netzwerk..."));
                 List<String> subnets = SubnetDetector.getAllSubnets();
-                if (subnets.isEmpty()) {
-                    SwingUtilities.invokeLater(() -> statusLbl.setText("  Kein Subnetz."));
-                    return;
-                }
-                NetworkHostScanner.scan(subnets);
-                SwingUtilities.invokeLater(() -> {
-                    canvas.reload();
-                    statusLbl.setText("  " + canvas.hostCount()
-                            + " Hosts  |  Unbekannter Switch? → Rechtsklick → \"Als Switch markieren\"");
-                });
-            } catch (Exception e) {
-                SwingUtilities.invokeLater(() -> statusLbl.setText("  Fehler: " + e.getMessage()));
-            }
+                if (!subnets.isEmpty()) NetworkHostScanner.scan(subnets);
+                SwingUtilities.invokeLater(canvas::reload);
+            } catch (Exception ignored) {}
         }, "MapBgScan").start();
+    }
+
+    // ── Switch detection (static helpers) ────────────────────────────────
+
+    /**
+     * Gibt true zurück wenn dieser Host definitiv ein Endgerät ist.
+     * Wird als negativer Gate vor allen Switch-Erkennungspfaden verwendet.
+     */
+    static boolean isEndDevice(String ip, String os, String hostname) {
+        String o = os       != null ? os.toLowerCase()       : "";
+        String h = hostname != null ? hostname.toLowerCase() : "";
+
+        for (String kw : ENDDEVICE_OS) if (o.contains(kw)) return true;
+        for (String kw : ENDDEVICE_HN) if (h.contains(kw)) return true;
+
+        // Port-basierte Prüfung aus gespeicherten Hosts
+        return NetworkStore.getInstance().getAllHosts().stream()
+                .filter(hr -> hr.ip.equals(ip))
+                .findFirst()
+                .map(hr -> hr.ports.keySet().stream().anyMatch(ENDDEVICE_PORTS::contains))
+                .orElse(false);
+    }
+
+    static boolean isSwitchByKeyword(String os, String hostname) {
+        String o = os       != null ? os.toLowerCase()       : "";
+        String h = hostname != null ? hostname.toLowerCase() : "";
+        return o.contains("switch") || o.contains("hub") || o.contains("router")
+                || o.contains("fritz")  || o.contains("netzwerk") || o.contains("unifi")
+                || o.contains("mikrotik") || o.contains("cisco") || o.contains("netgear")
+                || o.contains("tp-link") || o.contains("access point") || o.contains("procurve")
+                || o.contains("aruba")
+                || h.contains("switch") || h.contains("hub") || h.contains("router")
+                || h.contains("sw-")    || h.contains("-sw") || h.contains("sg-")
+                || h.contains("gs-")    || h.contains("fritz") || h.contains("unifi")
+                || h.contains("mikrotik") || h.contains("ap-") || h.contains("procurve");
+    }
+
+    /** OUI aus MAC extrahieren (erwartet Format aus Hostname "[AA:BB:CC:DD:EE:FF]"). */
+    static boolean isSwitchByOui(String hostname) {
+        if (hostname == null) return false;
+        int s = hostname.indexOf('['), e = hostname.indexOf(']');
+        if (s < 0 || e <= s + 7) return false;
+        String mac = hostname.substring(s + 1, e).trim().toUpperCase().replace("-", ":");
+        if (mac.length() < 8) return false;
+        return SWITCH_OUIS.contains(mac.substring(0, 8));
+    }
+
+    static boolean isSwitchByPorts(String ip) {
+        return NetworkStore.getInstance().getAllHosts().stream()
+                .filter(h -> h.ip.equals(ip))
+                .findFirst()
+                .map(h -> (h.ports.containsKey(161) || h.ports.containsKey(23))
+                        && h.ports.keySet().stream().noneMatch(ENDDEVICE_PORTS::contains))
+                .orElse(false);
     }
 
     // ── Canvas ────────────────────────────────────────────────────────────
@@ -204,7 +266,8 @@ public final class GuiNetworkMap {
         private final List<Node> nodes = new ArrayList<>();
         private final List<Edge> edges = new ArrayList<>();
         private final Color      bg;
-        private JLabel           titleLabel;
+        private JLabel titleLabel;
+        private JLabel statusLabel;
 
         private double scale = 1.0, camX = 0, camY = 0;
         private Node  dragNode;
@@ -220,182 +283,102 @@ public final class GuiNetworkMap {
             installMouse();
         }
 
-        void setTitleLabel(JLabel lbl) { this.titleLabel = lbl; }
+        void setTitleLabel(JLabel l)  { this.titleLabel  = l; }
+        void setStatusLabel(JLabel l) { this.statusLabel = l; }
+        int  hostCount() { return (int) nodes.stream().filter(n -> n.type == NodeType.HOST).count(); }
 
-        int hostCount() {
-            return (int) nodes.stream().filter(n -> n.type == NodeType.HOST).count();
-        }
-
-        // ── Build topology ────────────────────────────────────────────────
+        // ── Build ─────────────────────────────────────────────────────────
 
         void reload() {
             nodes.clear();
             edges.clear();
             Set<String> seen = new LinkedHashSet<>();
 
-            String gw = RemoteNetScanner.detectDefaultGateway();
-            Node gwNode = null;
+            String gw    = RemoteNetScanner.detectDefaultGateway();
+            Node gwNode  = null;
             if (gw != null && seen.add(gw))
-                gwNode = addNode(gw, "Gateway", "Router / Netzwerkgeraet", NodeType.GATEWAY);
+                gwNode = node(gw, "Gateway", "Router / Netzwerkgeraet", NodeType.GATEWAY);
 
             Node selfNode = null;
             try {
                 InetAddress self = InetAddress.getLocalHost();
                 if (seen.add(self.getHostAddress()))
-                    selfNode = addNode(self.getHostAddress(),
+                    selfNode = node(self.getHostAddress(),
                             self.getHostName() + " (ich)", localOs(), NodeType.SELF);
             } catch (Exception ignored) {}
 
-            for (ScanHistory.Entry entry : ScanHistory.getInstance().getAll())
-                for (ScanResult r : entry.results)
+            for (ScanHistory.Entry e : ScanHistory.getInstance().getAll())
+                for (ScanResult r : e.results)
                     if (seen.add(r.getIp()))
-                        addNode(r.getIp(), r.getHostname(), r.getOsGuess(), NodeType.HOST);
+                        node(r.getIp(), r.getHostname(), r.getOsGuess(), NodeType.HOST);
 
             for (HostResult h : NetworkStore.getInstance().getAllHosts())
                 if (seen.add(h.ip))
-                    addNode(h.ip, cleanHostname(h.hostname), h.os, NodeType.HOST);
+                    node(h.ip, cleanHostname(h.hostname), h.os, NodeType.HOST);
 
-            promoteSwitchNodes();
-            buildTopologyEdges(gwNode, selfNode);
+            classifySwitches();
+            buildEdges(gwNode, selfNode);
             resetLayout();
 
-            if (titleLabel != null)
-                SwingUtilities.invokeLater(() ->
-                        titleLabel.setText("  Netzwerk-Karte  -  " + hostCount() + " Hosts"));
+            int cnt = hostCount();
+            if (titleLabel  != null) SwingUtilities.invokeLater(() ->
+                    titleLabel.setText("  Netzwerk-Karte  –  " + cnt + " Hosts"));
+            if (statusLabel != null) SwingUtilities.invokeLater(() ->
+                    statusLabel.setText("  " + cnt + " Hosts  |  "
+                            + "Unbekannter Switch? → Rechtsklick → \"Als Switch markieren\""));
         }
 
-        private Node addNode(String ip, String hn, String os, NodeType type) {
-            Node n = new Node(ip, hn, os, type);
+        private Node node(String ip, String hn, String os, NodeType t) {
+            Node n = new Node(ip, hn, os, t);
             nodes.add(n);
             return n;
         }
 
         /**
-         * Switch-Erkennung — kein automatischer Fallback mehr (zu fehleranfällig).
-         *  Pass 1: Manuell per Rechtsklick markiert
-         *  Pass 2: OS/Hostname-Keywords
-         *  Pass 3: MAC-OUI bekannter Switch-Hersteller
-         *  Pass 4: Port-basiert (SNMP/Telnet ohne PC/Drucker-Ports)
-         *
-         *  Unbekannte Hosts bleiben HOST — Rechtsklick → "Als Switch markieren".
+         * Klassifiziert HOST-Nodes als SWITCH wenn eindeutige Hinweise vorliegen.
+         * isEndDevice() wird als Gate VOR JEDEM Pass geprüft.
          */
-        private void promoteSwitchNodes() {
+        private void classifySwitches() {
             for (Node n : nodes) {
                 if (n.type != NodeType.HOST) continue;
-                if (MANUAL_SWITCHES.contains(n.ip))  { n.type = NodeType.SWITCH; continue; }
-                if (isSwitchByKeyword(n))              { n.type = NodeType.SWITCH; continue; }
-                if (isSwitchByOui(n))                  { n.type = NodeType.SWITCH; continue; }
-                if (isSwitchByPorts(n))                  n.type = NodeType.SWITCH;
+
+                // Pass 1: manuell
+                if (MANUAL_SWITCHES.contains(n.ip)) { n.type = NodeType.SWITCH; continue; }
+
+                // isEndDevice-Gate: wenn Endgerät → überspringen
+                if (isEndDevice(n.ip, n.os, n.hostname)) continue;
+
+                // Pass 2: Keyword
+                if (isSwitchByKeyword(n.os, n.hostname)) { n.type = NodeType.SWITCH; continue; }
+
+                // Pass 3: OUI
+                if (isSwitchByOui(n.hostname)) { n.type = NodeType.SWITCH; continue; }
+
+                // Pass 4: Ports
+                if (isSwitchByPorts(n.ip)) n.type = NodeType.SWITCH;
             }
         }
 
-        /**
-         * Gibt true zurück wenn OS/Hostname eindeutig auf ein Endgerät hinweist.
-         * Wird von isSwitchByKeyword implizit berücksichtigt (Switch-Keywords prüfen positiv).
-         */
-        private static boolean isEndDevice(Node n) {
-            String os = n.os != null ? n.os.toLowerCase() : "";
-            String hn = n.hostname != null ? n.hostname.toLowerCase() : "";
-            if (os.contains("windows") || os.contains("android") || os.contains("ios")
-                    || os.contains("ipad") || os.contains("macos") || os.contains("apple")
-                    || os.contains("drucker") || os.contains("printer")
-                    || os.contains("raspberry") || os.contains("linux")
-                    || os.contains("samsung") || os.contains("xiaomi")
-                    || os.contains("jetdirect") || os.contains("ipp") || os.contains("lpd"))
-                return true;
-            if (hn.contains("desktop") || hn.contains("laptop") || hn.contains("phone")
-                    || hn.contains("galaxy") || hn.contains("a21") || hn.contains("a51")
-                    || hn.contains("a52") || hn.contains("a71") || hn.contains("a72")
-                    || hn.contains("s20") || hn.contains("s21") || hn.contains("s22")
-                    || hn.contains("s23") || hn.contains("iphone") || hn.contains("ipad")
-                    || hn.contains("pixel") || hn.contains("redmi") || hn.contains("xiaomi")
-                    || hn.contains("printer") || hn.contains("drucker")
-                    || hn.contains("epson") || hn.contains("canon") || hn.contains("brother"))
-                return true;
-            return hasPcOrPrinterPorts(n.ip);
-        }
-
-        /** Prüft gespeicherte Ports auf typische PC/Drucker-Signaturen. */
-        private static boolean hasPcOrPrinterPorts(String ip) {
-            return NetworkStore.getInstance().getAllHosts().stream()
-                    .filter(h -> h.ip.equals(ip))
-                    .findFirst()
-                    .map(h -> h.ports.containsKey(3389) || h.ports.containsKey(445)
-                            || h.ports.containsKey(5985) || h.ports.containsKey(9100)
-                            || h.ports.containsKey(515)  || h.ports.containsKey(631))
-                    .orElse(false);
-        }
-
-        /**
-         * Port-basierte Switch-Erkennung: SNMP (161) oder Telnet (23)
-         * ohne Drucker- oder PC-Ports → wahrscheinlich Managed Switch.
-         * Endgeräte werden explizit ausgeschlossen.
-         */
-        private static boolean isSwitchByPorts(Node n) {
-            if (isEndDevice(n)) return false;
-            return NetworkStore.getInstance().getAllHosts().stream()
-                    .filter(h -> h.ip.equals(n.ip))
-                    .findFirst()
-                    .map(h -> (h.ports.containsKey(161) || h.ports.containsKey(23))
-                            && !h.ports.containsKey(9100) && !h.ports.containsKey(3389)
-                            && !h.ports.containsKey(445)  && !h.ports.containsKey(631))
-                    .orElse(false);
-        }
-
-        private static boolean isSwitchByKeyword(Node n) {
-            String os = n.os != null ? n.os.toLowerCase() : "";
-            String hn = n.hostname != null ? n.hostname.toLowerCase() : "";
-            return os.contains("switch") || os.contains("hub") || os.contains("router")
-                    || os.contains("fritz") || os.contains("netzwerk") || os.contains("unifi")
-                    || os.contains("mikrotik") || os.contains("cisco") || os.contains("netgear")
-                    || os.contains("tp-link") || os.contains("access point")
-                    || hn.contains("switch") || hn.contains("hub") || hn.contains("router")
-                    || hn.contains("sw-") || hn.contains("-sw") || hn.contains("sg-")
-                    || hn.contains("gs-") || hn.contains("fritz") || hn.contains("unifi")
-                    || hn.contains("mikrotik") || hn.contains("ap-");
-        }
-
-        private static boolean isSwitchByOui(Node n) {
-            if (n.hostname == null) return false;
-            int s = n.hostname.indexOf('['), e = n.hostname.indexOf(']');
-            if (s < 0 || e <= s) return false;
-            String mac = n.hostname.substring(s + 1, e).trim();
-            if (mac.length() < 8) return false;
-            String oui = mac.substring(0, 8).toUpperCase().replace("-", ":");
-            return SWITCH_OUIS.contains(oui);
-        }
-
-        private void buildTopologyEdges(Node gwNode, Node selfNode) {
+        private void buildEdges(Node gwNode, Node selfNode) {
             if (gwNode == null) return;
             List<Node> switches = nodes.stream()
-                    .filter(n -> n.type == NodeType.SWITCH)
-                    .collect(Collectors.toList());
+                    .filter(n -> n.type == NodeType.SWITCH).collect(Collectors.toList());
 
-            for (Node sw : switches)
-                edges.add(new Edge(sw, gwNode, EdgeType.UPLINK));
+            switches.forEach(sw -> edges.add(new Edge(sw, gwNode, EdgeType.UPLINK)));
 
             if (selfNode != null)
                 edges.add(new Edge(selfNode, gwNode, EdgeType.SELF_LINK));
 
             for (Node n : nodes) {
                 if (n.type != NodeType.HOST) continue;
-                Node via = findNearestSwitch(n, switches);
+                String sub = subnet24(n.ip);
+                Node via = sub == null ? null : switches.stream()
+                        .filter(sw -> sub.equals(subnet24(sw.ip)))
+                        .min(Comparator.comparingInt(sw ->
+                                Math.abs(lastOctet(sw.ip) - lastOctet(n.ip))))
+                        .orElse(null);
                 edges.add(new Edge(n, via != null ? via : gwNode, EdgeType.NORMAL));
             }
-        }
-
-        /**
-         * Nächsten Switch im selben /24 finden.
-         * Bevorzugt niedrigsten IP-Abstand (nähere IP = wahrscheinlicherer Uplink).
-         */
-        private static Node findNearestSwitch(Node host, List<Node> switches) {
-            String hostSubnet = subnet24(host.ip);
-            if (hostSubnet == null) return null;
-            return switches.stream()
-                    .filter(sw -> hostSubnet.equals(subnet24(sw.ip)))
-                    .min(Comparator.comparingInt(sw ->
-                            Math.abs(lastOctet(sw.ip) - lastOctet(host.ip))))
-                    .orElse(null);
         }
 
         // ── Layout ────────────────────────────────────────────────────────
@@ -408,48 +391,43 @@ public final class GuiNetworkMap {
             nodes.stream().filter(n -> n.type == NodeType.GATEWAY).findFirst()
                     .ifPresent(n -> { n.x = cx; n.y = cy; });
             nodes.stream().filter(n -> n.type == NodeType.SELF).findFirst()
-                    .ifPresent(n -> { n.x = cx - 130; n.y = cy - 100; });
+                    .ifPresent(n -> { n.x = cx - 140; n.y = cy - 110; });
 
             List<Node> switches = nodes.stream().filter(n -> n.type == NodeType.SWITCH).toList();
             if (!switches.isEmpty()) {
-                int swRadius = Math.min(cx, cy) - 100;
-                double step = 2 * Math.PI / Math.max(switches.size(), 1);
+                int r = Math.min(cx, cy) - 100;
+                double step = 2 * Math.PI / switches.size();
                 for (int i = 0; i < switches.size(); i++) {
-                    double angle = i * step - Math.PI / 2;
-                    switches.get(i).x = (int)(cx + swRadius * Math.cos(angle));
-                    switches.get(i).y = (int)(cy + swRadius * Math.sin(angle));
+                    double a = i * step - Math.PI / 2;
+                    switches.get(i).x = (int)(cx + r * Math.cos(a));
+                    switches.get(i).y = (int)(cy + r * Math.sin(a));
                 }
             }
-            placeHostsNearParents(cx, cy);
-            repaint();
-        }
 
-        private void placeHostsNearParents(int cx, int cy) {
+            // Hosts um ihren Parent gruppieren
             Map<Node, List<Node>> groups = new LinkedHashMap<>();
             for (Edge e : edges)
                 if (e.from.type == NodeType.HOST)
                     groups.computeIfAbsent(e.to, k -> new ArrayList<>()).add(e.from);
 
-            for (Map.Entry<Node, List<Node>> entry : groups.entrySet()) {
-                Node parent   = entry.getKey();
-                List<Node> ch = entry.getValue();
-                int n = ch.size();
-                if (n == 0) continue;
-                int radius = 80 + n * 8;
-                double step = 2 * Math.PI / n;
+            groups.forEach((parent, children) -> {
+                int n   = children.size();
+                int rad = 80 + n * 7;
                 double base = Math.atan2(parent.y - cy, parent.x - cx);
+                double step = n > 1 ? Math.PI / (n - 1) : 0;
+                double start = base - (n > 1 ? Math.PI / 2 : 0);
                 for (int i = 0; i < n; i++) {
-                    double angle = base + (i - n / 2.0) * step;
-                    ch.get(i).x = parent.x + (int)(radius * Math.cos(angle));
-                    ch.get(i).y = parent.y + (int)(radius * Math.sin(angle));
+                    double a = start + i * step;
+                    children.get(i).x = parent.x + (int)(rad * Math.cos(a));
+                    children.get(i).y = parent.y + (int)(rad * Math.sin(a));
                 }
-            }
+            });
+            repaint();
         }
 
         // ── Paint ─────────────────────────────────────────────────────────
 
-        @Override
-        protected void paintComponent(Graphics g) {
+        @Override protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             Graphics2D g2 = (Graphics2D) g.create();
             g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -460,45 +438,48 @@ public final class GuiNetworkMap {
             g2.setColor(bg);
             g2.fillRect(-10000, -10000, 30000, 30000);
             drawGrid(g2);
-            drawEdges(g2);
+            edges.forEach(e -> drawEdge(g2, e));
             nodes.forEach(n -> drawNode(g2, n));
             g2.dispose();
         }
 
         private void drawGrid(Graphics2D g2) {
-            g2.setColor(GuiTheme.isDark() ? new Color(0x12, 0x18, 0x12) : new Color(0xE4, 0xE2, 0xDC));
+            g2.setColor(GuiTheme.isDark()
+                    ? new Color(0x12, 0x18, 0x12) : new Color(0xE4, 0xE2, 0xDC));
             for (int x = -3000; x < 6000; x += 60) g2.drawLine(x, -3000, x, 6000);
             for (int y = -3000; y < 6000; y += 60) g2.drawLine(-3000, y, 6000, y);
         }
 
-        private void drawEdges(Graphics2D g2) {
-            for (Edge e : edges) {
-                switch (e.type) {
-                    case SELF_LINK -> { g2.setStroke(new BasicStroke(2f)); g2.setColor(ACCENT2); }
-                    case UPLINK    -> { g2.setStroke(new BasicStroke(1.5f));
-                        g2.setColor(new Color(0xFF, 0xA0, 0x30, 180)); }
-                    default        -> {
-                        g2.setStroke(new BasicStroke(1f, BasicStroke.CAP_ROUND,
-                                BasicStroke.JOIN_ROUND, 1f, new float[]{4f, 4f}, 0f));
-                        g2.setColor(GuiTheme.isDark()
-                                ? new Color(0x30, 0x45, 0x30) : new Color(0xC0, 0xBC, 0xB4));
-                    }
-                }
-                g2.drawLine(e.from.x, e.from.y, e.to.x, e.to.y);
+        private void drawEdge(Graphics2D g2, Edge e) {
+            switch (e.type) {
+                case SELF_LINK -> { g2.setStroke(new BasicStroke(2f));
+                    g2.setColor(ACCENT2); }
+                case UPLINK    -> { g2.setStroke(new BasicStroke(1.8f));
+                    g2.setColor(new Color(0xFF, 0xA0, 0x30, 200)); }
+                default        -> { g2.setStroke(new BasicStroke(1f,
+                        BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND,
+                        1f, new float[]{4f, 4f}, 0f));
+                    g2.setColor(GuiTheme.isDark()
+                            ? new Color(0x30, 0x45, 0x30)
+                            : new Color(0xC0, 0xBC, 0xB4)); }
             }
+            g2.drawLine(e.from.x, e.from.y, e.to.x, e.to.y);
         }
 
         private void drawNode(Graphics2D g2, Node n) {
             Color col = nodeColor(n);
             int r = switch (n.type) {
                 case GATEWAY, SWITCH -> 20;
-                case SELF            -> 18;
-                default              -> 14;
+                case SELF            -> 17;
+                default              -> 13;
             };
+            // Glow
             g2.setColor(new Color(col.getRed(), col.getGreen(), col.getBlue(), 35));
             g2.fillOval(n.x - r - 6, n.y - r - 6, (r + 6) * 2, (r + 6) * 2);
+            // Body
             g2.setColor(GuiTheme.isDark() ? new Color(0x08, 0x0C, 0x08) : new Color(0xF4, 0xF2, 0xEE));
             g2.fillOval(n.x - r, n.y - r, r * 2, r * 2);
+            // Border
             g2.setColor(col);
             g2.setStroke(new BasicStroke(n.type == NodeType.SWITCH ? 2.5f : 1.5f));
             g2.drawOval(n.x - r, n.y - r, r * 2, r * 2);
@@ -506,25 +487,28 @@ public final class GuiNetworkMap {
                 g2.setStroke(new BasicStroke(1f));
                 g2.drawOval(n.x - r + 4, n.y - r + 4, (r - 4) * 2, (r - 4) * 2);
             }
+            // Icon
             String icon = switch (n.type) {
                 case GATEWAY -> "G"; case SELF -> "*"; case SWITCH -> "S";
-                default -> osIcon(n.os);
+                default      -> osIcon(n.os);
             };
-            g2.setFont(new Font("JetBrains Mono", Font.BOLD, r > 14 ? 12 : 10));
+            g2.setFont(new Font("JetBrains Mono", Font.BOLD, r > 14 ? 11 : 9));
             FontMetrics fm = g2.getFontMetrics();
             g2.setColor(col);
             g2.setStroke(new BasicStroke(1f));
             g2.drawString(icon, n.x - fm.stringWidth(icon) / 2, n.y + fm.getAscent() / 2 - 1);
+            // IP
             g2.setFont(new Font("JetBrains Mono", Font.PLAIN, 9));
             fm = g2.getFontMetrics();
             g2.setColor(GuiTheme.isDark() ? new Color(0xA0, 0x9C, 0x90) : new Color(0x40, 0x42, 0x3E));
-            g2.drawString(n.ip, n.x - fm.stringWidth(n.ip) / 2, n.y + r + 14);
+            g2.drawString(n.ip, n.x - fm.stringWidth(n.ip) / 2, n.y + r + 13);
+            // Hostname
             if (n.hostname != null && !n.hostname.equals(n.ip)) {
                 String hn = n.hostname.length() > 18 ? n.hostname.substring(0, 17) + "." : n.hostname;
                 g2.setFont(new Font("JetBrains Mono", Font.PLAIN, 8));
                 fm = g2.getFontMetrics();
                 g2.setColor(n.type == NodeType.SELF ? ACCENT2 : FG_DIM);
-                g2.drawString(hn, n.x - fm.stringWidth(hn) / 2, n.y + r + 24);
+                g2.drawString(hn, n.x - fm.stringWidth(hn) / 2, n.y + r + 23);
             }
         }
 
@@ -532,33 +516,30 @@ public final class GuiNetworkMap {
 
         private void installMouse() {
             addMouseWheelListener(e -> {
-                double factor = e.getWheelRotation() < 0 ? 1.12 : 0.9;
-                scale = Math.max(0.15, Math.min(5.0, scale * factor));
+                double f = e.getWheelRotation() < 0 ? 1.12 : 0.9;
+                scale = Math.max(0.15, Math.min(5.0, scale * f));
                 repaint();
             });
             addMouseListener(new MouseAdapter() {
                 @Override public void mousePressed(MouseEvent e) {
-                    Point world = toWorld(e.getPoint());
+                    Point w = toWorld(e.getPoint());
                     if (SwingUtilities.isLeftMouseButton(e)) {
-                        dragNode = nodeAt(world);
+                        dragNode = nodeAt(w);
                         if (dragNode != null) {
                             dragNodeStart = e.getPoint();
-                            dragNodeOrigX = dragNode.x;
-                            dragNodeOrigY = dragNode.y;
+                            dragNodeOrigX = dragNode.x; dragNodeOrigY = dragNode.y;
                             setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
                         }
                     } else if (SwingUtilities.isRightMouseButton(e)) {
-                        Node hit = nodeAt(world);
-                        if (hit != null && hit.type != NodeType.GATEWAY
-                                && hit.type != NodeType.SELF)
-                            showNodeContextMenu(hit, e.getComponent(), e.getX(), e.getY());
+                        Node hit = nodeAt(w);
+                        if (hit != null && hit.type != NodeType.GATEWAY && hit.type != NodeType.SELF)
+                            showContextMenu(hit, e.getComponent(), e.getX(), e.getY());
                         else { panning = true; panStart = e.getPoint();
                             setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR)); }
                     }
                 }
                 @Override public void mouseReleased(MouseEvent e) {
-                    dragNode = null; panning = false;
-                    setCursor(Cursor.getDefaultCursor());
+                    dragNode = null; panning = false; setCursor(Cursor.getDefaultCursor());
                 }
                 @Override public void mouseClicked(MouseEvent e) {
                     if (e.getClickCount() != 2 || !SwingUtilities.isLeftMouseButton(e)) return;
@@ -571,16 +552,13 @@ public final class GuiNetworkMap {
             addMouseMotionListener(new MouseMotionAdapter() {
                 @Override public void mouseDragged(MouseEvent e) {
                     if (dragNode != null) {
-                        double dx = (e.getX() - dragNodeStart.x) / scale;
-                        double dy = (e.getY() - dragNodeStart.y) / scale;
-                        dragNode.x = (int)(dragNodeOrigX + dx);
-                        dragNode.y = (int)(dragNodeOrigY + dy);
+                        dragNode.x = (int)(dragNodeOrigX + (e.getX() - dragNodeStart.x) / scale);
+                        dragNode.y = (int)(dragNodeOrigY + (e.getY() - dragNodeStart.y) / scale);
                         repaint();
                     } else if (panning && panStart != null) {
                         camX += (e.getX() - panStart.x) / scale;
                         camY += (e.getY() - panStart.y) / scale;
-                        panStart = e.getPoint();
-                        repaint();
+                        panStart = e.getPoint(); repaint();
                     }
                 }
                 @Override public void mouseMoved(MouseEvent e) {
@@ -591,91 +569,75 @@ public final class GuiNetworkMap {
             });
         }
 
-        private void showNodeContextMenu(Node n, Component comp, int x, int y) {
+        private void showContextMenu(Node n, Component comp, int x, int y) {
+            boolean isSw = n.type == NodeType.SWITCH;
             JPopupMenu menu = new JPopupMenu();
-            menu.setBackground(new Color(0x10, 0x14, 0x10));
+            Color menuBg  = new Color(0x0F, 0x13, 0x10);
+            Color menuHov = new Color(0x1A, 0x22, 0x1A);
+            menu.setBackground(menuBg);
             menu.setBorder(new CompoundBorder(new LineBorder(BORDER, 1), new EmptyBorder(4, 0, 4, 0)));
 
-            boolean isSw = n.type == NodeType.SWITCH;
-
-            JMenuItem header = new JMenuItem(n.ip + "  –  " + truncate(n.hostname, 22));
-            header.setFont(new Font("JetBrains Mono", Font.BOLD, 10));
-            header.setForeground(FG_DIM);
-            header.setBackground(new Color(0x10, 0x14, 0x10));
-            header.setEnabled(false);
-            header.setBorder(new EmptyBorder(4, 14, 4, 20));
-            menu.add(header);
+            JMenuItem hdr = menuItem(n.ip + "  " + clip(n.hostname, 20), FG_DIM, menuBg, menuHov);
+            hdr.setEnabled(false);
+            menu.add(hdr);
             menu.addSeparator();
 
-            JMenuItem switchItem = new JMenuItem(
-                    isSw ? "✕  Kein Switch  (zurücksetzen)" : "S  Als Switch/Hub markieren");
-            switchItem.setFont(new Font("JetBrains Mono", Font.BOLD, 11));
-            switchItem.setForeground(isSw ? WARN : new Color(0xFF, 0xA0, 0x30));
-            switchItem.setBackground(new Color(0x10, 0x14, 0x10));
-            switchItem.setBorder(new EmptyBorder(6, 14, 6, 20));
-            switchItem.setOpaque(true);
-            switchItem.addMouseListener(menuHover(switchItem));
-            switchItem.addActionListener(ev -> {
+            JMenuItem swItem = menuItem(
+                    isSw ? "✕  Kein Switch  (zurücksetzen)" : "S  Als Switch/Hub markieren",
+                    isSw ? WARN : new Color(0xFF, 0xA0, 0x30), menuBg, menuHov);
+            swItem.addActionListener(e -> {
                 if (isSw) MANUAL_SWITCHES.remove(n.ip);
                 else      MANUAL_SWITCHES.add(n.ip);
                 reload();
             });
-            menu.add(switchItem);
+            menu.add(swItem);
 
-            JMenuItem detailItem = new JMenuItem("🔍  Details anzeigen");
-            detailItem.setFont(new Font("JetBrains Mono", Font.PLAIN, 11));
-            detailItem.setForeground(ACCENT);
-            detailItem.setBackground(new Color(0x10, 0x14, 0x10));
-            detailItem.setBorder(new EmptyBorder(6, 14, 6, 20));
-            detailItem.setOpaque(true);
-            detailItem.addMouseListener(menuHover(detailItem));
-            detailItem.addActionListener(ev ->
+            JMenuItem det = menuItem("🔍  Details anzeigen", ACCENT, menuBg, menuHov);
+            det.addActionListener(e ->
                     HostDetailsPanel.show(n.ip, n.hostname, n.os,
                             NetworkStore.getInstance().findNetwork(n.ip)));
-            menu.add(detailItem);
+            menu.add(det);
             menu.show(comp, x, y);
         }
 
-        private static java.awt.event.MouseAdapter menuHover(JMenuItem item) {
-            Color bg = new Color(0x10, 0x14, 0x10);
-            Color hov = new Color(0x1E, 0x26, 0x1E);
-            return new java.awt.event.MouseAdapter() {
-                public void mouseEntered(java.awt.event.MouseEvent e) { item.setBackground(hov); }
-                public void mouseExited (java.awt.event.MouseEvent e) { item.setBackground(bg); }
-            };
+        private static JMenuItem menuItem(String text, Color fg, Color bg, Color hov) {
+            JMenuItem item = new JMenuItem(text);
+            item.setFont(new Font("JetBrains Mono", Font.PLAIN, 11));
+            item.setForeground(fg); item.setBackground(bg);
+            item.setBorder(new EmptyBorder(6, 14, 6, 20)); item.setOpaque(true);
+            item.addMouseListener(new MouseAdapter() {
+                public void mouseEntered(MouseEvent e) { item.setBackground(hov); }
+                public void mouseExited (MouseEvent e) { item.setBackground(bg);  }
+            });
+            return item;
         }
 
-        private static String truncate(String s, int max) {
-            if (s == null) return "";
-            return s.length() <= max ? s : s.substring(0, max - 1) + "…";
-        }
-
-        private Point toWorld(Point screen) {
+        private Point toWorld(Point s) {
             int sw = getWidth(), sh = getHeight();
-            double wx = (screen.x - sw / 2.0) / scale + sw / 2.0 - camX;
-            double wy = (screen.y - sh / 2.0) / scale + sh / 2.0 - camY;
-            return new Point((int) wx, (int) wy);
+            return new Point(
+                    (int)((s.x - sw / 2.0) / scale + sw / 2.0 - camX),
+                    (int)((s.y - sh / 2.0) / scale + sh / 2.0 - camY));
         }
 
-        private Node nodeAt(Point world) {
+        private Node nodeAt(Point w) {
             return nodes.stream()
-                    .filter(n -> Math.hypot(n.x - world.x, n.y - world.y) < 28)
+                    .filter(n -> Math.hypot(n.x - w.x, n.y - w.y) < 28)
                     .findFirst().orElse(null);
         }
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────
+    // ── Static helpers ────────────────────────────────────────────────────
 
     static String subnet24(String ip) {
         if (ip == null) return null;
-        int last = ip.lastIndexOf('.');
-        return last > 0 ? ip.substring(0, last) : null;
+        int i = ip.lastIndexOf('.');
+        return i > 0 ? ip.substring(0, i) : null;
     }
 
     static int lastOctet(String ip) {
         if (ip == null) return 999;
-        int last = ip.lastIndexOf('.');
-        try { return Integer.parseInt(ip.substring(last + 1)); }
+        int i = ip.lastIndexOf('.');
+        try { return Integer.parseInt(ip.substring(i + 1)); }
         catch (NumberFormatException e) { return 999; }
     }
 
@@ -691,13 +653,14 @@ public final class GuiNetworkMap {
     private static String osIcon(String os) {
         if (os == null) return "?";
         String l = os.toLowerCase();
-        if (l.contains("windows"))                       return "W";
-        if (l.contains("linux") || l.contains("unix"))  return "L";
-        if (l.contains("mac")   || l.contains("ios"))   return "M";
-        if (l.contains("android"))                      return "A";
+        if (l.contains("windows"))                          return "W";
+        if (l.contains("linux") || l.contains("unix"))     return "L";
+        if (l.contains("mac")   || l.contains("ios"))      return "M";
+        if (l.contains("android"))                         return "A";
+        if (l.contains("drucker") || l.contains("printer")
+                || l.contains("jetdirect"))                return "P";
         if (l.contains("router") || l.contains("fritz")
-                || l.contains("switch"))                return "R";
-        if (l.contains("drucker") || l.contains("printer")) return "P";
+                || l.contains("switch"))                   return "R";
         return "?";
     }
 
@@ -714,6 +677,11 @@ public final class GuiNetworkMap {
         return "Linux/Unix";
     }
 
+    private static String clip(String s, int max) {
+        if (s == null || s.isEmpty()) return "";
+        return s.length() <= max ? s : s.substring(0, max - 1) + "…";
+    }
+
     private static JButton mapBtn(String text, Color fg) {
         JButton b = new JButton(text);
         b.setFont(new Font("JetBrains Mono", Font.BOLD, 11));
@@ -727,10 +695,10 @@ public final class GuiNetworkMap {
 
     // ── Data types ────────────────────────────────────────────────────────
 
-    private enum NodeType { GATEWAY, SELF, SWITCH, HOST }
-    private enum EdgeType { NORMAL, UPLINK, SELF_LINK }
+    enum NodeType { GATEWAY, SELF, SWITCH, HOST }
+    enum EdgeType { NORMAL, UPLINK, SELF_LINK }
 
-    private static class Node {
+    static class Node {
         String ip, hostname, os;
         NodeType type;
         int x, y;
@@ -739,7 +707,7 @@ public final class GuiNetworkMap {
         }
     }
 
-    private static class Edge {
+    static class Edge {
         final Node from, to;
         final EdgeType type;
         Edge(Node from, Node to, EdgeType type) { this.from = from; this.to = to; this.type = type; }
