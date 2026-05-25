@@ -5,6 +5,7 @@ import main.java.networktool_v3.model.HostResult;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public final class NetworkStore {
 
@@ -12,6 +13,9 @@ public final class NetworkStore {
     public static NetworkStore getInstance() { return Holder.INSTANCE; }
 
     public static final String ALL_CATEGORY = NetworkRegistry.ALL_CATEGORY;
+
+    /** Networks whose names start with this prefix are JUnit-only and hidden from GUI. */
+    static final String TEST_PREFIX = "__junit__";
 
     private final NetworkRegistry        registry  = new NetworkRegistry();
     private final List<Runnable>         listeners = new ArrayList<>();
@@ -40,11 +44,11 @@ public final class NetworkStore {
     // ── Network management ────────────────────────────────────────────────
 
     public synchronized void createNetwork(String name, String prefix) {
-        if (registry.create(name, prefix)) persist(name.replaceAll("[^a-zA-Z0-9äöüÄÖÜß \\-]", "_").trim());
+        if (registry.create(name, prefix)) persist(safeName(name));
     }
 
     public synchronized void renameNetwork(String oldName, String newName) {
-        String safe = newName != null ? newName.replaceAll("[^a-zA-Z0-9äöüÄÖÜß \\-]", "_").trim() : null;
+        String safe = safeName(newName);
         if (registry.rename(oldName, newName, txtDir)) {
             persist(safe);
             notifyListeners();
@@ -58,7 +62,17 @@ public final class NetworkStore {
         }
     }
 
-    public synchronized List<String>  getNetworkNames()                    { return registry.names(); }
+    public synchronized List<String> getNetworkNames() {
+        return registry.names().stream()
+                .filter(n -> !isTestNetwork(n))
+                .collect(Collectors.toUnmodifiableList());
+    }
+
+    /** Returns all network names including test networks (for internal/test use). */
+    public synchronized List<String> getAllNetworkNames() {
+        return registry.names();
+    }
+
     public synchronized String        getPrefix(String cat)                 { return registry.prefix(cat); }
     public synchronized boolean       ipMatchesNetwork(String ip, String c) { return registry.ipMatches(ip, c); }
     public synchronized List<String>  matchingNetworks(String ip)           { return registry.matchingNetworks(ip); }
@@ -121,15 +135,23 @@ public final class NetworkStore {
         persistOwner(ip);
     }
 
+    /** Returns hosts for given category. Test networks are excluded for GUI (ALL_CATEGORY). */
     public synchronized List<HostResult> getAll(String cat) {
         List<HostResult> raw = cat.equals(ALL_CATEGORY)
-                ? NetworkStoreHostOps.allMutable(registry.networks())
+                ? visibleHosts()
                 : new ArrayList<>(registry.networks().getOrDefault(cat, Collections.emptyList()));
         return NetworkStoreHostOps.sorted(raw, sortField, sortAsc);
     }
 
+    /** Returns all hosts excluding test-network entries (GUI-safe). */
     public synchronized List<HostResult> getAllHosts() {
-        return NetworkStoreHostOps.sorted(NetworkStoreHostOps.allMutable(registry.networks()), sortField, sortAsc);
+        return NetworkStoreHostOps.sorted(visibleHosts(), sortField, sortAsc);
+    }
+
+    /** Returns ALL hosts including test entries (internal/test use only). */
+    public synchronized List<HostResult> getAllHostsInternal() {
+        return NetworkStoreHostOps.sorted(
+                NetworkStoreHostOps.allMutable(registry.networks()), sortField, sortAsc);
     }
 
     public synchronized String findNetwork(String ip) {
@@ -144,6 +166,16 @@ public final class NetworkStore {
     public void         saveNtfyTopic(String topic)  { NetworkStorePersistence.saveNtfyTopic(txtDir, topic); }
 
     // ── Internal ──────────────────────────────────────────────────────────
+
+    static boolean isTestNetwork(String name) {
+        return name != null && name.startsWith(TEST_PREFIX);
+    }
+
+    private List<HostResult> visibleHosts() {
+        Map<String, List<HostResult>> visible = new LinkedHashMap<>();
+        registry.networks().forEach((k, v) -> { if (!isTestNetwork(k)) visible.put(k, v); });
+        return NetworkStoreHostOps.allMutable(visible);
+    }
 
     private void persistOwner(String ip) {
         String cat = NetworkStoreHostOps.findNetwork(ip, registry.networks());
@@ -171,7 +203,7 @@ public final class NetworkStore {
     private void importLegacyIfNeeded() {
         if (!NetworkStorePersistence.needsLegacyImport(txtDir)) return;
         Path legacy = txtDir.resolve(NetworkStorePersistence.LEGACY_FILE);
-        if (!java.nio.file.Files.exists(legacy)) return;
+        if (!Files.exists(legacy)) return;
         registry.networks().put(NetworkRegistry.DEFAULT_CAT, new ArrayList<>());
         NetworkStorePersistence.loadFile(legacy, NetworkRegistry.DEFAULT_CAT, registry.networks());
         persist(NetworkRegistry.DEFAULT_CAT);
@@ -180,5 +212,10 @@ public final class NetworkStore {
     private void notifyListeners() {
         regenerateAllFile();
         for (Runnable l : listeners) javax.swing.SwingUtilities.invokeLater(l);
+    }
+
+    private static String safeName(String s) {
+        if (s == null) return "";
+        return s.replaceAll("[^a-zA-Z0-9äöüÄÖÜß \\-_]", "_").trim();
     }
 }

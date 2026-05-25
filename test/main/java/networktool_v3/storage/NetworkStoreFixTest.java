@@ -8,16 +8,16 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests für NetworkStore-Fix: AutoBackup außerhalb synchronized, kein Deadlock. */
 class NetworkStoreFixTest {
 
-    static final String NET = "__fix_test__";
+    static final String NET = TestConstants.NET_FIX;    // "__junit__fix"
+    static final String PFX = TestConstants.PREFIX_88;  // "88.88."
     NetworkStore store = NetworkStore.getInstance();
 
     @BeforeEach
     void setup() {
-        if (!store.getNetworkNames().contains(NET))
-            store.createNetwork(NET, "88.88.");
+        if (!store.getAllNetworkNames().contains(NET))
+            store.createNetwork(NET, PFX);
     }
 
     @AfterEach
@@ -28,38 +28,41 @@ class NetworkStoreFixTest {
     @Test
     @Timeout(value = 5, unit = TimeUnit.SECONDS)
     void save_doesNotDeadlock() {
-        // Vor dem Fix: AutoBackup.triggerNow() war synchronized — Deadlock möglich
-        HostResult h = new HostResult("88.88.0.1", "host", "Linux");
-        assertDoesNotThrow(() -> store.save(h, NET));
+        assertDoesNotThrow(() -> store.save(
+                new HostResult(TestConstants.IP_1, TestConstants.HOST_1, "Linux"), NET));
     }
 
     @Test
     @Timeout(value = 5, unit = TimeUnit.SECONDS)
     void save_concurrentGetAllHosts_noDeadlock() throws InterruptedException {
-        HostResult h = new HostResult("88.88.0.2", "host2", "Win");
-        Thread saver = new Thread(() -> store.save(h, NET));
+        HostResult h = new HostResult(TestConstants.IP_2, TestConstants.HOST_2, "Win");
+        Thread saver  = new Thread(() -> store.save(h, NET));
         Thread reader = new Thread(() -> store.getAllHosts());
         saver.start(); reader.start();
         saver.join(3000); reader.join(3000);
-        assertFalse(saver.isAlive(), "saver hängt (Deadlock?)");
+        assertFalse(saver.isAlive(),  "saver hängt (Deadlock?)");
         assertFalse(reader.isAlive(), "reader hängt (Deadlock?)");
     }
 
-    @Test
-    void save_returnsFalse_wrongPrefix() {
-        HostResult h = new HostResult("10.0.0.1", "wrong", "Linux");
-        assertFalse(store.save(h, NET));
+    @Test void save_returnsFalse_wrongPrefix() {
+        assertFalse(store.save(new HostResult("10.0.0.1", TestConstants.HOST_3, "Linux"), NET));
     }
 
-    @Test
-    void save_returnsFalse_nullHost() {
+    @Test void save_returnsFalse_nullHost() {
         assertFalse(store.save(null, NET));
+    }
+
+    @Test void testNetwork_hidden_from_gui() {
+        assertFalse(store.getNetworkNames().contains(NET));
+        store.save(new HostResult(TestConstants.IP_1, TestConstants.HOST_1, "Linux"), NET);
+        assertFalse(store.getAllHosts().stream().anyMatch(x -> TestConstants.IP_1.equals(x.ip)));
+        store.remove(TestConstants.IP_1, NET);
     }
 
     @Test
     void remove_outsideSynchronized_doesNotDeadlock() throws InterruptedException {
-        store.save(new HostResult("88.88.0.3", "h", "Linux"), NET);
-        Thread remover = new Thread(() -> store.remove("88.88.0.3", NET));
+        store.save(new HostResult(TestConstants.IP_3, TestConstants.HOST_4, "Linux"), NET);
+        Thread remover = new Thread(() -> store.remove(TestConstants.IP_3, NET));
         Thread reader  = new Thread(() -> store.getAllHosts());
         remover.start(); reader.start();
         remover.join(3000); reader.join(3000);
