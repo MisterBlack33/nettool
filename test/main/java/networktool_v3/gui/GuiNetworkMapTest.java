@@ -14,7 +14,13 @@ class GuiNetworkMapTest {
     @Test void endDevice_windows()       { assertTrue(GuiNetworkMap.isEndDevice("1.1.1.1","Windows","desktop-pc")); }
     @Test void endDevice_android()       { assertTrue(GuiNetworkMap.isEndDevice("1.1.1.1","Android (Samsung)","galaxy-s23")); }
     @Test void endDevice_samsung_a21()   { assertTrue(GuiNetworkMap.isEndDevice("1.1.1.1","Unbekannt","A21s-von-Elias")); }
-    @Test void endDevice_tablet_hn()     { assertTrue(GuiNetworkMap.isEndDevice("1.1.1.1","Unbekannt","Primary-Workspace-Pad")); }
+    @Test void endDevice_tablet_hn()     { assertTrue(GuiNetworkMap.isEndDevice("1.1.1.1","Unbekannt","My-iPad-Pro")); }
+    @Test void generic_hostname_stays_host() {
+        // "Primary-Workspace" hat kein bekanntes Keyword → bleibt HOST, wird NICHT Switch
+        assertFalse(GuiNetworkMap.isEndDevice("1.1.1.1","Unbekannt","Primary-Workspace"));
+        assertFalse(GuiNetworkMap.isSwitchByKeyword("Unbekannt","Primary-Workspace"));
+        // → korrekt: bleibt HOST, kein falsches Switch-Promoten
+    }
     @Test void endDevice_drucker_os()    { assertTrue(GuiNetworkMap.isEndDevice("1.1.1.1","Drucker (JetDirect)","Drucker.fritz.box")); }
     @Test void endDevice_linux()         { assertTrue(GuiNetworkMap.isEndDevice("1.1.1.1","Linux/Unix","srv")); }
     @Test void endDevice_macos()         { assertTrue(GuiNetworkMap.isEndDevice("1.1.1.1","macOS","macbook-pro")); }
