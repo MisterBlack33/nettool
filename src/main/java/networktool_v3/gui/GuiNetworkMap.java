@@ -4,6 +4,7 @@ import main.java.networktool_v3.logic.scan.NetworkHostScanner;
 import main.java.networktool_v3.logic.scan.RemoteNetScanner;
 import main.java.networktool_v3.logic.scan.ScanHistory;
 import main.java.networktool_v3.logic.scan.SubnetDetector;
+import main.java.networktool_v3.logic.analysis.TracerouteRunner;
 import main.java.networktool_v3.model.HostResult;
 import main.java.networktool_v3.model.ScanResult;
 import main.java.networktool_v3.storage.NetworkStore;
@@ -22,14 +23,15 @@ import static main.java.networktool_v3.gui.GuiTheme.*;
 /**
  * Netzwerk-Topologie-Karte.
  *
- * Switch-Erkennung (Reihenfolge):
- *  1. Manuell per Rechtsklick gesetzt (MANUAL_SWITCHES, session-persistent)
- *  2. OS/Hostname enthält eindeutige Switch/Router-Begriffe
- *  3. MAC-OUI bekannter Switch-Hersteller UND kein Endgerät
- *  4. Ports: SNMP(161)/Telnet(23) vorhanden, keine PC/Drucker-Ports
+ * Topologie-Erkennung (Reihenfolge):
+ *  1. Traceroute (HOP_PARENT): direkter Upstream-Knoten per Traceroute ermittelt
+ *     → zuverlässigste Methode, läuft asynchron im Hintergrund
+ *  2. Manuell per Rechtsklick gesetzt (MANUAL_SWITCHES, session-persistent)
+ *  3. OS/Hostname Switch-Keywords
+ *  4. MAC-OUI bekannter Switch-Hersteller
+ *  5. Ports: SNMP(161)/Telnet(23) ohne PC/Drucker-Ports
  *
- *  isEndDevice() ist Gate für Pass 2-4 und verhindert Fehlklassifikation
- *  von PCs, Handys, Druckern und Tablets.
+ *  isEndDevice() verhindert Fehlklassifikation von PCs/Handys/Druckern in Pass 3-5.
  */
 public final class GuiNetworkMap {
 
@@ -38,6 +40,14 @@ public final class GuiNetworkMap {
     /** Session-persistent manuell markierte Switch-IPs. */
     static final Set<String> MANUAL_SWITCHES =
             Collections.synchronizedSet(new HashSet<>());
+
+    /**
+     * Hop-Topologie-Cache: IP → IP des vorherigen Hop (Layer-3-Next-Hop zum Gateway).
+     * Wird im Hintergrund per Traceroute befüllt.
+     * Schlüssel = Host-IP, Wert = IP des direkten Upstream-Knotens (Switch oder Gateway).
+     */
+    static final Map<String, String> HOP_PARENT =
+            Collections.synchronizedMap(new HashMap<>());
 
     /**
      * OUI-Präfixe bekannter Switch/Router-Hersteller.
@@ -135,7 +145,10 @@ public final class GuiNetworkMap {
 
         JButton refreshBtn = mapBtn("↻ Aktualisieren", ACCENT2);
         JButton layoutBtn  = mapBtn("⊞ Layout",        INFO);
-        refreshBtn.addActionListener(e -> canvas.reload());
+        refreshBtn.addActionListener(e -> {
+            HOP_PARENT.clear();
+            canvas.reload();
+        });
         layoutBtn.addActionListener(e -> canvas.resetLayout());
         bar.add(title); bar.add(refreshBtn); bar.add(layoutBtn);
         return bar;
@@ -198,11 +211,61 @@ public final class GuiNetworkMap {
     private static void startBackgroundScan(MapCanvas canvas) {
         new Thread(() -> {
             try {
+                // Phase 1: Host-Scan
                 List<String> subnets = SubnetDetector.getAllSubnets();
                 if (!subnets.isEmpty()) NetworkHostScanner.scan(subnets);
+
+                // Phase 2: Kurz-Traceroute für alle bekannten Hosts (max 4 Hops)
+                SwingUtilities.invokeLater(() -> {
+                    if (canvas.statusLabel != null)
+                        canvas.statusLabel.setText("  Traceroute läuft...");
+                });
+                runHopDiscovery();
+
                 SwingUtilities.invokeLater(canvas::reload);
             } catch (Exception ignored) {}
         }, "MapBgScan").start();
+    }
+
+    /**
+     * Führt für jeden bekannten Host einen schnellen Traceroute durch (max 4 Hops).
+     * Ergebnis wird in HOP_PARENT gespeichert: Host-IP → direkter Upstream-Knoten.
+     *
+     * Läuft parallelisiert mit max 20 Threads damit es nicht zu lange dauert.
+     */
+    static void runHopDiscovery() {
+        String gw = RemoteNetScanner.detectDefaultGateway();
+        List<HostResult> hosts = NetworkStore.getInstance().getAllHosts();
+
+        java.util.concurrent.ExecutorService exec =
+                java.util.concurrent.Executors.newFixedThreadPool(
+                        Math.min(hosts.size() + 1, 20));
+
+        for (HostResult h : hosts) {
+            exec.submit(() -> {
+                try {
+                    List<TracerouteRunner.HopInfo> hops =
+                            TracerouteRunner.run(h.ip, 4);
+                    if (hops.size() < 2) return;
+
+                    // Letzter nicht-Timeout-Hop vor dem Ziel = direkter Parent
+                    String parent = null;
+                    for (int i = hops.size() - 1; i >= 0; i--) {
+                        TracerouteRunner.HopInfo hop = hops.get(i);
+                        if (!hop.timeout && !hop.ip.equals(h.ip)
+                                && hop.ip != null && !hop.ip.isEmpty()) {
+                            parent = hop.ip;
+                            break;
+                        }
+                    }
+                    if (parent != null && !parent.equals(gw))
+                        HOP_PARENT.put(h.ip, parent);
+                } catch (Exception ignored) {}
+            });
+        }
+        exec.shutdown();
+        try { exec.awaitTermination(30, java.util.concurrent.TimeUnit.SECONDS); }
+        catch (InterruptedException e) { Thread.currentThread().interrupt(); }
     }
 
     // ── Switch detection (static helpers) ────────────────────────────────
@@ -317,6 +380,18 @@ public final class GuiNetworkMap {
                     node(h.ip, cleanHostname(h.hostname), h.os, NodeType.HOST);
 
             classifySwitches();
+
+            // Hop-Daten neu holen falls noch leer (z.B. nach manuellem Reload)
+            if (HOP_PARENT.isEmpty()) {
+                if (statusLabel != null)
+                    SwingUtilities.invokeLater(() ->
+                            statusLabel.setText("  Traceroute läuft..."));
+                new Thread(() -> {
+                    runHopDiscovery();
+                    SwingUtilities.invokeLater(this::rebuildEdgesAndLayout);
+                }, "MapHopRefresh").start();
+            }
+
             buildEdges(gwNode, selfNode);
             resetLayout();
 
@@ -326,6 +401,19 @@ public final class GuiNetworkMap {
             if (statusLabel != null) SwingUtilities.invokeLater(() ->
                     statusLabel.setText("  " + cnt + " Hosts  |  "
                             + "Unbekannter Switch? → Rechtsklick → \"Als Switch markieren\""));
+        }
+
+        /** Wird nach asynchronem Hop-Discovery aufgerufen. */
+        private void rebuildEdgesAndLayout() {
+            edges.clear();
+            Node gwNode   = nodes.stream().filter(n -> n.type == NodeType.GATEWAY).findFirst().orElse(null);
+            Node selfNode = nodes.stream().filter(n -> n.type == NodeType.SELF).findFirst().orElse(null);
+            buildEdges(gwNode, selfNode);
+            resetLayout();
+            int cnt = hostCount();
+            if (statusLabel != null)
+                statusLabel.setText("  " + cnt + " Hosts  |  "
+                        + "Unbekannter Switch? → Rechtsklick → \"Als Switch markieren\"");
         }
 
         private Node node(String ip, String hn, String os, NodeType t) {
@@ -364,6 +452,7 @@ public final class GuiNetworkMap {
             List<Node> switches = nodes.stream()
                     .filter(n -> n.type == NodeType.SWITCH).collect(Collectors.toList());
 
+            // Switches → Gateway (Uplink)
             switches.forEach(sw -> edges.add(new Edge(sw, gwNode, EdgeType.UPLINK)));
 
             if (selfNode != null)
@@ -371,12 +460,34 @@ public final class GuiNetworkMap {
 
             for (Node n : nodes) {
                 if (n.type != NodeType.HOST) continue;
+
+                // Priorität 1: Hop-basierter Parent aus Traceroute
+                String hopParentIp = HOP_PARENT.get(n.ip);
+                if (hopParentIp != null) {
+                    Node hopNode = nodes.stream()
+                            .filter(x -> x.ip.equals(hopParentIp))
+                            .findFirst().orElse(null);
+                    if (hopNode == null) {
+                        // Zwischenknoten noch nicht bekannt → als Switch hinzufügen
+                        hopNode = node(hopParentIp, hopParentIp, "Router / Switch", NodeType.SWITCH);
+                        edges.add(new Edge(hopNode, gwNode, EdgeType.UPLINK));
+                    } else if (hopNode.type == NodeType.HOST) {
+                        // Bekannter Host wird als Switch promoted (Hop-Beweis)
+                        hopNode.type = NodeType.SWITCH;
+                        edges.add(new Edge(hopNode, gwNode, EdgeType.UPLINK));
+                    }
+                    edges.add(new Edge(n, hopNode, EdgeType.NORMAL));
+                    continue;
+                }
+
+                // Priorität 2: Bekannter Switch im gleichen /24
                 String sub = subnet24(n.ip);
                 Node via = sub == null ? null : switches.stream()
                         .filter(sw -> sub.equals(subnet24(sw.ip)))
                         .min(Comparator.comparingInt(sw ->
                                 Math.abs(lastOctet(sw.ip) - lastOctet(n.ip))))
                         .orElse(null);
+
                 edges.add(new Edge(n, via != null ? via : gwNode, EdgeType.NORMAL));
             }
         }

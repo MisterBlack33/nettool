@@ -59,7 +59,33 @@ class GuiNetworkMapTest {
     @Test void lastOctet_normal()        { assertEquals(36, GuiNetworkMap.lastOctet("192.168.178.36")); }
     @Test void lastOctet_null()          { assertEquals(999, GuiNetworkMap.lastOctet(null)); }
 
-    // ── MANUAL_SWITCHES ───────────────────────────────────────────────────
+    // ── HOP_PARENT ────────────────────────────────────────────────────────
+
+    @Test void hopParent_put_and_get() {
+        GuiNetworkMap.HOP_PARENT.put("192.168.1.50", "192.168.1.36");
+        assertEquals("192.168.1.36", GuiNetworkMap.HOP_PARENT.get("192.168.1.50"));
+        GuiNetworkMap.HOP_PARENT.remove("192.168.1.50");
+    }
+
+    @Test void hopParent_clear() {
+        GuiNetworkMap.HOP_PARENT.put("10.0.0.1", "10.0.0.254");
+        GuiNetworkMap.HOP_PARENT.clear();
+        assertTrue(GuiNetworkMap.HOP_PARENT.isEmpty());
+    }
+
+    @Test void hopParent_missing_returns_null() {
+        assertNull(GuiNetworkMap.HOP_PARENT.get("99.99.99.99"));
+    }
+
+    @Test void runHopDiscovery_doesNotThrow() {
+        // Keine Hosts → kein Crash
+        assertDoesNotThrow(GuiNetworkMap::runHopDiscovery);
+    }
+
+    @Test void runHopDiscovery_noGateway_doesNotThrow() {
+        // Auch ohne erreichbaren Gateway kein Crash
+        assertDoesNotThrow(GuiNetworkMap::runHopDiscovery);
+    }
 
     @Test void manualSwitch_addRemove() {
         String ip = "10.0.0.99";
