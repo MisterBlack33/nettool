@@ -79,6 +79,7 @@ public class GUI extends JFrame {
         installWindowClose();
 
         enterFullscreen();
+        AppIcon.apply(this);
         setVisible(true);
         outputPanel.printBanner();
 
