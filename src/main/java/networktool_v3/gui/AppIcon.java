@@ -9,6 +9,8 @@ import java.nio.ByteOrder;
 import java.nio.file.*;
 import java.util.logging.Logger;
 
+//testtest
+
 /**
  * Lädt das App-Icon (ICO-Format) und setzt es für Fenster + Taskleiste.
  *
