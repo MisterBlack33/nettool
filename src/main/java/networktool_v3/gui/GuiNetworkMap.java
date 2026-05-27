@@ -37,9 +37,52 @@ public final class GuiNetworkMap {
 
     private GuiNetworkMap() {}
 
-    /** Session-persistent manuell markierte Switch-IPs. */
+    /** Persistente manuell markierte Switch-IPs — werden in txt/mapSwitches.json gespeichert. */
     static final Set<String> MANUAL_SWITCHES =
             Collections.synchronizedSet(new HashSet<>());
+
+    private static final String SWITCHES_FILE = "mapSwitches.json";
+
+    static {
+        loadManualSwitches();
+    }
+
+    static void loadManualSwitches() {
+        try {
+            java.nio.file.Path file = main.java.networktool_v3.storage.StorageUtils
+                    .resolveTxtDir().resolve(SWITCHES_FILE);
+            if (!java.nio.file.Files.exists(file)) return;
+            String json = java.nio.file.Files.readString(file,
+                    java.nio.charset.StandardCharsets.UTF_8);
+            // parse ["ip1","ip2",...]
+            json = json.trim();
+            if (json.startsWith("[")) json = json.substring(1);
+            if (json.endsWith("]"))   json = json.substring(0, json.length() - 1);
+            for (String part : json.split(",")) {
+                String ip = part.trim().replaceAll("^\"|\"$", "");
+                if (!ip.isBlank()) MANUAL_SWITCHES.add(ip);
+            }
+        } catch (Exception ignored) {}
+    }
+
+    static void saveManualSwitches() {
+        try {
+            java.nio.file.Path dir  = main.java.networktool_v3.storage.StorageUtils.resolveTxtDir();
+            java.nio.file.Files.createDirectories(dir);
+            StringBuilder sb = new StringBuilder("[");
+            List<String> sorted = new ArrayList<>(MANUAL_SWITCHES);
+            Collections.sort(sorted);
+            for (int i = 0; i < sorted.size(); i++) {
+                if (i > 0) sb.append(",");
+                sb.append("\"").append(sorted.get(i)).append("\"");
+            }
+            sb.append("]");
+            java.nio.file.Files.writeString(dir.resolve(SWITCHES_FILE), sb.toString(),
+                    java.nio.charset.StandardCharsets.UTF_8,
+                    java.nio.file.StandardOpenOption.CREATE,
+                    java.nio.file.StandardOpenOption.TRUNCATE_EXISTING);
+        } catch (Exception ignored) {}
+    }
 
     /**
      * Hop-Topologie-Cache: IP → IP des vorherigen Hop (Layer-3-Next-Hop zum Gateway).
@@ -134,7 +177,7 @@ public final class GuiNetworkMap {
 
     private static JPanel buildToolbar(MapCanvas canvas) {
         Color barBg = GuiTheme.isDark() ? new Color(0x0A, 0x0E, 0x0B) : new Color(0xE4, 0xE2, 0xDC);
-        JPanel bar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 6));
+        JPanel bar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 5));
         bar.setBackground(barBg);
         bar.setBorder(new MatteBorder(0, 0, 1, 0, BORDER));
 
@@ -143,14 +186,82 @@ public final class GuiNetworkMap {
         title.setForeground(ACCENT);
         canvas.setTitleLabel(title);
 
-        JButton refreshBtn = mapBtn("↻ Aktualisieren", ACCENT2);
-        JButton layoutBtn  = mapBtn("⊞ Layout",        INFO);
-        refreshBtn.addActionListener(e -> {
-            HOP_PARENT.clear();
+        // Switch-IP Eingabefeld
+        JLabel swLabel = new JLabel("Switch-IP:");
+        swLabel.setFont(new Font("JetBrains Mono", Font.BOLD, 11));
+        swLabel.setForeground(new Color(0xFF, 0xA0, 0x30));
+
+        JTextField swField = new JTextField(12);
+        swField.setFont(new Font("JetBrains Mono", Font.PLAIN, 11));
+        swField.setForeground(FG);
+        swField.setBackground(GuiTheme.isDark() ? new Color(0x10, 0x16, 0x10) : Color.WHITE);
+        swField.setCaretColor(ACCENT);
+        swField.setBorder(new CompoundBorder(
+                new LineBorder(new Color(0xFF, 0xA0, 0x30), 1),
+                new EmptyBorder(2, 6, 2, 6)));
+        swField.setToolTipText("Switch-IP eingeben (z.B. 192.168.178.36)");
+
+        // Aktuell markierte Switches als Tooltip anzeigen
+        Runnable updateTooltip = () -> {
+            if (MANUAL_SWITCHES.isEmpty()) {
+                swField.setToolTipText("Switch-IP eingeben (z.B. 192.168.1.36)");
+            } else {
+                swField.setToolTipText("Markierte Switches: " + MANUAL_SWITCHES);
+            }
+        };
+        updateTooltip.run();
+
+        JButton addSwBtn = mapBtn("+ Switch", new Color(0xFF, 0xA0, 0x30));
+        JButton remSwBtn = mapBtn("✕",        WARN);
+        remSwBtn.setToolTipText("Switch-Markierung entfernen");
+
+        Runnable addSwitch = () -> {
+            String ip = swField.getText().trim();
+            if (ip.isEmpty()) return;
+            MANUAL_SWITCHES.add(ip);
+            saveManualSwitches();
+            swField.setText("");
+            updateTooltip.run();
+            canvas.reload();
+        };
+
+        swField.addActionListener(e -> addSwitch.run());
+        addSwBtn.addActionListener(e -> addSwitch.run());
+
+        remSwBtn.addActionListener(e -> {
+            String ip = swField.getText().trim();
+            if (!ip.isEmpty()) {
+                MANUAL_SWITCHES.remove(ip);
+            } else if (!MANUAL_SWITCHES.isEmpty()) {
+                // Kein Text → alle entfernen nach Bestätigung
+                int ok = JOptionPane.showConfirmDialog(null,
+                        "Alle Switch-Markierungen entfernen?", "Bestätigen",
+                        JOptionPane.YES_NO_OPTION);
+                if (ok == JOptionPane.YES_OPTION) MANUAL_SWITCHES.clear();
+            }
+            saveManualSwitches();
+            swField.setText("");
+            updateTooltip.run();
             canvas.reload();
         });
+
+        JButton refreshBtn = mapBtn("↻", ACCENT2);
+        JButton layoutBtn  = mapBtn("⊞", INFO);
+        refreshBtn.setToolTipText("Aktualisieren (neuer Scan)");
+        layoutBtn.setToolTipText("Layout zurücksetzen");
+        refreshBtn.addActionListener(e -> { HOP_PARENT.clear(); canvas.reload(); });
         layoutBtn.addActionListener(e -> canvas.resetLayout());
-        bar.add(title); bar.add(refreshBtn); bar.add(layoutBtn);
+
+        bar.add(title);
+        bar.add(new JSeparator(SwingConstants.VERTICAL));
+        bar.add(swLabel); bar.add(swField); bar.add(addSwBtn); bar.add(remSwBtn);
+        bar.add(new JSeparator(SwingConstants.VERTICAL));
+        bar.add(refreshBtn); bar.add(layoutBtn);
+
+        // Bekannte Switches initial in Tooltip zeigen
+        if (!MANUAL_SWITCHES.isEmpty())
+            swField.setToolTipText("Markierte Switches: " + MANUAL_SWITCHES);
+
         return bar;
     }
 
@@ -449,10 +560,10 @@ public final class GuiNetworkMap {
 
         private void buildEdges(Node gwNode, Node selfNode) {
             if (gwNode == null) return;
+
+            // Switches → Gateway (Uplink) — initiale Liste
             List<Node> switches = nodes.stream()
                     .filter(n -> n.type == NodeType.SWITCH).collect(Collectors.toList());
-
-            // Switches → Gateway (Uplink)
             switches.forEach(sw -> edges.add(new Edge(sw, gwNode, EdgeType.UPLINK)));
 
             if (selfNode != null)
@@ -468,27 +579,38 @@ public final class GuiNetworkMap {
                             .filter(x -> x.ip.equals(hopParentIp))
                             .findFirst().orElse(null);
                     if (hopNode == null) {
-                        // Zwischenknoten noch nicht bekannt → als Switch hinzufügen
                         hopNode = node(hopParentIp, hopParentIp, "Router / Switch", NodeType.SWITCH);
                         edges.add(new Edge(hopNode, gwNode, EdgeType.UPLINK));
+                        switches.add(hopNode);
                     } else if (hopNode.type == NodeType.HOST) {
-                        // Bekannter Host wird als Switch promoted (Hop-Beweis)
                         hopNode.type = NodeType.SWITCH;
                         edges.add(new Edge(hopNode, gwNode, EdgeType.UPLINK));
+                        switches.add(hopNode);
                     }
                     edges.add(new Edge(n, hopNode, EdgeType.NORMAL));
                     continue;
                 }
 
-                // Priorität 2: Bekannter Switch im gleichen /24
+                // Priorität 2: Manuell markierter Switch im gleichen /24
+                // (routed ALLE Hosts im /24 über den Switch, unabhängig von Hop-Daten)
                 String sub = subnet24(n.ip);
-                Node via = sub == null ? null : switches.stream()
+                Node manual = sub == null ? null : switches.stream()
+                        .filter(sw -> MANUAL_SWITCHES.contains(sw.ip)
+                                && sub.equals(subnet24(sw.ip)))
+                        .findFirst().orElse(null);
+                if (manual != null) {
+                    edges.add(new Edge(n, manual, EdgeType.NORMAL));
+                    continue;
+                }
+
+                // Priorität 3: Beliebiger Switch im gleichen /24 (nächster IP-Abstand)
+                Node nearest = sub == null ? null : switches.stream()
                         .filter(sw -> sub.equals(subnet24(sw.ip)))
                         .min(Comparator.comparingInt(sw ->
                                 Math.abs(lastOctet(sw.ip) - lastOctet(n.ip))))
                         .orElse(null);
 
-                edges.add(new Edge(n, via != null ? via : gwNode, EdgeType.NORMAL));
+                edges.add(new Edge(n, nearest != null ? nearest : gwNode, EdgeType.NORMAL));
             }
         }
 
@@ -699,6 +821,7 @@ public final class GuiNetworkMap {
             swItem.addActionListener(e -> {
                 if (isSw) MANUAL_SWITCHES.remove(n.ip);
                 else      MANUAL_SWITCHES.add(n.ip);
+                saveManualSwitches();
                 reload();
             });
             menu.add(swItem);

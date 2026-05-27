@@ -59,6 +59,27 @@ class GuiNetworkMapTest {
     @Test void lastOctet_normal()        { assertEquals(36, GuiNetworkMap.lastOctet("192.168.178.36")); }
     @Test void lastOctet_null()          { assertEquals(999, GuiNetworkMap.lastOctet(null)); }
 
+    // ── Persistenz MANUAL_SWITCHES ────────────────────────────────────────
+
+    @Test void saveAndLoad_manualSwitches() {
+        GuiNetworkMap.MANUAL_SWITCHES.clear();
+        GuiNetworkMap.MANUAL_SWITCHES.add("192.168.1.36");
+        GuiNetworkMap.saveManualSwitches();
+        GuiNetworkMap.MANUAL_SWITCHES.clear();
+        GuiNetworkMap.loadManualSwitches();
+        assertTrue(GuiNetworkMap.MANUAL_SWITCHES.contains("192.168.1.36"));
+        GuiNetworkMap.MANUAL_SWITCHES.remove("192.168.1.36");
+        GuiNetworkMap.saveManualSwitches();
+    }
+
+    @Test void saveManualSwitches_doesNotThrow() {
+        assertDoesNotThrow(GuiNetworkMap::saveManualSwitches);
+    }
+
+    @Test void loadManualSwitches_doesNotThrow() {
+        assertDoesNotThrow(GuiNetworkMap::loadManualSwitches);
+    }
+
     // ── HOP_PARENT ────────────────────────────────────────────────────────
 
     @Test void hopParent_put_and_get() {
