@@ -1,7 +1,10 @@
 package networktool_v3.cli;
 
-import main.java.networktool_v3.filter.*;
-import main.java.networktool_v3.model.*;
+import main.java.networktool.cli.MenuPrinter;
+import main.java.networktool.filter.ClipboardUtil;
+import main.java.networktool.filter.JsonExporter;
+import main.java.networktool.gui.notification.LocalToast;
+import main.java.networktool.model.ScanResult;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -30,7 +33,7 @@ class CliTest {
             PrintStream orig = System.out;
             System.setOut(new PrintStream(buf));
             try {
-                main.java.networktool_v3.cli.MenuPrinter.print();
+                MenuPrinter.print();
             } finally {
                 System.setOut(orig);
             }
@@ -45,7 +48,7 @@ class CliTest {
             PrintStream orig = System.out;
             System.setOut(new PrintStream(buf));
             try {
-                main.java.networktool_v3.cli.MenuPrinter.print();
+                MenuPrinter.print();
             } finally {
                 System.setOut(orig);
             }
@@ -125,24 +128,24 @@ class CliTest {
 
         @Test
         void ps_escapeSingleQuote() {
-            String result = main.java.networktool_v3.gui.notification.LocalToast.ps("it's fine");
+            String result = LocalToast.ps("it's fine");
             assertTrue(result.contains("''"));
         }
 
         @Test
         void ps_null_returnsEmpty() {
-            assertEquals("", main.java.networktool_v3.gui.notification.LocalToast.ps(null));
+            assertEquals("", LocalToast.ps(null));
         }
 
         @Test
         void ps_noSpecialChars_unchanged() {
             assertEquals("hello world",
-                    main.java.networktool_v3.gui.notification.LocalToast.ps("hello world"));
+                    LocalToast.ps("hello world"));
         }
 
         @Test
         void ps_newlineReplaced() {
-            String result = main.java.networktool_v3.gui.notification.LocalToast.ps("line1\nline2");
+            String result = LocalToast.ps("line1\nline2");
             assertFalse(result.contains("\n"));
         }
     }

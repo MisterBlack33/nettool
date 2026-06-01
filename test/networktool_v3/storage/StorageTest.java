@@ -1,11 +1,8 @@
 package networktool_v3.storage;
 
-import main.java.networktool_v3.storage.*;
+import main.java.networktool.storage.NotificationHistory;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.io.TempDir;
 
-import java.io.IOException;
-import java.nio.file.*;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -59,21 +56,21 @@ class StorageTest {
         // ── Reflection helpers ─────────────────────────────────────────────
 
         private String invokeExtractStr(String json, String field) {
-            try { var m = Class.forName("main.java.networktool_v3.storage.JsonHelper")
+            try { var m = Class.forName("main.java.networktool.storage.JsonHelper")
                     .getDeclaredMethod("extractStr", String.class, String.class);
                 m.setAccessible(true); return (String) m.invoke(null, json, field);
             } catch (Exception e) { throw new RuntimeException(e); }
         }
 
         private String invokeEsc(String s) {
-            try { var m = Class.forName("main.java.networktool_v3.storage.JsonHelper")
+            try { var m = Class.forName("main.java.networktool.storage.JsonHelper")
                     .getDeclaredMethod("esc", String.class);
                 m.setAccessible(true); return (String) m.invoke(null, s);
             } catch (Exception e) { throw new RuntimeException(e); }
         }
 
         private String invokeBuildStringArrayJson(String key, List<String> items) {
-            try { var m = Class.forName("main.java.networktool_v3.storage.JsonHelper")
+            try { var m = Class.forName("main.java.networktool.storage.JsonHelper")
                     .getDeclaredMethod("buildStringArrayJson", String.class, List.class);
                 m.setAccessible(true); return (String) m.invoke(null, key, items);
             } catch (Exception e) { throw new RuntimeException(e); }
@@ -81,21 +78,21 @@ class StorageTest {
 
         @SuppressWarnings("unchecked")
         private List<String> invokeExtractStringArray(String json, String key) {
-            try { var m = Class.forName("main.java.networktool_v3.storage.JsonHelper")
+            try { var m = Class.forName("main.java.networktool.storage.JsonHelper")
                     .getDeclaredMethod("extractStringArray", String.class, String.class);
                 m.setAccessible(true); return (List<String>) m.invoke(null, json, key);
             } catch (Exception e) { throw new RuntimeException(e); }
         }
 
         private int invokeFindArrayStart(String json, String key) throws Exception {
-            var m = Class.forName("main.java.networktool_v3.storage.JsonHelper")
+            var m = Class.forName("main.java.networktool.storage.JsonHelper")
                     .getDeclaredMethod("findArrayStart", String.class, String.class);
             m.setAccessible(true); return (int) m.invoke(null, json, key);
         }
 
         @SuppressWarnings("unchecked")
         private List<String> invokeExtractObjects(String json, int start) throws Exception {
-            var m = Class.forName("main.java.networktool_v3.storage.JsonHelper")
+            var m = Class.forName("main.java.networktool.storage.JsonHelper")
                     .getDeclaredMethod("extractObjects", String.class, int.class);
             m.setAccessible(true); return (List<String>) m.invoke(null, json, start);
         }

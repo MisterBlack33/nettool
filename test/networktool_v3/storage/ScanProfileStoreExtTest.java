@@ -1,11 +1,9 @@
 package networktool_v3.storage;
 
-import main.java.networktool_v3.model.ScanProfile;
-import main.java.networktool_v3.storage.ScanProfileStore;
-import main.java.networktool_v3.storage.TestConstants;
+import main.java.networktool.model.ScanProfile;
+import main.java.networktool.storage.ScanProfileStore;
+import main.java.networktool.storage.TestConstants;
 import org.junit.jupiter.api.*;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 

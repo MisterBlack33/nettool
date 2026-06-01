@@ -1,5 +1,6 @@
 package main.java.networktool_v3.gui;
 
+import main.java.networktool.gui.GuiLoginRateLimiter;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;

@@ -1,6 +1,6 @@
 package networktool_v3.security;
 
-import main.java.networktool_v3.security.SecurityMonitor;
+import main.java.networktool.security.SecurityMonitor;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;

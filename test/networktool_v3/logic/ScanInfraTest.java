@@ -1,7 +1,8 @@
 package networktool_v3.logic;
 
-import main.java.networktool_v3.logic.scan.*;
-import main.java.networktool_v3.model.*;
+import main.java.networktool.logic.scan.*;
+import main.java.networktool.model.HostResult;
+import main.java.networktool.model.ScanResult;
 import org.junit.jupiter.api.*;
 
 import java.net.InetAddress;

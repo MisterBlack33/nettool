@@ -1,5 +1,6 @@
 package main.java.networktool_v3.logic.analysis;
 
+import main.java.networktool.logic.analysis.OsDetector;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

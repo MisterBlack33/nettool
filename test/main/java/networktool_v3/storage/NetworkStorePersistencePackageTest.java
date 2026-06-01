@@ -1,6 +1,8 @@
 package main.java.networktool_v3.storage;
 
-import main.java.networktool_v3.model.HostResult;
+import main.java.networktool.model.HostResult;
+import main.java.networktool.networktool_v3.storage.NetworkStorePersistence;
+import main.java.networktool.storage.TestConstants;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 

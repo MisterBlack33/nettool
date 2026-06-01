@@ -1,5 +1,7 @@
 package main.java.networktool_v3.logic.ports;
 
+import main.java.networktool.logic.ports.BannerGrabber;
+import main.java.networktool.logic.ports.PortScanner;
 import org.junit.jupiter.api.*;
 
 import java.util.Map;

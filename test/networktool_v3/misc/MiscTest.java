@@ -1,15 +1,14 @@
 package networktool_v3.misc;
 
-import main.java.networktool_v3.gui.GuiTheme;
-import main.java.networktool_v3.gui.security.NoteEncryption;
-import main.java.networktool_v3.model.ScanProfile;
-import main.java.networktool_v3.storage.*;
+import main.java.networktool.gui.GuiTheme;
+import main.java.networktool.gui.security.NoteEncryption;
+import main.java.networktool.model.ScanProfile;
+import main.java.networktool.storage.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 

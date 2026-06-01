@@ -1,9 +1,11 @@
 package networktool_v3.logic;
 
-import main.java.networktool_v3.logic.analysis.*;
-import main.java.networktool_v3.logic.scan.*;
-import main.java.networktool_v3.model.*;
-import main.java.networktool_v3.util.CIDRUtils;
+import main.java.networktool.logic.analysis.WakeOnLan;
+import main.java.networktool.logic.scan.ScanDelta;
+import main.java.networktool.logic.scan.ScanHistory;
+import main.java.networktool.model.HostResult;
+import main.java.networktool.model.ScanResult;
+import main.java.networktool.util.CIDRUtils;
 import org.junit.jupiter.api.*;
 
 import java.util.*;
