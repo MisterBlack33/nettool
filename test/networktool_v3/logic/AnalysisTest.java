@@ -1,6 +1,6 @@
 package networktool_v3.logic;
 
-import main.java.networktool_v3.logic.analysis.*;
+import main.java.networktool.logic.analysis.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 

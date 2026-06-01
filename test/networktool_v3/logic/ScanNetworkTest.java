@@ -1,7 +1,9 @@
 package networktool_v3.logic;
 
-import main.java.networktool_v3.logic.scan.*;
-import main.java.networktool_v3.model.ScanResult;
+import main.java.networktool.logic.scan.NetworkHostScanner;
+import main.java.networktool.logic.scan.NetworkScanner;
+import main.java.networktool.logic.scan.RemoteNetScanner;
+import main.java.networktool.logic.scan.ScanHistory;
 import org.junit.jupiter.api.*;
 
 import java.util.List;

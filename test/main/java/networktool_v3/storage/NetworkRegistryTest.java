@@ -1,10 +1,13 @@
 package main.java.networktool_v3.storage;
 
-import main.java.networktool_v3.model.HostResult;
+import main.java.networktool.model.HostResult;
+import main.java.networktool.networktool_v3.storage.NetworkRegistry;
+import main.java.networktool.networktool_v3.storage.NetworkStoreLegacy;
+import main.java.networktool.networktool_v3.storage.NetworkStoreNtfy;
+import main.java.networktool.storage.TestConstants;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;

@@ -1,5 +1,6 @@
 package main.java.networktool_v3.logic.scan;
 
+import main.java.networktool.logic.scan.NetworkHostScanner;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;

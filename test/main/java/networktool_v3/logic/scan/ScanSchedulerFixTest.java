@@ -1,8 +1,9 @@
 package main.java.networktool_v3.logic.scan;
 
-import main.java.networktool_v3.model.ScanProfile;
-import main.java.networktool_v3.storage.ScanProfileStore;
-import main.java.networktool_v3.storage.TestConstants;
+import main.java.networktool.logic.scan.ScanScheduler;
+import main.java.networktool.model.ScanProfile;
+import main.java.networktool.storage.ScanProfileStore;
+import main.java.networktool.storage.TestConstants;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;

@@ -1,5 +1,6 @@
 package main.java.networktool_v3.gui.notification;
 
+import main.java.networktool.gui.notification.NotificationListener;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

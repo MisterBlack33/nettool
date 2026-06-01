@@ -1,7 +1,7 @@
 package networktool_v3.security;
 
-import main.java.networktool_v3.security.AuditLogger;
-import main.java.networktool_v3.security.UserAuth;
+import main.java.networktool.security.AuditLogger;
+import main.java.networktool.security.UserAuth;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 

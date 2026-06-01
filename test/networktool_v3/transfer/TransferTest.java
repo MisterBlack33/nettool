@@ -1,6 +1,8 @@
 package networktool_v3.transfer;
 
-import main.java.networktool_v3.transfer.*;
+import main.java.networktool.transfer.BandwidthTester;
+import main.java.networktool.transfer.FileClient;
+import main.java.networktool.transfer.FileServer;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 

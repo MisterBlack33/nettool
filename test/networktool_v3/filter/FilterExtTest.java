@@ -1,7 +1,7 @@
 package networktool_v3.filter;
 
-import main.java.networktool_v3.filter.HostResultPrinter;
-import main.java.networktool_v3.model.HostResult;
+import main.java.networktool.filter.HostResultPrinter;
+import main.java.networktool.model.HostResult;
 import org.junit.jupiter.api.*;
 
 import java.io.*;

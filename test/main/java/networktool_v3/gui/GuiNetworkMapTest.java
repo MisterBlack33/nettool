@@ -1,6 +1,10 @@
 package main.java.networktool_v3.gui;
 
-import main.java.networktool_v3.logic.analysis.TracerouteRunner;
+import main.java.networktool.gui.GuiNetworkMap;
+import main.java.networktool.networktool_v3.gui.MapHopDiscovery;
+import main.java.networktool.networktool_v3.gui.MapSwitchStore;
+import main.java.networktool.networktool_v3.gui.MapTopology;
+import main.java.networktool.logic.analysis.TracerouteRunner;
 import org.junit.jupiter.api.*;
 
 import java.util.*;

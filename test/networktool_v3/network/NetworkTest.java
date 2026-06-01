@@ -1,14 +1,12 @@
 package networktool_v3.network;
 
-import main.java.networktool_v3.gui.notification.NotificationListener;
-import main.java.networktool_v3.logic.analysis.*;
-import main.java.networktool_v3.model.HostResult;
-import main.java.networktool_v3.storage.NetworkStore;
-import main.java.networktool_v3.storage.TestConstants;
+import main.java.networktool.logic.analysis.OuiDatabase;
+import main.java.networktool.logic.ports.PortScanner;
+import main.java.networktool.model.HostResult;
+import main.java.networktool.storage.NetworkStore;
+import main.java.networktool.storage.TestConstants;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.io.TempDir;
 
-import java.nio.file.Path;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -141,25 +139,25 @@ class NetworkTest {
     @Nested
     class PortScannerStaticTest {
 
-        @Test void defaultPorts_notEmpty() { assertFalse(main.java.networktool_v3.logic.ports.PortScanner.DEFAULT_PORTS.isEmpty()); }
-        @Test void fastPorts_notEmpty()    { assertFalse(main.java.networktool_v3.logic.ports.PortScanner.FAST_PORTS.isEmpty()); }
+        @Test void defaultPorts_notEmpty() { assertFalse(PortScanner.DEFAULT_PORTS.isEmpty()); }
+        @Test void fastPorts_notEmpty()    { assertFalse(PortScanner.FAST_PORTS.isEmpty()); }
 
         @Test void setActivePorts_null_resetsToDefault() {
-            main.java.networktool_v3.logic.ports.PortScanner.setActivePorts(null);
-            assertEquals(main.java.networktool_v3.logic.ports.PortScanner.DEFAULT_PORTS,
-                    main.java.networktool_v3.logic.ports.PortScanner.getActivePorts());
+            PortScanner.setActivePorts(null);
+            assertEquals(PortScanner.DEFAULT_PORTS,
+                    PortScanner.getActivePorts());
         }
 
         @Test void setActivePorts_custom() {
-            main.java.networktool_v3.logic.ports.PortScanner.setActivePorts(List.of(22, 80, 443));
-            assertEquals(3, main.java.networktool_v3.logic.ports.PortScanner.getActivePorts().size());
-            main.java.networktool_v3.logic.ports.PortScanner.setActivePorts(null);
+            PortScanner.setActivePorts(List.of(22, 80, 443));
+            assertEquals(3, PortScanner.getActivePorts().size());
+            PortScanner.setActivePorts(null);
         }
 
         @Test void setActivePorts_empty_resetsToDefault() {
-            main.java.networktool_v3.logic.ports.PortScanner.setActivePorts(List.of());
-            assertEquals(main.java.networktool_v3.logic.ports.PortScanner.DEFAULT_PORTS,
-                    main.java.networktool_v3.logic.ports.PortScanner.getActivePorts());
+            PortScanner.setActivePorts(List.of());
+            assertEquals(PortScanner.DEFAULT_PORTS,
+                    PortScanner.getActivePorts());
         }
     }
 }

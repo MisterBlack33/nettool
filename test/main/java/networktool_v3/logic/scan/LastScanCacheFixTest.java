@@ -1,7 +1,8 @@
 package main.java.networktool_v3.logic.scan;
 
-import main.java.networktool_v3.model.HostResult;
-import main.java.networktool_v3.model.ScanResult;
+import main.java.networktool.logic.scan.LastScanCache;
+import main.java.networktool.model.HostResult;
+import main.java.networktool.model.ScanResult;
 import org.junit.jupiter.api.*;
 
 import java.util.*;
