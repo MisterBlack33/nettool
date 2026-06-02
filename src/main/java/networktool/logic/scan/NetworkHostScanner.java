@@ -10,16 +10,13 @@ import java.util.*;
 import java.util.concurrent.*;
 import java.util.regex.*;
 
-/**
- * Scannt eine Liste von Subnetzen auf aktive Hosts.
- * Traegt Ergebnisse in ScanHistory ein (fuer Netzwerk-Karte).
- */
 public final class NetworkHostScanner {
 
     private NetworkHostScanner() {}
 
-    private static final int THREAD_COUNT = 200;
-    private static final int DNS_TIMEOUT  = 1_000;
+    // Reduced from 200 → adaptive based on available processors
+    private static final int THREAD_COUNT = Math.max(20, Runtime.getRuntime().availableProcessors() * 4);
+    private static final int DNS_TIMEOUT  = 800;
 
     private static final Pattern MAC_FULL =
             Pattern.compile("([0-9A-Fa-f]{2}[:\\-]){5}[0-9A-Fa-f]{2}");
@@ -30,7 +27,7 @@ public final class NetworkHostScanner {
     public static List<HostResult> scan(List<String> subnets) {
         int total = subnets.size() * 254;
         System.out.println("Starte Scan ueber " + subnets.size()
-                + " Subnetz(e) (" + total + " Hosts)...");
+                + " Subnetz(e) (" + total + " Hosts), Threads: " + THREAD_COUNT);
 
         List<HostResult> found   = Collections.synchronizedList(new ArrayList<>());
         ScanProgress     progress = new ScanProgress(total);
@@ -47,7 +44,6 @@ public final class NetworkHostScanner {
         try { executor.awaitTermination(5, TimeUnit.MINUTES); }
         catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
 
-        // ScanHistory befuellen damit Netzwerk-Karte lokale Scans anzeigt
         if (!found.isEmpty()) {
             List<ScanResult> scanResults = found.stream()
                     .map(h -> new ScanResult(h.ip, h.hostname, h.ports, h.os))
@@ -72,8 +68,6 @@ public final class NetworkHostScanner {
             found.add(new HostResult(ip, buildDisplay(hostname, mac), os));
         } catch (Exception ignored) {}
     }
-
-    // ── Hostname-Aufloesung ───────────────────────────────────────────────
 
     private static String resolveHostname(String ip) {
         String dns = dnsLookup(ip);
@@ -151,14 +145,12 @@ public final class NetworkHostScanner {
         return null;
     }
 
-    // ── MAC-Aufloesung ────────────────────────────────────────────────────
-
     private static void triggerArpEntry(String ip) {
         try {
             String os  = System.getProperty("os.name", "").toLowerCase();
-            String cmd = os.contains("win") ? "ping -n 1 -w 200 " + ip : "ping -c 1 -W 1 " + ip;
+            String cmd = os.contains("win") ? "ping -n 1 -w 100 " + ip : "ping -c 1 -W 1 " + ip;
             Process p = Runtime.getRuntime().exec(cmd);
-            p.waitFor(1_200, TimeUnit.MILLISECONDS); p.destroy();
+            p.waitFor(800, TimeUnit.MILLISECONDS); p.destroy();
         } catch (Exception ignored) {}
     }
 

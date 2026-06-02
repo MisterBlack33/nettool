@@ -7,15 +7,13 @@ import java.awt.*;
 import static main.java.networktool.gui.GuiTheme.*;
 
 /**
- * Fortschrittsanzeige-Panel für laufende Scans.
- *
- * Die UI wird alle 500 ms über einen Swing-{@link Timer} aktualisiert,
- * damit der EDT nicht bei jedem Scan-Schritt belastet wird.
- * Scan-Threads schreiben nur den Zähler (volatile); der Timer liest ihn.
+ * Fortschrittsanzeige. Refresh-Intervall auf 750ms erhöht (war 500ms)
+ * um EDT-Last auf schwacher Hardware zu reduzieren.
  */
 public class GuiProgressBar {
 
-    private static final int REFRESH_INTERVAL_MS = 500;
+    // Increased from 500ms → 750ms to reduce EDT load on weak hardware
+    private static final int REFRESH_INTERVAL_MS = 750;
     private static final int HIDE_DELAY_MS        = 2500;
 
     private final JPanel       panel;
@@ -39,9 +37,6 @@ public class GuiProgressBar {
 
     public JPanel getPanel() { return panel; }
 
-    // ── Öffentliche API ───────────────────────────────────────────────────
-
-    /** Startet die Anzeige und den Refresh-Timer. */
     public void showProgress(int total) {
         startMs   = System.currentTimeMillis();
         lastDone  = 0;
@@ -59,16 +54,10 @@ public class GuiProgressBar {
         });
     }
 
-    /**
-     * Aktualisiert den Fortschrittszähler – kein EDT-Aufruf nötig.
-     * Der Timer kümmert sich um das Neuzeichnen.
-     */
     public void updateProgress(int done) {
         lastDone = done;
         if (done >= lastTotal) finished = true;
     }
-
-    // ── Private Hilfsmethoden ─────────────────────────────────────────────
 
     private void startRefreshTimer() {
         if (uiTimer != null && uiTimer.isRunning()) uiTimer.stop();
@@ -80,8 +69,8 @@ public class GuiProgressBar {
         int  done    = lastDone;
         int  total   = lastTotal;
         long elapsed = (System.currentTimeMillis() - startMs) / 1000;
-        long eta     = done <= 0 ? 0 : (long) (elapsed * (total - done) / (double) done);
-        int  pct     = total == 0 ? 100 : (int) (done * 100.0 / total);
+        long eta      = done <= 0 ? 0 : (long) (elapsed * (total - done) / (double) done);
+        int  pct      = total == 0 ? 100 : (int) (done * 100.0 / total);
 
         bar.setValue(Math.min(done, total));
         label.setText(String.format("Scan läuft — %d / %d  (%d%%)", done, total, pct));
@@ -138,8 +127,6 @@ public class GuiProgressBar {
         return b;
     }
 
-    // ── Benutzerdefiniertes UI ────────────────────────────────────────────
-
     private static class RoundedProgressBarUI extends javax.swing.plaf.basic.BasicProgressBarUI {
 
         @Override protected Color getSelectionBackground() { return BG; }
@@ -155,18 +142,15 @@ public class GuiProgressBar {
             int h   = c.getHeight();
             int arc = h;
 
-            // Hintergrund-Track
             g2.setColor(new Color(0x1A, 0x28, 0x38));
             g2.fillRoundRect(0, 0, w, h, arc, arc);
 
-            // Füllbalken
             double pct = bar.getPercentComplete();
             if (pct > 0) {
                 int filled = Math.min(Math.max((int) (w * pct), arc), w);
                 g2.setClip(0, 0, filled, h);
                 g2.setColor(bar.getForeground());
                 g2.fillRoundRect(0, 0, w, h, arc, arc);
-                // Gloss-Highlight
                 g2.setColor(new Color(255, 255, 255, 40));
                 g2.fillRoundRect(2, 1, w - 4, h / 2 - 1, arc - 2, arc - 2);
                 g2.setClip(null);

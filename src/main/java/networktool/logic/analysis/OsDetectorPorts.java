@@ -7,13 +7,13 @@ import java.net.Socket;
 import java.util.Map;
 import java.util.concurrent.*;
 
-/** Port-basierte OS-Erkennung. Intern von OsDetector verwendet. */
 final class OsDetectorPorts {
 
     private OsDetectorPorts() {}
 
-    private static final int TIMEOUT_MS   = 300;
-    private static final int THREAD_COUNT = 32;
+    private static final int TIMEOUT_MS   = 400;
+    // Adaptive: max 16 threads for OS detection on weak hardware
+    private static final int THREAD_COUNT = Math.min(16, Runtime.getRuntime().availableProcessors() * 2);
 
     static String detectByPorts(String ip) {
         int[] ports = {

@@ -8,11 +8,11 @@ public final class HostAliveChecker {
 
     private HostAliveChecker() {}
 
-    private static final int TIMEOUT_MS = 600;
+    private static final int TIMEOUT_MS = 800;
 
+    // Reduced probe ports for faster checks on slow hardware
     private static final List<Integer> PROBE_PORTS = Arrays.asList(
-            80, 443, 22, 445, 3389, 53, 8080,
-            139, 21, 25, 3306, 5985, 8443, 9100, 1883
+            80, 443, 22, 445, 3389, 53, 8080
     );
 
     public static boolean isAlive(String host) {

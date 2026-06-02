@@ -9,8 +9,9 @@ public final class PortScanner {
 
     private PortScanner() {}
 
-    public static final int TIMEOUT_LAN  = 1_200;
-    public static final int TIMEOUT_FAST = 600;
+    // Increased timeouts slightly for reliable detection on slow networks
+    public static final int TIMEOUT_LAN  = 1_500;
+    public static final int TIMEOUT_FAST = 800;
     private static final int RETRIES     = 1;
 
     public static final List<Integer> DEFAULT_PORTS = List.of(
@@ -32,6 +33,9 @@ public final class PortScanner {
     );
 
     private static volatile List<Integer> activePorts = DEFAULT_PORTS;
+
+    // Adaptive thread cap: fewer on weak hardware
+    private static final int MAX_SCAN_THREADS = Math.min(32, Runtime.getRuntime().availableProcessors() * 4);
 
     public static void setActivePorts(List<Integer> ports) {
         activePorts = (ports == null || ports.isEmpty())
@@ -71,7 +75,7 @@ public final class PortScanner {
                                                int timeout, boolean grabBanner)
             throws InterruptedException {
         Map<Integer, String> results = new ConcurrentHashMap<>();
-        int threads = Math.min(ports.size(), 64);
+        int threads = Math.min(ports.size(), MAX_SCAN_THREADS);
         ExecutorService exec = Executors.newFixedThreadPool(threads,
                 r -> { Thread t = new Thread(r); t.setDaemon(true); return t; });
 
@@ -116,9 +120,7 @@ public final class PortScanner {
         try (Socket s = new Socket()) {
             s.connect(new InetSocketAddress(host, port), timeout);
             return PortState.OPEN;
-        } catch (ConnectException e) {
-            return PortState.CLOSED;
-        } catch (SocketTimeoutException e) {
+        } catch (ConnectException | SocketTimeoutException e) {
             return PortState.CLOSED;
         } catch (Exception e) {
             return PortState.CLOSED;
