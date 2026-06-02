@@ -1,28 +1,31 @@
 package main.java.networktool.security;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
- * Tab-separated audit log. Format: timestamp\tuser\taction\tdetail
- * Appends across restarts. Rotates at MAX_LINES.
+ * Öffentliche API für das Audit-Log.
+ *
+ * Berechtigungen:
+ *   - Schreiben: alle authentifizierten User.
+ *   - clear():   nur User mit Rolle "admin" (toLowerCase-Vergleich).
+ *
+ * Persistenz:
+ *   - Logs bleiben über Instanzen/Neustarts erhalten (NDJSON-Datei).
+ *   - Altes Tab-Format und Legacy-JSON werden weiterhin gelesen.
+ *   - init() muss nach jedem Start aufgerufen werden.
  */
 public final class AuditLogger {
 
-    private static final class Holder { static final AuditLogger INSTANCE = new AuditLogger(); }
+    private static final class Holder {
+        static final AuditLogger INSTANCE = new AuditLogger();
+    }
     public static AuditLogger getInstance() { return Holder.INSTANCE; }
 
-    public static final int MAX_LINES = 200_000;
+    private volatile AuditLogFile logFile;
 
-    private static final DateTimeFormatter FMT =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
-    private Path logFile;
     private final ExecutorService writer = Executors.newSingleThreadExecutor(r -> {
         Thread t = new Thread(r, "AuditLogger");
         t.setDaemon(true);
@@ -31,98 +34,89 @@ public final class AuditLogger {
 
     private AuditLogger() {}
 
+    /** Muss beim Start mit dem txt-Verzeichnis aufgerufen werden. */
     public void init(Path txtDir) {
-        try { Files.createDirectories(txtDir); } catch (IOException ignored) {}
-        this.logFile = txtDir.resolve("audit.log");
+        this.logFile = new AuditLogFile(txtDir);
     }
 
-    public void log(String action)               { log(action, ""); }
+    // ── Schreiben ─────────────────────────────────────────────────────────
+
+    public void log(String action) {
+        log(action, "");
+    }
+
     public void log(String action, String detail) {
         if (logFile == null) return;
-        String user = Optional.ofNullable(UserAuth.getInstance().getCurrentUser()).orElse("system");
-        String ts   = LocalDateTime.now().format(FMT);
-        writer.submit(() -> write(ts, user, action, detail != null ? detail : ""));
+        String user = currentUser();
+        String ts   = AuditLogFile.nowFormatted();
+        AuditLogEntry entry = new AuditLogEntry(ts, user, sanitize(action), sanitize(detail));
+        writer.submit(() -> logFile.append(entry));
     }
 
-    public List<LogEntry> readRecent(int maxLines) {
-        if (logFile == null || !Files.exists(logFile)) return Collections.emptyList();
-        try {
-            List<String> lines = Files.readAllLines(logFile, StandardCharsets.UTF_8);
-            List<LogEntry> result = new ArrayList<>();
-            for (int i = lines.size() - 1; i >= 0 && result.size() < maxLines; i--) {
-                LogEntry e = parse(lines.get(i));
-                if (e != null) result.add(e);
-            }
-            return Collections.unmodifiableList(result);
-        } catch (IOException e) { return Collections.emptyList(); }
+    // ── Lesen ─────────────────────────────────────────────────────────────
+
+    public List<AuditLogEntry> readRecent(int maxLines) {
+        if (logFile == null) return Collections.emptyList();
+        return logFile.readRecent(maxLines);
     }
 
-    public List<LogEntry> readByUser(String username) {
-        return readRecent(MAX_LINES).stream()
-                .filter(e -> username.equalsIgnoreCase(e.user))
+    public List<AuditLogEntry> readByUser(String username) {
+        if (username == null) return Collections.emptyList();
+        return readRecent(AuditLogFile.MAX_LINES).stream()
+                .filter(e -> username.equalsIgnoreCase(e.user()))
                 .toList();
     }
 
-    public synchronized void clear() {
+    // ── Löschen (nur Admin) ───────────────────────────────────────────────
+
+    /**
+     * Löscht das Audit-Log.
+     * Nur für User mit Rolle "admin" erlaubt.
+     * @throws SecurityException wenn kein Admin eingeloggt ist.
+     */
+    public void clear() {
+        if (!isCurrentUserAdmin()) {
+            throw new SecurityException("clear() erfordert Admin-Rechte.");
+        }
         if (logFile == null) return;
-        try { Files.deleteIfExists(logFile); } catch (IOException ignored) {}
+        logFile.clear();
         log("AUDIT_LOG_CLEARED");
     }
 
-    // ── Internal ──────────────────────────────────────────────────────────
-
-    private synchronized void write(String ts, String user, String action, String detail) {
-        try {
-            Files.createDirectories(logFile.getParent());
-            if (Files.exists(logFile) && countLines() >= MAX_LINES) rotate();
-            String line = ts + "\t" + san(user) + "\t" + san(action) + "\t" + san(detail);
-            Files.writeString(logFile, line + System.lineSeparator(),
-                    StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
-        } catch (IOException e) {
-            System.err.println("[AuditLogger] write error: " + e.getMessage());
-        }
+    /** Stille Variante für interne Nutzung (z.B. Tests mit @TempDir). */
+    public void clearInternal(Path txtDir) {
+        AuditLogFile tmp = new AuditLogFile(txtDir);
+        tmp.clear();
     }
 
-    private void rotate() throws IOException {
-        Path rotated = logFile.resolveSibling(
-                "audit_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".log");
-        Files.move(logFile, rotated, StandardCopyOption.REPLACE_EXISTING);
+    // ── Legacy-Kompatibilität ─────────────────────────────────────────────
+
+    /** Parst eine einzelne Log-Zeile (alle Formate). Für Tests und externe Nutzung. */
+    public static AuditLogEntry parse(String line) {
+        return AuditLogFile.parse(line);
     }
 
-    private long countLines() throws IOException {
-        try (var r = Files.newBufferedReader(logFile, StandardCharsets.UTF_8)) {
-            return r.lines().count();
-        }
+    // ── Hilfsmethoden ─────────────────────────────────────────────────────
+
+    private static String currentUser() {
+        String u = UserAuth.getInstance().getCurrentUser();
+        return u != null ? u : "system";
     }
 
-    public static LogEntry parse(String line) {
-        if (line == null || line.isBlank()) return null;
-        if (line.startsWith("{")) return parseLegacyJson(line);
-        String[] p = line.split("\t", 4);
-        if (p.length < 3) return null;
-        return new LogEntry(p[0], p[1], p[2], p.length >= 4 ? p[3] : "");
+    private static boolean isCurrentUserAdmin() {
+        String role = UserAuth.getInstance().getCurrentRole();
+        return "admin".equals(role != null ? role.toLowerCase() : "");
     }
 
-    private static LogEntry parseLegacyJson(String json) {
-        String ts     = extractJson(json, "timestamp");
-        String user   = extractJson(json, "user");
-        String action = extractJson(json, "action");
-        String detail = extractJson(json, "detail");
-        if (ts == null || user == null || action == null) return null;
-        return new LogEntry(ts, user, action, detail);
-    }
-
-    private static String extractJson(String json, String field) {
-        return UserAuth.extractStr(json, field);
-    }
-
-    private static String san(String s) {
+    private static String sanitize(String s) {
         if (s == null) return "";
         return s.replace("\t", " ").replace("\n", " ").replace("\r", "");
     }
 
-    // ── Data class ────────────────────────────────────────────────────────
+    // ── Rückwärtskompatibilität (alte Tests / GUI nutzen LogEntry) ─────────
 
+    /** @deprecated Nutze {@link AuditLogEntry} (Record). Nur für Kompatibilität. */
+    @Deprecated
     public static final class LogEntry {
         public final String timestamp;
         public final String user;
@@ -134,6 +128,10 @@ public final class AuditLogger {
             this.user      = user;
             this.action    = action;
             this.detail    = detail != null ? detail : "";
+        }
+
+        public static LogEntry from(AuditLogEntry e) {
+            return new LogEntry(e.timestamp(), e.user(), e.action(), e.detail());
         }
     }
 }

@@ -1,6 +1,6 @@
 package main.java.networktool.gui;
 
-// Fix #2: Einheitliche Imports – alle GUI-Klassen im selben Package
+import main.java.networktool.security.AuditLogEntry;
 import main.java.networktool.security.AuditLogger;
 
 import javax.swing.*;
@@ -14,18 +14,6 @@ import static main.java.networktool.gui.GuiTheme.*;
 
 /**
  * Audit-Log-Viewer (Menü-ID "23", nur Admins).
- *
- * Korrekturen:
- *  - Fix #1/#7: buildToolbar() gibt ToolbarRefs-Record zurück statt
- *               blindem getComponent(n)-Traversal
- *  - Fix #2:    Package-Deklaration vereinheitlicht (networktool_v3.gui)
- *  - Fix #3:    ROW_BG_EVEN/ODD werden dynamisch per GuiTheme.rowEven/Odd()
- *               abgerufen statt eingefrorener statischer TableConfig-Felder
- *  - Fix #4:    getToolTipText escapet jetzt <, >, &, "
- *  - Fix #5:    output.doc-Zugriff läuft über getStyledDocument()-Getter
- *  - Fix #6:    Reload-Thread prüft isDisplayable() vor EDT-Dispatch
- *  - Fix #8:    actionColor() bereinigt den String nur noch für den Vergleich,
- *               nicht mit Literal "_*"
  */
 public final class GuiAuditPanel {
 
@@ -49,22 +37,16 @@ public final class GuiAuditPanel {
             {"SECURITY_MONITOR",   "Sicherheitsmonitor gestartet/gestoppt"},
             {"EXPORT / IMPORT",    "Datenexport / -import"},
             {"THEME_TOGGLE",       "Dark/Light-Mode gewechselt"},
-            {"CANCEL",             "Laufender Scan abgebrochen"},
+            {"CANCEL",             "Laufenden Scan abgebrochen"},
             {"AUDIT_LOG_CLEARED",  "Audit-Log manuell geleert"},
     };
 
-    // ── Interner Record: Toolbar-Refs ─────────────────────────────────────
-
-    /**
-     * Fix #1/#7: Statt blindem getComponent(n)-Traversal gibt buildToolbar()
-     * diesen Record zurück, der die relevanten Komponenten direkt hält.
-     */
     private record ToolbarRefs(
-            JPanel    panel,
+            JPanel     panel,
             JTextField filterField,
-            JLabel    countLbl,
-            JButton   refreshBtn,
-            JButton   clearBtn
+            JLabel     countLbl,
+            JButton    refreshBtn,
+            JButton    clearBtn
     ) {}
 
     // ── Einstiegspunkt ────────────────────────────────────────────────────
@@ -83,11 +65,9 @@ public final class GuiAuditPanel {
         JPanel outer = new JPanel(new BorderLayout(0, 0));
         outer.setBackground(bg);
 
-        // Fix #1/#7: Toolbar-Refs direkt halten, kein Index-Traversal mehr
         ToolbarRefs refs = buildToolbar(panBg, bg);
         outer.add(refs.panel(), BorderLayout.NORTH);
 
-        // Tabelle: 5 Spalten, letzte unsichtbar (voller Detail-Text für Tooltip)
         DefaultTableModel model = new DefaultTableModel(new Object[0][],
                 new String[]{"Zeit", "User", "Aktion", "Detail", "_full"}) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
@@ -96,21 +76,16 @@ public final class GuiAuditPanel {
         TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
         table.setRowSorter(sorter);
 
-        // Fix #3: dynamische Farben aus GuiTheme statt eingefrorener TableConfig-Felder
-        Color rowEven = GuiTheme.rowEven();
-        Color rowOdd  = GuiTheme.rowOdd();
-
         JScrollPane sp = new JScrollPane(table,
                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                 JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        sp.setBackground(rowEven);
-        sp.getViewport().setBackground(rowEven);
+        sp.setBackground(GuiTheme.rowEven());
+        sp.getViewport().setBackground(GuiTheme.rowEven());
         sp.setBorder(new LineBorder(BORDER, 1));
         sp.setPreferredSize(new Dimension(0, 340));
         outer.add(sp, BorderLayout.CENTER);
         outer.add(buildLegend(panBg), BorderLayout.SOUTH);
 
-        // Fix #1: direkt aus ToolbarRefs – kein ClassCast-Risiko mehr
         refs.filterField().getDocument().addDocumentListener(
                 new javax.swing.event.DocumentListener() {
                     public void insertUpdate(javax.swing.event.DocumentEvent e)  { applyFilter(); }
@@ -118,47 +93,47 @@ public final class GuiAuditPanel {
                     public void changedUpdate(javax.swing.event.DocumentEvent e) { applyFilter(); }
                     private void applyFilter() {
                         String q = refs.filterField().getText().trim();
-                        sorter.setRowFilter(q.isEmpty() ? null
-                                : RowFilter.regexFilter("(?i)" + q));
+                        sorter.setRowFilter(q.isEmpty() ? null : RowFilter.regexFilter("(?i)" + q));
                         refs.countLbl().setText(table.getRowCount() + " Einträge");
                     }
                 });
 
-        // Fix #6: Disposed-Check vor EDT-Dispatch
         Runnable reload = () -> {
-            List<AuditLogger.LogEntry> entries =
-                    AuditLogger.getInstance().readRecent(2000);
-            if (!outer.isDisplayable()) return;          // Panel bereits abgebaut
+            List<AuditLogEntry> entries = AuditLogger.getInstance().readRecent(2000);
+            if (!outer.isDisplayable()) return;
             SwingUtilities.invokeLater(() -> {
-                if (!outer.isDisplayable()) return;      // nochmals prüfen nach EDT-Queue
+                if (!outer.isDisplayable()) return;
                 model.setRowCount(0);
-                for (AuditLogger.LogEntry e : entries) {
-                    String shortDetail = e.detail.length() > MAX_DETAIL
-                            ? e.detail.substring(0, MAX_DETAIL) + "…" : e.detail;
+                for (AuditLogEntry e : entries) {
+                    String shortDetail = e.detail().length() > MAX_DETAIL
+                            ? e.detail().substring(0, MAX_DETAIL) + "…" : e.detail();
                     model.addRow(new Object[]{
-                            e.timestamp, e.user, e.action, shortDetail, e.detail});
+                            e.timestamp(), e.user(), e.action(), shortDetail, e.detail()});
                 }
                 refs.countLbl().setText(model.getRowCount() + " Einträge");
             });
         };
 
-        refs.refreshBtn().addActionListener(e ->
-                new Thread(reload, "AuditLoad").start());
+        refs.refreshBtn().addActionListener(e -> new Thread(reload, "AuditLoad").start());
 
         refs.clearBtn().addActionListener(e -> {
             int ok = JOptionPane.showConfirmDialog(null,
                     "Audit-Log wirklich leeren?", "Bestätigung",
                     JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-            if (ok == JOptionPane.YES_OPTION) {
+            if (ok != JOptionPane.YES_OPTION) return;
+            try {
                 AuditLogger.getInstance().clear();
                 model.setRowCount(0);
                 refs.countLbl().setText("0 Einträge");
+            } catch (SecurityException ex) {
+                JOptionPane.showMessageDialog(null,
+                        "Keine Berechtigung: " + ex.getMessage(),
+                        "Fehler", JOptionPane.ERROR_MESSAGE);
             }
         });
 
         new Thread(reload, "AuditLoad").start();
 
-        // Fix #5: Zugriff über public getStyledDocument() statt package-private Feld
         JTextPane pane = output.getOutputPane();
         pane.setEditable(true);
         pane.setCaretPosition(pane.getStyledDocument().getLength());
@@ -169,10 +144,6 @@ public final class GuiAuditPanel {
 
     // ── Toolbar ───────────────────────────────────────────────────────────
 
-    /**
-     * Fix #7: Gibt ToolbarRefs zurück statt nur JPanel.
-     * Dadurch entfällt das fragile getComponent(n)-Traversal in embedPanel().
-     */
     private static ToolbarRefs buildToolbar(Color panBg, Color bg) {
         JPanel toolbar = new JPanel(new BorderLayout(8, 0));
         toolbar.setBackground(panBg);
@@ -197,7 +168,7 @@ public final class GuiAuditPanel {
         JPanel left = new JPanel(new BorderLayout(4, 0));
         left.setOpaque(false);
         left.add(filterField, BorderLayout.CENTER);
-        left.add(countLbl,   BorderLayout.EAST);
+        left.add(countLbl,    BorderLayout.EAST);
 
         JButton refreshBtn = toolBtn("↻", ACCENT);
         JButton clearBtn   = toolBtn("🗑", WARN);
@@ -238,8 +209,6 @@ public final class GuiAuditPanel {
         grid.setBorder(new EmptyBorder(4, 14, 8, 14));
         grid.setVisible(false);
 
-        // Fix #8: Legende-Strings enthalten keine "_*"-Suffixe mehr,
-        //         actionColor() wird direkt mit dem Basiscode aufgerufen
         for (String[] row : ACTION_LEGEND) {
             JLabel code = new JLabel(row[0]);
             code.setFont(new Font("JetBrains Mono", Font.BOLD, 10));
@@ -274,28 +243,18 @@ public final class GuiAuditPanel {
     // ── Tabelle ───────────────────────────────────────────────────────────
 
     private static JTable buildTable(DefaultTableModel model) {
-        // Fix #3: dynamische Farben aus GuiTheme
-        Color rowEven = GuiTheme.rowEven();
-        Color rowOdd  = GuiTheme.rowOdd();
-
         JTable table = new JTable(model) {
-
-            // Fix #4: vollständiges HTML-Escaping für Tooltip
             @Override
             public String getToolTipText(MouseEvent e) {
                 int row = rowAtPoint(e.getPoint());
                 int col = columnAtPoint(e.getPoint());
                 if (col == 3 && row >= 0) {
-                    Object full = getModel().getValueAt(
-                            convertRowIndexToModel(row), 4);
+                    Object full = getModel().getValueAt(convertRowIndexToModel(row), 4);
                     if (full != null && !full.toString().isBlank()) {
                         String escaped = full.toString()
-                                .replace("&", "&amp;")
-                                .replace("<", "&lt;")
-                                .replace(">", "&gt;")
-                                .replace("\"", "&quot;");
-                        return "<html><pre style='font-family:monospace'>"
-                                + escaped + "</pre></html>";
+                                .replace("&", "&amp;").replace("<", "&lt;")
+                                .replace(">", "&gt;").replace("\"", "&quot;");
+                        return "<html><pre style='font-family:monospace'>" + escaped + "</pre></html>";
                     }
                 }
                 return super.getToolTipText(e);
@@ -305,15 +264,12 @@ public final class GuiAuditPanel {
             public Component prepareRenderer(TableCellRenderer tcr, int row, int col) {
                 Component c = super.prepareRenderer(tcr, row, col);
                 if (!isRowSelected(row)) {
-                    // Fix #3: lokale Variablen statt eingefrorener Konstanten
                     c.setBackground(row % 2 == 0 ? GuiTheme.rowEven() : GuiTheme.rowOdd());
                     switch (col) {
                         case 0 -> c.setForeground(FG_DIM);
                         case 1 -> c.setForeground(ACCENT);
-                        case 2 -> {
-                            Object v = getValueAt(row, col);
-                            c.setForeground(actionColor(v != null ? v.toString() : ""));
-                        }
+                        case 2 -> { Object v = getValueAt(row, col);
+                            c.setForeground(actionColor(v != null ? v.toString() : "")); }
                         default -> c.setForeground(FG);
                     }
                 }
@@ -322,7 +278,7 @@ public final class GuiAuditPanel {
             }
         };
 
-        table.setBackground(rowEven);
+        table.setBackground(GuiTheme.rowEven());
         table.setForeground(FG);
         table.setFont(MONO_XS);
         table.setRowHeight(20);
@@ -335,20 +291,12 @@ public final class GuiAuditPanel {
         TableColumnModel cm = table.getColumnModel();
         for (int i = 0; i < 4 && i < cm.getColumnCount(); i++) {
             cm.getColumn(i).setPreferredWidth(WIDTHS[i]);
-            if (i < 3) {
-                cm.getColumn(i).setMinWidth(WIDTHS[i]);
-                cm.getColumn(i).setMaxWidth(WIDTHS[i]);
-            } else {
-                cm.getColumn(i).setMinWidth(WIDTHS[i]);
-                cm.getColumn(i).setMaxWidth(Integer.MAX_VALUE);
-            }
+            if (i < 3) { cm.getColumn(i).setMinWidth(WIDTHS[i]); cm.getColumn(i).setMaxWidth(WIDTHS[i]); }
+            else        { cm.getColumn(i).setMinWidth(WIDTHS[i]); cm.getColumn(i).setMaxWidth(Integer.MAX_VALUE); }
         }
-        // Versteckte 5. Spalte (_full): Breite auf 0 klemmen
         if (cm.getColumnCount() > 4) {
             TableColumn hidden = cm.getColumn(4);
-            hidden.setMinWidth(0);
-            hidden.setMaxWidth(0);
-            hidden.setWidth(0);
+            hidden.setMinWidth(0); hidden.setMaxWidth(0); hidden.setWidth(0);
         }
 
         TableConfig.styleHeader(table.getTableHeader());
@@ -358,27 +306,18 @@ public final class GuiAuditPanel {
 
     // ── Hilfsmethoden ─────────────────────────────────────────────────────
 
-    /**
-     * Fix #8: Kein Literal-String-Replace von "_*" mehr.
-     * actionColor() normalisiert den String selbst für den Vergleich.
-     */
     private static Color actionColor(String action) {
         if (action == null) return FG;
-        // Sonderzeichen aus Legende bereinigen (Leerzeichen, Slash)
         String a = action.toUpperCase().replaceAll("[\\s/].*", "").trim();
-        if (a.startsWith("LOGIN") && !a.contains("FAIL") && !a.contains("BLOCK"))
-            return ACCENT2;
+        if (a.startsWith("LOGIN") && !a.contains("FAIL") && !a.contains("BLOCK")) return ACCENT2;
         if (a.contains("FAIL") || a.contains("BLOCK") || a.contains("ALERT")
-                || a.contains("SPOOF") || a.contains("POISON") || a.contains("ROGUE"))
-            return WARN;
+                || a.contains("SPOOF") || a.contains("POISON") || a.contains("ROGUE")) return WARN;
         if (a.startsWith("SECURITY") || a.startsWith("ARP") || a.startsWith("PORT_MONITOR"))
             return new Color(0xFF, 0xA0, 0x30);
-        if (a.startsWith("SCAN") || a.startsWith("DIAGNOSE") || a.startsWith("CIDR"))
-            return INFO;
+        if (a.startsWith("SCAN") || a.startsWith("DIAGNOSE") || a.startsWith("CIDR")) return INFO;
         if (a.startsWith("EXPORT") || a.startsWith("IMPORT") || a.startsWith("RESTORE"))
             return new Color(0xD0, 0xC0, 0x60);
-        if (a.startsWith("USER") || a.startsWith("APP_START"))
-            return ACCENT;
+        if (a.startsWith("USER") || a.startsWith("APP_START")) return ACCENT;
         return FG;
     }
 
@@ -387,8 +326,7 @@ public final class GuiAuditPanel {
         b.setFont(new Font("Segoe UI Emoji", Font.BOLD, 12));
         b.setForeground(fg);
         b.setBackground(BTN_BG);
-        b.setBorder(new CompoundBorder(
-                new LineBorder(fg.darker(), 1), new EmptyBorder(2, 7, 2, 7)));
+        b.setBorder(new CompoundBorder(new LineBorder(fg.darker(), 1), new EmptyBorder(2, 7, 2, 7)));
         b.setFocusPainted(false);
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         b.addMouseListener(new MouseAdapter() {
