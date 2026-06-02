@@ -4,30 +4,15 @@ import java.net.InetAddress;
 import java.util.*;
 import java.util.concurrent.*;
 
-/**
- * Schneller ICMP-Ping-Sweep vor dem vollen Port-Scan.
- *
- * Prüft in < 3s welche Hosts in einem Subnetz überhaupt antworten.
- * Nur diese werden dann für den teuren Port-Scan übergeben.
- *
- * Einsparung: bei /24 mit 10% aktiven Hosts → 90% weniger Port-Scans.
- */
 public final class PingSweep {
 
     private PingSweep() {}
 
-    private static final int TIMEOUT_MS   = 500;
-    private static final int THREAD_COUNT = 254;
+    private static final int TIMEOUT_MS   = 600;
+    private static final int THREAD_COUNT = Math.min(64, Runtime.getRuntime().availableProcessors() * 8);
 
-    /**
-     * Swept alle IPs einer Liste via ICMP.
-     *
-     * @param ips      zu prüfende IPs
-     * @param progress optionaler Fortschritts-Callback (kann null sein)
-     * @return nur die erreichbaren IPs
-     */
     public static List<String> sweep(List<String> ips, Runnable progress) {
-        if (ips.isEmpty()) return new ArrayList<>();   // <-- diese Zeile hinzufügen
+        if (ips.isEmpty()) return new ArrayList<>();
         List<String> alive = Collections.synchronizedList(new ArrayList<>());
         ExecutorService exec = Executors.newFixedThreadPool(
                 Math.min(THREAD_COUNT, ips.size()));
@@ -49,18 +34,12 @@ public final class PingSweep {
         return alive;
     }
 
-    /**
-     * Überladung für Subnetz-Präfix (z.B. "192.168.1" → .1–.254).
-     */
     public static List<String> sweepSubnet(String prefix, Runnable progress) {
         List<String> ips = new ArrayList<>(254);
         for (int i = 1; i <= 254; i++) ips.add(prefix + "." + i);
         return sweep(ips, progress);
     }
 
-    /**
-     * Wie sweepSubnet, gibt Statistik aus.
-     */
     public static List<String> sweepAndLog(String prefix) {
         System.out.print("[PingSweep] " + prefix + ".1-254... ");
         long t = System.currentTimeMillis();
