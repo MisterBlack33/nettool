@@ -34,7 +34,7 @@ final class NetworkStorePersistence {
             try { Files.createDirectories(candidate); return candidate; }
             catch (IOException ignored) {}
         } catch (URISyntaxException | SecurityException ignored) {}
-        return Paths.get(System.getProperty("user.dir"), "networktool_v3", "txt");
+        return Paths.get(System.getProperty("user.dir"), "networktool", "txt");
     }
 
     static Path savedDir(Path txtDir) {
