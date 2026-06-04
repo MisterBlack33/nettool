@@ -10,7 +10,6 @@ import main.java.networktool.model.HostResult;
 import main.java.networktool.security.SecurityMonitor;
 import main.java.networktool.storage.DataExporter;
 import main.java.networktool.storage.DataImporter;
-import main.java.networktool.logic.scan.*;
 import main.java.networktool.logic.ports.PortScanner;
 import main.java.networktool.model.ScanProfile;
 import main.java.networktool.model.ScanResult;
@@ -30,7 +29,7 @@ import static main.java.networktool.gui.GuiTheme.*;
 
 /**
  * Verarbeitet Sidebar-Klicks und startet Aktionen asynchron.
- * Ausgabe reduziert: Dialoge statt langer Textblöcke im Output-Panel.
+ * Ausgabe reduziert: kurze Status-Zeilen statt langer Textblöcke.
  */
 public class GuiMenuHandler {
 
@@ -65,7 +64,7 @@ public class GuiMenuHandler {
             case "04" -> input.ask("Port:", p -> runAsync(() -> {
                 AuditLogger.getInstance().log("FILE_SERVER","port="+p);
                 new FileServer(Integer.parseInt(p)).start();
-                output.appendText("  ✔ Server auf Port " + p + "\n", ACCENT2);
+                ok("Server auf Port " + p);
             }));
             case "05" -> input.ask("Ziel-IP:", ip -> input.ask("Port:", p ->
                     input.ask("Dateipfad:", path -> runAsync(() -> {
@@ -113,10 +112,8 @@ public class GuiMenuHandler {
 
     private void handleDiagnose() {
         String[] options = {"Schnell  (ICMP + Ports + OS)", "Voll  (+ ARP + Traceroute)"};
-        int choice = JOptionPane.showOptionDialog(null,
-                "Diagnose-Modus:", "IP-Analyse",
-                JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
-                null, options, options[0]);
+        int choice = JOptionPane.showOptionDialog(null, "Diagnose-Modus:", "IP-Analyse",
+                JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
         if (choice < 0) return;
         input.ask("Ziel-IP / Hostname:", target -> {
             if (choice == 1) {
@@ -146,16 +143,14 @@ public class GuiMenuHandler {
                 }));
     }
 
-    // ── Fremdnetz ────────────────────────────────────────────────────────
+    // ── Fremdnetz ─────────────────────────────────────────────────────────
 
     private void handleRemoteNetScan() {
         String gw = RemoteNetScanner.detectDefaultGateway();
         status.set("Gateway: " + (gw != null ? gw : "–"), FG_DIM);
         String[] options = {"Einzelnes Netz", "Mehrere Netze", "Erreichbarkeitstest", "Routing-Hilfe"};
-        int choice = JOptionPane.showOptionDialog(null,
-                "Fremdnetz-Modus:", "Fremdnetz-Scanner",
-                JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
-                null, options, options[0]);
+        int choice = JOptionPane.showOptionDialog(null, "Fremdnetz-Modus:", "Fremdnetz-Scanner",
+                JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
         if (choice < 0) return;
         switch (choice) {
             case 0 -> input.ask("CIDR:", raw -> runAsync(() -> {
@@ -194,7 +189,7 @@ public class GuiMenuHandler {
         if (action < 0) return;
         switch (action) {
             case 0 -> {
-                if (profiles.isEmpty()) { output.appendText("  Keine Profile.\n", WARN); return; }
+                if (profiles.isEmpty()) { warn("Keine Profile."); return; }
                 String[] names = profiles.stream().map(p -> p.name).toArray(String[]::new);
                 Object chosen = JOptionPane.showInputDialog(null, "Profil:", "Ausführen",
                         JOptionPane.QUESTION_MESSAGE, null, names, names[0]);
@@ -212,7 +207,7 @@ public class GuiMenuHandler {
                 if (chosen != null) {
                     AuditLogger.getInstance().log("PROFILE_DELETE", chosen.toString());
                     ScanProfileStore.getInstance().delete(chosen.toString());
-                    output.appendText("  ✔ Gelöscht: " + chosen + "\n", ACCENT2);
+                    ok("Gelöscht: " + chosen);
                 }
             }
         }
@@ -234,7 +229,7 @@ public class GuiMenuHandler {
                             if (!cat.isBlank()) { p.autoSave = true; p.category = cat.trim(); }
                             ScanProfileStore.getInstance().save(p);
                             AuditLogger.getInstance().log("PROFILE_CREATE", p.summary());
-                            output.appendText("  ✔ Profil gespeichert: " + p.name + "\n", ACCENT2);
+                            ok("Profil gespeichert: " + p.name);
                         });
                     });
                 });
@@ -262,17 +257,15 @@ public class GuiMenuHandler {
 
     private void handleScanDelta() {
         String[] options = {"Aktuell vs. letzten Scan", "Zwei CIDRs vergleichen"};
-        int choice = JOptionPane.showOptionDialog(null, "Scan-Vergleich:",
-                "Scan-Δ", JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
-                null, options, options[0]);
+        int choice = JOptionPane.showOptionDialog(null, "Scan-Vergleich:", "Scan-Δ",
+                JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
         if (choice < 0) return;
         if (choice == 1) {
             input.ask("CIDR A (alt):", cidrA ->
                     input.ask("CIDR B (neu):", cidrB -> runAsync(() -> {
                         AuditLogger.getInstance().log("SCAN_DELTA", cidrA + " vs " + cidrB);
-                        List<ScanResult> before = NetworkScanner.scanCIDR(cidrA);
-                        List<ScanResult> after  = NetworkScanner.scanCIDR(cidrB);
-                        ScanDelta.compare(before, after, cidrA, cidrB);
+                        ScanDelta.compare(NetworkScanner.scanCIDR(cidrA),
+                                NetworkScanner.scanCIDR(cidrB), cidrA, cidrB);
                     })));
         } else {
             input.ask("CIDR:", cidr -> runAsync(() -> {
@@ -280,8 +273,7 @@ public class GuiMenuHandler {
                 List<ScanResult> fresh = NetworkScanner.scanCIDR(cidr);
                 List<HostResult> saved = NetworkStore.getInstance().getAllHosts();
                 ScanDelta.compareHosts(saved, fresh.stream().map(r ->
-                                new HostResult(r.getIp(),
-                                        r.getHostname(), r.getOsGuess())).toList(),
+                                new HostResult(r.getIp(), r.getHostname(), r.getOsGuess())).toList(),
                         "Gespeichert", "Aktuell");
             }));
         }
@@ -298,12 +290,11 @@ public class GuiMenuHandler {
         String[] actions = {"Planen", "Stoppen", "Alle stoppen"};
         int action = JOptionPane.showOptionDialog(null,
                 "Aktive Scans: " + running, "Scheduler",
-                JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
-                null, actions, actions[0]);
+                JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, actions, actions[0]);
         if (action < 0) return;
         switch (action) {
             case 0 -> {
-                if (profiles.isEmpty()) { output.appendText("  Zuerst Scan-Profil anlegen.\n", WARN); return; }
+                if (profiles.isEmpty()) { warn("Zuerst Scan-Profil anlegen."); return; }
                 String[] names = profiles.stream().map(p -> p.name).toArray(String[]::new);
                 Object chosen = JOptionPane.showInputDialog(null, "Profil:", "Scheduler",
                         JOptionPane.QUESTION_MESSAGE, null, names, names[0]);
@@ -316,10 +307,8 @@ public class GuiMenuHandler {
                         final String t = topic;
                         AuditLogger.getInstance().log("SCHEDULER_START", chosen + " every=" + min + "min");
                         sched.start(chosen.toString(), min, t);
-                        output.appendText("  ✔ " + chosen + " alle " + min + " min\n", ACCENT2);
-                    } catch (NumberFormatException e) {
-                        output.appendText("  ✕ Ungültige Zahl\n", WARN);
-                    }
+                        ok(chosen + " alle " + min + " min");
+                    } catch (NumberFormatException e) { warn("Ungültige Zahl"); }
                 });
             }
             case 1 -> {
@@ -335,7 +324,7 @@ public class GuiMenuHandler {
             case 2 -> {
                 AuditLogger.getInstance().log("SCHEDULER_STOP_ALL", "");
                 sched.stopAll();
-                output.appendText("  ✔ Alle gestoppt\n", ACCENT2);
+                ok("Alle gestoppt");
             }
         }
     }
@@ -344,14 +333,13 @@ public class GuiMenuHandler {
 
     private void handleBandwidthTest() {
         String[] options = {"Server starten", "Test zu Ziel-IP"};
-        int choice = JOptionPane.showOptionDialog(null, "Bandwidth-Test:",
-                "Bandwidth", JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
-                null, options, options[1]);
+        int choice = JOptionPane.showOptionDialog(null, "Bandwidth-Test:", "Bandwidth",
+                JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[1]);
         if (choice < 0) return;
         if (choice == 0) {
             AuditLogger.getInstance().log("BW_SERVER_START", "");
             runAsync(() -> { BandwidthTester.startServer(); Thread.currentThread().join(); });
-            output.appendText("  ✔ BW-Server Port " + BandwidthTester.TEST_PORT + "\n", ACCENT2);
+            ok("BW-Server Port " + BandwidthTester.TEST_PORT);
         } else {
             input.ask("Ziel-IP:", ip -> runAsync(() -> {
                 AuditLogger.getInstance().log("BW_TEST", ip);
@@ -376,9 +364,8 @@ public class GuiMenuHandler {
     // ── Sicherheits-Monitor ───────────────────────────────────────────────
 
     private void handleSecurityMonitor() {
-        SecurityMonitor secMon =
-                SecurityMonitor.getInstance();
-        ArpMonitor       arpMon  = ArpMonitor.getInstance();
+        SecurityMonitor secMon  = SecurityMonitor.getInstance();
+        ArpMonitor      arpMon  = ArpMonitor.getInstance();
         PortChangeMonitor portMon = PortChangeMonitor.getInstance();
 
         String state = "SecMon: " + (secMon.isActive() ? "✔" : "✕")
@@ -390,24 +377,24 @@ public class GuiMenuHandler {
         if (choice < 0) return;
         switch (choice) {
             case 0 -> {
-                if (secMon.isActive()) { secMon.stop(); output.appendText("  SecurityMonitor gestoppt\n", WARN); }
+                if (secMon.isActive()) { secMon.stop(); warn("SecurityMonitor gestoppt"); }
                 else {
                     String topic = GuiContextMenu.promptNtfyTopic();
                     secMon.start(topic != null ? topic : "");
-                    output.appendText("  ✔ SecurityMonitor aktiv\n", ACCENT2);
+                    ok("SecurityMonitor aktiv");
                 }
             }
             case 1 -> {
-                if (arpMon.isActive()) { AuditLogger.getInstance().log("ARP_MONITOR_STOP",""); arpMon.stop(); output.appendText("  ARP-Monitor gestoppt\n", WARN); }
+                if (arpMon.isActive()) { AuditLogger.getInstance().log("ARP_MONITOR_STOP",""); arpMon.stop(); warn("ARP-Monitor gestoppt"); }
                 else {
                     String topic = GuiContextMenu.promptNtfyTopic();
                     AuditLogger.getInstance().log("ARP_MONITOR_START","");
                     arpMon.start(topic != null ? topic : "");
-                    output.appendText("  ✔ ARP-Monitor aktiv\n", ACCENT2);
+                    ok("ARP-Monitor aktiv");
                 }
             }
             case 2 -> {
-                if (portMon.isActive()) { AuditLogger.getInstance().log("PORT_MONITOR_STOP",""); portMon.stop(); output.appendText("  Port-Monitor gestoppt\n", WARN); }
+                if (portMon.isActive()) { AuditLogger.getInstance().log("PORT_MONITOR_STOP",""); portMon.stop(); warn("Port-Monitor gestoppt"); }
                 else {
                     input.ask("Intervall (min):", minStr -> {
                         try {
@@ -415,8 +402,8 @@ public class GuiMenuHandler {
                             String topic = GuiContextMenu.promptNtfyTopic();
                             AuditLogger.getInstance().log("PORT_MONITOR_START", min + "min");
                             portMon.start(min, topic != null ? topic : "");
-                            output.appendText("  ✔ Port-Monitor aktiv (" + min + " min)\n", ACCENT2);
-                        } catch (NumberFormatException e) { output.appendText("  ✕ Ungültige Zahl\n", WARN); }
+                            ok("Port-Monitor aktiv (" + min + " min)");
+                        } catch (NumberFormatException e) { warn("Ungültige Zahl"); }
                     });
                 }
             }
@@ -427,20 +414,18 @@ public class GuiMenuHandler {
 
     private void handleExportImport() {
         String[] options = {"CSV", "JSON", "HTML", "ZIP-Backup", "CSV imp.", "JSON imp.", "ZIP restore"};
-        int choice = JOptionPane.showOptionDialog(null, "Export / Import:",
-                "Daten", JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE,
-                null, options, options[0]);
+        int choice = JOptionPane.showOptionDialog(null, "Export / Import:", "Daten",
+                JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
         if (choice < 0) return;
-        java.nio.file.Path outDir = java.nio.file.Paths.get(
-                System.getProperty("user.home"), "NetTool-Export");
+        java.nio.file.Path outDir = java.nio.file.Paths.get(System.getProperty("user.home"), "NetTool-Export");
         switch (choice) {
-            case 0 -> runAsync(() -> { java.nio.file.Path f = DataExporter.exportCsv(outDir);    AuditLogger.getInstance().log("EXPORT_CSV",  f.toString()); output.appendText("  ✔ " + f.getFileName() + "\n", ACCENT2); });
-            case 1 -> runAsync(() -> { java.nio.file.Path f = DataExporter.exportJson(outDir);   AuditLogger.getInstance().log("EXPORT_JSON", f.toString()); output.appendText("  ✔ " + f.getFileName() + "\n", ACCENT2); });
-            case 2 -> runAsync(() -> { java.nio.file.Path f = DataExporter.exportHtml(outDir);   AuditLogger.getInstance().log("EXPORT_HTML", f.toString()); output.appendText("  ✔ " + f.getFileName() + "\n", ACCENT2); try { java.awt.Desktop.getDesktop().browse(f.toUri()); } catch (Exception ignored) {} });
-            case 3 -> runAsync(() -> { java.nio.file.Path f = DataExporter.exportBackup(outDir); AuditLogger.getInstance().log("EXPORT_ZIP",  f.toString()); output.appendText("  ✔ " + f.getFileName() + "\n", ACCENT2); });
-            case 4 -> input.ask("CSV-Pfad:",  path -> runAsync(() -> { int n = DataImporter.importCsv(java.nio.file.Paths.get(path.trim()));         AuditLogger.getInstance().log("IMPORT_CSV",  "n="+n); output.appendText("  ✔ " + n + " importiert\n", ACCENT2); }));
-            case 5 -> input.ask("JSON-Pfad:", path -> runAsync(() -> { int n = DataImporter.importJson(java.nio.file.Paths.get(path.trim()));        AuditLogger.getInstance().log("IMPORT_JSON", "n="+n); output.appendText("  ✔ " + n + " importiert\n", ACCENT2); }));
-            case 6 -> input.ask("ZIP-Pfad:",  path -> runAsync(() -> { int n = DataImporter.restoreBackup(java.nio.file.Paths.get(path.trim())); AuditLogger.getInstance().log("RESTORE_ZIP", "n="+n); output.appendText("  ✔ " + n + " Dateien wiederhergestellt\n", ACCENT2); }));
+            case 0 -> runAsync(() -> { java.nio.file.Path f = DataExporter.exportCsv(outDir);    AuditLogger.getInstance().log("EXPORT_CSV",  f.toString()); ok(f.getFileName().toString()); });
+            case 1 -> runAsync(() -> { java.nio.file.Path f = DataExporter.exportJson(outDir);   AuditLogger.getInstance().log("EXPORT_JSON", f.toString()); ok(f.getFileName().toString()); });
+            case 2 -> runAsync(() -> { java.nio.file.Path f = DataExporter.exportHtml(outDir);   AuditLogger.getInstance().log("EXPORT_HTML", f.toString()); ok(f.getFileName().toString()); try { java.awt.Desktop.getDesktop().browse(f.toUri()); } catch (Exception ignored) {} });
+            case 3 -> runAsync(() -> { java.nio.file.Path f = DataExporter.exportBackup(outDir); AuditLogger.getInstance().log("EXPORT_ZIP",  f.toString()); ok(f.getFileName().toString()); });
+            case 4 -> input.ask("CSV-Pfad:",  path -> runAsync(() -> { int n = DataImporter.importCsv(java.nio.file.Paths.get(path.trim()));         AuditLogger.getInstance().log("IMPORT_CSV",  "n="+n); ok(n + " importiert"); }));
+            case 5 -> input.ask("JSON-Pfad:", path -> runAsync(() -> { int n = DataImporter.importJson(java.nio.file.Paths.get(path.trim()));        AuditLogger.getInstance().log("IMPORT_JSON", "n="+n); ok(n + " importiert"); }));
+            case 6 -> input.ask("ZIP-Pfad:",  path -> runAsync(() -> { int n = DataImporter.restoreBackup(java.nio.file.Paths.get(path.trim())); AuditLogger.getInstance().log("RESTORE_ZIP", "n="+n); ok(n + " Dateien wiederhergestellt"); }));
         }
     }
 
@@ -461,7 +446,7 @@ public class GuiMenuHandler {
                 };
         JTable table = TableConfig.buildTable(model, widths);
         JScrollPane sp = new JScrollPane(table);
-        sp.setPreferredSize(new java.awt.Dimension(0, Math.min(data.length * 26 + 30, 300)));
+        sp.setPreferredSize(new java.awt.Dimension(0, Math.min(data.length * 26 + 30, 280)));
         sp.setBorder(new javax.swing.border.LineBorder(BORDER, 1));
         sp.getViewport().setBackground(TableConfig.ROW_BG_EVEN);
 
@@ -477,7 +462,7 @@ public class GuiMenuHandler {
             if ("clear".equalsIgnoreCase(v.trim())) {
                 AuditLogger.getInstance().log("NOTIFICATION_HISTORY_CLEAR", "");
                 hist.clear();
-                output.appendText("  ✔ Verlauf geleert\n", ACCENT2);
+                ok("Verlauf geleert");
             }
         });
     }
@@ -491,17 +476,17 @@ public class GuiMenuHandler {
             if ("reset".equalsIgnoreCase(value.trim())) {
                 PortScanner.setActivePorts(null);
                 AuditLogger.getInstance().log("PORT_CONFIG_RESET", "");
-                output.appendText("  ✔ Standard-Ports (" + PortScanner.getActivePorts().size() + ")\n", ACCENT2);
+                ok("Standard-Ports (" + PortScanner.getActivePorts().size() + ")");
                 return;
             }
             List<Integer> ports = new ArrayList<>();
             for (String p : value.split(",")) {
                 try { ports.add(Integer.parseInt(p.trim())); } catch (NumberFormatException ignored) {}
             }
-            if (ports.isEmpty()) { output.appendText("  ✕ Keine gültigen Ports\n", WARN); return; }
+            if (ports.isEmpty()) { warn("Keine gültigen Ports"); return; }
             PortScanner.setActivePorts(ports);
             AuditLogger.getInstance().log("PORT_CONFIG_SET", ports.toString());
-            output.appendText("  ✔ " + ports.size() + " Ports konfiguriert\n", ACCENT2);
+            ok(ports.size() + " Ports konfiguriert");
         });
     }
 
@@ -536,7 +521,7 @@ public class GuiMenuHandler {
         Thread t = new Thread(() -> {
             try { task.run(); }
             catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-            catch (Exception e) { output.appendText("  ✕ " + e.getMessage() + "\n", WARN); }
+            catch (Exception e) { warn(e.getMessage()); }
             finally {
                 runningThread.compareAndSet(Thread.currentThread(), null);
                 if (!Thread.currentThread().isInterrupted()) status.set("Fertig", ACCENT2);
@@ -545,4 +530,9 @@ public class GuiMenuHandler {
         runningThread.set(t);
         t.start();
     }
+
+    // ── Ausgabe-Helfer ────────────────────────────────────────────────────
+
+    private void ok(String msg)   { output.appendText("  ✔ " + msg + "\n", ACCENT2); }
+    private void warn(String msg) { output.appendText("  ✕ " + msg + "\n", WARN); }
 }

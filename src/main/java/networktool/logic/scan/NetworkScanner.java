@@ -13,22 +13,18 @@ public final class NetworkScanner {
 
     private NetworkScanner() {}
 
-    // Adaptive thread count based on CPU cores
     private static final int THREAD_COUNT  = Math.max(20, Runtime.getRuntime().availableProcessors() * 4);
     private static final int REACH_TIMEOUT = 1000;
+    /** Netze bis zu dieser Größe werden direkt ohne PingSweep-Vorfilter gescannt. */
+    private static final int DIRECT_LIMIT  = 254;
 
     public static List<ScanResult> scanCIDR(String cidr) {
         List<String> allIps = CIDRUtils.getAllIPs(cidr);
-        List<String> ips    = allIps.size() > 254
-                ? PingSweep.sweep(allIps, null)
-                : allIps;
-        if (allIps.size() > 254)
-            System.out.println("  [PingSweep] " + ips.size() + "/" + allIps.size()
-                    + " Hosts erreichbar → voll scannen");
+        List<String> ips    = allIps.size() <= DIRECT_LIMIT ? allIps : sweepFirst(allIps);
 
-        List<ScanResult> results = Collections.synchronizedList(new ArrayList<>());
-        ScanProgress     progress = new ScanProgress(ips.size());
-        ExecutorService  executor = Executors.newFixedThreadPool(THREAD_COUNT,
+        List<ScanResult> results  = Collections.synchronizedList(new ArrayList<>());
+        ScanProgress     progress  = new ScanProgress(ips.size());
+        ExecutorService  executor  = Executors.newFixedThreadPool(THREAD_COUNT,
                 r -> { Thread t = new Thread(r); t.setDaemon(true); return t; });
 
         System.out.println("Scanne " + ips.size() + " Hosts in " + cidr
@@ -49,13 +45,19 @@ public final class NetworkScanner {
         return results;
     }
 
+    private static List<String> sweepFirst(List<String> allIps) {
+        List<String> alive = PingSweep.sweep(allIps, null);
+        System.out.println("  [PingSweep] " + alive.size() + "/" + allIps.size()
+                + " Hosts erreichbar → voll scannen");
+        return alive;
+    }
+
     private static void scanIp(String ip, List<ScanResult> results) {
         try {
             if (!InetAddress.getByName(ip).isReachable(REACH_TIMEOUT)) return;
-
-            String hostname = resolveHostname(ip);
+            String hostname          = resolveHostname(ip);
             Map<Integer, String> ports = PortScanner.scanSimple(ip, 0);
-            String os = OsDetector.detect(ip);
+            String os                = OsDetector.detect(ip);
             results.add(new ScanResult(ip, hostname, ports, os));
         } catch (Exception ignored) {}
     }

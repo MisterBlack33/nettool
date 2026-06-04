@@ -15,12 +15,14 @@ import java.awt.event.*;
 import java.net.InetAddress;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static main.java.networktool.gui.GuiTheme.*;
 
 /**
  * Netzwerk-Topologie-Karte.
  * Koordiniert MapSwitchStore, MapTopology, MapHopDiscovery, MapLayout, MapRenderer.
+ * Hintergrund-Scan meldet sich im Run-Indikator der Sidebar via {@code scanRunning}.
  */
 public final class GuiNetworkMap {
 
@@ -28,6 +30,11 @@ public final class GuiNetworkMap {
 
     static final Map<String, String> HOP_PARENT =
             Collections.synchronizedMap(new HashMap<>());
+
+    private static final AtomicBoolean scanRunning = new AtomicBoolean(false);
+
+    /** Ob gerade ein Karten-Scan läuft (für Sidebar-Indikator). */
+    public static boolean isScanRunning() { return scanRunning.get(); }
 
     public static void show() {
         SwingUtilities.invokeLater(GuiNetworkMap::buildWindow);
@@ -41,9 +48,9 @@ public final class GuiNetworkMap {
         dlg.setLocationRelativeTo(null);
         dlg.setResizable(true);
 
-        Color bg = GuiTheme.isDark() ? new Color(0x06, 0x09, 0x07) : new Color(0xF2, 0xF0, 0xEC);
+        Color bg      = GuiTheme.isDark() ? new Color(0x06, 0x09, 0x07) : new Color(0xF2, 0xF0, 0xEC);
         MapCanvas canvas    = new MapCanvas(bg);
-        JLabel   statusLbl  = statusLabel();
+        JLabel    statusLbl = statusLabel();
         canvas.setStatusLabel(statusLbl);
 
         JLayeredPane layered = buildLayered(canvas, bg);
@@ -170,15 +177,25 @@ public final class GuiNetworkMap {
         return lbl;
     }
 
+    /**
+     * Hintergrund-Scan: setzt {@code scanRunning} damit der Sidebar-Indikator
+     * RUN anzeigt, und aktualisiert den GUI-Status.
+     */
     private static void startBackgroundScan(MapCanvas canvas) {
         new Thread(() -> {
+            scanRunning.set(true);
+            if (GUI.isGuiActive()) GUI.instance().setStatus("Netzwerk-Karte lädt…", ACCENT);
             try {
                 List<String> subnets = SubnetDetector.getAllSubnets();
                 if (!subnets.isEmpty()) NetworkHostScanner.scan(subnets);
                 SwingUtilities.invokeLater(() -> canvas.setStatus("  Traceroute läuft..."));
                 HOP_PARENT.putAll(MapHopDiscovery.discover());
                 SwingUtilities.invokeLater(canvas::reload);
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            } finally {
+                scanRunning.set(false);
+                if (GUI.isGuiActive()) GUI.instance().setStatus("Fertig", ACCENT2);
+            }
         }, "MapBgScan").start();
     }
 
@@ -219,19 +236,14 @@ public final class GuiNetworkMap {
                 SwingUtilities.invokeLater(() -> statusLabel.setText(msg));
         }
 
-        // ── Build ─────────────────────────────────────────────────────────
-
         void reload() {
             nodes.clear();
             edges.clear();
-
             Node gwNode   = collectNodes();
             Node selfNode = nodes.stream().filter(n -> n.type == NodeType.SELF).findFirst().orElse(null);
-
             MapTopology.classifyNodes(nodes);
             List<Edge> built = MapTopology.buildEdges(nodes, gwNode, selfNode, HOP_PARENT);
             edges.addAll(built);
-
             resetLayout();
             updateLabels();
         }
@@ -283,8 +295,6 @@ public final class GuiNetworkMap {
             setStatus("  " + cnt + " Hosts  |  Switch-IP oben eingeben oder Rechtsklick");
         }
 
-        // ── Paint ─────────────────────────────────────────────────────────
-
         @Override protected void paintComponent(Graphics g) {
             super.paintComponent(g);
             Graphics2D g2 = (Graphics2D) g.create();
@@ -303,8 +313,6 @@ public final class GuiNetworkMap {
             g2.translate(-sw / 2.0 + camX, -sh / 2.0 + camY);
         }
 
-        // ── Mouse ─────────────────────────────────────────────────────────
-
         private void installMouse() {
             addMouseWheelListener(e -> {
                 double f = e.getWheelRotation() < 0 ? 1.12 : 0.9;
@@ -312,7 +320,7 @@ public final class GuiNetworkMap {
                 repaint();
             });
             addMouseListener(new MouseAdapter() {
-                @Override public void mousePressed(MouseEvent e) { handlePress(e); }
+                @Override public void mousePressed(MouseEvent e)  { handlePress(e); }
                 @Override public void mouseReleased(MouseEvent e) {
                     dragNode = null; panning = false; setCursor(Cursor.getDefaultCursor());
                 }
@@ -346,8 +354,10 @@ public final class GuiNetworkMap {
                 Node hit = nodeAt(world);
                 if (hit != null && hit.type != NodeType.GATEWAY && hit.type != NodeType.SELF)
                     showContextMenu(hit, e.getComponent(), e.getX(), e.getY());
-                else { panning = true; panStart = e.getPoint();
-                    setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR)); }
+                else {
+                    panning = true; panStart = e.getPoint();
+                    setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+                }
             }
         }
 
@@ -364,8 +374,8 @@ public final class GuiNetworkMap {
         }
 
         private void showContextMenu(Node n, Component comp, int x, int y) {
-            boolean isSw = n.type == NodeType.SWITCH;
-            Color   menuBg = new Color(0x0F, 0x13, 0x10);
+            boolean isSw    = n.type == NodeType.SWITCH;
+            Color   menuBg  = new Color(0x0F, 0x13, 0x10);
             Color   menuHov = new Color(0x1A, 0x22, 0x1A);
 
             JPopupMenu menu = new JPopupMenu();
@@ -381,16 +391,14 @@ public final class GuiNetworkMap {
                     isSw ? "✕  Kein Switch (zurücksetzen)" : "S  Als Switch/Hub markieren",
                     isSw ? WARN : new Color(0xFF, 0xA0, 0x30), menuBg, menuHov);
             swItem.addActionListener(e -> {
-                if (isSw) MapSwitchStore.remove(n.ip);
-                else      MapSwitchStore.add(n.ip);
+                if (isSw) MapSwitchStore.remove(n.ip); else MapSwitchStore.add(n.ip);
                 reload();
             });
             menu.add(swItem);
 
             JMenuItem det = menuItem("🔍  Details", ACCENT, menuBg, menuHov);
-            det.addActionListener(e ->
-                    HostDetailsPanel.show(n.ip, n.hostname, n.os,
-                            NetworkStore.getInstance().findNetwork(n.ip)));
+            det.addActionListener(e -> HostDetailsPanel.show(n.ip, n.hostname, n.os,
+                    NetworkStore.getInstance().findNetwork(n.ip)));
             menu.add(det);
             menu.show(comp, x, y);
         }

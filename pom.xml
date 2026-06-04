@@ -86,7 +86,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>networktool_v3.Main</mainClass>
+                            <mainClass>networktool.Main</mainClass>
                         </manifest>
                     </archive>
                     <finalName>nettool</finalName>
