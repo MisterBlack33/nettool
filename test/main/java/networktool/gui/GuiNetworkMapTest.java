@@ -1,8 +1,5 @@
 package main.java.networktool.gui;
 
-import main.java.networktool.networktool_v3.gui.MapHopDiscovery;
-import main.java.networktool.networktool_v3.gui.MapSwitchStore;
-import main.java.networktool.networktool_v3.gui.MapTopology;
 import main.java.networktool.logic.analysis.TracerouteRunner;
 import org.junit.jupiter.api.*;
 
@@ -10,10 +7,6 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Tests für GuiNetworkMap, MapTopology, MapSwitchStore, MapHopDiscovery.
- * Pfad: test/main/java/networktool_v3/gui/GuiNetworkMapTest.java
- */
 class GuiNetworkMapTest {
 
     @BeforeEach
@@ -24,31 +17,9 @@ class GuiNetworkMapTest {
 
     // ── MapSwitchStore ────────────────────────────────────────────────────
 
-    @Test void switchStore_add_contains() {
-        MapSwitchStore.add("10.0.0.1");
-        assertTrue(MapSwitchStore.contains("10.0.0.1"));
-    }
-
-    @Test void switchStore_remove() {
-        MapSwitchStore.add("10.0.0.2");
-        MapSwitchStore.remove("10.0.0.2");
-        assertFalse(MapSwitchStore.contains("10.0.0.2"));
-    }
-
-    @Test void switchStore_clear() {
-        MapSwitchStore.add("10.0.0.3");
-        MapSwitchStore.clear();
-        assertFalse(MapSwitchStore.contains("10.0.0.3"));
-    }
-
-    @Test void switchStore_persist_roundtrip() {
-        MapSwitchStore.add("192.168.1.36");
-        MapSwitchStore.SWITCHES.clear();
-        assertDoesNotThrow(() -> {
-            // reload via load() — indirekt via neues Objekt nicht möglich,
-            // aber saveManualSwitches / loadManualSwitches public
-        });
-    }
+    @Test void switchStore_add_contains() { MapSwitchStore.add("10.0.0.1"); assertTrue(MapSwitchStore.contains("10.0.0.1")); }
+    @Test void switchStore_remove()       { MapSwitchStore.add("10.0.0.2"); MapSwitchStore.remove("10.0.0.2"); assertFalse(MapSwitchStore.contains("10.0.0.2")); }
+    @Test void switchStore_clear()        { MapSwitchStore.add("10.0.0.3"); MapSwitchStore.clear(); assertFalse(MapSwitchStore.contains("10.0.0.3")); }
 
     // ── MapTopology.isEndDevice ───────────────────────────────────────────
 
@@ -64,28 +35,28 @@ class GuiNetworkMapTest {
 
     // ── MapTopology.isSwitchByKeyword ─────────────────────────────────────
 
-    @Test void keyword_router_os()      { assertTrue(MapTopology.isSwitchByKeyword("Router / Switch","any")); }
-    @Test void keyword_fritz_hn()       { assertTrue(MapTopology.isSwitchByKeyword("","fritz.box")); }
-    @Test void keyword_sw_dash()        { assertTrue(MapTopology.isSwitchByKeyword("","sw-office")); }
-    @Test void keyword_procurve()       { assertTrue(MapTopology.isSwitchByKeyword("procurve","hp-2530")); }
-    @Test void keyword_no_match()       { assertFalse(MapTopology.isSwitchByKeyword("Unbekannt","host-36")); }
-    @Test void keyword_null_safe()      { assertFalse(MapTopology.isSwitchByKeyword(null, null)); }
+    @Test void keyword_router_os()  { assertTrue(MapTopology.isSwitchByKeyword("Router / Switch","any")); }
+    @Test void keyword_fritz_hn()   { assertTrue(MapTopology.isSwitchByKeyword("","fritz.box")); }
+    @Test void keyword_sw_dash()    { assertTrue(MapTopology.isSwitchByKeyword("","sw-office")); }
+    @Test void keyword_procurve()   { assertTrue(MapTopology.isSwitchByKeyword("procurve","hp-2530")); }
+    @Test void keyword_no_match()   { assertFalse(MapTopology.isSwitchByKeyword("Unbekannt","host-36")); }
+    @Test void keyword_null_safe()  { assertFalse(MapTopology.isSwitchByKeyword(null, null)); }
 
     // ── MapTopology.isSwitchByOui ─────────────────────────────────────────
 
-    @Test void oui_cisco_colon()        { assertTrue(MapTopology.isSwitchByOui("sw [00:1A:A1:12:34:56]")); }
-    @Test void oui_hp_procurve()        { assertTrue(MapTopology.isSwitchByOui("hp [00:17:A4:AB:CD:EF]")); }
-    @Test void oui_dash_format()        { assertTrue(MapTopology.isSwitchByOui("sw [00-1A-A1-12-34-56]")); }
-    @Test void oui_unknown_mac()        { assertFalse(MapTopology.isSwitchByOui("dev [FF:FF:FF:12:34:56]")); }
-    @Test void oui_no_bracket()         { assertFalse(MapTopology.isSwitchByOui("plain-hostname")); }
-    @Test void oui_null()               { assertFalse(MapTopology.isSwitchByOui(null)); }
+    @Test void oui_cisco_colon()    { assertTrue(MapTopology.isSwitchByOui("sw [00:1A:A1:12:34:56]")); }
+    @Test void oui_hp_procurve()    { assertTrue(MapTopology.isSwitchByOui("hp [00:17:A4:AB:CD:EF]")); }
+    @Test void oui_dash_format()    { assertTrue(MapTopology.isSwitchByOui("sw [00-1A-A1-12-34-56]")); }
+    @Test void oui_unknown_mac()    { assertFalse(MapTopology.isSwitchByOui("dev [FF:FF:FF:12:34:56]")); }
+    @Test void oui_no_bracket()     { assertFalse(MapTopology.isSwitchByOui("plain-hostname")); }
+    @Test void oui_null()           { assertFalse(MapTopology.isSwitchByOui(null)); }
 
     // ── MapTopology helpers ───────────────────────────────────────────────
 
-    @Test void subnet24_normal()        { assertEquals("192.168.1", MapTopology.subnet24("192.168.1.50")); }
-    @Test void subnet24_null()          { assertNull(MapTopology.subnet24(null)); }
-    @Test void lastOctet_normal()       { assertEquals(36, MapTopology.lastOctet("192.168.178.36")); }
-    @Test void lastOctet_null()         { assertEquals(999, MapTopology.lastOctet(null)); }
+    @Test void subnet24_normal()    { assertEquals("192.168.1", MapTopology.subnet24("192.168.1.50")); }
+    @Test void subnet24_null()      { assertNull(MapTopology.subnet24(null)); }
+    @Test void lastOctet_normal()   { assertEquals(36, MapTopology.lastOctet("192.168.178.36")); }
+    @Test void lastOctet_null()     { assertEquals(999, MapTopology.lastOctet(null)); }
 
     // ── MapTopology.classifyNodes ─────────────────────────────────────────
 
@@ -118,19 +89,15 @@ class GuiNetworkMapTest {
 
     @Test void findUpstream_intermediate_hop() {
         List<TracerouteRunner.HopInfo> hops = new ArrayList<>();
-        TracerouteRunner.HopInfo h1 = new TracerouteRunner.HopInfo(1);
-        h1.ip = "192.168.1.36";
-        TracerouteRunner.HopInfo h2 = new TracerouteRunner.HopInfo(2);
-        h2.ip = "192.168.1.50";
+        TracerouteRunner.HopInfo h1 = new TracerouteRunner.HopInfo(1); h1.ip = "192.168.1.36";
+        TracerouteRunner.HopInfo h2 = new TracerouteRunner.HopInfo(2); h2.ip = "192.168.1.50";
         hops.add(h1); hops.add(h2);
-        assertEquals("192.168.1.36",
-                MapHopDiscovery.findUpstream(hops, "192.168.1.50", "192.168.1.1"));
+        assertEquals("192.168.1.36", MapHopDiscovery.findUpstream(hops, "192.168.1.50", "192.168.1.1"));
     }
 
     @Test void findUpstream_direct_returns_null() {
         List<TracerouteRunner.HopInfo> hops = new ArrayList<>();
-        TracerouteRunner.HopInfo h = new TracerouteRunner.HopInfo(1);
-        h.ip = "192.168.1.50";
+        TracerouteRunner.HopInfo h = new TracerouteRunner.HopInfo(1); h.ip = "192.168.1.50";
         hops.add(h);
         assertNull(MapHopDiscovery.findUpstream(hops, "192.168.1.50", "192.168.1.1"));
     }
@@ -141,10 +108,8 @@ class GuiNetworkMapTest {
 
     @Test void findUpstream_timeout_skipped() {
         List<TracerouteRunner.HopInfo> hops = new ArrayList<>();
-        TracerouteRunner.HopInfo timeout = new TracerouteRunner.HopInfo(1);
-        timeout.timeout = true;
-        TracerouteRunner.HopInfo target = new TracerouteRunner.HopInfo(2);
-        target.ip = "192.168.1.50";
+        TracerouteRunner.HopInfo timeout = new TracerouteRunner.HopInfo(1); timeout.timeout = true;
+        TracerouteRunner.HopInfo target  = new TracerouteRunner.HopInfo(2); target.ip = "192.168.1.50";
         hops.add(timeout); hops.add(target);
         assertNull(MapHopDiscovery.findUpstream(hops, "192.168.1.50", "192.168.1.1"));
     }

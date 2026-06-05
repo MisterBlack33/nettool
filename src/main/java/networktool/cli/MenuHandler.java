@@ -2,9 +2,11 @@ package main.java.networktool.cli;
 
 import main.java.networktool.logic.analysis.ArpMonitor;
 import main.java.networktool.logic.analysis.PingMonitor;
-import main.java.networktool.logic.scan.*;
-import main.java.networktool.logic.scan.*;
-import main.java.networktool.logic.scan.*;
+import main.java.networktool.logic.scan.NetworkScanner;
+import main.java.networktool.logic.scan.NetworkInfo;
+import main.java.networktool.logic.scan.RemoteNetScanner;
+import main.java.networktool.logic.scan.ScanScheduler;
+import main.java.networktool.logic.scan.PortChangeMonitor;
 import main.java.networktool.storage.DataExportImport;
 import main.java.networktool.transfer.BandwidthTester;
 import main.java.networktool.filter.JsonExporter;
@@ -41,14 +43,14 @@ public class MenuHandler {
 
     public void handle(int choice) {
         switch (choice) {
-            case 1 -> runSafely(NetworkInfo::showMinimalInfo);
-            case 2 -> runSafely(NetworkInfo::showFullInfo);
-            case 3 -> handleDiagnose();
-            case 4 -> handleFileServer();
-            case 5 -> handleFileSend();
-            case 6 -> handleCidrScan();
-            case 7 -> handleFilterScan();
-            case 8 -> handleSendMessage();
+            case 1  -> runSafely(NetworkInfo::showMinimalInfo);
+            case 2  -> runSafely(NetworkInfo::showFullInfo);
+            case 3  -> handleDiagnose();
+            case 4  -> handleFileServer();
+            case 5  -> handleFileSend();
+            case 6  -> handleCidrScan();
+            case 7  -> handleFilterScan();
+            case 8  -> handleSendMessage();
             case 9  -> handleRemoteNetScan();
             case 10 -> handleSchedulerCli();
             case 11 -> handleSecurityMonitorCli();
@@ -70,11 +72,8 @@ public class MenuHandler {
         String modus = scanner.nextLine().trim();
         System.out.print("  Ziel-IP oder Hostname: ");
         String target = scanner.nextLine().trim();
-        if ("2".equals(modus)) {
-            IpInspector.inspect(target);
-        } else {
-            IpInspector.quickScan(target, 5000);
-        }
+        if ("2".equals(modus)) IpInspector.inspect(target);
+        else                   IpInspector.quickScan(target, 5000);
     }
 
     private void handleFileServer() {
@@ -113,7 +112,6 @@ public class MenuHandler {
         System.out.print("Nachricht: ");
         String msg   = scanner.nextLine().trim();
         System.out.println("ntfy-Topic (leer = nur lokal/WinRM/SSH, kein Handy-Push):");
-        System.out.println("  ntfy-App: play.google.com → ntfy  |  App Store → ntfy");
         System.out.print("Topic: ");
         String topic = scanner.nextLine().trim();
         MessageSender.send(ip, msg, topic);
@@ -162,10 +160,7 @@ public class MenuHandler {
         System.out.print("  Modus (1–4): ");
         String modus = scanner.nextLine().trim();
         switch (modus) {
-            case "1" -> {
-                System.out.print("  CIDR: ");
-                RemoteNetScanner.scanCidr(scanner.nextLine().trim());
-            }
+            case "1" -> { System.out.print("  CIDR: "); RemoteNetScanner.scanCidr(scanner.nextLine().trim()); }
             case "2" -> {
                 System.out.print("  Netze (kommagetrennt): ");
                 java.util.List<String> nets = java.util.Arrays.stream(
@@ -181,23 +176,16 @@ public class MenuHandler {
                 String cidr = scanner.nextLine().trim();
                 RemoteNetScanner.ReachResult r = RemoteNetScanner.parallelProbe(RemoteNetScanner.normalizeCidr(cidr));
                 if (r.reachable)
-                    System.out.printf("  ✔ Erreichbar (%d/3 Probes, ~%d ms)%n",
-                            r.respondedProbes, r.avgMs);
-                else { System.out.println("  ✕ Nicht erreichbar.");
-                    RemoteNetScanner.printRoutingHints(cidr); }
+                    System.out.printf("  ✔ Erreichbar (%d/3 Probes, ~%d ms)%n", r.respondedProbes, r.avgMs);
+                else { System.out.println("  ✕ Nicht erreichbar."); RemoteNetScanner.printRoutingHints(cidr); }
             }
-            case "4" -> {
-                System.out.print("  CIDR für Routing-Hilfe: ");
-                RemoteNetScanner.printRoutingHints(scanner.nextLine().trim());
-            }
-            default -> System.out.println("  Ungültige Auswahl.");
+            case "4" -> { System.out.print("  CIDR für Routing-Hilfe: "); RemoteNetScanner.printRoutingHints(scanner.nextLine().trim()); }
+            default  -> System.out.println("  Ungültige Auswahl.");
         }
     }
 
-    // ── Scheduler CLI ────────────────────────────────────────────────────
     private void handleSchedulerCli() {
-        ScanScheduler sched =
-                ScanScheduler.getInstance();
+        ScanScheduler sched = ScanScheduler.getInstance();
         System.out.println("\n  [ Scheduler CLI ]");
         System.out.println("  Laufend: " + sched.getRunning());
         System.out.println("  1 Scan planen  2 Scan stoppen  3 Alle stoppen");
@@ -219,9 +207,8 @@ public class MenuHandler {
         }
     }
 
-    // ── Sicherheitsmonitor CLI ────────────────────────────────────────────
     private void handleSecurityMonitorCli() {
-        ArpMonitor arp  = ArpMonitor.getInstance();
+        ArpMonitor arp   = ArpMonitor.getInstance();
         PortChangeMonitor port = PortChangeMonitor.getInstance();
         System.out.println("\n  [ Sicherheitsmonitor CLI ]");
         System.out.println("  ARP-Monitor:  " + (arp.isActive()  ? "aktiv"  : "inaktiv"));
@@ -230,8 +217,7 @@ public class MenuHandler {
         System.out.print("  Aktion: ");
         String a = scanner.nextLine().trim();
         switch (a) {
-            case "1" -> { if (arp.isActive()) arp.stop(); else {
-                System.out.print("  ntfy-Topic: "); arp.start(scanner.nextLine().trim()); } }
+            case "1" -> { if (arp.isActive()) arp.stop(); else { System.out.print("  ntfy-Topic: "); arp.start(scanner.nextLine().trim()); } }
             case "2" -> { if (port.isActive()) port.stop(); else {
                 System.out.print("  Intervall (min): ");
                 int m = Integer.parseInt(scanner.nextLine().trim());
@@ -241,7 +227,6 @@ public class MenuHandler {
         }
     }
 
-    // ── Dauerping CLI ─────────────────────────────────────────────────────
     private void handleDauerpingCli() {
         System.out.print("  Ziel-IP: ");
         String host = scanner.nextLine().trim();
@@ -252,7 +237,6 @@ public class MenuHandler {
         runSafely(() -> PingMonitor.start(host, maxSec));
     }
 
-    // ── Bandwidth-Test CLI ────────────────────────────────────────────────
     private void handleBandwidthTestCli() {
         System.out.println("\n  [ Bandwidth-Test CLI ]");
         System.out.println("  1 Server starten  2 Test zu Ziel-IP");
@@ -269,7 +253,6 @@ public class MenuHandler {
         }
     }
 
-    // ── Export & Import CLI ───────────────────────────────────────────────
     private void handleExportImportCli() {
         System.out.println("\n  [ Export & Import CLI ]");
         System.out.println("  1 CSV  2 JSON  3 HTML  4 ZIP-Backup  5 CSV imp.  6 JSON imp.  7 ZIP restore");
@@ -278,11 +261,11 @@ public class MenuHandler {
         java.nio.file.Path outDir = java.nio.file.Paths.get(System.getProperty("user.home"), "NetTool-Export");
         runSafely(() -> {
             switch (a) {
-                case "1" -> System.out.println("  CSV: " + DataExportImport.exportCsv(outDir));
+                case "1" -> System.out.println("  CSV: "  + DataExportImport.exportCsv(outDir));
                 case "2" -> System.out.println("  JSON: " + DataExportImport.exportJson(outDir));
                 case "3" -> System.out.println("  HTML: " + DataExportImport.exportHtml(outDir));
-                case "4" -> System.out.println("  ZIP: " + DataExportImport.exportBackup(outDir));
-                case "5" -> { System.out.print("  Pfad: "); int n = DataExportImport.importCsv(java.nio.file.Paths.get(scanner.nextLine().trim())); System.out.println("  " + n + " importiert."); }
+                case "4" -> System.out.println("  ZIP: "  + DataExportImport.exportBackup(outDir));
+                case "5" -> { System.out.print("  Pfad: "); int n = DataExportImport.importCsv(java.nio.file.Paths.get(scanner.nextLine().trim()));  System.out.println("  " + n + " importiert."); }
                 case "6" -> { System.out.print("  Pfad: "); int n = DataExportImport.importJson(java.nio.file.Paths.get(scanner.nextLine().trim())); System.out.println("  " + n + " importiert."); }
                 case "7" -> { System.out.print("  Pfad: "); int n = DataExportImport.restoreBackup(java.nio.file.Paths.get(scanner.nextLine().trim())); System.out.println("  " + n + " Dateien wiederhergestellt."); }
                 default  -> System.out.println("  Ungueltiger Auswahl.");
