@@ -30,7 +30,7 @@ final class GuiAuditTable {
                     Object full = getModel().getValueAt(convertRowIndexToModel(row), 4);
                     if (full != null && !full.toString().isBlank())
                         return "<html><pre style='font-family:monospace'>" +
-                                full.toString().replace("&", "&amp;").replace("<", "&lt;") + "</pre></html>";
+                                full.toString().replace("&","&amp;").replace("<","&lt;") + "</pre></html>";
                 }
                 return super.getToolTipText(e);
             }
@@ -85,17 +85,24 @@ final class GuiAuditTable {
 
     static Color actionColor(String action) {
         if (action == null) return FG;
-        String a = action.toUpperCase().replaceAll("[\\s/].*", "").trim();
-        // Attack events → red (before generic ARP/SECURITY check)
+        String a = action.toUpperCase().trim();
+
+        // Angriffsereignisse → rot
         if (a.contains("SPOOF") || a.contains("POISON") || a.contains("ROGUE")) return WARN;
         if (a.contains("FAIL")  || a.contains("BLOCK"))                          return WARN;
         if (a.contains("ALERT"))                                                  return WARN;
-        // Security/ARP monitoring events → orange
-        if (a.startsWith("SECURITY") || a.startsWith("ARP"))  return new Color(0xFF, 0xA0, 0x30);
+
+        // Monitor-Ereignisse → orange (vor generischen Prefix-Checks)
+        if (a.startsWith("SECURITY_MONITOR") || a.startsWith("ARP_MONITOR")
+                || a.startsWith("PORT_MONITOR"))                        return new Color(0xFF, 0xA0, 0x30);
+
+        // Generische Security/ARP → orange
+        if (a.startsWith("SECURITY") || a.startsWith("ARP"))           return new Color(0xFF, 0xA0, 0x30);
+
         if (a.startsWith("SCAN") || a.startsWith("DIAGNOSE") || a.startsWith("CIDR")) return INFO;
-        if (a.startsWith("LOGIN") && !a.contains("FAIL") && !a.contains("BLOCK")) return ACCENT2;
-        if (a.startsWith("EXPORT") || a.startsWith("IMPORT")) return new Color(0xD0, 0xC0, 0x60);
-        if (a.startsWith("USER") || a.startsWith("APP_START")) return ACCENT;
+        if (a.startsWith("LOGIN"))                                       return ACCENT2;
+        if (a.startsWith("EXPORT") || a.startsWith("IMPORT"))           return new Color(0xD0, 0xC0, 0x60);
+        if (a.startsWith("USER") || a.startsWith("APP_START"))          return ACCENT;
         return FG;
     }
 }
