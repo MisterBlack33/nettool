@@ -1,4 +1,4 @@
-package networktool.transfer;
+package networktool_v3.transfer;
 
 import main.java.networktool.transfer.BandwidthTester;
 import main.java.networktool.transfer.FileClient;
@@ -18,6 +18,20 @@ class TransferTest {
         try { return InetAddress.getByName("127.0.0.1").isReachable(500); }
         catch (Exception e) { return false; }
     }
+
+    /** Startet BW-Server und wartet bis er wirklich erreichbar ist (max 3 s). */
+    static boolean startBwServerAndWait() throws InterruptedException {
+        BandwidthTester.startServer();
+        for (int i = 0; i < 30; i++) {
+            Thread.sleep(100);
+            if (BandwidthTester.isServerReachable("127.0.0.1")) return true;
+        }
+        return false;
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    //  BandwidthTesterTest
+    // ══════════════════════════════════════════════════════════════
 
     @Nested
     class BandwidthTesterTest {
@@ -45,27 +59,28 @@ class TransferTest {
         @Test
         void serverStart_andReachable() throws InterruptedException {
             assumeTrue(loopbackReachable(), "Loopback nicht erreichbar");
-            BandwidthTester.startServer();
-            Thread.sleep(300);
+            assumeTrue(startBwServerAndWait(), "BW-Server nicht gestartet");
             assertTrue(BandwidthTester.isServerReachable("127.0.0.1"));
         }
 
         @Test
         void testDownload_withServer_positive() throws InterruptedException {
             assumeTrue(loopbackReachable(), "Loopback nicht erreichbar");
-            BandwidthTester.startServer();
-            Thread.sleep(200);
+            assumeTrue(startBwServerAndWait(), "BW-Server nicht erreichbar");
             assertTrue(BandwidthTester.testDownload("127.0.0.1") > 0);
         }
 
         @Test
         void testUpload_withServer_positive() throws InterruptedException {
             assumeTrue(loopbackReachable(), "Loopback nicht erreichbar");
-            BandwidthTester.startServer();
-            Thread.sleep(200);
+            assumeTrue(startBwServerAndWait(), "BW-Server nicht erreichbar");
             assertTrue(BandwidthTester.testUpload("127.0.0.1") > 0);
         }
     }
+
+    // ══════════════════════════════════════════════════════════════
+    //  FileTransferTest
+    // ══════════════════════════════════════════════════════════════
 
     @Nested
     class FileTransferTest {

@@ -8,7 +8,6 @@ import java.awt.event.*;
 
 import static main.java.networktool.gui.GuiTheme.*;
 
-/** Tabellen-Aufbau und Renderer für den Audit-Log-Viewer. */
 final class GuiAuditTable {
 
     private GuiAuditTable() {}
@@ -47,7 +46,6 @@ final class GuiAuditTable {
                 return c;
             }
         };
-
         applyStyle(table);
         return table;
     }
@@ -88,11 +86,14 @@ final class GuiAuditTable {
     static Color actionColor(String action) {
         if (action == null) return FG;
         String a = action.toUpperCase().replaceAll("[\\s/].*", "").trim();
-        if (a.startsWith("LOGIN") && !a.contains("FAIL") && !a.contains("BLOCK")) return ACCENT2;
-        if (a.contains("FAIL") || a.contains("BLOCK") || a.contains("ALERT")
-                || a.contains("SPOOF") || a.contains("POISON") || a.contains("ROGUE")) return WARN;
-        if (a.startsWith("SECURITY") || a.startsWith("ARP")) return new Color(0xFF, 0xA0, 0x30);
+        // Attack events → red (before generic ARP/SECURITY check)
+        if (a.contains("SPOOF") || a.contains("POISON") || a.contains("ROGUE")) return WARN;
+        if (a.contains("FAIL")  || a.contains("BLOCK"))                          return WARN;
+        if (a.contains("ALERT"))                                                  return WARN;
+        // Security/ARP monitoring events → orange
+        if (a.startsWith("SECURITY") || a.startsWith("ARP"))  return new Color(0xFF, 0xA0, 0x30);
         if (a.startsWith("SCAN") || a.startsWith("DIAGNOSE") || a.startsWith("CIDR")) return INFO;
+        if (a.startsWith("LOGIN") && !a.contains("FAIL") && !a.contains("BLOCK")) return ACCENT2;
         if (a.startsWith("EXPORT") || a.startsWith("IMPORT")) return new Color(0xD0, 0xC0, 0x60);
         if (a.startsWith("USER") || a.startsWith("APP_START")) return ACCENT;
         return FG;
