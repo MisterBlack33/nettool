@@ -1,17 +1,12 @@
 package main.java.networktool.storage;
 
 import main.java.networktool.model.HostResult;
-import main.java.networktool.networktool_v3.storage.HostJsonBuilder;
 import org.junit.jupiter.api.*;
 
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Tests for HostJsonBuilder (package-private).
- * All operations are self-contained: no real NetworkStore interaction.
- */
 class HostJsonBuilderTest {
 
     @Test void buildNetworkJson_containsIp() {
@@ -50,7 +45,6 @@ class HostJsonBuilderTest {
                 Map.of(3389, "RDP"), "my note");
         String json = HostJsonBuilder.buildNetworkJson(TestConstants.NET_STANDARD, "", List.of(original));
 
-        // Extract the host object from JSON
         int start = json.indexOf('{', json.indexOf("\"hosts\""));
         int end   = json.lastIndexOf('}', json.lastIndexOf('}') - 1) + 1;
         String hostObj = json.substring(start, end);
@@ -78,7 +72,7 @@ class HostJsonBuilderTest {
         assertEquals("", h.notes);
     }
 
-    @Test void serPortsJson_empty()          { assertEquals("{}", HostJsonBuilder.serPortsJson(new HashMap<>())); }
+    @Test void serPortsJson_empty()               { assertEquals("{}", HostJsonBuilder.serPortsJson(new HashMap<>())); }
     @Test void serPortsJson_null_returnsEmptyBraces() { assertEquals("{}", HostJsonBuilder.serPortsJson(null)); }
 
     @Test void serPortsJson_withPorts() {

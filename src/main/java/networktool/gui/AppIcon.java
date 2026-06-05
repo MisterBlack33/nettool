@@ -8,8 +8,6 @@ import java.nio.ByteOrder;
 import java.nio.file.*;
 import java.util.logging.Logger;
 
-//testtest
-
 /**
  * Lädt das App-Icon (ICO-Format) und setzt es für Fenster + Taskleiste.
  *
@@ -92,35 +90,24 @@ public final class AppIcon {
         catch (Exception e) { return null; }
     }
 
-    /**
-     * Liest eine ICO-Datei.
-     * ICO-Format: Header + Directory + Image-Data (PNG oder BMP eingebettet).
-     * Wählt das größte verfügbare Bild.
-     */
     private static Image readIco(byte[] data) throws IOException {
         ByteBuffer buf = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN);
 
-        // ICO Header: reserved(2) + type(2) + count(2)
         buf.position(0);
         int reserved = buf.getShort() & 0xFFFF;
         int type     = buf.getShort() & 0xFFFF;
         if (reserved != 0 || type != 1) {
-            // Kein gültiger ICO-Header – direkt als Bild versuchen
             return ImageIO.read(new ByteArrayInputStream(data));
         }
 
         int count = buf.getShort() & 0xFFFF;
         if (count == 0) return null;
 
-        // Directory lesen – bestes (größtes) Bild wählen
         int bestOffset = -1, bestSize = -1, bestWidth = 0;
         for (int i = 0; i < count; i++) {
-            int w       = buf.get() & 0xFF;  // 0 = 256
-            int h       = buf.get() & 0xFF;
-            buf.get();                         // colorCount
-            buf.get();                         // reserved
-            buf.getShort();                    // planes
-            buf.getShort();                    // bitCount
+            int w         = buf.get() & 0xFF;
+            int h         = buf.get() & 0xFF;
+            buf.get(); buf.get(); buf.getShort(); buf.getShort();
             int imgSize   = buf.getInt();
             int imgOffset = buf.getInt();
             int realW = (w == 0) ? 256 : w;
@@ -136,7 +123,6 @@ public final class AppIcon {
         byte[] imgData = new byte[bestSize];
         System.arraycopy(data, bestOffset, imgData, 0, bestSize);
 
-        // PNG-Signatur prüfen (0x89 50 4E 47)
         if (imgData.length >= 4
                 && (imgData[0] & 0xFF) == 0x89
                 && imgData[1] == 0x50
@@ -145,20 +131,17 @@ public final class AppIcon {
             return ImageIO.read(new ByteArrayInputStream(imgData));
         }
 
-        // BMP-Daten: ICO-BMP hat keinen BITMAPFILEHEADER → direkt als AWT lesen
-        return decodeBmpDib(imgData, bestWidth);
+        return decodeBmpDib(imgData);
     }
 
-    /** Dekodiert ICO-BMP (DIB ohne BITMAPFILEHEADER) über AWT. */
-    private static Image decodeBmpDib(byte[] dib, int width) {
+    private static Image decodeBmpDib(byte[] dib) {
         try {
-            // BMP-Datei-Header (14 Bytes) voranstellen
             int fileSize = 14 + dib.length;
             ByteBuffer bmp = ByteBuffer.allocate(fileSize).order(ByteOrder.LITTLE_ENDIAN);
             bmp.put((byte)'B').put((byte)'M');
             bmp.putInt(fileSize);
             bmp.putInt(0);
-            bmp.putInt(14 + 40); // pixel data offset
+            bmp.putInt(14 + 40);
             bmp.put(dib);
             return ImageIO.read(new ByteArrayInputStream(bmp.array()));
         } catch (Exception e) {

@@ -1,6 +1,5 @@
 package main.java.networktool.storage;
 
-import main.java.networktool.networktool_v3.storage.NetworkStorePersistence;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Timeout;
 
@@ -40,7 +39,7 @@ class AutoBackupPackageTest {
             assertEquals("offen", NetworkStorePersistence.parsePorts("443").get(443));
         }
 
-        @Test void esc_backslash()        { assertTrue(NetworkStorePersistence.esc("a\\b").contains("\\\\")); }
+        @Test void esc_backslash()         { assertTrue(NetworkStorePersistence.esc("a\\b").contains("\\\\")); }
         @Test void extractStr_missing_null(){ assertNull(NetworkStorePersistence.extractStr("{}", "nope")); }
     }
 }

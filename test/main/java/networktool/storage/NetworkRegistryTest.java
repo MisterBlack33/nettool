@@ -1,9 +1,6 @@
 package main.java.networktool.storage;
 
 import main.java.networktool.model.HostResult;
-import main.java.networktool.networktool_v3.storage.NetworkRegistry;
-import main.java.networktool.networktool_v3.storage.NetworkStoreLegacy;
-import main.java.networktool.networktool_v3.storage.NetworkStoreNtfy;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -22,10 +19,10 @@ class NetworkRegistryTest {
 
         @BeforeEach void setup() { reg = new NetworkRegistry(); }
 
-        @Test void create_success()            { assertTrue(reg.create(TestConstants.NET_STANDARD, TestConstants.PREFIX_88)); assertTrue(reg.contains(TestConstants.NET_STANDARD)); }
-        @Test void create_duplicate_rejected() { reg.create(TestConstants.NET_STANDARD, ""); assertFalse(reg.create(TestConstants.NET_STANDARD, "")); }
+        @Test void create_success()             { assertTrue(reg.create(TestConstants.NET_STANDARD, TestConstants.PREFIX_88)); assertTrue(reg.contains(TestConstants.NET_STANDARD)); }
+        @Test void create_duplicate_rejected()  { reg.create(TestConstants.NET_STANDARD, ""); assertFalse(reg.create(TestConstants.NET_STANDARD, "")); }
         @Test void create_allCategory_rejected(){ assertFalse(reg.create(NetworkRegistry.ALL_CATEGORY, "")); }
-        @Test void create_blank_rejected()     { assertFalse(reg.create("  ", "")); }
+        @Test void create_blank_rejected()      { assertFalse(reg.create("  ", "")); }
 
         @Test void names_includesAllCategory() {
             reg.create(TestConstants.NET_STANDARD, TestConstants.PREFIX_99);
