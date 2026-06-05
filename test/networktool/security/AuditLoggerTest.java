@@ -11,15 +11,9 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Tests für AuditLogEntry, AuditLogFile, AuditLogger.
- * Abdeckung >90% – alle Formate, Berechtigungen, Rotation, Persistenz.
- */
 class AuditLoggerTest {
 
-    // ══════════════════════════════════════════════════════════════
-    //  AuditLogEntry (Record)
-    // ══════════════════════════════════════════════════════════════
+    // ── AuditLogEntry ─────────────────────────────────────────────────────
 
     @Nested
     class AuditLogEntryTest {
@@ -34,10 +28,10 @@ class AuditLoggerTest {
 
         @Test void nullFields_defaulted() {
             var e = new AuditLogEntry(null, null, null, null);
-            assertEquals("",      e.timestamp());
+            assertEquals("",       e.timestamp());
             assertEquals("system", e.user());
-            assertEquals("",      e.action());
-            assertEquals("",      e.detail());
+            assertEquals("",       e.action());
+            assertEquals("",       e.detail());
         }
 
         @Test void toNdjson_containsAllFields() {
@@ -50,24 +44,19 @@ class AuditLoggerTest {
         }
 
         @Test void toNdjson_escapesQuotes() {
-            String json = new AuditLogEntry("ts", "u", "A", "say \"hi\"").toNdjson();
-            assertTrue(json.contains("\\\"hi\\\""));
+            assertTrue(new AuditLogEntry("ts","u","A","say \"hi\"").toNdjson().contains("\\\"hi\\\""));
         }
 
         @Test void toNdjson_escapesNewline() {
-            String json = new AuditLogEntry("ts", "u", "A", "line1\nline2").toNdjson();
-            assertTrue(json.contains("\\n"));
+            assertTrue(new AuditLogEntry("ts","u","A","line1\nline2").toNdjson().contains("\\n"));
         }
 
         @Test void toNdjson_escapesBackslash() {
-            String json = new AuditLogEntry("ts", "u", "A", "a\\b").toNdjson();
-            assertTrue(json.contains("\\\\"));
+            assertTrue(new AuditLogEntry("ts","u","A","a\\b").toNdjson().contains("\\\\"));
         }
     }
 
-    // ══════════════════════════════════════════════════════════════
-    //  AuditLogFile – parse() alle Formate
-    // ══════════════════════════════════════════════════════════════
+    // ── AuditLogFile parse ────────────────────────────────────────────────
 
     @Nested
     class AuditLogFileParseTest {
@@ -76,52 +65,48 @@ class AuditLoggerTest {
             String line = "{\"v\":1,\"ts\":\"2024-01-01 10:00:00\",\"user\":\"alice\",\"action\":\"LOGIN\",\"detail\":\"ok\"}";
             AuditLogEntry e = AuditLogFile.parse(line);
             assertNotNull(e);
-            assertEquals("alice",  e.user());
-            assertEquals("LOGIN",  e.action());
-            assertEquals("ok",     e.detail());
+            assertEquals("alice", e.user());
+            assertEquals("LOGIN", e.action());
+            assertEquals("ok",    e.detail());
         }
 
         @Test void parse_tabFormat() {
-            String line = "2024-01-01 10:00:00\tbob\tSCAN\tcidr";
-            AuditLogEntry e = AuditLogFile.parse(line);
+            AuditLogEntry e = AuditLogFile.parse("2024-01-01 10:00:00\tbob\tSCAN\tcidr");
             assertNotNull(e);
-            assertEquals("bob",   e.user());
-            assertEquals("SCAN",  e.action());
-            assertEquals("cidr",  e.detail());
+            assertEquals("bob",  e.user());
+            assertEquals("SCAN", e.action());
+            assertEquals("cidr", e.detail());
         }
 
         @Test void parse_tabFormat_noDetail() {
-            String line = "2024-01-01\tuser1\tLOGIN";
-            AuditLogEntry e = AuditLogFile.parse(line);
+            AuditLogEntry e = AuditLogFile.parse("2024-01-01\tuser1\tLOGIN");
             assertNotNull(e);
             assertEquals("LOGIN", e.action());
             assertEquals("",      e.detail());
         }
 
         @Test void parse_legacyJson() {
-            String line = "{\"timestamp\":\"2024-01-01\",\"user\":\"u\",\"action\":\"A\",\"detail\":\"d\"}";
-            AuditLogEntry e = AuditLogFile.parse(line);
+            AuditLogEntry e = AuditLogFile.parse(
+                    "{\"timestamp\":\"2024-01-01\",\"user\":\"u\",\"action\":\"A\",\"detail\":\"d\"}");
             assertNotNull(e);
             assertEquals("A", e.action());
             assertEquals("d", e.detail());
         }
 
-        @Test void parse_blank_null()        { assertNull(AuditLogFile.parse("")); }
-        @Test void parse_null_null()         { assertNull(AuditLogFile.parse(null)); }
-        @Test void parse_tooShortTab_null()  { assertNull(AuditLogFile.parse("only one")); }
-        @Test void parse_emptyJson_null()    { assertNull(AuditLogFile.parse("{}")); }
+        @Test void parse_blank_null()       { assertNull(AuditLogFile.parse("")); }
+        @Test void parse_null_null()        { assertNull(AuditLogFile.parse(null)); }
+        @Test void parse_tooShortTab_null() { assertNull(AuditLogFile.parse("only one")); }
+        @Test void parse_emptyJson_null()   { assertNull(AuditLogFile.parse("{}")); }
 
         @Test void parse_ndjson_withEscapes() {
-            String line = "{\"v\":1,\"ts\":\"ts\",\"user\":\"u\",\"action\":\"A\",\"detail\":\"say \\\"hi\\\"\"}";
-            AuditLogEntry e = AuditLogFile.parse(line);
+            AuditLogEntry e = AuditLogFile.parse(
+                    "{\"v\":1,\"ts\":\"ts\",\"user\":\"u\",\"action\":\"A\",\"detail\":\"say \\\"hi\\\"\"}");
             assertNotNull(e);
             assertTrue(e.detail().contains("\"hi\""));
         }
     }
 
-    // ══════════════════════════════════════════════════════════════
-    //  AuditLogFile – I/O
-    // ══════════════════════════════════════════════════════════════
+    // ── AuditLogFile I/O ──────────────────────────────────────────────────
 
     @Nested
     class AuditLogFileIoTest {
@@ -151,15 +136,13 @@ class AuditLoggerTest {
 
         @Test void readRecent_newestFirst() {
             AuditLogFile f = new AuditLogFile(tmp);
-            f.append(new AuditLogEntry("ts", "u", "FIRST", ""));
+            f.append(new AuditLogEntry("ts", "u", "FIRST",  ""));
             f.append(new AuditLogEntry("ts", "u", "SECOND", ""));
-            List<AuditLogEntry> entries = f.readRecent(10);
-            assertEquals("SECOND", entries.get(0).action());
+            assertEquals("SECOND", f.readRecent(10).get(0).action());
         }
 
         @Test void readRecent_noFile_empty() {
-            AuditLogFile f = new AuditLogFile(tmp);
-            assertTrue(f.readRecent(10).isEmpty());
+            assertTrue(new AuditLogFile(tmp).readRecent(10).isEmpty());
         }
 
         @Test void clear_removesFile() {
@@ -170,16 +153,14 @@ class AuditLoggerTest {
         }
 
         @Test void clear_nonExistentFile_doesNotThrow() {
-            AuditLogFile f = new AuditLogFile(tmp);
-            assertDoesNotThrow(f::clear);
+            assertDoesNotThrow(() -> new AuditLogFile(tmp).clear());
         }
 
         @Test void persistsLegacyTabFormat() throws IOException {
             Path log = tmp.resolve(AuditLogFile.FILE_NAME);
             Files.writeString(log, "2024-01-01 10:00:00\tlegacyUser\tOLD_ACTION\tdetail\n",
                     StandardCharsets.UTF_8);
-            AuditLogFile f = new AuditLogFile(tmp);
-            List<AuditLogEntry> entries = f.readRecent(10);
+            List<AuditLogEntry> entries = new AuditLogFile(tmp).readRecent(10);
             assertEquals(1, entries.size());
             assertEquals("legacyUser", entries.get(0).user());
             assertEquals("OLD_ACTION", entries.get(0).action());
@@ -189,57 +170,55 @@ class AuditLoggerTest {
             Path log = tmp.resolve(AuditLogFile.FILE_NAME);
             Files.writeString(log,
                     "2024-01-01 10:00:00\ttabUser\tTAB_ACTION\t\n"
-                            + "{\"v\":1,\"ts\":\"2024-01-02 10:00:00\",\"user\":\"jsonUser\",\"action\":\"JSON_ACTION\",\"detail\":\"\"}\n",
+                            + "{\"v\":1,\"ts\":\"2024-01-02 10:00:00\",\"user\":\"jsonUser\","
+                            + "\"action\":\"JSON_ACTION\",\"detail\":\"\"}\n",
                     StandardCharsets.UTF_8);
-            AuditLogFile f = new AuditLogFile(tmp);
-            List<AuditLogEntry> entries = f.readRecent(10);
+            List<AuditLogEntry> entries = new AuditLogFile(tmp).readRecent(10);
             assertEquals(2, entries.size());
             assertTrue(entries.stream().anyMatch(e -> "TAB_ACTION".equals(e.action())));
             assertTrue(entries.stream().anyMatch(e -> "JSON_ACTION".equals(e.action())));
         }
     }
 
-    // ══════════════════════════════════════════════════════════════
-    //  AuditLogger – öffentliche API
-    // ══════════════════════════════════════════════════════════════
+    // ── AuditLogger API ───────────────────────────────────────────────────
 
     @Nested
     class AuditLoggerApiTest {
 
         @TempDir Path tmp;
         AuditLogger logger;
-        UserAuth auth;
+        UserAuth    auth;
 
-        @BeforeEach void setup() throws InterruptedException {
+        @BeforeEach void setup() {
             logger = AuditLogger.getInstance();
             logger.init(tmp);
             auth = UserAuth.getInstance();
             auth.init(tmp);
-            // Warte auf evtl. vorherige asynchrone Schreibvorgänge
-            Thread.sleep(100);
         }
 
-        @Test void log_singleAction_persisted() throws InterruptedException {
+        @AfterEach void teardown() {
+            auth.logout();
+            logger.shutdown(); // schließt Writer-Thread → TempDir kann gelöscht werden
+        }
+
+        @Test void log_singleAction_persisted() {
             logger.log("TEST_ACTION");
-            Thread.sleep(300);
-            assertTrue(logger.readRecent(10).stream().anyMatch(e -> "TEST_ACTION".equals(e.action())));
+            assertTrue(logger.readRecent(10).stream()
+                    .anyMatch(e -> "TEST_ACTION".equals(e.action())));
         }
 
-        @Test void log_withDetail_persisted() throws InterruptedException {
+        @Test void log_withDetail_persisted() {
             logger.log("ACTION", "detail123");
-            Thread.sleep(300);
             assertTrue(logger.readRecent(10).stream()
                     .anyMatch(e -> "ACTION".equals(e.action()) && "detail123".equals(e.detail())));
         }
 
-        @Test void readByUser_filtersCorrectly() throws InterruptedException {
+        @Test void readByUser_filtersCorrectly() {
             auth.createUser("loguser", "pass123");
             auth.authenticate("loguser", "pass123");
             logger.log("USER_LOG");
-            Thread.sleep(300);
             assertTrue(logger.readByUser("loguser").stream()
                     .anyMatch(e -> "USER_LOG".equals(e.action())));
-            auth.logout();
         }
 
         @Test void readByUser_null_returnsEmpty() {
@@ -251,58 +230,39 @@ class AuditLoggerTest {
             assertThrows(SecurityException.class, () -> logger.clear());
         }
 
-        @Test void clear_admin_succeeds() throws InterruptedException {
+        @Test void clear_admin_succeeds() {
             auth.createUser("adminUser", "adminPass");
             auth.authenticate("adminUser", "adminPass");
             logger.log("BEFORE_CLEAR");
-            Thread.sleep(300);
             assertDoesNotThrow(() -> logger.clear());
-            auth.logout();
-        }
-
-        @Test void clear_admin_onlyAllowedForAdminRole() throws InterruptedException {
-            auth.createUser("rootUser", "rootPass");
-            auth.authenticate("rootUser", "rootPass");
-            // rootUser ist erster User = admin
-            logger.log("X");
-            Thread.sleep(100);
-            assertDoesNotThrow(() -> logger.clear());
-            auth.logout();
         }
 
         @Test void clear_secondUser_notAdmin_throws() {
-            auth.createUser("adminUser2", "adminPass2");
-            auth.createUser("regularUser", "regularPass");
-            auth.authenticate("regularUser", "regularPass");
+            auth.createUser("admin2", "adminPass2");
+            auth.createUser("regular", "regularPass");
+            auth.authenticate("regular", "regularPass");
             assertThrows(SecurityException.class, () -> logger.clear());
-            auth.logout();
         }
 
         @Test void log_noInit_doesNotThrow() {
-            AuditLogger uninit = AuditLogger.getInstance();
-            assertDoesNotThrow(() -> uninit.log("NOINIT"));
+            assertDoesNotThrow(() -> AuditLogger.getInstance().log("NOINIT"));
         }
 
-        @Test void multipleLog_allPersisted() throws InterruptedException {
+        @Test void multipleLog_allPersisted() {
             for (int i = 0; i < 5; i++) logger.log("MULTI", "entry" + i);
-            Thread.sleep(500);
-            long count = logger.readRecent(100).stream()
-                    .filter(e -> "MULTI".equals(e.action())).count();
-            assertEquals(5, count);
+            assertEquals(5, logger.readRecent(100).stream()
+                    .filter(e -> "MULTI".equals(e.action())).count());
         }
 
-        @Test void persistence_survives_reinit() throws InterruptedException {
+        @Test void persistence_survives_reinit() {
             logger.log("PERSISTENT_ACTION");
-            Thread.sleep(300);
-            // Neu-Init (simuliert Neustart)
-            logger.init(tmp);
+            logger.init(tmp); // flush + reinit
             assertTrue(logger.readRecent(100).stream()
                     .anyMatch(e -> "PERSISTENT_ACTION".equals(e.action())));
         }
 
         @Test void parse_delegatesToAuditLogFile() {
-            String line = "2024-01-01 10:00:00\tuser\tLOGIN\tdetail";
-            AuditLogEntry e = AuditLogger.parse(line);
+            AuditLogEntry e = AuditLogger.parse("2024-01-01 10:00:00\tuser\tLOGIN\tdetail");
             assertNotNull(e);
             assertEquals("LOGIN", e.action());
         }
@@ -313,24 +273,21 @@ class AuditLoggerTest {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════
-    //  LogEntry-Kompatibilität (Legacy)
-    // ══════════════════════════════════════════════════════════════
+    // ── LogEntry Legacy ───────────────────────────────────────────────────
 
     @Nested
     class LogEntryCompatTest {
 
         @Test void from_convertsRecord() {
-            AuditLogEntry record = new AuditLogEntry("ts", "user", "ACTION", "detail");
-            AuditLogger.LogEntry legacy = AuditLogger.LogEntry.from(record);
+            AuditLogger.LogEntry legacy = AuditLogger.LogEntry.from(
+                    new AuditLogEntry("ts", "user", "ACTION", "detail"));
             assertEquals("user",   legacy.user);
             assertEquals("ACTION", legacy.action);
             assertEquals("detail", legacy.detail);
         }
 
         @Test void logEntry_nullDetail_empty() {
-            AuditLogger.LogEntry e = new AuditLogger.LogEntry("ts", "u", "A", null);
-            assertEquals("", e.detail);
+            assertEquals("", new AuditLogger.LogEntry("ts", "u", "A", null).detail);
         }
     }
 }

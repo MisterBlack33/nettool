@@ -2,21 +2,8 @@ package main.java.networktool.security;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
-/**
- * Öffentliche API für das Audit-Log.
- *
- * Berechtigungen:
- *   - Schreiben: alle authentifizierten User.
- *   - clear():   nur User mit Rolle "admin" (toLowerCase-Vergleich).
- *
- * Persistenz:
- *   - Logs bleiben über Instanzen/Neustarts erhalten (NDJSON-Datei).
- *   - Altes Tab-Format und Legacy-JSON werden weiterhin gelesen.
- *   - init() muss nach jedem Start aufgerufen werden.
- */
 public final class AuditLogger {
 
     private static final class Holder {
@@ -26,29 +13,24 @@ public final class AuditLogger {
 
     private volatile AuditLogFile logFile;
 
-    private final ExecutorService writer = Executors.newSingleThreadExecutor(r -> {
-        Thread t = new Thread(r, "AuditLogger");
-        t.setDaemon(true);
-        return t;
-    });
+    private volatile ExecutorService writer = newWriter();
 
     private AuditLogger() {}
 
-    /** Muss beim Start mit dem txt-Verzeichnis aufgerufen werden. */
     public void init(Path txtDir) {
+        flushAndShutdown();
         this.logFile = new AuditLogFile(txtDir);
+        this.writer  = newWriter();
     }
 
     // ── Schreiben ─────────────────────────────────────────────────────────
 
-    public void log(String action) {
-        log(action, "");
-    }
+    public void log(String action) { log(action, ""); }
 
     public void log(String action, String detail) {
         if (logFile == null) return;
-        String user = currentUser();
-        String ts   = AuditLogFile.nowFormatted();
+        String user  = currentUser();
+        String ts    = AuditLogFile.nowFormatted();
         AuditLogEntry entry = new AuditLogEntry(ts, user, sanitize(action), sanitize(detail));
         writer.submit(() -> logFile.append(entry));
     }
@@ -56,6 +38,7 @@ public final class AuditLogger {
     // ── Lesen ─────────────────────────────────────────────────────────────
 
     public List<AuditLogEntry> readRecent(int maxLines) {
+        flush();
         if (logFile == null) return Collections.emptyList();
         return logFile.readRecent(maxLines);
     }
@@ -69,34 +52,53 @@ public final class AuditLogger {
 
     // ── Löschen (nur Admin) ───────────────────────────────────────────────
 
-    /**
-     * Löscht das Audit-Log.
-     * Nur für User mit Rolle "admin" erlaubt.
-     * @throws SecurityException wenn kein Admin eingeloggt ist.
-     */
     public void clear() {
-        if (!isCurrentUserAdmin()) {
+        if (!isCurrentUserAdmin())
             throw new SecurityException("clear() erfordert Admin-Rechte.");
-        }
+        flush();
         if (logFile == null) return;
         logFile.clear();
         log("AUDIT_LOG_CLEARED");
     }
 
-    /** Stille Variante für interne Nutzung (z.B. Tests mit @TempDir). */
     public void clearInternal(Path txtDir) {
-        AuditLogFile tmp = new AuditLogFile(txtDir);
-        tmp.clear();
+        new AuditLogFile(txtDir).clear();
     }
 
-    // ── Legacy-Kompatibilität ─────────────────────────────────────────────
-
-    /** Parst eine einzelne Log-Zeile (alle Formate). Für Tests und externe Nutzung. */
-    public static AuditLogEntry parse(String line) {
-        return AuditLogFile.parse(line);
+    /** Wartet bis alle gepufferten Log-Einträge geschrieben sind. */
+    public void flush() {
+        try {
+            Future<?> f = writer.submit(() -> {});
+            f.get(2, TimeUnit.SECONDS);
+        } catch (Exception ignored) {}
     }
+
+    /** Schließt den Writer-Thread (für Tests / Shutdown). */
+    public void shutdown() {
+        flushAndShutdown();
+        writer = newWriter();
+    }
+
+    // ── Legacy ────────────────────────────────────────────────────────────
+
+    public static AuditLogEntry parse(String line) { return AuditLogFile.parse(line); }
 
     // ── Hilfsmethoden ─────────────────────────────────────────────────────
+
+    private void flushAndShutdown() {
+        try {
+            writer.shutdown();
+            writer.awaitTermination(2, TimeUnit.SECONDS);
+        } catch (Exception ignored) {}
+    }
+
+    private static ExecutorService newWriter() {
+        return Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r, "AuditLogger");
+            t.setDaemon(true);
+            return t;
+        });
+    }
 
     private static String currentUser() {
         String u = UserAuth.getInstance().getCurrentUser();
@@ -113,23 +115,13 @@ public final class AuditLogger {
         return s.replace("\t", " ").replace("\n", " ").replace("\r", "");
     }
 
-    // ── Rückwärtskompatibilität (alte Tests / GUI nutzen LogEntry) ─────────
-
-    /** @deprecated Nutze {@link AuditLogEntry} (Record). Nur für Kompatibilität. */
     @Deprecated
     public static final class LogEntry {
-        public final String timestamp;
-        public final String user;
-        public final String action;
-        public final String detail;
-
+        public final String timestamp, user, action, detail;
         public LogEntry(String timestamp, String user, String action, String detail) {
-            this.timestamp = timestamp;
-            this.user      = user;
-            this.action    = action;
-            this.detail    = detail != null ? detail : "";
+            this.timestamp = timestamp; this.user = user;
+            this.action = action; this.detail = detail != null ? detail : "";
         }
-
         public static LogEntry from(AuditLogEntry e) {
             return new LogEntry(e.timestamp(), e.user(), e.action(), e.detail());
         }
