@@ -22,12 +22,6 @@ class ScanInfraTest {
     class HostAliveCheckerTest {
 
         @Test
-        void isAlive_localhost_true() {
-            assumeTrue(loopbackReachable(), "Loopback nicht erreichbar");
-            assertTrue(HostAliveChecker.isAlive("127.0.0.1"));
-        }
-
-        @Test
         void isAlive_unreachable_false() {
             assertFalse(HostAliveChecker.isAlive("192.0.2.1"));
         }

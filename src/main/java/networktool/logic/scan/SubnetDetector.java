@@ -4,52 +4,59 @@ import java.net.*;
 import java.util.*;
 
 /**
- * Erkennt alle aktiven IPv4-Subnetze der lokalen Netzwerkschnittstellen.
- * Loopback-Interfaces und Präfixe kürzer als /8 werden übersprungen.
+ * Erkennt aktive IPv4-Subnetze der lokalen Netzwerkschnittstellen.
+ *
+ * Fehler-Fix: MIN_PREFIX war 8 → /8-Netze (VPN, Docker, WSL) erzeugten
+ * 65.535 Subnet-Prefixes und damit ~16 Mio zu scannende IPs.
+ * Jetzt: nur /24 und kleiner (/24, /25, /26...) werden akzeptiert.
+ * Virtuelle Interfaces (docker, tun, wg, virbr...) werden übersprungen.
  */
 public final class SubnetDetector {
 
     private SubnetDetector() {}
 
-    private static final int MIN_PREFIX = 8;
+    /** Nur Netze mit Prefix >= 24 (/24 und kleiner) scannen. */
+    private static final int MIN_PREFIX = 24;
 
-    /**
-     * @return Liste von Subnetz-Präfixen (z.B. ["192.168.1", "10.0.0"])
-     */
+    private static final Set<String> SKIP_NAMES = Set.of(
+            "docker", "br-", "veth", "virbr", "tun", "tap",
+            "wg", "utun", "lo", "vmnet", "vbox"
+    );
+
     public static List<String> getAllSubnets() throws SocketException {
         List<String> subnets = new ArrayList<>();
-        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+        Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces();
+        if (ifaces == null) return subnets;
 
-        while (interfaces.hasMoreElements()) {
-            NetworkInterface ni = interfaces.nextElement();
-            if (!ni.isUp() || ni.isLoopback()) continue;
-
-            for (InterfaceAddress ia : ni.getInterfaceAddresses()) {
-                collectSubnets(ia, subnets);
-            }
+        while (ifaces.hasMoreElements()) {
+            NetworkInterface ni = ifaces.nextElement();
+            if (shouldSkip(ni)) continue;
+            for (InterfaceAddress ia : ni.getInterfaceAddresses())
+                addSubnet(ia, subnets);
         }
         return subnets;
     }
 
-    private static void collectSubnets(InterfaceAddress ia, List<String> subnets) {
+    private static boolean shouldSkip(NetworkInterface ni) {
+        try {
+            if (!ni.isUp() || ni.isLoopback() || ni.isVirtual()) return true;
+            String name = ni.getName().toLowerCase();
+            return SKIP_NAMES.stream().anyMatch(name::startsWith);
+        } catch (SocketException e) {
+            return true;
+        }
+    }
+
+    private static void addSubnet(InterfaceAddress ia, List<String> subnets) {
         InetAddress addr = ia.getAddress();
         if (!(addr instanceof Inet4Address)) return;
 
         int prefix = ia.getNetworkPrefixLength();
-        if (prefix < MIN_PREFIX) return;
+        if (prefix < MIN_PREFIX) return;  // /8, /16 etc. → überspringen
 
-        byte[] b     = addr.getAddress();
-        int ipInt    = ((b[0] & 0xFF) << 24) | ((b[1] & 0xFF) << 16)
-                     | ((b[2] & 0xFF) <<  8) |  (b[3] & 0xFF);
-        int mask      = -1 << (32 - prefix);
-        int network   = ipInt & mask;
-        int broadcast = network | ~mask;
-
-        for (int base = network; base < broadcast; base += 256) {
-            String subnet = ((base >> 24) & 0xFF) + "."
-                          + ((base >> 16) & 0xFF) + "."
-                          + ((base >>  8) & 0xFF);
-            if (!subnets.contains(subnet)) subnets.add(subnet);
-        }
+        byte[] b = addr.getAddress();
+        // Nur das /24-Prefix des Interface bestimmen (die ersten 3 Oktette)
+        String subnet = (b[0] & 0xFF) + "." + (b[1] & 0xFF) + "." + (b[2] & 0xFF);
+        if (!subnets.contains(subnet)) subnets.add(subnet);
     }
 }

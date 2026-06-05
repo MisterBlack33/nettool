@@ -14,22 +14,19 @@ public final class NetworkHostScanner {
 
     private NetworkHostScanner() {}
 
-    // Reduced from 200 → adaptive based on available processors
     private static final int THREAD_COUNT = Math.max(20, Runtime.getRuntime().availableProcessors() * 4);
     private static final int DNS_TIMEOUT  = 800;
 
-    private static final Pattern MAC_FULL =
-            Pattern.compile("([0-9A-Fa-f]{2}[:\\-]){5}[0-9A-Fa-f]{2}");
-
+    private static final Pattern MAC_PATTERN = Pattern.compile("([0-9A-Fa-f]{2}[:\\-]){5}[0-9A-Fa-f]{2}");
     private static final Set<String> INVALID_MACS = Set.of(
             "00:00:00:00:00:00", "FF:FF:FF:FF:FF:FF", "00:AA:00:00:00:00");
 
     public static List<HostResult> scan(List<String> subnets) {
         int total = subnets.size() * 254;
-        System.out.println("Starte Scan ueber " + subnets.size()
+        System.out.println("Starte Scan über " + subnets.size()
                 + " Subnetz(e) (" + total + " Hosts), Threads: " + THREAD_COUNT);
 
-        List<HostResult> found   = Collections.synchronizedList(new ArrayList<>());
+        List<HostResult> found    = Collections.synchronizedList(new ArrayList<>());
         ScanProgress     progress = new ScanProgress(total);
         ExecutorService  executor = Executors.newFixedThreadPool(THREAD_COUNT);
 
@@ -45,12 +42,11 @@ public final class NetworkHostScanner {
         catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
 
         if (!found.isEmpty()) {
-            List<ScanResult> scanResults = found.stream()
+            List<ScanResult> sr = found.stream()
                     .map(h -> new ScanResult(h.ip, h.hostname, h.ports, h.os))
                     .toList();
-            ScanHistory.getInstance().add("Lokaler Scan", scanResults);
+            ScanHistory.getInstance().add("Lokaler Scan", sr);
         }
-
         return found;
     }
 
@@ -71,43 +67,36 @@ public final class NetworkHostScanner {
 
     private static String resolveHostname(String ip) {
         String dns = dnsLookup(ip);
-        if (dns != null && !dns.equals(ip) && !dns.isBlank()) return dns;
-
-        String netbios = netbiosLookup(ip);
-        if (netbios != null && !netbios.isBlank()) return netbios;
-
-        String mdns = mdnsLookup(ip);
-        if (mdns != null && !mdns.isBlank()) return mdns;
-
+        if (dns != null && !dns.equals(ip)) return dns;
+        String nb = netbiosLookup(ip);
+        if (nb != null && !nb.isBlank()) return nb;
         return "host-" + ip.replace('.', '-');
     }
 
     private static String dnsLookup(String ip) {
-        try {
-            InetAddress addr = InetAddress.getByName(ip);
-            String[] result = {null};
-            Thread t = new Thread(() -> {
-                try { result[0] = addr.getCanonicalHostName(); } catch (Exception ignored) {}
-            });
-            t.setDaemon(true); t.start(); t.join(DNS_TIMEOUT);
-            String name = result[0];
-            if (name != null && !name.equals(ip)) return name;
-        } catch (Exception ignored) {}
-        return null;
+        String[] result = {null};
+        Thread t = new Thread(() -> {
+            try { result[0] = InetAddress.getByName(ip).getCanonicalHostName(); }
+            catch (Exception ignored) {}
+        });
+        t.setDaemon(true); t.start();
+        try { t.join(DNS_TIMEOUT); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        return (result[0] != null && !result[0].equals(ip)) ? result[0] : null;
     }
 
     private static String netbiosLookup(String ip) {
-        String os = System.getProperty("os.name", "").toLowerCase();
+        boolean win = System.getProperty("os.name", "").toLowerCase().contains("win");
         try {
-            String[] cmd = os.contains("win")
-                    ? new String[]{"nbtstat", "-A", ip}
+            // FIX: Array-Form statt String → kein Shell-Parsing-Bug
+            String[] cmd = win ? new String[]{"nbtstat", "-A", ip}
                     : new String[]{"nmblookup", "-A", ip};
             Process p = Runtime.getRuntime().exec(cmd);
-            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String line;
-            while ((line = br.readLine()) != null) {
-                String name = parseNetbiosLine(line, os.contains("win"));
-                if (name != null) return name;
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    String name = parseNetbiosLine(line, win);
+                    if (name != null) { p.destroy(); return name; }
+                }
             }
             p.destroy();
         } catch (Exception ignored) {}
@@ -117,9 +106,9 @@ public final class NetworkHostScanner {
     private static String parseNetbiosLine(String line, boolean isWin) {
         if (line == null || line.isBlank()) return null;
         if (isWin) {
-            line = line.trim();
-            if (line.contains("<00>") && !line.contains("__MSBROWSE__") && !line.startsWith("MAC")) {
-                String[] parts = line.split("\\s+");
+            String t = line.trim();
+            if (t.contains("<00>") && !t.contains("__MSBROWSE__") && !t.startsWith("MAC")) {
+                String[] parts = t.split("\\s+");
                 if (parts.length > 0 && parts[0].length() > 1) return parts[0].trim();
             }
         } else {
@@ -131,56 +120,49 @@ public final class NetworkHostScanner {
         return null;
     }
 
-    private static String mdnsLookup(String ip) {
-        try {
-            Process p = Runtime.getRuntime().exec(new String[]{"avahi-resolve-address", ip});
-            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String line = br.readLine();
-            p.destroy();
-            if (line != null) {
-                String[] parts = line.trim().split("\\s+");
-                if (parts.length >= 2) return parts[1].replaceAll("\\.$", "");
-            }
-        } catch (Exception ignored) {}
-        return null;
-    }
-
     private static void triggerArpEntry(String ip) {
         try {
-            String os  = System.getProperty("os.name", "").toLowerCase();
-            String cmd = os.contains("win") ? "ping -n 1 -w 100 " + ip : "ping -c 1 -W 1 " + ip;
+            boolean win = System.getProperty("os.name", "").toLowerCase().contains("win");
+            // FIX: Array-Form
+            String[] cmd = win ? new String[]{"ping", "-n", "1", "-w", "100", ip}
+                    : new String[]{"ping", "-c", "1", "-W", "1",   ip};
             Process p = Runtime.getRuntime().exec(cmd);
-            p.waitFor(800, TimeUnit.MILLISECONDS); p.destroy();
+            p.waitFor(800, TimeUnit.MILLISECONDS);
+            p.destroy();
         } catch (Exception ignored) {}
     }
 
     static String readMacFromArp(String ip) {
-        String mac = queryArp("arp -n " + ip, ip);
-        if (mac != null) return mac;
-        mac = queryArp("arp -a", ip);
-        if (mac != null) return mac;
-        if (System.getProperty("os.name", "").toLowerCase().contains("win"))
-            mac = queryArp("arp -a " + ip, ip);
-        return mac;
+        boolean win = System.getProperty("os.name", "").toLowerCase().contains("win");
+        // FIX: Array-Form für alle exec()-Aufrufe
+        String[][] cmds = win
+                ? new String[][]{{"arp", "-a", ip}, {"arp", "-a"}}
+                : new String[][]{{"arp", "-n", ip}, {"arp", "-a", "-n"}, {"arp", "-a"}};
+        for (String[] cmd : cmds) {
+            String mac = queryArp(cmd, ip);
+            if (mac != null) return mac;
+        }
+        return null;
     }
 
-    private static String queryArp(String cmd, String targetIp) {
+    private static String queryArp(String[] cmd, String targetIp) {
         try {
             Process p = Runtime.getRuntime().exec(cmd);
-            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
-            String line;
-            while ((line = br.readLine()) != null) {
-                if (!line.contains(targetIp)) continue;
-                String mac = extractMacFromLine(line);
-                if (mac != null) { p.destroy(); return mac; }
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    if (!line.contains(targetIp)) continue;
+                    String mac = extractMac(line);
+                    if (mac != null) { p.destroy(); return mac; }
+                }
             }
             p.destroy();
         } catch (Exception ignored) {}
         return null;
     }
 
-    private static String extractMacFromLine(String line) {
-        Matcher m = MAC_FULL.matcher(line);
+    private static String extractMac(String line) {
+        Matcher m = MAC_PATTERN.matcher(line);
         if (!m.find()) return null;
         String mac = m.group().toUpperCase().replace("-", ":");
         if (INVALID_MACS.contains(mac)) return null;
