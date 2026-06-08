@@ -10,27 +10,31 @@ import java.util.stream.Stream;
 
 /**
  * Erstellt automatisch ZIP-Backups – maximal einmal pro Tag.
- * MAX_BACKUPS=1: ältere Backups werden gelöscht.
+ * MAX_BACKUPS=1: ältere Produktiv-Backups werden gelöscht.
  *
- * triggerNow() ist thread-sicher idempotent via AtomicBoolean.
- * cleanupBackups() löscht alle Backups (für Test-Teardown).
+ * Test-Backups tragen das Präfix TEST_BACKUP_PREFIX und werden
+ * von cleanupTestBackups() rückstandslos entfernt.
  */
 public final class AutoBackup {
 
     private static final class Holder { static final AutoBackup INSTANCE = new AutoBackup(); }
     public static AutoBackup getInstance() { return Holder.INSTANCE; }
 
-    public  static final int  MAX_BACKUPS  = 1;
-    private static final int  DEFAULT_HOURS = 6;
-    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    public  static final int    MAX_BACKUPS        = 1;
+    public  static final String TEST_BACKUP_PREFIX = "TEST_BACKUP_";
+    private static final int    DEFAULT_HOURS       = 6;
+    private static final DateTimeFormatter DATE_FMT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     private ScheduledExecutorService scheduler;
     private volatile boolean  active          = false;
     private int               intervalHours   = DEFAULT_HOURS;
 
-    /** Verhindert Race-Condition bei parallelen triggerNow()-Aufrufen. */
     private final AtomicBoolean backupScheduled = new AtomicBoolean(false);
     private volatile LocalDate  lastBackupDate  = null;
+
+    /** Gesetzt von Tests: Backups erhalten TEST_BACKUP_PREFIX statt normalem Namen. */
+    static volatile boolean testMode = false;
 
     private AutoBackup() {}
 
@@ -45,7 +49,8 @@ public final class AutoBackup {
             t.setDaemon(true);
             return t;
         });
-        scheduler.scheduleAtFixedRate(this::backup, intervalHours, intervalHours, TimeUnit.HOURS);
+        scheduler.scheduleAtFixedRate(
+                this::backup, intervalHours, intervalHours, TimeUnit.HOURS);
         System.out.println("[AutoBackup] Gestartet (alle " + intervalHours + "h)");
     }
 
@@ -75,18 +80,19 @@ public final class AutoBackup {
             new Thread(task, "AutoBackup-OnDemand").start();
     }
 
-    /** Löscht alle Backups im backups/-Verzeichnis und setzt lastBackupDate zurück. */
+    /** Löscht alle Backups (Produktiv + Test) und setzt Datum zurück. */
     public void cleanupBackups() {
         lastBackupDate = null;
         backupScheduled.set(false);
-        try {
-            Path dir = backupDir();
-            if (!Files.isDirectory(dir)) return;
-            try (Stream<Path> files = Files.list(dir)) {
-                files.filter(p -> p.getFileName().toString().endsWith(".zip"))
-                        .forEach(p -> { try { Files.delete(p); } catch (IOException ignored) {} });
-            }
-        } catch (IOException ignored) {}
+        deleteByFilter(p -> p.getFileName().toString().endsWith(".zip"));
+    }
+
+    /** Löscht ausschließlich Test-Backups (TEST_BACKUP_PREFIX). */
+    public void cleanupTestBackups() {
+        deleteByFilter(p -> {
+            String name = p.getFileName().toString();
+            return name.startsWith(TEST_BACKUP_PREFIX) && name.endsWith(".zip");
+        });
     }
 
     public boolean isActive()    { return active; }
@@ -96,15 +102,14 @@ public final class AutoBackup {
 
     void backup() {
         if (todayBackupDone()) return;
-        LocalDate today = LocalDate.now();
-        lastBackupDate = today;          // Flag sofort setzen → kein zweites Backup
+        lastBackupDate = LocalDate.now();
         try {
             Path dir = backupDir();
             Files.createDirectories(dir);
-            DataExporter.exportBackup(dir);
-            pruneOldBackups(dir);
+            DataExporter.exportBackup(dir, buildExportName());
+            if (!testMode) pruneOldBackups(dir);
         } catch (IOException e) {
-            lastBackupDate = null;       // Bei Fehler zurücksetzen
+            lastBackupDate = null;
             System.err.println("[AutoBackup] Fehler: " + e.getMessage());
         }
     }
@@ -113,16 +118,46 @@ public final class AutoBackup {
         return LocalDate.now().equals(lastBackupDate);
     }
 
+    // ── Private ───────────────────────────────────────────────────────────
+
+    private String buildExportName() {
+        String ts = java.time.LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+        return testMode
+                ? TEST_BACKUP_PREFIX + ts + ".zip"
+                : "nettool_backup_" + ts + ".zip";
+    }
+
     private void pruneOldBackups(Path dir) throws IOException {
         try (Stream<Path> files = Files.list(dir)) {
-            files.filter(p -> p.getFileName().toString().endsWith(".zip"))
+            files.filter(p -> {
+                        String n = p.getFileName().toString();
+                        return n.endsWith(".zip") && !n.startsWith(TEST_BACKUP_PREFIX);
+                    })
                     .sorted((a, b) -> {
-                        try { return Files.getLastModifiedTime(b).compareTo(Files.getLastModifiedTime(a)); }
-                        catch (IOException e) { return 0; }
+                        try {
+                            return Files.getLastModifiedTime(b)
+                                    .compareTo(Files.getLastModifiedTime(a));
+                        } catch (IOException e) { return 0; }
                     })
                     .skip(MAX_BACKUPS)
-                    .forEach(p -> { try { Files.delete(p); } catch (IOException ignored) {} });
+                    .forEach(p -> {
+                        try { Files.delete(p); } catch (IOException ignored) {}
+                    });
         }
+    }
+
+    private void deleteByFilter(java.util.function.Predicate<Path> filter) {
+        try {
+            Path dir = backupDir();
+            if (!Files.isDirectory(dir)) return;
+            try (Stream<Path> files = Files.list(dir)) {
+                files.filter(filter)
+                        .forEach(p -> {
+                            try { Files.delete(p); } catch (IOException ignored) {}
+                        });
+            }
+        } catch (IOException ignored) {}
     }
 
     private Path backupDir() {

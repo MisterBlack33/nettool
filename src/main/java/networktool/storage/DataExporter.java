@@ -62,14 +62,28 @@ public final class DataExporter {
         return file;
     }
 
-    // DataExporter.java — exportBackup fix: try-with-resources schützt gegen Hänger
+    /** Backup mit automatisch generiertem Dateinamen. */
     public static Path exportBackup(Path outDir) throws IOException {
         return exportBackup(outDir, NetworkStorePersistence.resolveTxtDir());
     }
 
+    /** Backup mit automatisch generiertem Dateinamen + explizitem Quellverzeichnis. */
     public static Path exportBackup(Path outDir, Path srcDir) throws IOException {
+        return exportBackup(outDir, srcDir, "nettool_backup_" + now() + ".zip");
+    }
+
+    /**
+     * Backup mit explizitem Dateinamen (wird von AutoBackup genutzt,
+     * damit Test-Backups das TEST_BACKUP_PREFIX tragen können).
+     */
+    public static Path exportBackup(Path outDir, String filename) throws IOException {
+        return exportBackup(outDir, NetworkStorePersistence.resolveTxtDir(), filename);
+    }
+
+    public static Path exportBackup(Path outDir, Path srcDir, String filename)
+            throws IOException {
         Files.createDirectories(outDir);
-        Path zipFile = outDir.resolve("nettool_backup_" + now() + ".zip");
+        Path zipFile = outDir.resolve(filename);
         try (ZipOutputStream zos = new ZipOutputStream(
                 new FileOutputStream(zipFile.toFile()))) {
             if (Files.isDirectory(srcDir)) {
@@ -108,7 +122,8 @@ public final class DataExporter {
 
     static String esc(String s) {
         if (s == null) return "";
-        return s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "");
+        return s.replace("\\", "\\\\").replace("\"", "\\\"")
+                .replace("\n", "\\n").replace("\r", "");
     }
 
     private static String now() { return LocalDateTime.now().format(FMT); }
