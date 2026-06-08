@@ -1,3 +1,4 @@
+// src/main/java/networktool/security/AuditLogger.java
 package main.java.networktool.security;
 
 import java.nio.file.Path;
@@ -11,8 +12,7 @@ public final class AuditLogger {
     }
     public static AuditLogger getInstance() { return Holder.INSTANCE; }
 
-    private volatile AuditLogFile logFile;
-
+    private volatile AuditLogFile    logFile;
     private volatile ExecutorService writer = newWriter();
 
     private AuditLogger() {}
@@ -50,7 +50,7 @@ public final class AuditLogger {
                 .toList();
     }
 
-    // ── Löschen (nur Admin) ───────────────────────────────────────────────
+    // ── Löschen ───────────────────────────────────────────────────────────
 
     public void clear() {
         if (!isCurrentUserAdmin())
@@ -65,15 +65,15 @@ public final class AuditLogger {
         new AuditLogFile(txtDir).clear();
     }
 
-    /** Wartet bis alle gepufferten Log-Einträge geschrieben sind. */
     public void flush() {
+        ExecutorService w = writer;
+        if (w == null || w.isShutdown()) return;
         try {
-            Future<?> f = writer.submit(() -> {});
-            f.get(2, TimeUnit.SECONDS);
+            Future<?> f = w.submit(() -> {});
+            f.get(3, TimeUnit.SECONDS);
         } catch (Exception ignored) {}
     }
 
-    /** Schließt den Writer-Thread (für Tests / Shutdown). */
     public void shutdown() {
         flushAndShutdown();
         writer = newWriter();
@@ -83,12 +83,14 @@ public final class AuditLogger {
 
     public static AuditLogEntry parse(String line) { return AuditLogFile.parse(line); }
 
-    // ── Hilfsmethoden ─────────────────────────────────────────────────────
+    // ── Intern ────────────────────────────────────────────────────────────
 
     private void flushAndShutdown() {
+        ExecutorService w = writer;
+        if (w == null) return;
         try {
-            writer.shutdown();
-            writer.awaitTermination(2, TimeUnit.SECONDS);
+            w.shutdown();
+            w.awaitTermination(3, TimeUnit.SECONDS);
         } catch (Exception ignored) {}
     }
 
