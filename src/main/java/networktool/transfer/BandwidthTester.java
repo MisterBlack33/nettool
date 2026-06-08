@@ -3,24 +3,17 @@ package main.java.networktool.transfer;
 import java.io.*;
 import java.net.*;
 
-/**
- * Misst den TCP-Durchsatz zwischen zwei Hosts.
- *
- * Verbesserungen:
- *  - Prüft ob Server überhaupt erreichbar (Port-Check vor Test)
- *  - Mehrere Messungen, Median wird zurückgegeben
- *  - Klare Fehlermeldung wenn Server nicht läuft
- *  - Timeout auf 60s erhöht (Gigabit-Netze brauchen mehr Zeit)
- *  - Fortschrittsausgabe während des Tests
- */
 public final class BandwidthTester {
 
     private BandwidthTester() {}
 
     public static final int TEST_PORT    = 9998;
+    static final int        TEST_MB      = 20;
+    public static final long       TEST_BYTES   = TEST_MB * 1024L * 1024L;
+    // Für Tests injizierbar — reduziert Datenmenge auf Loopback
+    public static volatile long    testBytes    = TEST_BYTES;
+
     private static final int BUFFER_SIZE = 65_536;
-    private static final int TEST_MB     = 20;
-    private static final long TEST_BYTES = TEST_MB * 1024L * 1024L;
     private static final int CONNECT_TO  = 5_000;
     private static final int IO_TO       = 60_000;
     private static final int RETRIES     = 2;
@@ -31,12 +24,12 @@ public final class BandwidthTester {
         Thread t = new Thread(BandwidthTester::serverLoop, "BW-Server");
         t.setDaemon(true);
         t.start();
-        System.out.println("[BW-Server] Lauscht auf Port " + TEST_PORT);
     }
 
     private static void serverLoop() {
         try (ServerSocket ss = new ServerSocket(TEST_PORT)) {
             ss.setReuseAddress(true);
+            System.out.println("[BW-Server] Lauscht auf Port " + TEST_PORT);
             while (!ss.isClosed()) {
                 try { handleClient(ss.accept()); }
                 catch (IOException ignored) {}
@@ -50,17 +43,14 @@ public final class BandwidthTester {
         new Thread(() -> {
             try {
                 client.setSoTimeout(IO_TO);
-                BufferedReader in  = new BufferedReader(
-                        new InputStreamReader(client.getInputStream()));
+                BufferedReader in  = new BufferedReader(new InputStreamReader(client.getInputStream()));
                 OutputStream   out = client.getOutputStream();
                 String cmd = in.readLine();
                 if (cmd == null) return;
                 if (cmd.startsWith("DL:")) {
-                    long bytes = Long.parseLong(cmd.substring(3).trim());
-                    sendRandomData(out, bytes);
+                    sendRandomData(out, Long.parseLong(cmd.substring(3).trim()));
                 } else if (cmd.startsWith("UL:")) {
-                    long bytes = Long.parseLong(cmd.substring(3).trim());
-                    receiveData(client.getInputStream(), bytes);
+                    receiveData(client.getInputStream(), Long.parseLong(cmd.substring(3).trim()));
                     out.write("OK\n".getBytes());
                     out.flush();
                 }
@@ -79,28 +69,19 @@ public final class BandwidthTester {
         System.out.printf( "║  Bandwidth-Test → %-25s║%n", host + " ");
         System.out.println("╚══════════════════════════════════════════════╝");
 
-        // Vorprüfung: Server erreichbar?
         if (!isServerReachable(host)) {
             System.out.println("  ✕ BW-Server nicht erreichbar (Port " + TEST_PORT + ").");
             System.out.println("  → Auf dem Ziel-PC: Menü → Bandwidth → Server starten");
-            System.out.println("══════════════════════════════════════════════");
             return;
         }
-
-        System.out.println("  Testvolumen: " + TEST_MB + " MB  |  " + RETRIES + " Messungen\n");
 
         double dl = testWithRetry(host, true);
         double ul = testWithRetry(host, false);
 
-        System.out.println();
         if (dl > 0) System.out.printf("  ▼ Download : %7.2f Mbps%n", dl);
-        else        System.out.println("  ▼ Download : Fehlgeschlagen");
         if (ul > 0) System.out.printf("  ▲ Upload   : %7.2f Mbps%n", ul);
-        else        System.out.println("  ▲ Upload   : Fehlgeschlagen");
-        System.out.println("══════════════════════════════════════════════");
     }
 
-    /** Führt Test mehrfach durch und gibt den Median zurück. -1 bei Fehler. */
     private static double testWithRetry(String host, boolean download) {
         double[] results = new double[RETRIES];
         int ok = 0;
@@ -116,7 +97,7 @@ public final class BandwidthTester {
         if (ok == 0) return -1;
         double[] valid = java.util.Arrays.copyOf(results, ok);
         java.util.Arrays.sort(valid);
-        return valid[ok / 2]; // Median
+        return valid[ok / 2];
     }
 
     public static double testDownload(String host) {
@@ -125,22 +106,15 @@ public final class BandwidthTester {
             s.connect(new InetSocketAddress(host, TEST_PORT), CONNECT_TO);
             s.setSoTimeout(IO_TO);
             PrintWriter pw = new PrintWriter(s.getOutputStream(), true);
-            pw.println("DL:" + TEST_BYTES);
-
-            long start = System.currentTimeMillis();
-            long received = receiveDataWithProgress(s.getInputStream(), TEST_BYTES);
-            long ms = System.currentTimeMillis() - start;
-
-            double mbps = toMbps(received, ms);
+            pw.println("DL:" + testBytes);
+            long start    = System.currentTimeMillis();
+            long received = receiveDataFully(s.getInputStream(), testBytes);
+            long ms       = System.currentTimeMillis() - start;
+            double mbps   = toMbps(received, ms);
             System.out.printf("%7.2f Mbps  (%d ms)%n", mbps, ms);
             return mbps;
-        } catch (ConnectException e) {
-            System.out.println("Server nicht erreichbar.");
-            return -1;
-        } catch (Exception e) {
-            System.out.println("Fehler: " + e.getMessage());
-            return -1;
-        }
+        } catch (ConnectException e) { System.out.println("Server nicht erreichbar."); return -1; }
+        catch (Exception e)          { System.out.println("Fehler: " + e.getMessage()); return -1; }
     }
 
     public static double testUpload(String host) {
@@ -149,27 +123,19 @@ public final class BandwidthTester {
             s.connect(new InetSocketAddress(host, TEST_PORT), CONNECT_TO);
             s.setSoTimeout(IO_TO);
             PrintWriter pw = new PrintWriter(s.getOutputStream(), true);
-            pw.println("UL:" + TEST_BYTES);
-
+            pw.println("UL:" + testBytes);
             long start = System.currentTimeMillis();
-            sendRandomData(s.getOutputStream(), TEST_BYTES);
+            sendRandomData(s.getOutputStream(), testBytes);
             s.getOutputStream().flush();
             new BufferedReader(new InputStreamReader(s.getInputStream())).readLine();
-            long ms = System.currentTimeMillis() - start;
-
-            double mbps = toMbps(TEST_BYTES, ms);
+            long ms     = System.currentTimeMillis() - start;
+            double mbps = toMbps(testBytes, ms);
             System.out.printf("%7.2f Mbps  (%d ms)%n", mbps, ms);
             return mbps;
-        } catch (ConnectException e) {
-            System.out.println("Server nicht erreichbar.");
-            return -1;
-        } catch (Exception e) {
-            System.out.println("Fehler: " + e.getMessage());
-            return -1;
-        }
+        } catch (ConnectException e) { System.out.println("Server nicht erreichbar."); return -1; }
+        catch (Exception e)          { System.out.println("Fehler: " + e.getMessage()); return -1; }
     }
 
-    /** Prüft ob der BW-Server läuft (TCP-Connect ohne Daten). */
     public static boolean isServerReachable(String host) {
         try (Socket s = new Socket()) {
             s.connect(new InetSocketAddress(host, TEST_PORT), CONNECT_TO);
@@ -177,7 +143,7 @@ public final class BandwidthTester {
         } catch (Exception e) { return false; }
     }
 
-    // ── I/O-Hilfsmethoden ────────────────────────────────────────────────
+    // ── I/O ───────────────────────────────────────────────────────────────
 
     private static void sendRandomData(OutputStream out, long totalBytes) throws IOException {
         byte[] buf = new byte[BUFFER_SIZE];
@@ -193,28 +159,23 @@ public final class BandwidthTester {
 
     private static long receiveData(InputStream in, long totalBytes) throws IOException {
         byte[] buf = new byte[BUFFER_SIZE];
-        long received = 0; int read;
-        while (received < totalBytes && (read = in.read(buf)) != -1) received += read;
+        long received = 0;
+        int read;
+        while (received < totalBytes && (read = in.read(buf)) != -1)
+            received += read;
         return received;
     }
 
-    /** Empfängt Daten und gibt alle 5 MB Fortschritt aus. */
-    private static long receiveDataWithProgress(InputStream in, long totalBytes) throws IOException {
+    private static long receiveDataFully(InputStream in, long totalBytes) throws IOException {
         byte[] buf = new byte[BUFFER_SIZE];
-        long received = 0, nextReport = 5 * 1024 * 1024L;
+        long received = 0;
         int read;
-        while (received < totalBytes && (read = in.read(buf)) != -1) {
+        while (received < totalBytes && (read = in.read(buf)) != -1)
             received += read;
-            if (received >= nextReport) {
-                System.out.printf("    %.0f MB... ", nextReport / 1_048_576.0);
-                nextReport += 5 * 1024 * 1024L;
-            }
-        }
         return received;
     }
 
     private static double toMbps(long bytes, long ms) {
-        if (ms <= 0) return 0;
-        return (bytes * 8.0) / (ms * 1_000.0);
+        return ms <= 0 ? 0 : (bytes * 8.0) / (ms * 1_000.0);
     }
 }

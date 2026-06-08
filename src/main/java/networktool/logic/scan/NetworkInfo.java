@@ -6,10 +6,16 @@ import main.java.networktool.model.HostResult;
 
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.*;
 
 public final class NetworkInfo {
 
     private NetworkInfo() {}
+
+    private static final int SCAN_TIMEOUT_SEC = 60;
+
+    // Für Tests: verhindert echten Netzwerk-Scan
+    public static volatile boolean testMode = false;
 
     public static void showMinimalInfo() throws Exception {
         System.out.println("\n=== Minimale Netzwerkinfo ===");
@@ -32,7 +38,8 @@ public final class NetworkInfo {
         while (ifaces.hasMoreElements()) {
             NetworkInterface ni = ifaces.nextElement();
             System.out.println("\nInterface: " + ni.getName()
-                    + " | Up: " + ni.isUp() + " | Loopback: " + ni.isLoopback());
+                    + " | Up: " + ni.isUp()
+                    + " | Loopback: " + ni.isLoopback());
             Enumeration<InetAddress> addrs = ni.getInetAddresses();
             while (addrs.hasMoreElements())
                 System.out.println("  IP: " + addrs.nextElement().getHostAddress());
@@ -40,18 +47,48 @@ public final class NetworkInfo {
     }
 
     private static void runScan(String osFilter, String hostnameFilter) throws Exception {
+        if (testMode) {
+            HostResultPrinter.print(List.of(),
+                    HostResultFilter.buildLabel(osFilter, hostnameFilter));
+            return;
+        }
+
         List<String> cidrs = SubnetDetector.getAllCidrs();
         if (cidrs.isEmpty()) {
             System.out.println("Kein gültiges IPv4-Subnetz gefunden.");
             return;
         }
-        System.out.println("Netze: " + cidrs);
 
-        List<HostResult> found = new ArrayList<>();
-        for (String cidr : cidrs)
-            found.addAll(NetworkHostScanner.scanCidr(cidr));
+        ExecutorService exec = Executors.newSingleThreadExecutor(r -> {
+            Thread t = new Thread(r, "NetworkInfo-Scan");
+            t.setDaemon(true);
+            return t;
+        });
 
+        Future<List<HostResult>> future = exec.submit(() -> {
+            List<HostResult> found = new ArrayList<>();
+            for (String cidr : cidrs)
+                found.addAll(NetworkHostScanner.scanCidr(cidr));
+            return found;
+        });
+        exec.shutdown();
+
+        List<HostResult> found = fetchWithTimeout(future);
         List<HostResult> filtered = HostResultFilter.filter(found, osFilter, hostnameFilter);
         HostResultPrinter.print(filtered, HostResultFilter.buildLabel(osFilter, hostnameFilter));
+    }
+
+    private static List<HostResult> fetchWithTimeout(Future<List<HostResult>> future) {
+        try {
+            return future.get(SCAN_TIMEOUT_SEC, TimeUnit.SECONDS);
+        } catch (TimeoutException e) {
+            future.cancel(true);
+            System.out.println("  [NetworkInfo] Scan-Timeout nach " + SCAN_TIMEOUT_SEC + "s");
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            System.err.println("  [NetworkInfo] Scan-Fehler: " + e.getCause().getMessage());
+        }
+        return Collections.emptyList();
     }
 }

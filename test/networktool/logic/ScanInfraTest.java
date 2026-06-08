@@ -7,6 +7,7 @@ import org.junit.jupiter.api.*;
 
 import java.net.InetAddress;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
@@ -129,7 +130,14 @@ class ScanInfraTest {
     @Nested
     class NetworkInfoTest {
 
+        @BeforeEach
+        void enableTestMode() { NetworkInfo.testMode = true; }
+
+        @AfterEach
+        void disableTestMode() { NetworkInfo.testMode = false; }
+
         @Test
+        @Timeout(value = 15, unit = TimeUnit.SECONDS)
         void scanWithFilter_emptyFilters_doesNotThrow() {
             assertDoesNotThrow(() -> NetworkInfo.scanWithFilter(null, null));
         }
