@@ -3,17 +3,22 @@ package main.java.networktool.storage;
 import java.io.IOException;
 import java.nio.file.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
- * Erstellt automatisch ZIP-Backups – maximal einmal pro Tag.
+ * Erstellt automatisch ZIP-Backups — maximal einmal pro Tag.
  * MAX_BACKUPS=1: ältere Produktiv-Backups werden gelöscht.
  *
- * Test-Backups tragen das Präfix TEST_BACKUP_PREFIX und werden
- * von cleanupTestBackups() rückstandslos entfernt.
+ * Test-Backups tragen TEST_BACKUP_PREFIX und werden von
+ * cleanupTestBackups() rückstandslos entfernt.
+ *
+ * Für Tests: setDirs(backupDir, srcDir) injiziert @TempDir-Pfade,
+ * sodass kein echter Dateisystem-Zugriff stattfindet.
  */
 public final class AutoBackup {
 
@@ -22,21 +27,42 @@ public final class AutoBackup {
 
     public  static final int    MAX_BACKUPS        = 1;
     public  static final String TEST_BACKUP_PREFIX = "TEST_BACKUP_";
-    private static final int    DEFAULT_HOURS       = 6;
-    private static final DateTimeFormatter DATE_FMT =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final int    DEFAULT_HOURS      = 6;
+    private static final DateTimeFormatter TS_FMT  =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
 
     private ScheduledExecutorService scheduler;
-    private volatile boolean  active          = false;
-    private int               intervalHours   = DEFAULT_HOURS;
+    private volatile boolean  active        = false;
+    private int               intervalHours = DEFAULT_HOURS;
 
     private final AtomicBoolean backupScheduled = new AtomicBoolean(false);
     private volatile LocalDate  lastBackupDate  = null;
 
-    /** Gesetzt von Tests: Backups erhalten TEST_BACKUP_PREFIX statt normalem Namen. */
+    /** Gesetzt von Tests: Backups erhalten TEST_BACKUP_PREFIX. */
     static volatile boolean testMode = false;
 
+    /** Injizierbare Verzeichnis-Supplier für Tests (@TempDir). */
+    private volatile Supplier<Path> backupDirSupplier = this::defaultBackupDir;
+    private volatile Supplier<Path> srcDirSupplier    = NetworkStorePersistence::resolveTxtDir;
+
     private AutoBackup() {}
+
+    // ── Test-API ──────────────────────────────────────────────────────────
+
+    /**
+     * Injiziert Backup- und Quell-Verzeichnis.
+     * Muss vor start() aufgerufen werden.
+     */
+    public void setDirs(Path backupDir, Path srcDir) {
+        this.backupDirSupplier = () -> backupDir;
+        this.srcDirSupplier    = () -> srcDir;
+    }
+
+    /** Setzt Verzeichnisse auf Produktiv-Defaults zurück. */
+    public void resetDirs() {
+        this.backupDirSupplier = this::defaultBackupDir;
+        this.srcDirSupplier    = NetworkStorePersistence::resolveTxtDir;
+    }
 
     // ── Public API ────────────────────────────────────────────────────────
 
@@ -64,7 +90,7 @@ public final class AutoBackup {
     }
 
     /**
-     * Sofortiges Backup – nur einmal pro Tag.
+     * Sofortiges Backup — nur einmal pro Tag.
      * AtomicBoolean verhindert mehrfaches Einreihen bei parallelen Aufrufen.
      */
     public void triggerNow() {
@@ -80,7 +106,7 @@ public final class AutoBackup {
             new Thread(task, "AutoBackup-OnDemand").start();
     }
 
-    /** Löscht alle Backups (Produktiv + Test) und setzt Datum zurück. */
+    /** Löscht alle Backups und setzt Datum zurück. */
     public void cleanupBackups() {
         lastBackupDate = null;
         backupScheduled.set(false);
@@ -98,16 +124,17 @@ public final class AutoBackup {
     public boolean isActive()    { return active; }
     public int     getInterval() { return intervalHours; }
 
-    // ── Backup logic ──────────────────────────────────────────────────────
+    // ── Backup-Logik ──────────────────────────────────────────────────────
 
     void backup() {
         if (todayBackupDone()) return;
         lastBackupDate = LocalDate.now();
         try {
-            Path dir = backupDir();
-            Files.createDirectories(dir);
-            DataExporter.exportBackup(dir, buildExportName());
-            if (!testMode) pruneOldBackups(dir);
+            Path bDir = backupDirSupplier.get();
+            Path sDir = srcDirSupplier.get();
+            Files.createDirectories(bDir);
+            DataExporter.exportBackup(bDir, sDir, buildFilename());
+            if (!testMode) pruneOldBackups(bDir);
         } catch (IOException e) {
             lastBackupDate = null;
             System.err.println("[AutoBackup] Fehler: " + e.getMessage());
@@ -118,11 +145,10 @@ public final class AutoBackup {
         return LocalDate.now().equals(lastBackupDate);
     }
 
-    // ── Private ───────────────────────────────────────────────────────────
+    // ── private ───────────────────────────────────────────────────────────
 
-    private String buildExportName() {
-        String ts = java.time.LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+    private String buildFilename() {
+        String ts = LocalDateTime.now().format(TS_FMT);
         return testMode
                 ? TEST_BACKUP_PREFIX + ts + ".zip"
                 : "nettool_backup_" + ts + ".zip";
@@ -135,10 +161,9 @@ public final class AutoBackup {
                         return n.endsWith(".zip") && !n.startsWith(TEST_BACKUP_PREFIX);
                     })
                     .sorted((a, b) -> {
-                        try {
-                            return Files.getLastModifiedTime(b)
-                                    .compareTo(Files.getLastModifiedTime(a));
-                        } catch (IOException e) { return 0; }
+                        try { return Files.getLastModifiedTime(b)
+                                .compareTo(Files.getLastModifiedTime(a)); }
+                        catch (IOException e) { return 0; }
                     })
                     .skip(MAX_BACKUPS)
                     .forEach(p -> {
@@ -149,7 +174,7 @@ public final class AutoBackup {
 
     private void deleteByFilter(java.util.function.Predicate<Path> filter) {
         try {
-            Path dir = backupDir();
+            Path dir = backupDirSupplier.get();
             if (!Files.isDirectory(dir)) return;
             try (Stream<Path> files = Files.list(dir)) {
                 files.filter(filter)
@@ -160,7 +185,7 @@ public final class AutoBackup {
         } catch (IOException ignored) {}
     }
 
-    private Path backupDir() {
+    private Path defaultBackupDir() {
         return NetworkStorePersistence.resolveTxtDir().resolve("backups");
     }
 }

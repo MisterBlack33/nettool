@@ -28,6 +28,8 @@ class ScanInfraTest {
         }
     }
 
+    // ── SubnetDetector ────────────────────────────────────────────────────
+
     @Nested
     class SubnetDetectorTest {
 
@@ -42,13 +44,34 @@ class ScanInfraTest {
         }
 
         @Test
+        void getAllSubnets_noMoreThan256() throws Exception {
+            assertTrue(SubnetDetector.getAllSubnets().size() <= 256,
+                    "Zu viele Subnetze — /8-Bug?");
+        }
+
+        @Test
         void getAllSubnets_formattedCorrectly() throws Exception {
             for (String subnet : SubnetDetector.getAllSubnets()) {
-                assertTrue(subnet.split("\\.").length >= 2,
-                        "Subnet hat zu wenige Oktette: " + subnet);
+                assertEquals(3, subnet.split("\\.").length,
+                        "Präfix muss 3 Oktette haben: " + subnet);
+            }
+        }
+
+        @Test
+        void getAllSubnets_noLoopback() throws Exception {
+            assertFalse(SubnetDetector.getAllSubnets().contains("127.0.0"),
+                    "Loopback darf nicht enthalten sein");
+        }
+
+        @Test
+        void getAllCidrs_validFormat() throws Exception {
+            for (String cidr : SubnetDetector.getAllCidrs()) {
+                assertTrue(cidr.contains("/"), "Kein CIDR-Format: " + cidr);
             }
         }
     }
+
+    // ── PingSweep ────────────────────────────────────────────────────────
 
     @Nested
     class PingSweepTest {
@@ -60,7 +83,7 @@ class ScanInfraTest {
 
         @Test
         void sweep_localhost_containsIt() {
-            assumeTrue(loopbackReachable(), "Loopback nicht erreichbar");
+            assumeTrue(loopbackReachable());
             assertTrue(PingSweep.sweep(List.of("127.0.0.1"), null).contains("127.0.0.1"));
         }
 
@@ -71,12 +94,14 @@ class ScanInfraTest {
 
         @Test
         void sweep_withProgressCallback() {
-            assumeTrue(loopbackReachable(), "Loopback nicht erreichbar");
+            assumeTrue(loopbackReachable());
             int[] count = {0};
             PingSweep.sweep(List.of("127.0.0.1"), () -> count[0]++);
             assertEquals(1, count[0]);
         }
     }
+
+    // ── LastScanCache ────────────────────────────────────────────────────
 
     @Nested
     class LastScanCacheTest {
@@ -114,6 +139,8 @@ class ScanInfraTest {
         void getAll_notNull() { assertNotNull(LastScanCache.getAll()); }
     }
 
+    // ── ScanProgress ─────────────────────────────────────────────────────
+
     @Nested
     class ScanProgressTest {
 
@@ -127,6 +154,8 @@ class ScanInfraTest {
         }
     }
 
+    // ── NetworkInfo (testMode) ────────────────────────────────────────────
+
     @Nested
     class NetworkInfoTest {
 
@@ -137,11 +166,19 @@ class ScanInfraTest {
         void disableTestMode() { NetworkInfo.testMode = false; }
 
         @Test
-        @Timeout(value = 15, unit = TimeUnit.SECONDS)
+        @Timeout(value = 5, unit = TimeUnit.SECONDS)
         void scanWithFilter_emptyFilters_doesNotThrow() {
             assertDoesNotThrow(() -> NetworkInfo.scanWithFilter(null, null));
         }
+
+        @Test
+        @Timeout(value = 5, unit = TimeUnit.SECONDS)
+        void showMinimalInfo_doesNotThrow() {
+            assertDoesNotThrow(() -> NetworkInfo.showMinimalInfo());
+        }
     }
+
+    // ── PortChangeMonitor ─────────────────────────────────────────────────
 
     @Nested
     class PortChangeMonitorTest {
@@ -178,6 +215,8 @@ class ScanInfraTest {
         }
     }
 
+    // ── ScanScheduler ─────────────────────────────────────────────────────
+
     @Nested
     class ScanSchedulerTest {
 
@@ -187,12 +226,12 @@ class ScanInfraTest {
         void cleanup() { sched.stopAll(); }
 
         @Test
-        void getRunning_initially_empty()        { assertTrue(sched.getRunning().isEmpty()); }
+        void getRunning_initially_empty()    { assertTrue(sched.getRunning().isEmpty()); }
         @Test
-        void isRunning_nonexistent_false()       { assertFalse(sched.isRunning("no_such_profile")); }
+        void isRunning_nonexistent_false()   { assertFalse(sched.isRunning("no_such_profile")); }
         @Test
-        void stop_nonexistent_doesNotThrow()     { assertDoesNotThrow(() -> sched.stop("ghost")); }
+        void stop_nonexistent_doesNotThrow() { assertDoesNotThrow(() -> sched.stop("ghost")); }
         @Test
-        void stopAll_doesNotThrow()              { assertDoesNotThrow(sched::stopAll); }
+        void stopAll_doesNotThrow()          { assertDoesNotThrow(sched::stopAll); }
     }
 }
