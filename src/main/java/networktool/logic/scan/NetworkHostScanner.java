@@ -14,10 +14,12 @@ public final class NetworkHostScanner {
 
     private NetworkHostScanner() {}
 
-    private static final int THREAD_COUNT = Math.max(20, Runtime.getRuntime().availableProcessors() * 4);
+    private static final int THREAD_COUNT = Math.min(64,
+            Math.max(20, Runtime.getRuntime().availableProcessors() * 4));
     private static final int DNS_TIMEOUT  = 800;
 
-    private static final Pattern MAC_PATTERN = Pattern.compile("([0-9A-Fa-f]{2}[:\\-]){5}[0-9A-Fa-f]{2}");
+    private static final Pattern MAC_PATTERN = Pattern.compile(
+            "([0-9A-Fa-f]{2}[:\\-]){5}[0-9A-Fa-f]{2}");
     private static final Set<String> INVALID_MACS = Set.of(
             "00:00:00:00:00:00", "FF:FF:FF:FF:FF:FF", "00:AA:00:00:00:00");
 
@@ -38,8 +40,12 @@ public final class NetworkHostScanner {
         }
 
         executor.shutdown();
-        try { executor.awaitTermination(5, TimeUnit.MINUTES); }
-        catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+        try {
+            // 10 Minuten – ausreichend auch für größere Netze
+            executor.awaitTermination(10, TimeUnit.MINUTES);
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+        }
 
         if (!found.isEmpty()) {
             List<ScanResult> sr = found.stream()
@@ -47,6 +53,7 @@ public final class NetworkHostScanner {
                     .toList();
             ScanHistory.getInstance().add("Lokaler Scan", sr);
         }
+        System.out.println("Scan abgeschlossen: " + found.size() + " Gerät(e) gefunden.");
         return found;
     }
 
@@ -79,19 +86,23 @@ public final class NetworkHostScanner {
             try { result[0] = InetAddress.getByName(ip).getCanonicalHostName(); }
             catch (Exception ignored) {}
         });
-        t.setDaemon(true); t.start();
-        try { t.join(DNS_TIMEOUT); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        t.setDaemon(true);
+        t.start();
+        try { t.join(DNS_TIMEOUT); } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
         return (result[0] != null && !result[0].equals(ip)) ? result[0] : null;
     }
 
     private static String netbiosLookup(String ip) {
         boolean win = System.getProperty("os.name", "").toLowerCase().contains("win");
         try {
-            // FIX: Array-Form statt String → kein Shell-Parsing-Bug
-            String[] cmd = win ? new String[]{"nbtstat", "-A", ip}
+            String[] cmd = win
+                    ? new String[]{"nbtstat", "-A", ip}
                     : new String[]{"nmblookup", "-A", ip};
             Process p = Runtime.getRuntime().exec(cmd);
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+            try (BufferedReader br = new BufferedReader(
+                    new InputStreamReader(p.getInputStream()))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     String name = parseNetbiosLine(line, win);
@@ -123,9 +134,9 @@ public final class NetworkHostScanner {
     private static void triggerArpEntry(String ip) {
         try {
             boolean win = System.getProperty("os.name", "").toLowerCase().contains("win");
-            // FIX: Array-Form
-            String[] cmd = win ? new String[]{"ping", "-n", "1", "-w", "100", ip}
-                    : new String[]{"ping", "-c", "1", "-W", "1",   ip};
+            String[] cmd = win
+                    ? new String[]{"ping", "-n", "1", "-w", "100", ip}
+                    : new String[]{"ping", "-c", "1", "-W", "1", ip};
             Process p = Runtime.getRuntime().exec(cmd);
             p.waitFor(800, TimeUnit.MILLISECONDS);
             p.destroy();
@@ -134,7 +145,6 @@ public final class NetworkHostScanner {
 
     static String readMacFromArp(String ip) {
         boolean win = System.getProperty("os.name", "").toLowerCase().contains("win");
-        // FIX: Array-Form für alle exec()-Aufrufe
         String[][] cmds = win
                 ? new String[][]{{"arp", "-a", ip}, {"arp", "-a"}}
                 : new String[][]{{"arp", "-n", ip}, {"arp", "-a", "-n"}, {"arp", "-a"}};
@@ -148,7 +158,8 @@ public final class NetworkHostScanner {
     private static String queryArp(String[] cmd, String targetIp) {
         try {
             Process p = Runtime.getRuntime().exec(cmd);
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+            try (BufferedReader br = new BufferedReader(
+                    new InputStreamReader(p.getInputStream()))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     if (!line.contains(targetIp)) continue;
@@ -171,6 +182,8 @@ public final class NetworkHostScanner {
     }
 
     private static String buildDisplay(String hostname, String mac) {
-        return mac != null && !mac.isBlank() ? hostname + " [" + mac + "]" : hostname;
+        return mac != null && !mac.isBlank()
+                ? hostname + " [" + mac + "]"
+                : hostname;
     }
 }
