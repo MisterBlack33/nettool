@@ -7,22 +7,20 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Verifies that __junit__ networks and their hosts are completely
- * invisible to normal GUI code paths.
- */
-class NetworkStoreIsolationTest {
+class NetworkStoreIsolationTest extends NetworkStoreTestBase {
 
     NetworkStore store = NetworkStore.getInstance();
     final String NET = TestConstants.NET_STANDARD;
     final String PFX = TestConstants.PREFIX_88;
 
-    @BeforeEach void setup() {
+    @BeforeEach
+    void setup() {
         if (!store.getAllNetworkNames().contains(NET))
             store.createNetwork(NET, PFX);
     }
 
-    @AfterEach void teardown() {
+    @AfterEach
+    void teardown() {
         store.deleteNetwork(NET);
     }
 
@@ -36,17 +34,14 @@ class NetworkStoreIsolationTest {
 
     @Test void testHost_absent_from_getAllHosts() {
         store.save(new HostResult(TestConstants.IP_1, TestConstants.HOST_1, "Linux"), NET);
-        List<HostResult> gui = store.getAllHosts();
-        assertFalse(gui.stream().anyMatch(h -> h.ip.equals(TestConstants.IP_1)),
-                "Test host must not appear in getAllHosts() (GUI path)");
+        assertFalse(store.getAllHosts().stream().anyMatch(h -> h.ip.equals(TestConstants.IP_1)));
         store.remove(TestConstants.IP_1, NET);
     }
 
     @Test void testHost_absent_from_getAll_allCategory() {
         store.save(new HostResult(TestConstants.IP_2, TestConstants.HOST_2, "Win"), NET);
-        List<HostResult> all = store.getAll(NetworkStore.ALL_CATEGORY);
-        assertFalse(all.stream().anyMatch(h -> h.ip.equals(TestConstants.IP_2)),
-                "Test host must not appear in getAll(ALL_CATEGORY)");
+        assertFalse(store.getAll(NetworkStore.ALL_CATEGORY).stream()
+                .anyMatch(h -> h.ip.equals(TestConstants.IP_2)));
         store.remove(TestConstants.IP_2, NET);
     }
 
@@ -71,19 +66,15 @@ class NetworkStoreIsolationTest {
     @Test void multipleTestNets_allHidden_from_gui() {
         store.createNetwork(TestConstants.NET_EXT, TestConstants.PREFIX_99);
         store.save(new HostResult(TestConstants.IP_7, TestConstants.HOST_5, "Win"), TestConstants.NET_EXT);
-
         assertFalse(store.getNetworkNames().contains(TestConstants.NET_EXT));
         assertFalse(store.getAllHosts().stream().anyMatch(h -> h.ip.equals(TestConstants.IP_7)));
-
         store.remove(TestConstants.IP_7, TestConstants.NET_EXT);
         store.deleteNetwork(TestConstants.NET_EXT);
     }
 
     @Test void realNetwork_still_visible() {
-        // Ensure filtering only targets __junit__ prefix, not all networks
         List<String> names = store.getNetworkNames();
-        assertFalse(names.isEmpty(), "Real networks must remain visible");
-        // ALL_CATEGORY is always present
+        assertFalse(names.isEmpty());
         assertTrue(names.contains(NetworkStore.ALL_CATEGORY));
     }
 }
