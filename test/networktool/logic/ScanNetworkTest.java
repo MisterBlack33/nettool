@@ -9,6 +9,7 @@ import org.junit.jupiter.api.*;
 
 import java.net.InetAddress;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
@@ -19,10 +20,6 @@ class ScanNetworkTest {
         try { return InetAddress.getByName("127.0.0.1").isReachable(500); }
         catch (Exception e) { return false; }
     }
-
-    // ══════════════════════════════════════════════════════════════
-    //  NetworkScannerTest
-    // ══════════════════════════════════════════════════════════════
 
     @Nested
     class NetworkScannerTest {
@@ -55,40 +52,37 @@ class ScanNetworkTest {
     // ══════════════════════════════════════════════════════════════
     //  NetworkHostScannerTest
     //
-    //  NetworkHostScanner nutzt HostAliveChecker (ICMP + TCP-Ports).
-    //  Auf Loopback sind häufig keine der Probe-Ports offen →
-    //  127.0.0.1 wird nicht immer gefunden. Test prüft daher nur
-    //  dass kein Fehler geworfen wird; localhost-Fund ist optional.
+    //  scan(List<String>) erwartet /24-Präfixe und scannt jeweils
+    //  254 IPs — zu langsam für Tests. Stattdessen scanCidr("/32")
+    //  verwenden, das nur exakt eine IP prüft.
     // ══════════════════════════════════════════════════════════════
 
     @Nested
     class NetworkHostScannerTest {
 
         @Test
-        void scan_loopbackSubnet_doesNotThrow() {
-            assertDoesNotThrow(() -> NetworkHostScanner.scan(List.of("127.0.0")));
+        @Timeout(value = 15, unit = TimeUnit.SECONDS)
+        void scan_singleIp_doesNotThrow() {
+            // /32 = genau eine IP, kein 254er-Sweep
+            assertDoesNotThrow(() -> NetworkHostScanner.scanCidr("127.0.0.1/32"));
         }
 
         @Test
-        void scan_loopbackSubnet_returnsList() {
-            List<HostResult> result = NetworkHostScanner.scan(List.of("127.0.0"));
+        @Timeout(value = 15, unit = TimeUnit.SECONDS)
+        void scan_singleIp_returnsList() {
+            List<HostResult> result = NetworkHostScanner.scanCidr("127.0.0.1/32");
             assertNotNull(result);
         }
 
-        /** Localhost-Fund nur wenn HostAliveChecker ihn auch erkennt. */
         @Test
+        @Timeout(value = 15, unit = TimeUnit.SECONDS)
         void scan_loopbackSubnet_findsLocalhost_ifAlive() {
             assumeTrue(loopbackReachable(), "Loopback nicht erreichbar");
-            List<HostResult> result = NetworkHostScanner.scan(List.of("127.0.0"));
-            // HostAliveChecker kann 127.0.0.1 je nach offenen Ports finden oder nicht –
-            // kein harter Assert, nur sicherstellen dass kein Crash auftritt
+            // /30 = nur 2 Host-IPs (127.0.0.1 + 127.0.0.2)
+            List<HostResult> result = NetworkHostScanner.scanCidr("127.0.0.0/30");
             assertNotNull(result);
         }
     }
-
-    // ══════════════════════════════════════════════════════════════
-    //  ReachResultTest
-    // ══════════════════════════════════════════════════════════════
 
     @Nested
     class ReachResultTest {
