@@ -3,6 +3,7 @@ package main.java.networktool.logic.scan;
 import main.java.networktool.logic.analysis.OsDetector;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.model.ScanResult;
+import main.java.networktool.util.CIDRUtils;
 
 import java.io.*;
 import java.net.*;
@@ -23,38 +24,52 @@ public final class NetworkHostScanner {
     private static final Set<String> INVALID_MACS = Set.of(
             "00:00:00:00:00:00", "FF:FF:FF:FF:FF:FF", "00:AA:00:00:00:00");
 
+    /** Scannt alle Hosts in den gegebenen /24-Präfixen (Legacy-Pfad). */
     public static List<HostResult> scan(List<String> subnets) {
-        int total = subnets.size() * 254;
-        System.out.println("Starte Scan über " + subnets.size()
-                + " Subnetz(e) (" + total + " Hosts), Threads: " + THREAD_COUNT);
+        List<String> ips = expandSubnets(subnets);
+        return scanIpList(ips);
+    }
 
+    /** Scannt alle Hosts in einem CIDR-Block beliebiger Größe. */
+    public static List<HostResult> scanCidr(String cidr) {
+        List<String> ips = CIDRUtils.getAllIPs(cidr);
+        return scanIpList(ips);
+    }
+
+    // ── Private ───────────────────────────────────────────────────────────
+
+    private static List<String> expandSubnets(List<String> subnets) {
+        List<String> ips = new ArrayList<>(subnets.size() * 254);
+        for (String subnet : subnets)
+            for (int i = 1; i < 255; i++)
+                ips.add(subnet + "." + i);
+        return ips;
+    }
+
+    private static List<HostResult> scanIpList(List<String> ips) {
+        System.out.println("Starte Scan: " + ips.size() + " Hosts, Threads: " + THREAD_COUNT);
         List<HostResult> found    = Collections.synchronizedList(new ArrayList<>());
-        ScanProgress     progress = new ScanProgress(total);
+        ScanProgress     progress = new ScanProgress(ips.size());
         ExecutorService  executor = Executors.newFixedThreadPool(THREAD_COUNT);
 
-        for (String subnet : subnets) {
-            for (int i = 1; i < 255; i++) {
-                final String host = subnet + "." + i;
-                executor.submit(() -> { scanHost(host, found); progress.step(); });
-            }
-        }
+        for (String host : ips)
+            executor.submit(() -> { scanHost(host, found); progress.step(); });
 
         executor.shutdown();
-        try {
-            // 10 Minuten – ausreichend auch für größere Netze
-            executor.awaitTermination(10, TimeUnit.MINUTES);
-        } catch (InterruptedException ignored) {
-            Thread.currentThread().interrupt();
-        }
+        try { executor.awaitTermination(10, TimeUnit.MINUTES); }
+        catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
 
-        if (!found.isEmpty()) {
-            List<ScanResult> sr = found.stream()
-                    .map(h -> new ScanResult(h.ip, h.hostname, h.ports, h.os))
-                    .toList();
-            ScanHistory.getInstance().add("Lokaler Scan", sr);
-        }
+        persistToHistory(found);
         System.out.println("Scan abgeschlossen: " + found.size() + " Gerät(e) gefunden.");
         return found;
+    }
+
+    private static void persistToHistory(List<HostResult> found) {
+        if (found.isEmpty()) return;
+        List<ScanResult> sr = found.stream()
+                .map(h -> new ScanResult(h.ip, h.hostname, h.ports, h.os))
+                .toList();
+        ScanHistory.getInstance().add("Lokaler Scan", sr);
     }
 
     private static void scanHost(String ip, List<HostResult> found) {
@@ -63,18 +78,23 @@ public final class NetworkHostScanner {
             triggerArpEntry(ip);
             String mac      = readMacFromArp(ip);
             String hostname = resolveHostname(ip);
-            String os       = OsDetector.detect(ip);
-            if (os.equals("Unbekannt") || os.isBlank()) {
-                String fromHn = OsDetector.detectFromHostname(hostname, ip);
-                if (fromHn != null) os = fromHn;
-            }
+            String os       = detectOs(ip, hostname);
             found.add(new HostResult(ip, buildDisplay(hostname, mac), os));
         } catch (Exception ignored) {}
     }
 
+    private static String detectOs(String ip, String hostname) {
+        String os = OsDetector.detect(ip);
+        if (os.equals("Unbekannt") || os.isBlank()) {
+            String fromHn = OsDetector.detectFromHostname(hostname, ip);
+            if (fromHn != null) return fromHn;
+        }
+        return os;
+    }
+
     private static String resolveHostname(String ip) {
         String dns = dnsLookup(ip);
-        if (dns != null && !dns.equals(ip)) return dns;
+        if (dns != null) return dns;
         String nb = netbiosLookup(ip);
         if (nb != null && !nb.isBlank()) return nb;
         return "host-" + ip.replace('.', '-');
@@ -83,15 +103,17 @@ public final class NetworkHostScanner {
     private static String dnsLookup(String ip) {
         String[] result = {null};
         Thread t = new Thread(() -> {
-            try { result[0] = InetAddress.getByName(ip).getCanonicalHostName(); }
-            catch (Exception ignored) {}
+            try {
+                String name = InetAddress.getByName(ip).getCanonicalHostName();
+                if (!name.equals(ip)) result[0] = name;
+            } catch (Exception ignored) {}
         });
         t.setDaemon(true);
         t.start();
         try { t.join(DNS_TIMEOUT); } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
-        return (result[0] != null && !result[0].equals(ip)) ? result[0] : null;
+        return result[0];
     }
 
     private static String netbiosLookup(String ip) {
