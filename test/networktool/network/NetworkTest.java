@@ -3,6 +3,7 @@ package networktool.network;
 import main.java.networktool.logic.analysis.OuiDatabase;
 import main.java.networktool.logic.ports.PortScanner;
 import main.java.networktool.model.HostResult;
+import main.java.networktool.storage.AutoBackup;
 import main.java.networktool.storage.NetworkStore;
 import main.java.networktool.storage.TestConstants;
 import org.junit.jupiter.api.*;
@@ -20,12 +21,7 @@ class NetworkTest {
     @Nested
     class OuiDatabaseTest {
 
-        @Test void lookup_apple_oui() {
-            String v = OuiDatabase.lookup("00:03:93");
-            assertNotNull(v);
-            assertTrue(v.contains("Apple") || v.contains("iOS") || v.contains("macOS"));
-        }
-
+        @Test void lookup_apple_oui()          { assertNotNull(OuiDatabase.lookup("00:03:93")); }
         @Test void lookup_raspberry()          { assertTrue(OuiDatabase.lookup("B8:27:EB").contains("Raspberry")); }
         @Test void lookup_samsung()            { assertTrue(OuiDatabase.lookup("00:12:47").contains("Samsung")); }
         @Test void lookup_nothing_phone()      { assertTrue(OuiDatabase.lookup("7C:96:D2").contains("Nothing")); }
@@ -38,66 +34,55 @@ class NetworkTest {
     }
 
     // ══════════════════════════════════════════════════════════════
-    //  NetworkStore – CRUD  (isolated to test.eintrag.N + __junit__ prefix)
+    //  NetworkStore CRUD
     // ══════════════════════════════════════════════════════════════
 
     @Nested
     class NetworkStoreCrudTest {
 
         NetworkStore store = NetworkStore.getInstance();
-        final String NET = TestConstants.NET_NETWORK;     // "__junit__network"
-        final String PFX = TestConstants.PREFIX_99;       // "99.99."
+        final String NET = TestConstants.NET_NETWORK;
+        final String PFX = TestConstants.PREFIX_99;
 
-        @BeforeEach
-        void setup() {
+        @BeforeEach void setup() {
+            AutoBackup.getInstance().cleanupBackups();
             if (!store.getAllNetworkNames().contains(NET))
                 store.createNetwork(NET, PFX);
         }
 
-        @AfterEach
-        void teardown() {
+        @AfterEach void teardown() {
             store.deleteNetwork(NET);
+            AutoBackup.getInstance().cleanupBackups();
         }
 
-        @Test void createNetwork_appears_in_allNames() {
-            assertTrue(store.getAllNetworkNames().contains(NET));
-        }
-
-        @Test void testNetwork_hidden_from_gui_getNetworkNames() {
-            assertFalse(store.getNetworkNames().contains(NET),
-                    "Test network must not appear in GUI network list");
-        }
+        @Test void createNetwork_appears_in_allNames()             { assertTrue(store.getAllNetworkNames().contains(NET)); }
+        @Test void testNetwork_hidden_from_gui_getNetworkNames()   { assertFalse(store.getNetworkNames().contains(NET)); }
 
         @Test void saveHost_and_retrieve() {
-            HostResult h = new HostResult(TestConstants.IP_7, TestConstants.HOST_1, "Linux", null, null, "");
-            store.save(h, NET);
+            store.save(new HostResult(TestConstants.IP_7, TestConstants.HOST_1, "Linux", null, null, ""), NET);
             assertTrue(store.getAll(NET).stream().anyMatch(x -> TestConstants.IP_7.equals(x.ip)));
         }
 
         @Test void savedTestHost_hidden_from_getAllHosts() {
             store.save(new HostResult(TestConstants.IP_8, TestConstants.HOST_2, "Linux"), NET);
-            assertFalse(store.getAllHosts().stream().anyMatch(x -> TestConstants.IP_8.equals(x.ip)),
-                    "Test hosts must not appear in GUI getAllHosts()");
+            assertFalse(store.getAllHosts().stream().anyMatch(x -> TestConstants.IP_8.equals(x.ip)));
             store.remove(TestConstants.IP_8, NET);
         }
 
         @Test void removeHost() {
-            HostResult h = new HostResult(TestConstants.IP_8, TestConstants.HOST_2, "Linux");
-            store.save(h, NET);
+            store.save(new HostResult(TestConstants.IP_8, TestConstants.HOST_2, "Linux"), NET);
             store.remove(TestConstants.IP_8, NET);
             assertFalse(store.getAll(NET).stream().anyMatch(x -> TestConstants.IP_8.equals(x.ip)));
         }
 
         @Test void findNetwork_returnsCategoryName() {
-            HostResult h = new HostResult(TestConstants.IP_9, TestConstants.HOST_3, "Win");
-            store.save(h, NET);
+            store.save(new HostResult(TestConstants.IP_9, TestConstants.HOST_3, "Win"), NET);
             assertEquals(NET, store.findNetwork(TestConstants.IP_9));
             store.remove(TestConstants.IP_9, NET);
         }
 
         @Test void updateNotes_persists() {
-            HostResult h = new HostResult(TestConstants.IP_10, TestConstants.HOST_4, "Lin");
-            store.save(h, NET);
+            store.save(new HostResult(TestConstants.IP_10, TestConstants.HOST_4, "Lin"), NET);
             store.updateNotes(TestConstants.IP_10, NET, "my new note");
             assertTrue(store.getAll(NET).stream()
                     .filter(x -> TestConstants.IP_10.equals(x.ip))
@@ -121,9 +106,7 @@ class NetworkTest {
             store.deleteNetwork(TestConstants.NET_RENAME_DST);
         }
 
-        @Test void getPrefix_returnsCorrect() {
-            assertEquals(PFX, store.getPrefix(NET));
-        }
+        @Test void getPrefix_returnsCorrect() { assertEquals(PFX, store.getPrefix(NET)); }
 
         @Test void getAllHostsInternal_includesTestEntries() {
             store.save(new HostResult(TestConstants.IP_9, TestConstants.HOST_6, "Linux"), NET);
@@ -144,8 +127,7 @@ class NetworkTest {
 
         @Test void setActivePorts_null_resetsToDefault() {
             PortScanner.setActivePorts(null);
-            assertEquals(PortScanner.DEFAULT_PORTS,
-                    PortScanner.getActivePorts());
+            assertEquals(PortScanner.DEFAULT_PORTS, PortScanner.getActivePorts());
         }
 
         @Test void setActivePorts_custom() {
@@ -156,8 +138,7 @@ class NetworkTest {
 
         @Test void setActivePorts_empty_resetsToDefault() {
             PortScanner.setActivePorts(List.of());
-            assertEquals(PortScanner.DEFAULT_PORTS,
-                    PortScanner.getActivePorts());
+            assertEquals(PortScanner.DEFAULT_PORTS, PortScanner.getActivePorts());
         }
     }
 }

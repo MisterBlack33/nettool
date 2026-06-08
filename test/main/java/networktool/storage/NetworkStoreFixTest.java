@@ -8,10 +8,10 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class NetworkStoreFixTest {
+class NetworkStoreFixTest extends NetworkStoreTestBase {
 
-    static final String NET = TestConstants.NET_FIX;    // "__junit__fix"
-    static final String PFX = TestConstants.PREFIX_88;  // "88.88."
+    static final String NET = TestConstants.NET_FIX;
+    static final String PFX = TestConstants.PREFIX_88;
     NetworkStore store = NetworkStore.getInstance();
 
     @BeforeEach
