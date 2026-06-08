@@ -24,19 +24,23 @@ public final class NetworkHostScanner {
     private static final Set<String> INVALID_MACS = Set.of(
             "00:00:00:00:00:00", "FF:FF:FF:FF:FF:FF", "00:AA:00:00:00:00");
 
-    /** Scannt alle Hosts in den gegebenen /24-Präfixen (Legacy-Pfad). */
+    /** Scannt /24-Präfixe (z.B. "192.168.1") — je 254 IPs. Hauptpfad für NetworkInfo. */
     public static List<HostResult> scan(List<String> subnets) {
         List<String> ips = expandSubnets(subnets);
         return scanIpList(ips);
     }
 
-    /** Scannt alle Hosts in einem CIDR-Block beliebiger Größe. */
+    /**
+     * Scannt einen beliebigen CIDR-Block.
+     * Achtung: bei großen CIDRs (/16, /8) kann die Anzahl sehr groß sein.
+     * Intern genutzt von RemoteNetScanner; NetworkInfo verwendet immer scan().
+     */
     public static List<HostResult> scanCidr(String cidr) {
         List<String> ips = CIDRUtils.getAllIPs(cidr);
         return scanIpList(ips);
     }
 
-    // ── Private ───────────────────────────────────────────────────────────
+    // ── private ───────────────────────────────────────────────────────────
 
     private static List<String> expandSubnets(List<String> subnets) {
         List<String> ips = new ArrayList<>(subnets.size() * 254);

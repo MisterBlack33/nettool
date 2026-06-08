@@ -9,15 +9,15 @@ public final class SubnetDetector {
 
     private SubnetDetector() {}
 
-    private static final int MIN_PREFIX    = 16;  // kleinste akzeptierte Maske
-    private static final int MAX_SUBNETS   = 256;
+    private static final int MIN_PREFIX  = 16;
+    private static final int MAX_SUBNETS = 256;
 
     private static final Set<String> SKIP_PREFIXES = Set.of(
             "docker", "br-", "veth", "virbr", "tun", "tap",
             "wg", "utun", "lo", "vmnet", "vbox"
     );
 
-    /** CIDR-Strings des lokalen Interfaces, z.B. ["192.168.1.0/24"]. */
+    /** CIDR-Strings der lokalen Interfaces, z.B. ["192.168.1.0/24"]. */
     public static List<String> getAllCidrs() throws SocketException {
         List<String> cidrs = new ArrayList<>();
         Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces();
@@ -32,8 +32,9 @@ public final class SubnetDetector {
     }
 
     /**
-     * Legacy: /24-Präfixe für Scanner, maximal MAX_SUBNETS Einträge.
-     * Große Netze (z.B. /8) werden auf die ersten MAX_SUBNETS /24-Blöcke begrenzt.
+     * /24-Präfixe für den Host-Scanner.
+     * Große Netze werden auf MAX_SUBNETS /24-Blöcke begrenzt.
+     * Gibt eine bereinigte Liste aus (kein Loopback, keine virtuellen Interfaces).
      */
     public static List<String> getAllSubnets() throws SocketException {
         List<String> result = new ArrayList<>();
@@ -43,8 +44,12 @@ public final class SubnetDetector {
                 if (result.size() >= MAX_SUBNETS) return result;
             }
         }
+        if (!result.isEmpty())
+            System.out.printf("[SubnetDetector] %d /24-Subnetz(e): %s%n", result.size(), result);
         return result;
     }
+
+    // ── private ───────────────────────────────────────────────────────────
 
     private static boolean shouldSkip(NetworkInterface ni) {
         try {
@@ -65,6 +70,10 @@ public final class SubnetDetector {
         int mask    = 0xFFFFFFFF << (32 - prefix);
         int network = ipInt & mask;
         String cidr = CIDRUtils.intToIp(network) + "/" + prefix;
-        if (!cidrs.contains(cidr)) cidrs.add(cidr);
+        if (!cidrs.contains(cidr)) {
+            System.out.printf("[SubnetDetector] Interface %s → %s%n",
+                    ia.getAddress().getHostAddress(), cidr);
+            cidrs.add(cidr);
+        }
     }
 }
