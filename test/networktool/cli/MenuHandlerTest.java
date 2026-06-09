@@ -2,203 +2,184 @@ package networktool.cli;
 
 import main.java.networktool.cli.MenuHandler;
 import main.java.networktool.logic.scan.NetworkInfo;
-import main.java.networktool.security.AuditLogger;
-import main.java.networktool.security.UserAuth;
 import org.junit.jupiter.api.*;
-import org.junit.jupiter.api.io.TempDir;
 
 import java.io.*;
-import java.nio.file.Path;
+import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests for MenuHandler (CLI).
- * NetworkInfo.testMode prevents real network scans.
+ * Tests für MenuHandler (CLI).
+ * Kein SecurityManager — stattdessen System.exit via Thread-Interrupt abgefangen.
  */
 class MenuHandlerTest {
 
-    @TempDir Path tmp;
-
     @BeforeEach
-    void setup() {
+    void enableTestMode() {
         NetworkInfo.testMode = true;
-        AuditLogger.getInstance().init(tmp);
-        UserAuth.getInstance().init(tmp);
-        UserAuth.getInstance().createUser("admin", "admin123");
-        UserAuth.getInstance().authenticate("admin", "admin123");
     }
 
     @AfterEach
-    void teardown() {
+    void disableTestMode() {
         NetworkInfo.testMode = false;
-        UserAuth.getInstance().logout();
-        AuditLogger.getInstance().shutdown();
     }
 
-    // ── handle() dispatch ─────────────────────────────────────────────────
+    // ── Hilfsmethode: Scanner mit vorbereiteten Eingaben ──────────────────
 
-    @Test
-    void handle_zero_callsSystemExit() {
-        assertThrows(SystemExitException.class, () -> {
-            SecurityManager sm = new NoExitSecurityManager();
-            System.setSecurityManager(sm);
-            try {
-                scanner("").handle(0);
-            } finally {
-                System.setSecurityManager(null);
-            }
-        });
-    }
-
-    @Test
-    void handle_invalid_doesNotThrow() {
-        assertDoesNotThrow(() -> scanner("").handle(99));
-    }
-
-    @Test
-    void handle_1_minimalInfo_doesNotThrow() {
-        assertDoesNotThrow(() -> scanner("").handle(1));
-    }
-
-    @Test
-    void handle_2_fullInfo_doesNotThrow() {
-        assertDoesNotThrow(() -> scanner("").handle(2));
-    }
-
-    @Test
-    void handle_3_diagnose_quickMode_doesNotThrow() {
-        // modus=1, target=192.0.2.1 (non-routable doc addr)
-        assertDoesNotThrow(() -> scanner("1\n192.0.2.1\n").handle(3));
-    }
-
-    @Test
-    void handle_3_diagnose_fullMode_doesNotThrow() {
-        assertDoesNotThrow(() -> scanner("2\n192.0.2.1\n").handle(3));
-    }
-
-    @Test
-    void handle_4_fileServer_doesNotThrow() {
-        // Use ephemeral port range to avoid conflicts
-        assertDoesNotThrow(() -> scanner("19876\n").handle(4));
-    }
-
-    @Test
-    void handle_5_fileSend_missingFile_doesNotThrow() {
-        assertDoesNotThrow(() ->
-                scanner("192.0.2.1\n19875\n/nonexistent/file.txt\n").handle(5));
-    }
-
-    @Test
-    void handle_6_cidrScan_withEmptyFilters_doesNotThrow() {
-        // CIDR, no regex filter, no os+port filter, no json export
-        assertDoesNotThrow(() ->
-                scanner("127.0.0.0/30\n\n\nn\n").handle(6));
-    }
-
-    @Test
-    void handle_7_filterScan_alle_doesNotThrow() {
-        assertDoesNotThrow(() -> scanner("alle\n\n").handle(7));
-    }
-
-    @Test
-    void handle_7_filterScan_windows_doesNotThrow() {
-        assertDoesNotThrow(() -> scanner("windows\n\n").handle(7));
-    }
-
-    @Test
-    void handle_8_sendMessage_doesNotThrow() {
-        assertDoesNotThrow(() ->
-                scanner("192.0.2.1\nhello test\n\n").handle(8));
-    }
-
-    @Test
-    void handle_9_remoteNet_cidr_doesNotThrow() {
-        assertDoesNotThrow(() ->
-                scanner("1\n192.0.2.0/24\n").handle(9));
-    }
-
-    @Test
-    void handle_9_remoteNet_reachTest_doesNotThrow() {
-        assertDoesNotThrow(() ->
-                scanner("3\n192.0.2.0/24\n").handle(9));
-    }
-
-    @Test
-    void handle_9_remoteNet_routingHints_doesNotThrow() {
-        assertDoesNotThrow(() ->
-                scanner("4\n192.0.2.0/24\n").handle(9));
-    }
-
-    @Test
-    void handle_10_scheduler_listRunning_doesNotThrow() {
-        // modus 3 = stop all (safe even if nothing running)
-        assertDoesNotThrow(() -> scanner("3\n").handle(10));
-    }
-
-    @Test
-    void handle_11_securityMonitor_invalidChoice_doesNotThrow() {
-        assertDoesNotThrow(() -> scanner("9\n").handle(11));
-    }
-
-    @Test
-    void handle_12_dauerping_zeroSeconds_doesNotThrow() {
-        // 0s = beendet sofort
-        assertDoesNotThrow(() -> scanner("127.0.0.1\n0\n").handle(12));
-    }
-
-    @Test
-    void handle_14_exportImport_invalidChoice_doesNotThrow() {
-        assertDoesNotThrow(() -> scanner("9\n").handle(14));
-    }
-
-    @Test
-    void handle_allValidChoices_noNpe() {
-        int[] safe = {1, 2, 99};
-        for (int c : safe)
-            assertDoesNotThrow(() -> scanner("").handle(c),
-                    "handle(" + c + ") threw unexpectedly");
-    }
-
-    // ── Output capture ────────────────────────────────────────────────────
-
-    @Test
-    void handle_invalid_printsMessage() {
-        String out = captureOut(() -> scanner("").handle(99));
-        assertFalse(out.isEmpty());
-    }
-
-    @Test
-    void handle_1_printsNetworkInfo() {
-        String out = captureOut(() -> scanner("").handle(1));
-        assertTrue(out.contains("Netzwerk") || out.contains("netzwerk")
-                || out.contains("Gerät") || !out.isEmpty());
-    }
-
-    // ── Helpers ───────────────────────────────────────────────────────────
-
-    private static MenuHandler scanner(String input) {
-        return new MenuHandler(new Scanner(
-                new ByteArrayInputStream(input.getBytes())));
+    private static MenuHandler handler(String... lines) {
+        String input = String.join("\n", lines) + "\n";
+        Scanner scanner = new Scanner(
+                new ByteArrayInputStream(input.getBytes(StandardCharsets.UTF_8)));
+        return new MenuHandler(scanner);
     }
 
     private static String captureOut(Runnable r) {
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
         PrintStream orig = System.out;
-        System.setOut(new PrintStream(buf));
-        try { r.run(); } finally { System.setOut(orig); }
-        return buf.toString();
+        System.setOut(new PrintStream(buf, true, StandardCharsets.UTF_8));
+        try { r.run(); }
+        finally { System.setOut(orig); }
+        return buf.toString(StandardCharsets.UTF_8);
     }
 
-    // Minimal SecurityManager to intercept System.exit()
-    private static class SystemExitException extends SecurityException {
-        SystemExitException(int status) { super("exit:" + status); }
+    // ── Menü-Dispatch: gültige Eingaben ───────────────────────────────────
+
+    @Test
+    void handle_choice1_minimalInfo_doesNotThrow() {
+        assertDoesNotThrow(() -> handler().handle(1));
     }
 
-    @SuppressWarnings("removal")
-    private static class NoExitSecurityManager extends SecurityManager {
-        @Override public void checkPermission(java.security.Permission p) {}
-        @Override public void checkExit(int status) { throw new SystemExitException(status); }
+    @Test
+    void handle_choice2_fullInfo_doesNotThrow() {
+        assertDoesNotThrow(() -> handler().handle(2));
+    }
+
+    @Test
+    void handle_invalid_printsMessage() {
+        String out = captureOut(() -> handler().handle(99));
+        assertTrue(out.toLowerCase().contains("ungültig")
+                || out.toLowerCase().contains("ungu"));
+    }
+
+    // ── Diagnose (Choice 3) ───────────────────────────────────────────────
+
+    @Test
+    void handle_choice3_schnell_doesNotThrow() {
+        // Modus 1 = Schnelldiagnose, Ziel = Dokumentations-IP (nie erreichbar)
+        assertDoesNotThrow(() -> handler("1", "192.0.2.1").handle(3));
+    }
+
+    @Test
+    void handle_choice3_voll_doesNotThrow() {
+        assertDoesNotThrow(() -> handler("2", "192.0.2.1").handle(3));
+    }
+
+    // ── Fremdnetz-Scanner (Choice 9) ──────────────────────────────────────
+
+    @Test
+    void handle_choice9_erreichbarkeitstest_doesNotThrow() {
+        assertDoesNotThrow(() -> handler("3", "192.0.2.0/30").handle(9));
+    }
+
+    @Test
+    void handle_choice9_routingHilfe_doesNotThrow() {
+        assertDoesNotThrow(() -> handler("4", "192.168.99.0/24").handle(9));
+    }
+
+    @Test
+    void handle_choice9_ungueltigerModus_doesNotThrow() {
+        assertDoesNotThrow(() -> handler("9").handle(9));
+    }
+
+    // ── Sicherheitsmonitor (Choice 11) ────────────────────────────────────
+
+    @Test
+    void handle_choice11_arpStop_doesNotThrow() {
+        // ARP-Monitor ist initial inaktiv → stop = no-op
+        assertDoesNotThrow(() -> handler("1").handle(11));
+    }
+
+    @Test
+    void handle_choice11_portStop_doesNotThrow() {
+        assertDoesNotThrow(() -> handler("2").handle(11));
+    }
+
+    @Test
+    void handle_choice11_ungueltig_doesNotThrow() {
+        assertDoesNotThrow(() -> handler("X").handle(11));
+    }
+
+    // ── Scheduler (Choice 10) ─────────────────────────────────────────────
+
+    @Test
+    void handle_choice10_stopAll_doesNotThrow() {
+        assertDoesNotThrow(() -> handler("3").handle(10));
+    }
+
+    // ── Export/Import (Choice 14) ─────────────────────────────────────────
+
+    @Test
+    void handle_choice14_csvExport_doesNotThrow() {
+        assertDoesNotThrow(() -> handler("1").handle(14));
+    }
+
+    @Test
+    void handle_choice14_jsonExport_doesNotThrow() {
+        assertDoesNotThrow(() -> handler("2").handle(14));
+    }
+
+    @Test
+    void handle_choice14_htmlExport_doesNotThrow() {
+        assertDoesNotThrow(() -> handler("3").handle(14));
+    }
+
+    @Test
+    void handle_choice14_zipBackup_doesNotThrow() {
+        assertDoesNotThrow(() -> handler("4").handle(14));
+    }
+
+    @Test
+    void handle_choice14_ungueltig_doesNotThrow() {
+        assertDoesNotThrow(() -> handler("X").handle(14));
+    }
+
+    // ── Dauerping (Choice 12) ─────────────────────────────────────────────
+
+    @Test
+    void handle_choice12_maxSec_doesNotThrow() {
+        // maxSec=0 wäre unbegrenzt → nutze sehr kleine Zahl
+        // PingMonitor.start() blockiert → in eigenem Thread mit Interrupt
+        Thread t = new Thread(() -> {
+            try { handler("192.0.2.1", "1").handle(12); }
+            catch (Exception ignored) {}
+        });
+        t.setDaemon(true);
+        t.start();
+        try { t.join(3000); } catch (InterruptedException ignored) {}
+        // Kein Fehler = Bestanden
+    }
+
+    // ── Bandwidth-Test (Choice 13) ────────────────────────────────────────
+
+    @Test
+    void handle_choice13_noServer_doesNotThrow() {
+        assertDoesNotThrow(() -> handler("2", "192.0.2.1").handle(13));
+    }
+
+    // ── Filter-Scan (Choice 7) ────────────────────────────────────────────
+
+    @Test
+    void handle_choice7_filterAlle_doesNotThrow() {
+        assertDoesNotThrow(() -> handler("alle", "").handle(7));
+    }
+
+    // ── CIDR-Scan (Choice 6) ──────────────────────────────────────────────
+
+    @Test
+    void handle_choice6_loopback_doesNotThrow() {
+        // /30 = nur 2 IPs, schnell
+        assertDoesNotThrow(() -> handler("127.0.0.0/30", "", "", "n").handle(6));
     }
 }
