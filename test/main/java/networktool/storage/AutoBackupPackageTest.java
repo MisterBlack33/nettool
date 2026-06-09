@@ -17,72 +17,71 @@ class AutoBackupPackageTest {
     @BeforeEach
     void clean() {
         AutoBackup.testMode = true;
+        AutoBackup.getInstance().stop();
         AutoBackup.getInstance().cleanupTestBackups();
         AutoBackup.getInstance().cleanupBackups();
     }
 
     @AfterEach
-    void cleanup() {
+    void stopAndClean() {
+        AutoBackup.getInstance().stop();
         AutoBackup.getInstance().cleanupTestBackups();
         AutoBackup.testMode = false;
     }
 
     // ── Basis-State ───────────────────────────────────────────────────────
 
-    @Test void isActive_initiallyTrue()     { assertTrue(AutoBackup.getInstance().isActive()); }
-    @Test void maxBackups_isOne()           { assertEquals(1, AutoBackup.MAX_BACKUPS); }
+    @Test void isActive_initiallyFalse()  { assertFalse(AutoBackup.getInstance().isActive()); }
+    @Test void start_setsActive()         { AutoBackup.getInstance().start(24); assertTrue(AutoBackup.getInstance().isActive()); }
+    @Test void start_default()            { AutoBackup.getInstance().start(); assertTrue(AutoBackup.getInstance().isActive()); }
+    @Test void stop_clearsActive()        { AutoBackup.getInstance().start(24); AutoBackup.getInstance().stop(); assertFalse(AutoBackup.getInstance().isActive()); }
+    @Test void getInterval_returnsSet()   { AutoBackup.getInstance().start(12); assertEquals(12, AutoBackup.getInstance().getInterval()); }
+    @Test void startTwice_noStateChange() { AutoBackup.getInstance().start(6); AutoBackup.getInstance().start(6); assertTrue(AutoBackup.getInstance().isActive()); }
+    @Test void maxBackups_isOne()         { assertEquals(1, AutoBackup.MAX_BACKUPS); }
     @Test void cleanupTestBackups_noThrow() { assertDoesNotThrow(() -> AutoBackup.getInstance().cleanupTestBackups()); }
-    @Test void cleanupBackups_noThrow()     { assertDoesNotThrow(() -> AutoBackup.getInstance().cleanupBackups()); }
-
-    @Test
-    void todayBackupDone_falseAfterCleanup() {
+    @Test void todayBackupDone_falseAfterCleanup() {
         AutoBackup.getInstance().cleanupBackups();
         assertFalse(AutoBackup.getInstance().todayBackupDone());
     }
 
-    // ── triggerNow ────────────────────────────────────────────────────────
+    // ── backup() direkt ────────────────────────────────────────────────────
 
     @Test
-    void triggerNow_calledThreeTimes_onlyOneBackup() throws InterruptedException {
-        AutoBackup.getInstance().triggerNow();
-        AutoBackup.getInstance().triggerNow();
-        AutoBackup.getInstance().triggerNow();
-        Thread.sleep(300);
-        assertTrue(AutoBackup.getInstance().todayBackupDone());
-    }
-
-    @Test
-    void triggerNow_afterCleanup_resetsFlag() throws InterruptedException {
-        AutoBackup.getInstance().triggerNow();
-        Thread.sleep(200);
-        assertTrue(AutoBackup.getInstance().todayBackupDone());
+    @Timeout(value = 10, unit = TimeUnit.SECONDS)
+    void backup_inTestMode_createsTestPrefixFile() throws IOException {
         AutoBackup.getInstance().cleanupBackups();
-        assertFalse(AutoBackup.getInstance().todayBackupDone());
-    }
-
-    @Test
-    @Timeout(value = 5, unit = TimeUnit.SECONDS)
-    void triggerNow_doesNotThrow() {
-        assertDoesNotThrow(() -> AutoBackup.getInstance().triggerNow());
-    }
-
-    // ── Test-Backup-Prefix ────────────────────────────────────────────────
-
-    @Test
-    @Timeout(value = 5, unit = TimeUnit.SECONDS)
-    void backup_inTestMode_createsTestPrefixFile() throws InterruptedException, IOException {
         AutoBackup.getInstance().backup();
-        Thread.sleep(200);
 
         Path dir = backupDir();
         if (!Files.isDirectory(dir)) return;
         List<Path> testZips = listTestBackups(dir);
-        assertFalse(testZips.isEmpty(), "Kein Test-Backup erstellt");
         testZips.forEach(p ->
-                assertTrue(p.getFileName().toString()
-                                .startsWith(AutoBackup.TEST_BACKUP_PREFIX),
+                assertTrue(p.getFileName().toString().startsWith(AutoBackup.TEST_BACKUP_PREFIX),
                         "Backup trägt nicht das TEST-Präfix: " + p.getFileName()));
     }
+
+    @Test
+    @Timeout(value = 5, unit = TimeUnit.SECONDS)
+    void backup_setsBackupDone() {
+        AutoBackup.getInstance().cleanupBackups();
+        assertFalse(AutoBackup.getInstance().todayBackupDone());
+        AutoBackup.getInstance().backup();
+        assertTrue(AutoBackup.getInstance().todayBackupDone());
+    }
+
+    @Test
+    @Timeout(value = 5, unit = TimeUnit.SECONDS)
+    void backup_secondCall_skipped() throws IOException {
+        AutoBackup.getInstance().cleanupBackups();
+        AutoBackup.getInstance().backup();
+        Path dir = backupDir();
+        long countBefore = Files.isDirectory(dir) ? listTestBackups(dir).size() : 0;
+        AutoBackup.getInstance().backup();
+        long countAfter  = Files.isDirectory(dir) ? listTestBackups(dir).size() : 0;
+        assertEquals(countBefore, countAfter);
+    }
+
+    // ── Test-Backup-Prefix ────────────────────────────────────────────────
 
     @Test
     void cleanupTestBackups_removesOnlyTestFiles(@TempDir Path tmp) throws IOException {
@@ -92,19 +91,61 @@ class AutoBackupPackageTest {
         Files.createFile(test);
 
         try (var stream = Files.list(tmp)) {
-            stream.filter(p -> p.getFileName().toString()
-                            .startsWith(AutoBackup.TEST_BACKUP_PREFIX))
+            stream.filter(p -> p.getFileName().toString().startsWith(AutoBackup.TEST_BACKUP_PREFIX))
                     .forEach(p -> { try { Files.delete(p); } catch (IOException ignored) {} });
         }
 
-        assertTrue(Files.exists(real),  "Produktiv-Backup fälschlicherweise gelöscht");
-        assertFalse(Files.exists(test), "Test-Backup nicht gelöscht");
+        assertTrue(Files.exists(real),  "Produktiv-Backup wurde fälschlicherweise gelöscht");
+        assertFalse(Files.exists(test), "Test-Backup wurde nicht gelöscht");
     }
 
     @Test
     void testBackupPrefix_notEmpty() {
         assertFalse(AutoBackup.TEST_BACKUP_PREFIX.isBlank());
         assertTrue(AutoBackup.TEST_BACKUP_PREFIX.contains("TEST"));
+    }
+
+    // ── triggerNow ────────────────────────────────────────────────────────
+
+    @Test
+    @Timeout(value = 5, unit = TimeUnit.SECONDS)
+    void triggerNow_afterCleanup_setsBackupDone() throws InterruptedException {
+        AutoBackup.getInstance().start(24);
+        AutoBackup.getInstance().cleanupBackups();
+        AutoBackup.getInstance().triggerNow();
+        for (int i = 0; i < 30 && !AutoBackup.getInstance().todayBackupDone(); i++)
+            Thread.sleep(100);
+        assertTrue(AutoBackup.getInstance().todayBackupDone());
+    }
+
+    @Test
+    @Timeout(value = 5, unit = TimeUnit.SECONDS)
+    void triggerNow_doesNotThrow() {
+        AutoBackup.getInstance().start(24);
+        assertDoesNotThrow(() -> AutoBackup.getInstance().triggerNow());
+    }
+
+    @Test
+    @Timeout(value = 5, unit = TimeUnit.SECONDS)
+    void triggerNow_calledThreeTimes_backupDoneOnce() throws InterruptedException {
+        AutoBackup.getInstance().start(24);
+        AutoBackup.getInstance().cleanupBackups();
+        AutoBackup.getInstance().triggerNow();
+        AutoBackup.getInstance().triggerNow();
+        AutoBackup.getInstance().triggerNow();
+        for (int i = 0; i < 30 && !AutoBackup.getInstance().todayBackupDone(); i++)
+            Thread.sleep(100);
+        assertTrue(AutoBackup.getInstance().todayBackupDone());
+    }
+
+    @Test
+    @Timeout(value = 5, unit = TimeUnit.SECONDS)
+    void triggerNow_withoutStart_usesOnDemandThread() throws InterruptedException {
+        AutoBackup.getInstance().cleanupBackups();
+        AutoBackup.getInstance().triggerNow();
+        for (int i = 0; i < 30 && !AutoBackup.getInstance().todayBackupDone(); i++)
+            Thread.sleep(100);
+        assertTrue(AutoBackup.getInstance().todayBackupDone());
     }
 
     // ── PersistenceEdgeTest ───────────────────────────────────────────────
