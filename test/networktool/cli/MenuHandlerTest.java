@@ -97,13 +97,14 @@ class MenuHandlerTest {
 
     @Test
     void handle_choice11_arpStop_doesNotThrow() {
-        // ARP-Monitor ist initial inaktiv → stop = no-op
-        assertDoesNotThrow(() -> handler("1").handle(11));
+        // ARP inaktiv → "1" startet → liest ntfy-Topic
+        assertDoesNotThrow(() -> handler("1", "").handle(11));
     }
 
     @Test
     void handle_choice11_portStop_doesNotThrow() {
-        assertDoesNotThrow(() -> handler("2").handle(11));
+        // Port inaktiv → "2" startet → liest Intervall + ntfy-Topic
+        assertDoesNotThrow(() -> handler("2", "5", "").handle(11));
     }
 
     @Test
