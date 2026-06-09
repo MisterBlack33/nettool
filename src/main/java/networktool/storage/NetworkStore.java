@@ -33,7 +33,6 @@ public final class NetworkStore {
         importLegacyIfNeeded();
         loadAll();
         registry.ensureDefault();
-        AutoBackup.getInstance().start();
     }
 
     public void setSortField(SortField field, boolean asc) {
