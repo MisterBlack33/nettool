@@ -9,19 +9,15 @@ public final class SubnetDetector {
 
     private SubnetDetector() {}
 
-    /** Kleinster erlaubter Prefix (kein /8 etc.). */
-    private static final int MIN_PREFIX  = 16;
-    /** Max. /24-Subnetze über ALLE Interfaces. */
-    private static final int MAX_SUBNETS = 64;
-    /** Max. /24-Blöcke pro einzelnem Interface (verhindert /16-Explosion). */
-    private static final int MAX_PER_IFACE = 16;
+    private static final int MIN_PREFIX    = 8;   // /8 ist Minimum (früher /16 → zu eng)
+    private static final int MAX_SUBNETS   = 256;
+    private static final int MAX_PER_IFACE = 256;
 
     private static final Set<String> SKIP_PREFIXES = Set.of(
             "docker", "br-", "veth", "virbr", "tun", "tap",
             "wg", "utun", "lo", "vmnet", "vbox"
     );
 
-    /** CIDR-Strings der lokalen Interfaces, z.B. ["192.168.1.0/24"]. */
     public static List<String> getAllCidrs() throws SocketException {
         List<String> cidrs = new ArrayList<>();
         Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces();
@@ -36,8 +32,11 @@ public final class SubnetDetector {
     }
 
     /**
-     * /24-Präfixe für den Host-Scanner.
-     * Pro Interface maximal MAX_PER_IFACE Präfixe, insgesamt MAX_SUBNETS.
+     * Liefert alle /24-Präfixe des erkannten Netzes.
+     *
+     * Bei einem /16 (z.B. 10.32.0.0/16) werden alle 256 /24-Blöcke zurückgegeben,
+     * damit Geräte in 10.32.24.x bis 10.32.31.x etc. gefunden werden.
+     * MAX_SUBNETS begrenzt die Gesamtanzahl.
      */
     public static List<String> getAllSubnets() throws SocketException {
         List<String> result = new ArrayList<>();
@@ -54,14 +53,11 @@ public final class SubnetDetector {
                 int prefix = ia.getNetworkPrefixLength();
                 if (prefix < MIN_PREFIX) continue;
 
-                List<String> prefixes = CIDRUtils.getSubnet24Prefixes(
-                        buildCidr(addr, prefix));
+                List<String> prefixes = CIDRUtils.getSubnet24Prefixes(buildCidr(addr, prefix));
 
-                // Begrenzt auf MAX_PER_IFACE pro Interface
                 int added = 0;
                 for (String p : prefixes) {
-                    if (added >= MAX_PER_IFACE) break;
-                    if (result.size() >= MAX_SUBNETS) break;
+                    if (added >= MAX_PER_IFACE || result.size() >= MAX_SUBNETS) break;
                     if (!result.contains(p)) { result.add(p); added++; }
                 }
             }
@@ -69,8 +65,7 @@ public final class SubnetDetector {
         }
 
         if (!result.isEmpty())
-            System.out.printf("[SubnetDetector] %d /24-Subnetz(e): %s%n",
-                    result.size(), result);
+            System.out.printf("[SubnetDetector] %d /24-Subnetz(e): %s%n", result.size(), result);
         return result;
     }
 
@@ -95,8 +90,7 @@ public final class SubnetDetector {
         if (prefix < MIN_PREFIX) return;
         String cidr = buildCidr(addr, prefix);
         if (!cidrs.contains(cidr)) {
-            System.out.printf("[SubnetDetector] Interface %s → %s%n",
-                    addr.getHostAddress(), cidr);
+            System.out.printf("[SubnetDetector] Interface %s → %s%n", addr.getHostAddress(), cidr);
             cidrs.add(cidr);
         }
     }
@@ -105,7 +99,7 @@ public final class SubnetDetector {
         byte[] b = addr.getAddress();
         int ipInt   = ((b[0] & 0xFF) << 24) | ((b[1] & 0xFF) << 16)
                 | ((b[2] & 0xFF) <<  8) |  (b[3] & 0xFF);
-        int mask    = 0xFFFFFFFF << (32 - prefix);
+        int mask    = prefix == 0 ? 0 : (0xFFFFFFFF << (32 - prefix));
         int network = ipInt & mask;
         return CIDRUtils.intToIp(network) + "/" + prefix;
     }

@@ -12,14 +12,18 @@ import java.util.regex.*;
 
 /**
  * Erkennt ARP-Spoofing, ARP-Poisoning, IP-Spoofing und Rogue-Geräte.
- * Rogue-Geräte beim ersten Scan werden gesammelt als Tabelle ausgegeben.
+ *
+ * Rogue-Device-Logik:
+ *  - Beim ersten Scan werden ALLE bekannten ARP-Einträge als Baseline gewhitelistet
+ *    (kein Spam für bereits im Netz vorhandene Geräte).
+ *  - Nur Geräte die NACH dem Start neu auftauchen, lösen einen Alert aus.
  */
 public final class SecurityMonitor {
 
     private static final class Holder { static final SecurityMonitor INSTANCE = new SecurityMonitor(); }
     public static SecurityMonitor getInstance() { return Holder.INSTANCE; }
 
-    private static final int SCAN_INTERVAL_SEC = 30;
+    private static final int    SCAN_INTERVAL_SEC = 30;
     private static final Pattern MAC_PAT = Pattern.compile("([0-9A-Fa-f]{2}[:\\-]){5}[0-9A-Fa-f]{2}");
     private static final Pattern IP_PAT  = Pattern.compile("\\b(\\d{1,3}\\.){3}\\d{1,3}\\b");
 
@@ -28,7 +32,6 @@ public final class SecurityMonitor {
     private final Set<String>         alerted   = ConcurrentHashMap.newKeySet();
     private final Set<String>         whitelist = ConcurrentHashMap.newKeySet();
 
-    /** Rogue-Devices im ersten Scan-Durchlauf sammeln, dann als Tabelle ausgeben. */
     private final List<String[]>      initialRogues = new ArrayList<>();
     private boolean                   firstScanDone = false;
 
@@ -45,14 +48,8 @@ public final class SecurityMonitor {
         firstScanDone   = false;
         initialRogues.clear();
 
-        NetworkStore.getInstance().getAllHosts().forEach(h -> {
-            String mac = extractMac(h.hostname);
-            if (mac != null) {
-                ipToMac.put(h.ip, normalize(mac));
-                macToIp.put(normalize(mac), h.ip);
-            }
-            whitelist.add(h.ip);
-        });
+        loadSavedHostsBaseline();
+        loadArpCacheBaseline();   // alle aktuellen Netzgeräte whitelisten → kein Rogue-Spam
 
         scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "SecurityMonitor");
@@ -80,10 +77,34 @@ public final class SecurityMonitor {
 
     public void addBaseline(String ip, String mac) {
         if (ip == null || mac == null) return;
-        String m = normalize(mac);
-        ipToMac.put(ip, m);
-        macToIp.put(m, ip);
+        String normalized = normalize(mac);
+        ipToMac.put(ip, normalized);
+        macToIp.put(normalized, ip);
         whitelist.add(ip);
+    }
+
+    // ── Baseline laden ────────────────────────────────────────────────────
+
+    private void loadSavedHostsBaseline() {
+        NetworkStore.getInstance().getAllHosts().forEach(h -> {
+            String mac = extractMac(h.hostname);
+            if (mac != null) addBaseline(h.ip, mac);
+            else             whitelist.add(h.ip);
+        });
+    }
+
+    /**
+     * Liest den aktuellen ARP-Cache und whitelistet alle Einträge als bekannte Geräte.
+     * Verhindert Rogue-Alerts für Geräte die bereits vor dem Programmstart im Netz waren.
+     */
+    private void loadArpCacheBaseline() {
+        Map<String, String> current = readArpCache();
+        current.forEach((ip, mac) -> {
+            ipToMac.putIfAbsent(ip, mac);
+            macToIp.putIfAbsent(mac, ip);
+            whitelist.add(ip);
+        });
+        System.out.println("[SecurityMonitor] ARP-Baseline: " + current.size() + " Einträge gewhitelistet.");
     }
 
     // ── Scan ─────────────────────────────────────────────────────────────
@@ -111,8 +132,8 @@ public final class SecurityMonitor {
                 .filter(e -> !e.getKey().startsWith("FF:FF") && !e.getKey().startsWith("01:"))
                 .forEach(e -> {
                     String key = "ARP_POISON:" + e.getKey();
-                    if (alerted.add(key)) warn("ARP-POISONING",
-                            "MAC " + e.getKey() + " auf " + e.getValue().size() + " IPs: " + e.getValue());
+                    if (alerted.add(key))
+                        warn("ARP-POISONING", "MAC " + e.getKey() + " auf " + e.getValue().size() + " IPs: " + e.getValue());
                 });
     }
 
@@ -121,8 +142,8 @@ public final class SecurityMonitor {
             String known = ipToMac.get(ip);
             if (known != null && !known.equalsIgnoreCase(mac)) {
                 String key = "ARP_SPOOF:" + ip + ":" + mac;
-                if (alerted.add(key)) warn("ARP-SPOOFING",
-                        "IP " + ip + ": " + known + " → " + mac);
+                if (alerted.add(key))
+                    warn("ARP-SPOOFING", "IP " + ip + ": " + known + " → " + mac);
                 ipToMac.put(ip, mac);
             } else if (known == null) {
                 ipToMac.put(ip, mac);
@@ -135,8 +156,8 @@ public final class SecurityMonitor {
             String knownIp = macToIp.get(mac);
             if (knownIp != null && !knownIp.equals(ip)) {
                 String key = "IP_SPOOF:" + mac + ":" + ip;
-                if (alerted.add(key)) warn("IP-SPOOFING",
-                        "MAC " + mac + ": " + knownIp + " → " + ip);
+                if (alerted.add(key))
+                    warn("IP-SPOOFING", "MAC " + mac + ": " + knownIp + " → " + ip);
             }
         });
     }
@@ -159,7 +180,6 @@ public final class SecurityMonitor {
         });
     }
 
-    /** Gibt initial erkannte Rogue-Devices als kompakte Tabelle aus. */
     private void printRogueTable() {
         if (initialRogues.isEmpty()) return;
         System.out.println("\n[SecurityMonitor] Unbekannte Geräte beim Start (" + initialRogues.size() + "):");
@@ -201,7 +221,7 @@ public final class SecurityMonitor {
         return result;
     }
 
-    private static String normalize(String mac) { return mac.toUpperCase().replace("-", ":"); }
+    private static String normalize(String mac)    { return mac.toUpperCase().replace("-", ":"); }
     private static String extractMac(String hostname) {
         if (hostname == null) return null;
         Matcher m = MAC_PAT.matcher(hostname);
