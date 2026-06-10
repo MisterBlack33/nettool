@@ -17,7 +17,7 @@ public final class NetworkHostScanner {
 
     private static final int THREAD_COUNT = Math.min(64,
             Math.max(20, Runtime.getRuntime().availableProcessors() * 4));
-    private static final int DNS_TIMEOUT  = 800;
+    private static final int DNS_TIMEOUT  = 600;
 
     private static final Pattern MAC_PATTERN = Pattern.compile(
             "([0-9A-Fa-f]{2}[:\\-]){5}[0-9A-Fa-f]{2}");
@@ -26,41 +26,17 @@ public final class NetworkHostScanner {
 
     /** Scannt /24-Präfixe (z.B. "192.168.1") — je 254 IPs. */
     public static List<HostResult> scan(List<String> subnets) {
-        // ARP-Cache vorab befüllen (broadcast ping pro Subnetz)
-        warmArpCache(subnets);
+        // ARP-Cache einmal laden (vermeidet 254x "arp -a")
+        HostAliveChecker.warmCache();
         List<String> ips = expandSubnets(subnets);
         return scanIpList(ips);
     }
 
     /** Scannt einen beliebigen CIDR-Block. */
     public static List<HostResult> scanCidr(String cidr) {
+        HostAliveChecker.warmCache();
         List<String> ips = CIDRUtils.getAllIPs(cidr);
         return scanIpList(ips);
-    }
-
-    // ── private ───────────────────────────────────────────────────────────
-
-    /**
-     * Sendet einen Broadcast-Ping pro Subnetz um den ARP-Cache zu befüllen,
-     * bevor der eigentliche Scan startet.
-     */
-    private static void warmArpCache(List<String> subnets) {
-        boolean win = System.getProperty("os.name", "").toLowerCase().contains("win");
-        for (String subnet : subnets) {
-            try {
-                String broadcast = subnet + ".255";
-                String[] cmd = win
-                        ? new String[]{"ping", "-n", "1", "-w", "300", broadcast}
-                        : new String[]{"ping", "-b", "-c", "1", "-W", "1", broadcast};
-                Process p = Runtime.getRuntime().exec(cmd);
-                p.waitFor(500, TimeUnit.MILLISECONDS);
-                p.destroy();
-            } catch (Exception ignored) {}
-        }
-        // Kurz warten damit ARP-Antworten ankommen
-        try { Thread.sleep(400); } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
     }
 
     private static List<String> expandSubnets(List<String> subnets) {
@@ -73,15 +49,16 @@ public final class NetworkHostScanner {
 
     private static List<HostResult> scanIpList(List<String> ips) {
         System.out.println("Starte Scan: " + ips.size() + " Hosts, Threads: " + THREAD_COUNT);
-        List<HostResult> found    = Collections.synchronizedList(new ArrayList<>());
-        ScanProgress     progress = new ScanProgress(ips.size());
-        ExecutorService  executor = Executors.newFixedThreadPool(THREAD_COUNT);
+        List<HostResult>  found    = Collections.synchronizedList(new ArrayList<>());
+        ScanProgress      progress = new ScanProgress(ips.size());
+        ExecutorService   executor = Executors.newFixedThreadPool(THREAD_COUNT,
+                r -> { Thread t = new Thread(r); t.setDaemon(true); return t; });
 
         for (String host : ips)
             executor.submit(() -> { scanHost(host, found); progress.step(); });
 
         executor.shutdown();
-        try { executor.awaitTermination(10, TimeUnit.MINUTES); }
+        try { executor.awaitTermination(5, TimeUnit.MINUTES); }
         catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
 
         persistToHistory(found);
@@ -100,21 +77,27 @@ public final class NetworkHostScanner {
     private static void scanHost(String ip, List<HostResult> found) {
         try {
             if (!HostAliveChecker.isAlive(ip)) return;
-            triggerArpEntry(ip);
             String mac      = readMacFromArp(ip);
             String hostname = resolveHostname(ip);
-            String os       = detectOs(ip, hostname);
+            // OS-Detection leicht: nur Hostname-Heuristik, kein Port-Scan pro Host
+            String os = detectOsFast(ip, hostname, mac);
             found.add(new HostResult(ip, buildDisplay(hostname, mac), os));
         } catch (Exception ignored) {}
     }
 
-    private static String detectOs(String ip, String hostname) {
-        String os = OsDetector.detect(ip);
-        if (os.equals("Unbekannt") || os.isBlank()) {
-            String fromHn = OsDetector.detectFromHostname(hostname, ip);
-            if (fromHn != null) return fromHn;
+    /**
+     * Schnelle OS-Erkennung: Hostname-Heuristik + OUI-Lookup.
+     * Kein vollständiger Port-Scan pro Host (das dauert zu lang).
+     */
+    private static String detectOsFast(String ip, String hostname, String mac) {
+        String fromHn = OsDetector.detectFromHostname(hostname, ip);
+        if (fromHn != null) return fromHn;
+        if (mac != null && mac.length() >= 8) {
+            String vendor = main.java.networktool.logic.analysis.OuiDatabase.lookup(
+                    mac.substring(0, 8));
+            if (vendor != null) return vendor;
         }
-        return os;
+        return "Unbekannt";
     }
 
     private static String resolveHostname(String ip) {
@@ -176,18 +159,6 @@ public final class NetworkHostScanner {
             }
         }
         return null;
-    }
-
-    private static void triggerArpEntry(String ip) {
-        try {
-            boolean win = System.getProperty("os.name", "").toLowerCase().contains("win");
-            String[] cmd = win
-                    ? new String[]{"ping", "-n", "1", "-w", "100", ip}
-                    : new String[]{"ping", "-c", "1", "-W", "1", ip};
-            Process p = Runtime.getRuntime().exec(cmd);
-            p.waitFor(800, TimeUnit.MILLISECONDS);
-            p.destroy();
-        } catch (Exception ignored) {}
     }
 
     static String readMacFromArp(String ip) {
