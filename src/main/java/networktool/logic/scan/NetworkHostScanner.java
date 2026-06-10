@@ -24,23 +24,44 @@ public final class NetworkHostScanner {
     private static final Set<String> INVALID_MACS = Set.of(
             "00:00:00:00:00:00", "FF:FF:FF:FF:FF:FF", "00:AA:00:00:00:00");
 
-    /** Scannt /24-Präfixe (z.B. "192.168.1") — je 254 IPs. Hauptpfad für NetworkInfo. */
+    /** Scannt /24-Präfixe (z.B. "192.168.1") — je 254 IPs. */
     public static List<HostResult> scan(List<String> subnets) {
+        // ARP-Cache vorab befüllen (broadcast ping pro Subnetz)
+        warmArpCache(subnets);
         List<String> ips = expandSubnets(subnets);
         return scanIpList(ips);
     }
 
-    /**
-     * Scannt einen beliebigen CIDR-Block.
-     * Achtung: bei großen CIDRs (/16, /8) kann die Anzahl sehr groß sein.
-     * Intern genutzt von RemoteNetScanner; NetworkInfo verwendet immer scan().
-     */
+    /** Scannt einen beliebigen CIDR-Block. */
     public static List<HostResult> scanCidr(String cidr) {
         List<String> ips = CIDRUtils.getAllIPs(cidr);
         return scanIpList(ips);
     }
 
     // ── private ───────────────────────────────────────────────────────────
+
+    /**
+     * Sendet einen Broadcast-Ping pro Subnetz um den ARP-Cache zu befüllen,
+     * bevor der eigentliche Scan startet.
+     */
+    private static void warmArpCache(List<String> subnets) {
+        boolean win = System.getProperty("os.name", "").toLowerCase().contains("win");
+        for (String subnet : subnets) {
+            try {
+                String broadcast = subnet + ".255";
+                String[] cmd = win
+                        ? new String[]{"ping", "-n", "1", "-w", "300", broadcast}
+                        : new String[]{"ping", "-b", "-c", "1", "-W", "1", broadcast};
+                Process p = Runtime.getRuntime().exec(cmd);
+                p.waitFor(500, TimeUnit.MILLISECONDS);
+                p.destroy();
+            } catch (Exception ignored) {}
+        }
+        // Kurz warten damit ARP-Antworten ankommen
+        try { Thread.sleep(400); } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
 
     private static List<String> expandSubnets(List<String> subnets) {
         List<String> ips = new ArrayList<>(subnets.size() * 254);
