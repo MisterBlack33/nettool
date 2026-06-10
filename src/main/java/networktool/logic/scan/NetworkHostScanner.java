@@ -1,6 +1,7 @@
 package main.java.networktool.logic.scan;
 
 import main.java.networktool.logic.analysis.OsDetector;
+import main.java.networktool.logic.analysis.OuiDatabase;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.model.ScanResult;
 import main.java.networktool.util.CIDRUtils;
@@ -26,13 +27,12 @@ public final class NetworkHostScanner {
 
     /** Scannt /24-Präfixe (z.B. "192.168.1") — je 254 IPs. */
     public static List<HostResult> scan(List<String> subnets) {
-        // ARP-Cache einmal laden (vermeidet 254x "arp -a")
         HostAliveChecker.warmCache();
         List<String> ips = expandSubnets(subnets);
         return scanIpList(ips);
     }
 
-    /** Scannt einen beliebigen CIDR-Block. */
+    /** Scannt einen beliebigen CIDR-Block (korrekte IP-Anzahl für ProgressBar). */
     public static List<HostResult> scanCidr(String cidr) {
         HostAliveChecker.warmCache();
         List<String> ips = CIDRUtils.getAllIPs(cidr);
@@ -47,6 +47,7 @@ public final class NetworkHostScanner {
         return ips;
     }
 
+    // ScanProgress bekommt ips.size() — das ist die echte Host-Anzahl
     private static List<HostResult> scanIpList(List<String> ips) {
         System.out.println("Starte Scan: " + ips.size() + " Hosts, Threads: " + THREAD_COUNT);
         List<HostResult>  found    = Collections.synchronizedList(new ArrayList<>());
@@ -79,22 +80,16 @@ public final class NetworkHostScanner {
             if (!HostAliveChecker.isAlive(ip)) return;
             String mac      = readMacFromArp(ip);
             String hostname = resolveHostname(ip);
-            // OS-Detection leicht: nur Hostname-Heuristik, kein Port-Scan pro Host
-            String os = detectOsFast(ip, hostname, mac);
+            String os       = detectOsFast(ip, hostname, mac);
             found.add(new HostResult(ip, buildDisplay(hostname, mac), os));
         } catch (Exception ignored) {}
     }
 
-    /**
-     * Schnelle OS-Erkennung: Hostname-Heuristik + OUI-Lookup.
-     * Kein vollständiger Port-Scan pro Host (das dauert zu lang).
-     */
     private static String detectOsFast(String ip, String hostname, String mac) {
         String fromHn = OsDetector.detectFromHostname(hostname, ip);
         if (fromHn != null) return fromHn;
         if (mac != null && mac.length() >= 8) {
-            String vendor = main.java.networktool.logic.analysis.OuiDatabase.lookup(
-                    mac.substring(0, 8));
+            String vendor = OuiDatabase.lookup(mac.substring(0, 8));
             if (vendor != null) return vendor;
         }
         return "Unbekannt";

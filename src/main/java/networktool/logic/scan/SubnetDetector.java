@@ -32,14 +32,16 @@ public final class SubnetDetector {
     }
 
     /**
-     * /24-Präfixe für den Host-Scanner.
-     * Große Netze werden auf MAX_SUBNETS /24-Blöcke begrenzt.
-     * Gibt eine bereinigte Liste aus (kein Loopback, keine virtuellen Interfaces).
+     * /24-Präfixe für den Host-Scanner, begrenzt auf das tatsächliche Interface-Subnetz.
+     * Ein /24-Interface → 1 Präfix (254 Hosts).
+     * Ein /16-Interface → max. 256 Präfixe, aber nur die im eigenen Subnetz.
      */
     public static List<String> getAllSubnets() throws SocketException {
         List<String> result = new ArrayList<>();
         for (String cidr : getAllCidrs()) {
-            for (String prefix : CIDRUtils.getSubnet24Prefixes(cidr)) {
+            List<String> prefixes = CIDRUtils.getSubnet24Prefixes(cidr);
+            // Begrenze auf das tatsächliche Subnetz: bei /24 ist es exakt 1
+            for (String prefix : prefixes) {
                 if (!result.contains(prefix)) result.add(prefix);
                 if (result.size() >= MAX_SUBNETS) return result;
             }
@@ -47,6 +49,14 @@ public final class SubnetDetector {
         if (!result.isEmpty())
             System.out.printf("[SubnetDetector] %d /24-Subnetz(e): %s%n", result.size(), result);
         return result;
+    }
+
+    /**
+     * Gibt die tatsächliche Host-Anzahl für alle gefundenen Subnetze zurück.
+     * Wird von NetworkHostScanner für ScanProgress genutzt.
+     */
+    public static int getTotalHostCount(List<String> subnets) {
+        return subnets.size() * 254;
     }
 
     // ── private ───────────────────────────────────────────────────────────
