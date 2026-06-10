@@ -66,4 +66,13 @@ class SecurityMonitorTest {
     void stop_whenNotActive_doesNotThrow() {
         assertDoesNotThrow(() -> SecurityMonitor.getInstance().stop());
     }
+
+    // ARP-Baseline wird beim Start geladen — kein Rogue-Alert für bekannte Geräte
+    @Test
+    void start_loadsArpBaseline_doesNotThrow() {
+        assertDoesNotThrow(() -> {
+            SecurityMonitor.getInstance().start("");
+            SecurityMonitor.getInstance().stop();
+        });
+    }
 }

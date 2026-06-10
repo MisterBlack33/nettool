@@ -20,18 +20,16 @@ class SubnetDetectorTest {
 
     @Test
     void getAllSubnets_noMoreThan256Entries() throws Exception {
-        List<String> subnets = SubnetDetector.getAllSubnets();
-        // /8-Bug-Regression: max 256 Subnetze, nie 65k
-        assertTrue(subnets.size() <= 256,
-                "Zu viele Subnetze: " + subnets.size() + " (65k-Bug?)");
+        // max 256 /24-Subnetze (z.B. bei /16)
+        assertTrue(SubnetDetector.getAllSubnets().size() <= 256,
+                "Zu viele Subnetze: " + SubnetDetector.getAllSubnets().size());
     }
 
     @Test
     void getAllSubnets_formattedCorrectly() throws Exception {
         for (String subnet : SubnetDetector.getAllSubnets()) {
             String[] parts = subnet.split("\\.");
-            assertEquals(3, parts.length,
-                    "Subnet sollte 3 Oktette haben: " + subnet);
+            assertEquals(3, parts.length, "Subnet muss 3 Oktette haben: " + subnet);
             for (String p : parts) {
                 int v = Integer.parseInt(p);
                 assertTrue(v >= 0 && v <= 255);
@@ -41,18 +39,18 @@ class SubnetDetectorTest {
 
     @Test
     void getAllSubnets_noLoopback() throws Exception {
-        List<String> subnets = SubnetDetector.getAllSubnets();
-        assertFalse(subnets.contains("127.0.0"),
+        assertFalse(SubnetDetector.getAllSubnets().contains("127.0.0"),
                 "Loopback darf nicht enthalten sein");
     }
 
     @Test
     void getAllSubnets_noDockerBridge() throws Exception {
-        // Docker-Bridges (172.17.x, 172.18.x) sollen gefiltert werden
-        // wenn das Interface "docker" oder "br-" heißt
-        List<String> subnets = SubnetDetector.getAllSubnets();
-        // Kein Hard-Assert auf IP-Bereich (Testumgebung unbekannt),
-        // nur sicherstellen dass keine Explosion passiert
-        assertTrue(subnets.size() < 512, "Zu viele Subnetze: " + subnets.size());
+        assertTrue(SubnetDetector.getAllSubnets().size() < 512,
+                "Zu viele Subnetze: " + SubnetDetector.getAllSubnets().size());
+    }
+
+    @Test
+    void getTotalHostCount_correctMultiplier() {
+        assertEquals(508, SubnetDetector.getTotalHostCount(List.of("10.0.1", "10.0.2")));
     }
 }
