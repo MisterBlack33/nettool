@@ -17,13 +17,18 @@ class SubnetDetectorExtTest {
             String[] parts = cidr.split("/");
             assertEquals(2, parts.length);
             int prefix = Integer.parseInt(parts[1]);
-            assertTrue(prefix >= 8 && prefix <= 30);
+            assertTrue(prefix >= 16 && prefix <= 30);
         }
     }
 
     @Test void getAllCidrs_noLoopback() throws Exception {
         assertFalse(SubnetDetector.getAllCidrs().stream()
                 .anyMatch(c -> c.startsWith("127.")));
+    }
+
+    @Test void getAllCidrs_noLinkLocal() throws Exception {
+        assertFalse(SubnetDetector.getAllCidrs().stream()
+                .anyMatch(c -> c.startsWith("169.254")));
     }
 
     @Test void getAllSubnets_backwardCompat() throws Exception {
@@ -36,5 +41,11 @@ class SubnetDetectorExtTest {
 
     @Test void getAllSubnets_noLoopback() throws Exception {
         assertFalse(SubnetDetector.getAllSubnets().contains("127.0.0"));
+    }
+
+    @Test void getAllSubnets_noLinkLocal() throws Exception {
+        for (String s : SubnetDetector.getAllSubnets())
+            assertFalse(s.startsWith("169.254"),
+                    "Link-Local darf nicht enthalten sein: " + s);
     }
 }

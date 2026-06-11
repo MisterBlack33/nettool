@@ -20,7 +20,6 @@ class SubnetDetectorTest {
 
     @Test
     void getAllSubnets_noMoreThan256Entries() throws Exception {
-        // max 256 /24-Subnetze (z.B. bei /16)
         assertTrue(SubnetDetector.getAllSubnets().size() <= 256,
                 "Zu viele Subnetze: " + SubnetDetector.getAllSubnets().size());
     }
@@ -41,6 +40,13 @@ class SubnetDetectorTest {
     void getAllSubnets_noLoopback() throws Exception {
         assertFalse(SubnetDetector.getAllSubnets().contains("127.0.0"),
                 "Loopback darf nicht enthalten sein");
+    }
+
+    @Test
+    void getAllSubnets_noLinkLocal() throws Exception {
+        for (String subnet : SubnetDetector.getAllSubnets())
+            assertFalse(subnet.startsWith("169.254"),
+                    "Link-Local darf nicht enthalten sein: " + subnet);
     }
 
     @Test

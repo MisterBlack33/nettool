@@ -64,14 +64,23 @@ class ScanInfraTest {
         }
 
         @Test
+        void getAllSubnets_noLinkLocal() throws Exception {
+            for (String s : SubnetDetector.getAllSubnets())
+                assertFalse(s.startsWith("169.254"),
+                        "Link-Local darf nicht enthalten sein: " + s);
+        }
+
+        @Test
         void getAllCidrs_validFormat() throws Exception {
             for (String cidr : SubnetDetector.getAllCidrs()) {
                 assertTrue(cidr.contains("/"), "Kein CIDR-Format: " + cidr);
+                int prefix = Integer.parseInt(cidr.split("/")[1]);
+                assertTrue(prefix >= 16, "Prefix zu klein (Link-Local?): " + cidr);
             }
         }
     }
 
-    // ── PingSweep ────────────────────────────────────────────────────────
+    // ── PingSweep ─────────────────────────────────────────────────────────
 
     @Nested
     class PingSweepTest {
@@ -101,7 +110,7 @@ class ScanInfraTest {
         }
     }
 
-    // ── LastScanCache ────────────────────────────────────────────────────
+    // ── LastScanCache ─────────────────────────────────────────────────────
 
     @Nested
     class LastScanCacheTest {
@@ -139,7 +148,7 @@ class ScanInfraTest {
         void getAll_notNull() { assertNotNull(LastScanCache.getAll()); }
     }
 
-    // ── ScanProgress ─────────────────────────────────────────────────────
+    // ── ScanProgress ──────────────────────────────────────────────────────
 
     @Nested
     class ScanProgressTest {
