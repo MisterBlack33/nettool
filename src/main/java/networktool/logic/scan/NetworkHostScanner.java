@@ -23,20 +23,62 @@ public final class NetworkHostScanner {
     private static final Pattern MAC_PATTERN = Pattern.compile(
             "([0-9A-Fa-f]{2}[:\\-]){5}[0-9A-Fa-f]{2}");
     private static final Set<String> INVALID_MACS = Set.of(
-            "00:00:00:00:00:00", "FF:FF:FF:FF:FF:FF", "00:AA:00:00:00:00");
+            "00:00:00:00:00:00", "FF:FF:FF:FF:FF:FF");
 
-    /** Scannt /24-Präfixe (z.B. "192.168.1") — je 254 IPs. */
+    /** Scannt /24-Präfixe — nutzt ARP-Cache + ICMP. */
     public static List<HostResult> scan(List<String> subnets) {
         HostAliveChecker.warmCache();
-        List<String> ips = expandSubnets(subnets);
-        return scanIpList(ips);
+        // ARP-Cache als zusätzliche Quelle: alle Hosts die ARP beantwortet haben
+        Map<String, String> arpHosts = readArpCache(subnets);
+        List<String> ips = mergeIps(expandSubnets(subnets), arpHosts.keySet());
+        return scanIpList(ips, arpHosts);
     }
 
-    /** Scannt einen beliebigen CIDR-Block (korrekte IP-Anzahl für ProgressBar). */
+    /** Scannt einen CIDR-Block. */
     public static List<HostResult> scanCidr(String cidr) {
         HostAliveChecker.warmCache();
         List<String> ips = CIDRUtils.getAllIPs(cidr);
-        return scanIpList(ips);
+        return scanIpList(ips, Collections.emptyMap());
+    }
+
+    // ── ARP-Cache lesen ───────────────────────────────────────────────────
+
+    /**
+     * Liest den ARP-Cache und filtert auf die gewünschten Subnetze.
+     * Gibt IP→MAC zurück.
+     */
+    private static Map<String, String> readArpCache(List<String> subnets) {
+        Map<String, String> result = new LinkedHashMap<>();
+        boolean isWin = System.getProperty("os.name", "").toLowerCase().contains("win");
+        try {
+            Process p = Runtime.getRuntime().exec(isWin ? "arp -a" : "arp -a -n");
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    String[] entry = parseArpLine(line);
+                    if (entry == null) continue;
+                    String ip = entry[0], mac = entry[1];
+                    if (subnets.stream().anyMatch(s -> ip.startsWith(s + ".")))
+                        result.put(ip, mac);
+                }
+            }
+        } catch (Exception ignored) {}
+        System.out.println("[NetworkHostScanner] ARP-Cache: " + result.size() + " Hosts gefunden");
+        return result;
+    }
+
+    private static String[] parseArpLine(String line) {
+        try {
+            Matcher ipM  = Pattern.compile("\\b(\\d{1,3}\\.){3}\\d{1,3}\\b").matcher(line);
+            Matcher macM = MAC_PATTERN.matcher(line);
+            if (!ipM.find() || !macM.find()) return null;
+            String ip  = ipM.group();
+            String mac = macM.group().toUpperCase().replace("-", ":");
+            if (INVALID_MACS.contains(mac)) return null;
+            if (mac.startsWith("FF:FF") || mac.startsWith("01:")) return null;
+            if (ip.endsWith(".0") || ip.endsWith(".255")) return null;
+            return new String[]{ip, mac};
+        } catch (Exception e) { return null; }
     }
 
     private static List<String> expandSubnets(List<String> subnets) {
@@ -47,38 +89,50 @@ public final class NetworkHostScanner {
         return ips;
     }
 
-    // ScanProgress bekommt ips.size() — das ist die echte Host-Anzahl
-    private static List<HostResult> scanIpList(List<String> ips) {
+    /** Vereinigt ICMP-Scan-IPs und ARP-IPs ohne Duplikate. */
+    private static List<String> mergeIps(List<String> scanIps, Set<String> arpIps) {
+        Set<String> merged = new LinkedHashSet<>(scanIps);
+        merged.addAll(arpIps);
+        return new ArrayList<>(merged);
+    }
+
+    // ── Scan ──────────────────────────────────────────────────────────────
+
+    private static List<HostResult> scanIpList(List<String> ips, Map<String, String> knownMacs) {
         System.out.println("Starte Scan: " + ips.size() + " Hosts, Threads: " + THREAD_COUNT);
-        List<HostResult>  found    = Collections.synchronizedList(new ArrayList<>());
-        ScanProgress      progress = new ScanProgress(ips.size());
-        ExecutorService   executor = Executors.newFixedThreadPool(THREAD_COUNT,
+        List<HostResult> found    = Collections.synchronizedList(new ArrayList<>());
+        ScanProgress     progress = new ScanProgress(ips.size());
+        ExecutorService  executor = Executors.newFixedThreadPool(THREAD_COUNT,
                 r -> { Thread t = new Thread(r); t.setDaemon(true); return t; });
 
         for (String host : ips)
-            executor.submit(() -> { scanHost(host, found); progress.step(); });
+            executor.submit(() -> { scanHost(host, found, knownMacs); progress.step(); });
 
         executor.shutdown();
         try { executor.awaitTermination(5, TimeUnit.MINUTES); }
         catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+
+        // Hosts aus ARP-Cache die nicht per ICMP gefunden wurden, direkt hinzufügen
+        Set<String> foundIps = new HashSet<>();
+        found.forEach(h -> foundIps.add(h.ip));
+        knownMacs.forEach((ip, mac) -> {
+            if (!foundIps.contains(ip)) {
+                String hostname = resolveHostname(ip);
+                String os = detectOsFast(ip, hostname, mac);
+                found.add(new HostResult(ip, buildDisplay(hostname, mac), os));
+            }
+        });
 
         persistToHistory(found);
         System.out.println("Scan abgeschlossen: " + found.size() + " Gerät(e) gefunden.");
         return found;
     }
 
-    private static void persistToHistory(List<HostResult> found) {
-        if (found.isEmpty()) return;
-        List<ScanResult> sr = found.stream()
-                .map(h -> new ScanResult(h.ip, h.hostname, h.ports, h.os))
-                .toList();
-        ScanHistory.getInstance().add("Lokaler Scan", sr);
-    }
-
-    private static void scanHost(String ip, List<HostResult> found) {
+    private static void scanHost(String ip, List<HostResult> found, Map<String, String> knownMacs) {
         try {
-            if (!HostAliveChecker.isAlive(ip)) return;
-            String mac      = readMacFromArp(ip);
+            boolean alive = HostAliveChecker.isAlive(ip) || knownMacs.containsKey(ip);
+            if (!alive) return;
+            String mac      = knownMacs.getOrDefault(ip, readMacFromArp(ip));
             String hostname = resolveHostname(ip);
             String os       = detectOsFast(ip, hostname, mac);
             found.add(new HostResult(ip, buildDisplay(hostname, mac), os));
@@ -113,21 +167,16 @@ public final class NetworkHostScanner {
         });
         t.setDaemon(true);
         t.start();
-        try { t.join(DNS_TIMEOUT); } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        try { t.join(DNS_TIMEOUT); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
         return result[0];
     }
 
     private static String netbiosLookup(String ip) {
         boolean win = System.getProperty("os.name", "").toLowerCase().contains("win");
         try {
-            String[] cmd = win
-                    ? new String[]{"nbtstat", "-A", ip}
-                    : new String[]{"nmblookup", "-A", ip};
+            String[] cmd = win ? new String[]{"nbtstat", "-A", ip} : new String[]{"nmblookup", "-A", ip};
             Process p = Runtime.getRuntime().exec(cmd);
-            try (BufferedReader br = new BufferedReader(
-                    new InputStreamReader(p.getInputStream()))) {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     String name = parseNetbiosLine(line, win);
@@ -171,13 +220,12 @@ public final class NetworkHostScanner {
     private static String queryArp(String[] cmd, String targetIp) {
         try {
             Process p = Runtime.getRuntime().exec(cmd);
-            try (BufferedReader br = new BufferedReader(
-                    new InputStreamReader(p.getInputStream()))) {
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     if (!line.contains(targetIp)) continue;
-                    String mac = extractMac(line);
-                    if (mac != null) { p.destroy(); return mac; }
+                    String[] entry = parseArpLine(line);
+                    if (entry != null) { p.destroy(); return entry[1]; }
                 }
             }
             p.destroy();
@@ -185,13 +233,12 @@ public final class NetworkHostScanner {
         return null;
     }
 
-    private static String extractMac(String line) {
-        Matcher m = MAC_PATTERN.matcher(line);
-        if (!m.find()) return null;
-        String mac = m.group().toUpperCase().replace("-", ":");
-        if (INVALID_MACS.contains(mac)) return null;
-        if (mac.startsWith("FF:FF") || mac.startsWith("01:")) return null;
-        return mac;
+    private static void persistToHistory(List<HostResult> found) {
+        if (found.isEmpty()) return;
+        List<ScanResult> sr = found.stream()
+                .map(h -> new ScanResult(h.ip, h.hostname, h.ports, h.os))
+                .toList();
+        ScanHistory.getInstance().add("Lokaler Scan", sr);
     }
 
     private static String buildDisplay(String hostname, String mac) {
