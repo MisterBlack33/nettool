@@ -1,9 +1,6 @@
 // src/main/java/networktool/gui/GuiNetworkMap.java
 package main.java.networktool.gui;
 
-import main.java.networktool.logic.scan.NetworkHostScanner;
-import main.java.networktool.logic.scan.SubnetDetector;
-
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
@@ -15,8 +12,8 @@ import static main.java.networktool.gui.GuiTheme.*;
 
 /**
  * Orchestriert Netzwerk-Topologie-Karte.
- * Rendering → MapCanvas, Klassifizierung → MapTopology/MapNodeClassifier,
- * Hops → MapHopDiscovery, Traffic → MapTrafficObserver.
+ * Liest Hosts aus ScanHistory + NetworkStore – kein eigener Scan.
+ * Hop-Discovery läuft im Hintergrund für Topologie-Verbesserung.
  */
 public final class GuiNetworkMap {
 
@@ -50,7 +47,28 @@ public final class GuiNetworkMap {
 
         dlg.setContentPane(root);
         dlg.setVisible(true);
-        startBackgroundScan(canvas);
+
+        // Initialer Render mit bereits bekannten Daten
+        SwingUtilities.invokeLater(canvas::reload);
+
+        // Hop-Discovery im Hintergrund – verbessert Topologie ohne Scan
+        startHopDiscovery(canvas);
+    }
+
+    private static void startHopDiscovery(MapCanvas canvas) {
+        new Thread(() -> {
+            scanRunning.set(true);
+            if (GUI.isGuiActive()) GUI.instance().setStatus("Hop-Analyse läuft…", ACCENT);
+            try {
+                SwingUtilities.invokeLater(() -> canvas.setStatus("  Traceroute läuft..."));
+                HOP_PARENT.putAll(MapHopDiscovery.discover());
+                SwingUtilities.invokeLater(canvas::reload);
+            } catch (Exception ignored) {
+            } finally {
+                scanRunning.set(false);
+                if (GUI.isGuiActive()) GUI.instance().setStatus("Fertig", ACCENT2);
+            }
+        }, "MapHopDiscovery").start();
     }
 
     private static JLayeredPane buildLayered(MapCanvas canvas, Color bg) {
@@ -85,8 +103,14 @@ public final class GuiNetworkMap {
         JButton refreshBtn = toolBtn("↻",          ACCENT2);
         JButton layoutBtn  = toolBtn("⊞",          INFO);
 
-        addBtn.addActionListener(e -> { MapSwitchStore.add(switchInput.getText().trim()); canvas.reload(); });
-        switchInput.addActionListener(e -> { MapSwitchStore.add(switchInput.getText().trim()); canvas.reload(); });
+        addBtn.addActionListener(e -> {
+            MapSwitchStore.add(switchInput.getText().trim());
+            canvas.reload();
+        });
+        switchInput.addActionListener(e -> {
+            MapSwitchStore.add(switchInput.getText().trim());
+            canvas.reload();
+        });
         refreshBtn.addActionListener(e -> { HOP_PARENT.clear(); canvas.reload(); });
         layoutBtn.addActionListener(e -> canvas.resetLayout());
 
@@ -95,42 +119,21 @@ public final class GuiNetworkMap {
         return bar;
     }
 
-    private static void startBackgroundScan(MapCanvas canvas) {
-        new Thread(() -> {
-            scanRunning.set(true);
-            if (GUI.isGuiActive()) GUI.instance().setStatus("Netzwerk-Karte lädt…", ACCENT);
-            try {
-                java.util.List<String> subnets = SubnetDetector.getAllSubnets();
-                if (!subnets.isEmpty()) {
-                    java.util.List<main.java.networktool.model.HostResult> hosts = NetworkHostScanner.scan(subnets);
-                    // Traffic-Rollen parallel zu Hop-Discovery ermitteln
-                    java.util.List<String> ips = hosts.stream().map(h -> h.ip).toList();
-                    SwingUtilities.invokeLater(() -> canvas.probeTrafficRoles(ips));
-                }
-                SwingUtilities.invokeLater(() -> canvas.setStatus("  Traceroute läuft..."));
-                HOP_PARENT.putAll(MapHopDiscovery.discover());
-                SwingUtilities.invokeLater(canvas::reload);
-            } catch (Exception ignored) {
-            } finally {
-                scanRunning.set(false);
-                if (GUI.isGuiActive()) GUI.instance().setStatus("Fertig", ACCENT2);
-            }
-        }, "MapBgScan").start();
-    }
-
     private static JTextField buildSwitchInput() {
         JTextField f = new JTextField(16);
         f.setFont(new Font("JetBrains Mono", Font.PLAIN, 11));
         f.setForeground(FG);
         f.setBackground(GuiTheme.isDark() ? new Color(0x10, 0x14, 0x10) : Color.WHITE);
         f.setCaretColor(ACCENT);
-        f.setBorder(new CompoundBorder(new LineBorder(new Color(0xFF,0xA0,0x30),1), new EmptyBorder(3,6,3,6)));
+        f.setBorder(new CompoundBorder(
+                new LineBorder(new Color(0xFF, 0xA0, 0x30), 1),
+                new EmptyBorder(3, 6, 3, 6)));
         f.putClientProperty("JTextField.placeholderText", "Switch-IP eingeben…");
         return f;
     }
 
     private static JLabel buildStatusLabel() {
-        JLabel lbl = new JLabel("  Scanne...");
+        JLabel lbl = new JLabel("  Lade Karte...");
         lbl.setFont(new Font("JetBrains Mono", Font.PLAIN, 10));
         lbl.setForeground(FG_DIM);
         lbl.setBorder(new EmptyBorder(3, 8, 3, 8));
@@ -141,8 +144,8 @@ public final class GuiNetworkMap {
         JButton b = new JButton(text);
         b.setFont(new Font("JetBrains Mono", Font.BOLD, 11));
         b.setForeground(fg);
-        b.setBackground(GuiTheme.isDark() ? new Color(0x18,0x22,0x18) : new Color(0xDC,0xDA,0xD4));
-        b.setBorder(new CompoundBorder(new LineBorder(fg.darker(),1), new EmptyBorder(4,8,4,8)));
+        b.setBackground(GuiTheme.isDark() ? new Color(0x18, 0x22, 0x18) : new Color(0xDC, 0xDA, 0xD4));
+        b.setBorder(new CompoundBorder(new LineBorder(fg.darker(), 1), new EmptyBorder(4, 8, 4, 8)));
         b.setFocusPainted(false);
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return b;
