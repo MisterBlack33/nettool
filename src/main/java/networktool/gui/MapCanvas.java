@@ -1,7 +1,6 @@
 // src/main/java/networktool/gui/MapCanvas.java
 package main.java.networktool.gui;
 
-import main.java.networktool.logic.scan.MapTrafficObserver;
 import main.java.networktool.logic.scan.RemoteNetScanner;
 import main.java.networktool.logic.scan.ScanHistory;
 import main.java.networktool.model.HostResult;
@@ -19,14 +18,16 @@ import static main.java.networktool.gui.GuiTheme.*;
 
 /**
  * Rendert die Netzwerk-Topologie-Karte.
- * Trennt Darstellung von Scan-Logik (GuiNetworkMap).
+ * Liest Hosts ausschließlich aus ScanHistory und NetworkStore –
+ * führt keinen eigenen Scan durch.
  */
 final class MapCanvas extends JPanel {
 
     final List<GuiNetworkMap.Node> nodes = new ArrayList<>();
     final List<GuiNetworkMap.Edge> edges = new ArrayList<>();
 
-    private final MapTrafficObserver trafficObserver = new MapTrafficObserver();
+    private final main.java.networktool.logic.scan.MapTrafficObserver trafficObserver =
+            new main.java.networktool.logic.scan.MapTrafficObserver();
     private final Color bg;
 
     private JLabel titleLabel;
@@ -57,7 +58,8 @@ final class MapCanvas extends JPanel {
     }
 
     void reload() {
-        nodes.clear(); edges.clear();
+        nodes.clear();
+        edges.clear();
         GuiNetworkMap.Node gwNode   = collectNodes();
         GuiNetworkMap.Node selfNode = nodes.stream()
                 .filter(n -> n.type == GuiNetworkMap.NodeType.SELF).findFirst().orElse(null);
@@ -97,8 +99,16 @@ final class MapCanvas extends JPanel {
         g2.dispose();
     }
 
-    // ── Node collection ───────────────────────────────────────────────────
+    // ── Node collection (kein Scan – nur lesen) ───────────────────────────
 
+    /**
+     * Sammelt Hosts aus:
+     *  1. Gateway (auto-detect)
+     *  2. Lokale Maschine
+     *  3. ScanHistory (letzte Scan-Ergebnisse)
+     *  4. NetworkStore (gespeicherte Hosts)
+     * Kein Netzwerk-Scan wird ausgelöst.
+     */
     private GuiNetworkMap.Node collectNodes() {
         Set<String> seen = new LinkedHashSet<>();
         GuiNetworkMap.Node gwNode = null;
@@ -113,11 +123,13 @@ final class MapCanvas extends JPanel {
                 addNode(self.getHostAddress(), self.getHostName() + " (ich)", localOs(), GuiNetworkMap.NodeType.SELF);
         } catch (Exception ignored) {}
 
+        // ScanHistory: alle bekannten Scan-Ergebnisse dieser Session
         for (ScanHistory.Entry entry : ScanHistory.getInstance().getAll())
             for (ScanResult r : entry.results)
                 if (seen.add(r.getIp()))
                     addNode(r.getIp(), r.getHostname(), r.getOsGuess(), GuiNetworkMap.NodeType.HOST);
 
+        // NetworkStore: dauerhaft gespeicherte Hosts
         for (HostResult h : NetworkStore.getInstance().getAllHosts())
             if (seen.add(h.ip))
                 addNode(h.ip, cleanHostname(h.hostname), h.os, GuiNetworkMap.NodeType.HOST);
@@ -157,7 +169,9 @@ final class MapCanvas extends JPanel {
         });
         addMouseListener(new MouseAdapter() {
             @Override public void mousePressed(MouseEvent e)  { handlePress(e); }
-            @Override public void mouseReleased(MouseEvent e) { dragNode = null; panning = false; setCursor(Cursor.getDefaultCursor()); }
+            @Override public void mouseReleased(MouseEvent e) {
+                dragNode = null; panning = false; setCursor(Cursor.getDefaultCursor());
+            }
             @Override public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e))
                     Optional.ofNullable(nodeAt(toWorld(e.getPoint()))).ifPresent(
@@ -186,9 +200,13 @@ final class MapCanvas extends JPanel {
             }
         } else if (SwingUtilities.isRightMouseButton(e)) {
             GuiNetworkMap.Node hit = nodeAt(world);
-            if (hit != null && hit.type != GuiNetworkMap.NodeType.GATEWAY && hit.type != GuiNetworkMap.NodeType.SELF)
+            if (hit != null && hit.type != GuiNetworkMap.NodeType.GATEWAY
+                    && hit.type != GuiNetworkMap.NodeType.SELF)
                 MapContextMenu.show(hit, e.getComponent(), e.getX(), e.getY(), this);
-            else { panning = true; panStart = e.getPoint(); setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR)); }
+            else {
+                panning = true; panStart = e.getPoint();
+                setCursor(Cursor.getPredefinedCursor(Cursor.MOVE_CURSOR));
+            }
         }
     }
 
@@ -209,7 +227,8 @@ final class MapCanvas extends JPanel {
     private void updateLabels() {
         int count = hostCount();
         if (titleLabel != null)
-            SwingUtilities.invokeLater(() -> titleLabel.setText("  Netzwerk-Karte  –  " + count + " Hosts"));
+            SwingUtilities.invokeLater(() ->
+                    titleLabel.setText("  Netzwerk-Karte  –  " + count + " Hosts"));
         setStatus("  " + count + " Hosts  |  Switch-IP oben eingeben oder Rechtsklick");
     }
 

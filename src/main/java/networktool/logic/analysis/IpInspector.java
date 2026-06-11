@@ -1,3 +1,4 @@
+// src/main/java/networktool/logic/analysis/IpInspector.java
 package main.java.networktool.logic.analysis;
 
 import main.java.networktool.gui.GUI;
@@ -7,23 +8,15 @@ import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Netzwerk-Diagnose und IP-Detailanalyse.
- *
- *  quickScan()      – ICMP + Ports + OS  (~2 s, ehem. PingUtil)
- *  inspect()        – Vollanalyse: + ARP/MAC + Traceroute  (~30 s)
- *  inspectHopsOnly()– nur Traceroute (für Menüpunkt 10)
- *
- * Traceroute-Logik:   {@link TracerouteRunner}
- * Traceroute-Ausgabe: {@link TracerouteRenderer}
- */
 public final class IpInspector {
 
     private IpInspector() {}
 
-    // ── Öffentliche API ───────────────────────────────────────────────────
+    /** Wenn true: Netzwerk-Operationen werden übersprungen (JUnit). */
+    public static volatile boolean testMode = false;
 
     public static void quickScan(String target, int timeoutMs) {
+        if (testMode) return;
         try {
             InetAddress inet = InetAddress.getByName(target);
             String ip = inet.getHostAddress();
@@ -42,6 +35,7 @@ public final class IpInspector {
     }
 
     public static void inspect(String target) {
+        if (testMode) return;
         try {
             InetAddress inet = InetAddress.getByName(target);
             String ip = inet.getHostAddress();
@@ -56,13 +50,11 @@ public final class IpInspector {
         } catch (Exception e) { System.err.println("Fehler: " + e.getMessage()); }
     }
 
-    /** Nur Traceroute – für Menüpunkt 10 (Netzwerkinfo + Hop-Analyse). */
     public static void inspectHopsOnly(String target) {
+        if (testMode) return;
         try { printTraceroute(InetAddress.getByName(target).getHostAddress(), 0); }
         catch (Exception e) { System.err.println("Traceroute: " + e.getMessage()); }
     }
-
-    // ── Ausgabe-Abschnitte ────────────────────────────────────────────────
 
     private static void printBanner(String title) {
         System.out.println("\n╔══════════════════════════════════════════════╗");
@@ -94,8 +86,8 @@ public final class IpInspector {
         String mac = OsDetector.getMacFromArp(ip);
         if (mac != null) {
             System.out.println("  MAC       : " + mac);
-            String v = OuiDatabase.lookup(mac);
-            System.out.println("  Hersteller: " + (v != null ? v : "unbekannt"));
+            String vendor = OuiDatabase.lookup(mac);
+            System.out.println("  Hersteller: " + (vendor != null ? vendor : "unbekannt"));
         } else {
             System.out.println("  MAC: nicht im ARP-Cache");
         }
@@ -118,8 +110,7 @@ public final class IpInspector {
     }
 
     private static void printTraceroute(String ip, int maxHops) {
-        System.out.println("\n[ Traceroute"
-                + (maxHops > 0 ? " (max. " + maxHops + ")" : " (alle Hops)") + " ]");
+        System.out.println("\n[ Traceroute ]");
         try {
             List<TracerouteRunner.HopInfo> hops = TracerouteRunner.run(ip, maxHops);
             if (hops.isEmpty()) { System.out.println("  Keine Antworten."); return; }
