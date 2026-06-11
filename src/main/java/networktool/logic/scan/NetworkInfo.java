@@ -6,13 +6,10 @@ import main.java.networktool.model.HostResult;
 
 import java.net.*;
 import java.util.*;
-import java.util.concurrent.*;
 
 public final class NetworkInfo {
 
     private NetworkInfo() {}
-
-    private static final int SCAN_TIMEOUT_SEC = 120;
 
     public static volatile boolean testMode = false;
 
@@ -53,7 +50,6 @@ public final class NetworkInfo {
             return;
         }
 
-        // Immer /24-Präfixe — nie rohe CIDR-Expansion (verhindert 65k-Host-Scans)
         List<String> subnets = SubnetDetector.getAllSubnets();
         if (subnets.isEmpty()) {
             System.out.println("Kein gültiges IPv4-Subnetz gefunden.");
@@ -62,32 +58,9 @@ public final class NetworkInfo {
 
         System.out.printf("Scanne %d /24-Subnetz(e)...%n", subnets.size());
 
-        ExecutorService exec = Executors.newSingleThreadExecutor(r -> {
-            Thread t = new Thread(r, "NetworkInfo-Scan");
-            t.setDaemon(true);
-            return t;
-        });
-
-        Future<List<HostResult>> future = exec.submit(
-                () -> NetworkHostScanner.scan(subnets));
-        exec.shutdown();
-
-        List<HostResult> found   = fetchWithTimeout(future);
+        // Kein Timeout — scan läuft bis fertig oder Interrupt
+        List<HostResult> found = NetworkHostScanner.scan(subnets);
         List<HostResult> filtered = HostResultFilter.filter(found, osFilter, hostnameFilter);
         HostResultPrinter.print(filtered, HostResultFilter.buildLabel(osFilter, hostnameFilter));
-    }
-
-    private static List<HostResult> fetchWithTimeout(Future<List<HostResult>> future) {
-        try {
-            return future.get(SCAN_TIMEOUT_SEC, TimeUnit.SECONDS);
-        } catch (TimeoutException e) {
-            future.cancel(true);
-            System.out.println("  [NetworkInfo] Scan-Timeout nach " + SCAN_TIMEOUT_SEC + "s");
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        } catch (ExecutionException e) {
-            System.err.println("  [NetworkInfo] Scan-Fehler: " + e.getCause().getMessage());
-        }
-        return Collections.emptyList();
     }
 }

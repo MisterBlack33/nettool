@@ -9,11 +9,11 @@ public final class SubnetDetector {
 
     private SubnetDetector() {}
 
-    private static final int MIN_PREFIX    = 8;   // /8 ist Minimum (früher /16 → zu eng)
+    private static final int MIN_PREFIX    = 16;
     private static final int MAX_SUBNETS   = 256;
     private static final int MAX_PER_IFACE = 256;
 
-    private static final Set<String> SKIP_PREFIXES = Set.of(
+    private static final Set<String> SKIP_NAME_PREFIXES = Set.of(
             "docker", "br-", "veth", "virbr", "tun", "tap",
             "wg", "utun", "lo", "vmnet", "vbox"
     );
@@ -31,13 +31,6 @@ public final class SubnetDetector {
         return cidrs;
     }
 
-    /**
-     * Liefert alle /24-Präfixe des erkannten Netzes.
-     *
-     * Bei einem /16 (z.B. 10.32.0.0/16) werden alle 256 /24-Blöcke zurückgegeben,
-     * damit Geräte in 10.32.24.x bis 10.32.31.x etc. gefunden werden.
-     * MAX_SUBNETS begrenzt die Gesamtanzahl.
-     */
     public static List<String> getAllSubnets() throws SocketException {
         List<String> result = new ArrayList<>();
         Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces();
@@ -50,11 +43,12 @@ public final class SubnetDetector {
             for (InterfaceAddress ia : ni.getInterfaceAddresses()) {
                 InetAddress addr = ia.getAddress();
                 if (!(addr instanceof Inet4Address)) continue;
+                if (isLinkLocal(addr)) continue;
+
                 int prefix = ia.getNetworkPrefixLength();
                 if (prefix < MIN_PREFIX) continue;
 
                 List<String> prefixes = CIDRUtils.getSubnet24Prefixes(buildCidr(addr, prefix));
-
                 int added = 0;
                 for (String p : prefixes) {
                     if (added >= MAX_PER_IFACE || result.size() >= MAX_SUBNETS) break;
@@ -75,17 +69,22 @@ public final class SubnetDetector {
 
     // ── private ───────────────────────────────────────────────────────────
 
+    private static boolean isLinkLocal(InetAddress addr) {
+        return addr.isLinkLocalAddress() || addr.getHostAddress().startsWith("169.254.");
+    }
+
     private static boolean shouldSkip(NetworkInterface ni) {
         try {
             if (!ni.isUp() || ni.isLoopback() || ni.isVirtual()) return true;
             String name = ni.getName().toLowerCase();
-            return SKIP_PREFIXES.stream().anyMatch(name::startsWith);
+            return SKIP_NAME_PREFIXES.stream().anyMatch(name::startsWith);
         } catch (SocketException e) { return true; }
     }
 
     private static void addCidr(InterfaceAddress ia, List<String> cidrs) {
         InetAddress addr = ia.getAddress();
         if (!(addr instanceof Inet4Address)) return;
+        if (isLinkLocal(addr)) return;
         int prefix = ia.getNetworkPrefixLength();
         if (prefix < MIN_PREFIX) return;
         String cidr = buildCidr(addr, prefix);
