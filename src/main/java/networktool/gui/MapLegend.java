@@ -1,4 +1,3 @@
-// src/main/java/networktool/gui/MapLegend.java
 package main.java.networktool.gui;
 
 import javax.swing.*;
@@ -7,9 +6,7 @@ import java.awt.*;
 
 import static main.java.networktool.gui.GuiTheme.*;
 
-/**
- * Legende für die Netzwerk-Karte.
- */
+/** Legende für die Netzwerk-Karte. */
 final class MapLegend {
 
     private MapLegend() {}
@@ -18,10 +15,14 @@ final class MapLegend {
             {"*", "Ich (lokal)",   ACCENT2},
             {"G", "Gateway",       NET_COL},
             {"S", "Switch/Hub",    new Color(0xFF, 0xA0, 0x30)},
+            {"D", "DNS-Server",    new Color(0x60, 0xD0, 0xFF)},
+            {"H", "DHCP-Server",   new Color(0xFF, 0xC0, 0x40)},
+            {"N", "NTP-Server",    new Color(0xA0, 0xFF, 0xC0)},
             {"W", "Windows",       WIN_COL},
             {"L", "Linux",         LIN_COL},
             {"M", "macOS / iOS",   APL_COL},
             {"A", "Android",       AND_COL},
+            {"π", "Raspberry Pi",  RPI_COL},
             {"P", "Drucker",       PRN_COL},
             {"?", "Unbekannt",     FG_DIM},
     };
@@ -43,8 +44,8 @@ final class MapLegend {
         for (Object[] row : ROWS) {
             JPanel line = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 1));
             line.setOpaque(false);
-            JLabel dot = new JLabel("●");
-            dot.setFont(new Font("JetBrains Mono", Font.PLAIN, 10));
+            JLabel dot = new JLabel((String) row[0]);
+            dot.setFont(new Font("JetBrains Mono", Font.BOLD, 10));
             dot.setForeground((Color) row[2]);
             JLabel lbl = new JLabel((String) row[1]);
             lbl.setFont(new Font("JetBrains Mono", Font.PLAIN, 10));

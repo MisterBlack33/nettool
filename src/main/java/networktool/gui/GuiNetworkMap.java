@@ -1,4 +1,3 @@
-// src/main/java/networktool/gui/GuiNetworkMap.java
 package main.java.networktool.gui;
 
 import javax.swing.*;
@@ -12,8 +11,11 @@ import static main.java.networktool.gui.GuiTheme.*;
 
 /**
  * Orchestriert Netzwerk-Topologie-Karte.
- * Liest Hosts aus ScanHistory + NetworkStore – kein eigener Scan.
- * Hop-Discovery läuft im Hintergrund für Topologie-Verbesserung.
+ *
+ * Daten kommen ausschließlich aus ScanHistory + NetworkStore.
+ * Hintergrund-Tasks:
+ *  1. Hop-Discovery (Traceroute) → Switch-Erkennung per Pfad
+ *  2. Traffic-Probe (DNS/DHCP/mDNS) → Infra-Rollen-Erkennung
  */
 public final class GuiNetworkMap {
 
@@ -48,21 +50,24 @@ public final class GuiNetworkMap {
         dlg.setContentPane(root);
         dlg.setVisible(true);
 
-        // Initialer Render mit bereits bekannten Daten
         SwingUtilities.invokeLater(canvas::reload);
-
-        // Hop-Discovery im Hintergrund – verbessert Topologie ohne Scan
         startHopDiscovery(canvas);
     }
+
+    // ── Hintergrund-Tasks ─────────────────────────────────────────────────
 
     private static void startHopDiscovery(MapCanvas canvas) {
         new Thread(() -> {
             scanRunning.set(true);
             if (GUI.isGuiActive()) GUI.instance().setStatus("Hop-Analyse läuft…", ACCENT);
             try {
-                SwingUtilities.invokeLater(() -> canvas.setStatus("  Traceroute läuft..."));
+                canvas.setStatus("  Traceroute läuft…");
                 HOP_PARENT.putAll(MapHopDiscovery.discover());
-                SwingUtilities.invokeLater(canvas::reload);
+                SwingUtilities.invokeLater(() -> {
+                    canvas.reload();
+                    // Nach Hop-Discovery Traffic-Probe starten
+                    canvas.runTrafficProbing();
+                });
             } catch (Exception ignored) {
             } finally {
                 scanRunning.set(false);
@@ -70,6 +75,8 @@ public final class GuiNetworkMap {
             }
         }, "MapHopDiscovery").start();
     }
+
+    // ── Layout ────────────────────────────────────────────────────────────
 
     private static JLayeredPane buildLayered(MapCanvas canvas, Color bg) {
         JLayeredPane pane = new JLayeredPane() {
@@ -81,7 +88,8 @@ public final class GuiNetworkMap {
                 legend.setBounds(10, h - ls.height - 10, ls.width, ls.height);
             }
         };
-        pane.setBackground(bg); pane.setOpaque(true);
+        pane.setBackground(bg);
+        pane.setOpaque(true);
         pane.add(canvas, JLayeredPane.DEFAULT_LAYER);
         pane.add(MapLegend.build(), JLayeredPane.PALETTE_LAYER);
         return pane;
@@ -99,23 +107,41 @@ public final class GuiNetworkMap {
         canvas.setTitleLabel(titleLabel);
 
         JTextField switchInput = buildSwitchInput();
-        JButton addBtn     = toolBtn("+ Switch",  new Color(0xFF, 0xA0, 0x30));
-        JButton refreshBtn = toolBtn("↻",          ACCENT2);
-        JButton layoutBtn  = toolBtn("⊞",          INFO);
+
+        JButton addBtn     = toolBtn("+S",         new Color(0xFF, 0xA0, 0x30));
+        JButton refreshBtn = toolBtn("↻",           ACCENT2);
+        JButton layoutBtn  = toolBtn("⊞",           INFO);
+        JButton probeBtn   = toolBtn("DNS/DHCP",    new Color(0xA0, 0xD8, 0xFF));
+
+        addBtn.setToolTipText("Switch-IP manuell hinzufügen");
+        probeBtn.setToolTipText("DNS/DHCP/mDNS-Rollen erneut erkennen");
+        refreshBtn.setToolTipText("Karte + Hop-Discovery neu laden");
+        layoutBtn.setToolTipText("Layout zurücksetzen");
 
         addBtn.addActionListener(e -> {
-            MapSwitchStore.add(switchInput.getText().trim());
-            canvas.reload();
+            String ip = switchInput.getText().trim();
+            if (!ip.isBlank()) {
+                MapSwitchStore.add(ip);
+                switchInput.setText("");
+                canvas.reload();
+            }
         });
-        switchInput.addActionListener(e -> {
-            MapSwitchStore.add(switchInput.getText().trim());
-            canvas.reload();
-        });
-        refreshBtn.addActionListener(e -> { HOP_PARENT.clear(); canvas.reload(); });
-        layoutBtn.addActionListener(e -> canvas.resetLayout());
+        switchInput.addActionListener(e -> addBtn.doClick());
 
-        bar.add(titleLabel); bar.add(switchInput);
-        bar.add(addBtn); bar.add(refreshBtn); bar.add(layoutBtn);
+        refreshBtn.addActionListener(e -> {
+            HOP_PARENT.clear();
+            canvas.reload();
+            startHopDiscovery(canvas);
+        });
+        layoutBtn.addActionListener(e -> canvas.resetLayout());
+        probeBtn.addActionListener(e -> canvas.runTrafficProbing());
+
+        bar.add(titleLabel);
+        bar.add(switchInput);
+        bar.add(addBtn);
+        bar.add(refreshBtn);
+        bar.add(layoutBtn);
+        bar.add(probeBtn);
         return bar;
     }
 
@@ -133,7 +159,7 @@ public final class GuiNetworkMap {
     }
 
     private static JLabel buildStatusLabel() {
-        JLabel lbl = new JLabel("  Lade Karte...");
+        JLabel lbl = new JLabel("  Lade Karte…");
         lbl.setFont(new Font("JetBrains Mono", Font.PLAIN, 10));
         lbl.setForeground(FG_DIM);
         lbl.setBorder(new EmptyBorder(3, 8, 3, 8));
@@ -148,6 +174,14 @@ public final class GuiNetworkMap {
         b.setBorder(new CompoundBorder(new LineBorder(fg.darker(), 1), new EmptyBorder(4, 8, 4, 8)));
         b.setFocusPainted(false);
         b.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        b.addMouseListener(new MouseAdapter() {
+            public void mouseEntered(MouseEvent e) {
+                b.setBackground(GuiTheme.isDark() ? new Color(0x24, 0x30, 0x24) : new Color(0xCC, 0xCA, 0xC4));
+            }
+            public void mouseExited(MouseEvent e) {
+                b.setBackground(GuiTheme.isDark() ? new Color(0x18, 0x22, 0x18) : new Color(0xDC, 0xDA, 0xD4));
+            }
+        });
         return b;
     }
 
@@ -160,6 +194,7 @@ public final class GuiNetworkMap {
         String ip, hostname, os;
         NodeType type;
         int x, y;
+
         Node(String ip, String hn, String os, NodeType type) {
             this.ip = ip; hostname = hn; this.os = os; this.type = type;
         }
@@ -168,6 +203,9 @@ public final class GuiNetworkMap {
     static class Edge {
         final Node from, to;
         final EdgeType type;
-        Edge(Node from, Node to, EdgeType type) { this.from = from; this.to = to; this.type = type; }
+
+        Edge(Node from, Node to, EdgeType type) {
+            this.from = from; this.to = to; this.type = type;
+        }
     }
 }
