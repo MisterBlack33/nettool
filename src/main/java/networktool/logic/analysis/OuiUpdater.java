@@ -7,10 +7,10 @@ import java.util.*;
 
 /**
  * Lädt die IEEE OUI-Datenbank von der offiziellen Quelle herunter
- * und cached sie lokal als txt/oui_cache.txt.
+ * und cached sie lokal als data/oui_cache.bin (binäres Mapping).
  *
  * Beim ersten Start automatisch ausgeführt (wenn keine Cache-Datei existiert).
- * Format: "XX:XX:XX  Herstellername"
+ * Format (binär): int count, then count * (UTF oui, UTF vendor)
  */
 public final class OuiUpdater {
 
@@ -18,7 +18,7 @@ public final class OuiUpdater {
 
     private static final String OUI_URL  =
             "https://standards-oui.ieee.org/oui/oui.txt";
-    private static final String CACHE_FILE = "oui_cache.txt";
+    private static final String CACHE_FILE = "oui_cache.bin";
     private static final int    TIMEOUT_MS = 10_000;
 
     // Geladene externe OUIs (zusätzlich zu OuiDatabase-Einträgen)
@@ -31,19 +31,19 @@ public final class OuiUpdater {
      * Schaut zuerst im Cache nach. Wenn nicht vorhanden → Download starten.
      * Läuft asynchron damit GUI nicht blockiert.
      */
-    public static void initAsync(Path txtDir) {
-        Thread t = new Thread(() -> init(txtDir), "OUI-Updater");
+    public static void initAsync(Path dataDir) {
+        Thread t = new Thread(() -> init(dataDir), "OUI-Updater");
         t.setDaemon(true);
         t.start();
     }
 
     /** Synchrones Laden (für Tests). */
-    public static void init(Path txtDir) {
-        Path cache = txtDir.resolve(CACHE_FILE);
+    public static void init(Path dataDir) {
+        Path cache = dataDir.resolve(CACHE_FILE);
         if (Files.exists(cache)) {
             loadCache(cache);
         } else {
-            download(txtDir, cache);
+            download(dataDir, cache);
         }
     }
 
@@ -56,8 +56,8 @@ public final class OuiUpdater {
     }
 
     /** Erzwingt einen Download (ignoriert Cache). */
-    public static void forceUpdate(Path txtDir) {
-        download(txtDir, txtDir.resolve(CACHE_FILE));
+    public static void forceUpdate(Path dataDir) {
+        download(dataDir, dataDir.resolve(CACHE_FILE));
     }
 
     public static int extendedCount() { return EXTENDED.size(); }
@@ -65,10 +65,10 @@ public final class OuiUpdater {
 
     // ── Download ─────────────────────────────────────────────────────────
 
-    private static void download(Path txtDir, Path cache) {
+    private static void download(Path dataDir, Path cache) {
         System.out.println("[OUI-Updater] Lade IEEE OUI-Datenbank...");
         try {
-            Files.createDirectories(txtDir);
+            Files.createDirectories(dataDir);
             URL url = new URL(OUI_URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
             conn.setConnectTimeout(TIMEOUT_MS);
@@ -93,9 +93,17 @@ public final class OuiUpdater {
                     }
                 }
             }
-            Files.write(cache, lines, StandardOpenOption.CREATE,
-                    StandardOpenOption.TRUNCATE_EXISTING);
-            System.out.println("[OUI-Updater] " + lines.size() + " Eintraege gespeichert.");
+            // Schreibe kompakt binär: count + (oui, vendor)
+            try (var out = new DataOutputStream(Files.newOutputStream(cache,
+                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING))) {
+                out.writeInt(lines.size());
+                for (String l : lines) {
+                    String[] p = l.split("\t", 2);
+                    out.writeUTF(p[0]);
+                    out.writeUTF(p.length > 1 ? p[1] : "");
+                }
+            }
+            System.out.println("[OUI-Updater] " + lines.size() + " Eintraege gespeichert (bin).");
             loadCache(cache);
         } catch (Exception e) {
             System.out.println("[OUI-Updater] Download fehlgeschlagen: " + e.getMessage());
@@ -105,18 +113,19 @@ public final class OuiUpdater {
     }
 
     private static void loadCache(Path cache) {
-        try {
-            int count = 0;
-            for (String line : Files.readAllLines(cache)) {
-                if (line.isBlank()) continue;
-                String[] p = line.split("\t", 2);
-                if (p.length == 2) {
-                    EXTENDED.put(p[0].trim().toUpperCase(), p[1].trim());
-                    count++;
+        try (var in = new DataInputStream(Files.newInputStream(cache))) {
+            int count = in.readInt();
+            int loadedCount = 0;
+            for (int i = 0; i < count; i++) {
+                String oui = in.readUTF();
+                String vendor = in.readUTF();
+                if (oui != null && !oui.isBlank()) {
+                    EXTENDED.put(oui.trim().toUpperCase(), vendor != null ? vendor.trim() : "");
+                    loadedCount++;
                 }
             }
             loaded = true;
-            System.out.println("[OUI-Updater] " + count + " OUI-Eintraege geladen.");
+            System.out.println("[OUI-Updater] " + loadedCount + " OUI-Eintraege geladen.");
         } catch (IOException e) {
             System.err.println("[OUI-Updater] Cache-Ladefehler: " + e.getMessage());
         }

@@ -24,7 +24,11 @@ class MessagingTest {
 
     @Test
     void startListener_doesNotThrow() {
-        assertDoesNotThrow(MessageSender::startListener);
+        assertDoesNotThrow(() -> {
+            MessageSender.startListener();
+            // Listener sofort wieder stoppen damit er andere Tests nicht beeinflusst
+            MessageSender.stopListener();
+        });
     }
 
     @Test

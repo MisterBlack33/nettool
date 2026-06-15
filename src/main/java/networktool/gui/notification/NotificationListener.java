@@ -33,6 +33,9 @@ public final class NotificationListener {
                 return t;
             });
 
+    // Halte Referenz auf den TCP-Server damit Tests sauber stoppen können
+    private static volatile ServerSocket tcpServerSocket = null;
+
     // ── Öffentliche API ───────────────────────────────────────────────────
 
     public static void start() {
@@ -52,19 +55,44 @@ public final class NotificationListener {
 
     private static void startTcpListener() {
         Thread t = new Thread(() -> {
-            try (ServerSocket ss = new ServerSocket(MessageSender.NETTOOL_LISTENER_PORT)) {
-                while (!ss.isClosed()) {
-                    try { handleTcpClient(ss.accept()); }
-                    catch (IOException ignored) {}
+            try {
+                tcpServerSocket = new ServerSocket(MessageSender.NETTOOL_LISTENER_PORT);
+                try (ServerSocket ss = tcpServerSocket) {
+                    while (!ss.isClosed()) {
+                        try { handleTcpClient(ss.accept()); }
+                        catch (IOException ignored) {}
+                    }
                 }
             } catch (IOException e) {
                 System.out.println("[NetTool] TCP-Port "
                         + MessageSender.NETTOOL_LISTENER_PORT
                         + " nicht verfügbar: " + e.getMessage());
+            } finally {
+                tcpServerSocket = null;
             }
         }, "NetTool-TCP-Listener");
         t.setDaemon(true);
         t.start();
+    }
+
+    /** Stoppt laufende Listener/Subskriptionen — nützlich für Tests. */
+    public static void stop() {
+        // TCP-Server schließen
+        try {
+            if (tcpServerSocket != null && !tcpServerSocket.isClosed()) {
+                tcpServerSocket.close();
+            }
+        } catch (IOException ignored) {}
+        tcpServerSocket = null;
+
+        // ntfy-Subscriptions abbrechen
+        for (Future<?> f : ntfySubscriptions.values()) {
+            f.cancel(true);
+        }
+        ntfySubscriptions.clear();
+
+        // Executor nicht vollständig herunterfahren (kann erneut verwendet werden),
+        // wir löschen nur gespeicherte Subscriptions.
     }
 
     private static void handleTcpClient(Socket client) {

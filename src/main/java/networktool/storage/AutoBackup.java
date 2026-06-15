@@ -95,7 +95,7 @@ public final class AutoBackup {
         try {
             Path dir    = backupDir();
             Path srcDir = NetworkStorePersistence.savedDir(
-                    NetworkStorePersistence.resolveTxtDir());
+                    NetworkStorePersistence.resolveDataDir());
             Files.createDirectories(dir);
             DataExporter.exportBackup(dir, srcDir, buildExportName());
             if (!testMode) pruneOldBackups(dir);
@@ -147,6 +147,6 @@ public final class AutoBackup {
     }
 
     private Path backupDir() {
-        return NetworkStorePersistence.resolveTxtDir().resolve("backups");
+        return NetworkStorePersistence.resolveDataDir().resolve("backups");
     }
 }

@@ -16,36 +16,38 @@ final class NetworkStorePersistence {
     static final String FILE_EXT     = ".json";
     static final String ALL_FILE     = "all.json";
     static final String NTFY_FILE    = "ntfyTopics.json";
+    // Legacy: ältere saved_hosts.txt
     static final String LEGACY_FILE  = "saved_hosts.txt";
     static final String LEGACY_EXT   = ".txt";
 
     // ── Path resolution ───────────────────────────────────────────────────
 
-    static Path resolveTxtDir() {
+    // Neu: liefert das Verzeichnis 'data' (früher 'txt')
+    static Path resolveDataDir() {
         try {
             URL  url  = NetworkStorePersistence.class.getProtectionDomain()
                     .getCodeSource().getLocation();
             Path base = Paths.get(url.toURI()).toAbsolutePath().normalize();
             if (base.toString().endsWith(".jar"))
-                return base.getParent().resolve("txt");
+                return base.getParent().resolve("data");
             String pkg     = NetworkStorePersistence.class.getPackageName().replace('.', '/');
             String rootPkg = pkg.contains("/") ? pkg.substring(0, pkg.indexOf('/')) : pkg;
-            Path candidate = base.resolve(rootPkg).resolve("txt");
+            Path candidate = base.resolve(rootPkg).resolve("data");
             try { Files.createDirectories(candidate); return candidate; }
             catch (IOException ignored) {}
         } catch (URISyntaxException | SecurityException ignored) {}
-        return Paths.get(System.getProperty("user.dir"), "networktool", "txt");
+        return Paths.get(System.getProperty("user.dir"), "networktool", "data");
     }
 
-    static Path savedDir(Path txtDir) {
-        return txtDir.resolve(SAVED_SUBDIR);
+    static Path savedDir(Path dataDir) {
+        return dataDir.resolve(SAVED_SUBDIR);
     }
 
     // ── Load ──────────────────────────────────────────────────────────────
 
-    static void loadAll(Path txtDir, Map<String, List<HostResult>> networks,
+    static void loadAll(Path dataDir, Map<String, List<HostResult>> networks,
                         Map<String, String> prefixes) {
-        Path saved = savedDir(txtDir);
+        Path saved = savedDir(dataDir);
         if (!Files.isDirectory(saved)) return;
         try {
             Files.list(saved)
@@ -80,10 +82,10 @@ final class NetworkStorePersistence {
 
     // ── Save ──────────────────────────────────────────────────────────────
 
-    static void saveNetwork(Path txtDir, String name,
+    static void saveNetwork(Path dataDir, String name,
                             List<HostResult> hosts, String prefix) {
         try {
-            Path dir = savedDir(txtDir);
+            Path dir = savedDir(dataDir);
             Files.createDirectories(dir);
             Files.writeString(dir.resolve(name + FILE_EXT),
                     HostJsonBuilder.buildNetworkJson(name, prefix != null ? prefix : "", hosts),
@@ -94,9 +96,9 @@ final class NetworkStorePersistence {
         }
     }
 
-    static void saveAllFile(Path txtDir, Map<String, List<HostResult>> networks) {
+    static void saveAllFile(Path dataDir, Map<String, List<HostResult>> networks) {
         try {
-            Path dir = savedDir(txtDir);
+            Path dir = savedDir(dataDir);
             Files.createDirectories(dir);
             Set<String> seen = new LinkedHashSet<>();
             StringBuilder sb = new StringBuilder("{\n  \"generated\": true,\n  \"entries\": [\n");
@@ -119,18 +121,18 @@ final class NetworkStorePersistence {
 
     // ── ntfy topics — delegated ───────────────────────────────────────────
 
-    static List<String> loadNtfyTopics(Path txtDir) {
-        return NetworkStoreNtfy.loadTopics(txtDir);
+    static List<String> loadNtfyTopics(Path dataDir) {
+        return NetworkStoreNtfy.loadTopics(dataDir);
     }
 
-    static void saveNtfyTopic(Path txtDir, String topic) {
-        NetworkStoreNtfy.saveTopic(txtDir, topic);
+    static void saveNtfyTopic(Path dataDir, String topic) {
+        NetworkStoreNtfy.saveTopic(dataDir, topic);
     }
 
     // ── Legacy migration — delegated ──────────────────────────────────────
 
-    static boolean needsLegacyImport(Path txtDir) {
-        return NetworkStoreLegacy.needsImport(txtDir);
+    static boolean needsLegacyImport(Path dataDir) {
+        return NetworkStoreLegacy.needsImport(dataDir);
     }
 
     static void loadFile(Path file, String name, Map<String, List<HostResult>> networks) {
@@ -145,6 +147,39 @@ final class NetworkStorePersistence {
 
     static Map<Integer, String> parsePorts(String s) {
         return NetworkStoreLegacy.parsePorts(s);
+    }
+
+    /**
+     * Führt einmalige Legacy-Migrationen von alten ".txt"-Speichern in das
+     * neue Datenverzeichnis durch. Ziel ist es, vorhandene Legacy-Dateien
+     * automatisch in die neuen Formate zu überführen (binär/json), ohne dass
+     * Nutzer- oder Testcode manuell eingreifen muss.
+     */
+    static void migrateLegacyTxtFiles(Path dataDir) {
+        if (dataDir == null) return;
+        try {
+            // 1) Trigger SavedHostsStore migration: setFilePath() lädt und migriert
+            try {
+                main.java.networktool.storage.SavedHostsStore.getInstance()
+                        .setFilePath(dataDir.resolve("saved_hosts.bin"));
+            } catch (Throwable t) {
+                System.err.println("[NetworkStorePersistence] SavedHostsStore migration failed: " + t.getMessage());
+            }
+
+            // 2) Trigger ScanProfileStore constructor/migration
+            try {
+                main.java.networktool.storage.ScanProfileStore.getInstance();
+            } catch (Throwable t) {
+                System.err.println("[NetworkStorePersistence] ScanProfileStore migration failed: " + t.getMessage());
+            }
+
+            // 3) Delegate network .txt -> .json conversion via NetworkStoreLegacy
+            try {
+                NetworkStoreLegacy.needsImport(dataDir);
+            } catch (Throwable t) {
+                System.err.println("[NetworkStorePersistence] NetworkStoreLegacy migration failed: " + t.getMessage());
+            }
+        } catch (Exception ignored) {}
     }
 
     // Backward compat

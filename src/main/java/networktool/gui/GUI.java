@@ -93,7 +93,7 @@ public class GUI extends JFrame {
         }
 
         MessageSender.startListener();
-        OuiUpdater.initAsync(NetworkStore.getInstance().txtDir);
+        OuiUpdater.initAsync(NetworkStore.getInstance().dataDir);
 
         // SecurityMonitor nach 5 s passiv starten
         new Thread(() -> {

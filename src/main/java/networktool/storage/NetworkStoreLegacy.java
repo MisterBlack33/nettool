@@ -11,13 +11,13 @@ final class NetworkStoreLegacy {
 
     private NetworkStoreLegacy() {}
 
-    static boolean needsImport(Path txtDir) {
-        Path newSaved = NetworkStorePersistence.savedDir(txtDir);
-        Path oldSaved = txtDir.resolve("saved");
+    static boolean needsImport(Path dataDir) {
+        Path newSaved = NetworkStorePersistence.savedDir(dataDir);
+        Path oldSaved = dataDir.resolve("saved");
         if (Files.isDirectory(oldSaved) && !Files.isDirectory(newSaved)) {
             try { Files.move(oldSaved, newSaved); } catch (IOException ignored) {}
         }
-        if (Files.isDirectory(newSaved)) convertTxtFiles(newSaved);
+        if (Files.isDirectory(newSaved)) convertLegacyFiles(newSaved);
         try {
             if (!Files.isDirectory(newSaved)) return true;
             return Files.list(newSaved)
@@ -28,7 +28,7 @@ final class NetworkStoreLegacy {
         }
     }
 
-    private static void convertTxtFiles(Path dir) {
+    private static void convertLegacyFiles(Path dir) {
         try {
             Files.list(dir)
                     .filter(p -> p.getFileName().toString().endsWith(NetworkStorePersistence.LEGACY_EXT)

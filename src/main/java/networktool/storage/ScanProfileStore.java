@@ -10,7 +10,7 @@ import java.util.*;
 /**
  * Speichert und lädt Scan-Profile als JSON.
  *
- * Datei: txt/scanProfiles.json
+ * Datei: data/scanProfiles.json (früher: txt/scanProfiles.json)
  * Legacy-Migration: scanProfiles.txt → JSON wird automatisch einmalig durchgeführt.
  *
  * Singleton, thread-sicher.
@@ -29,7 +29,7 @@ public final class ScanProfileStore {
     private Path filePath;
 
     private ScanProfileStore() {
-        filePath = StorageUtils.resolveTxtDir().resolve(JSON_FILE);
+        filePath = StorageUtils.resolveDataDir().resolve(JSON_FILE);
         load();
     }
 

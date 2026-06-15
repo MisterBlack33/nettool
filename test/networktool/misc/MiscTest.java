@@ -93,7 +93,7 @@ class MiscTest {
     @Nested
     class StorageUtilsTest {
 
-        @Test void resolveTxtDir_notNull()               { assertNotNull(StorageUtils.resolveTxtDir()); }
+        @Test void resolveDataDir_notNull()              { assertNotNull(StorageUtils.resolveDataDir()); }
         @Test void extractJsonStr_delegatesToJsonHelper() { assertEquals("value", StorageUtils.extractJsonStr("{\"key\":\"value\"}", "key")); }
         @Test void escapeJson_escapesQuotes()             { assertTrue(StorageUtils.escapeJson("say \"hi\"").contains("\\\"")); }
         @Test void escapeJson_null_returnsEmpty()         { assertEquals("", StorageUtils.escapeJson(null)); }

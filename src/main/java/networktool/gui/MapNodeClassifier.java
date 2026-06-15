@@ -30,8 +30,22 @@ final class MapNodeClassifier {
     private static final List<String> END_HN = List.of(
             "desktop", "laptop", "phone", "mobile", "tablet",
             "iphone", "ipad", "galaxy", "pixel", "macbook", "imac",
-            "sm-a", "sm-g", "sm-s", "sm-n", "a21s", "a21", "a31", "a51", "a52s", "a52", "a53", "a54",
-            "printer", "drucker", "epson", "canon", "brother", "kyocera"
+            // Samsung Galaxy S-Serie (alle Generationen)
+            "s10", "s11", "s20", "s21", "s22", "s23", "s24",
+            // Samsung Galaxy A-Serie (alle Generationen)
+            "sm-a", "a10", "a11", "a12", "a13", "a14", "a15",
+            "a20", "a21", "a22", "a23", "a24", "a25",
+            "a30", "a31", "a32", "a33", "a34", "a35",
+            "a40", "a41", "a42", "a43", "a44", "a45",
+            "a50", "a51", "a52", "a53", "a54", "a55",
+            "a60", "a70", "a71", "a72", "a73", "a80",
+            "a90", "a91",
+            // Samsung Galaxy Z-Serie (Foldables)
+            "z-flip", "z-fold",
+            // Samsung Galaxy Note-Serie
+            "note", "sm-n",
+            // Drucker und Scanner
+            "printer", "drucker", "epson", "canon", "brother", "kyocera", "xerox", "ricoh"
     );
     private static final Set<Integer> INFRA_PORTS   = Set.of(161, 162, 23, 179, 830, 4786);
     private static final Set<Integer> END_PORTS      = Set.of(3389, 445, 5985, 9100, 515, 631);

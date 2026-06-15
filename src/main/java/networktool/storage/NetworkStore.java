@@ -19,17 +19,19 @@ public final class NetworkStore {
 
     private final NetworkRegistry        registry  = new NetworkRegistry();
     private final List<Runnable>         listeners = new ArrayList<>();
-    public  final Path txtDir;
+    public  final Path dataDir;
 
     public enum SortField { IP, HOSTNAME, OS }
     private volatile SortField sortField = SortField.IP;
     private volatile boolean   sortAsc   = true;
 
     private NetworkStore() {
-        txtDir = NetworkStorePersistence.resolveTxtDir();
-        System.out.println("[NetworkStore] " + txtDir.toAbsolutePath());
-        try { Files.createDirectories(NetworkStorePersistence.savedDir(txtDir)); }
+        dataDir = NetworkStorePersistence.resolveDataDir();
+        System.out.println("[NetworkStore] " + dataDir.toAbsolutePath());
+        try { Files.createDirectories(NetworkStorePersistence.savedDir(dataDir)); }
         catch (IOException ignored) {}
+        // Führe zentrale Legacy-Migrationen durch (falls alte .txt Dateien vorhanden)
+        NetworkStorePersistence.migrateLegacyTxtFiles(dataDir);
         importLegacyIfNeeded();
         loadAll();
         registry.ensureDefault();
@@ -48,14 +50,14 @@ public final class NetworkStore {
 
     public synchronized void renameNetwork(String oldName, String newName) {
         String safe = safeName(newName);
-        if (registry.rename(oldName, newName, txtDir)) {
+        if (registry.rename(oldName, newName, dataDir)) {
             persist(safe);
             notifyListeners();
         }
     }
 
     public synchronized void deleteNetwork(String name) {
-        if (registry.delete(name, txtDir)) {
+        if (registry.delete(name, dataDir)) {
             regenerateAllFile();
             notifyListeners();
         }
@@ -161,8 +163,8 @@ public final class NetworkStore {
         if (l != null) listeners.add(l);
     }
 
-    public List<String> getNtfyTopics()             { return NetworkStorePersistence.loadNtfyTopics(txtDir); }
-    public void         saveNtfyTopic(String topic)  { NetworkStorePersistence.saveNtfyTopic(txtDir, topic); }
+    public List<String> getNtfyTopics()             { return NetworkStorePersistence.loadNtfyTopics(dataDir); }
+    public void         saveNtfyTopic(String topic)  { NetworkStorePersistence.saveNtfyTopic(dataDir, topic); }
 
     // ── Internal ──────────────────────────────────────────────────────────
 
@@ -179,29 +181,29 @@ public final class NetworkStore {
     private void persistOwner(String ip) {
         String cat = NetworkStoreHostOps.findNetwork(ip, registry.networks());
         if (cat != null) NetworkStorePersistence.saveNetwork(
-                txtDir, cat, registry.networks().get(cat), registry.prefix(cat));
+                dataDir, cat, registry.networks().get(cat), registry.prefix(cat));
     }
 
     private void loadAll() {
-        NetworkStorePersistence.loadAll(txtDir, registry.networks(), registry.prefixes());
+        NetworkStorePersistence.loadAll(dataDir, registry.networks(), registry.prefixes());
         System.out.println("[NetworkStore] " + registry.networks().size() + " Netz(e), "
                 + NetworkStoreHostOps.allMutable(registry.networks()).size() + " Hosts.");
     }
 
     private void persist(String cat) {
-        NetworkStorePersistence.saveNetwork(txtDir, cat,
+        NetworkStorePersistence.saveNetwork(dataDir, cat,
                 registry.networks().getOrDefault(cat, Collections.emptyList()),
                 registry.prefix(cat));
         regenerateAllFile();
     }
 
     private void regenerateAllFile() {
-        NetworkStorePersistence.saveAllFile(txtDir, registry.networks());
+        NetworkStorePersistence.saveAllFile(dataDir, registry.networks());
     }
 
     private void importLegacyIfNeeded() {
-        if (!NetworkStorePersistence.needsLegacyImport(txtDir)) return;
-        Path legacy = txtDir.resolve(NetworkStorePersistence.LEGACY_FILE);
+        if (!NetworkStorePersistence.needsLegacyImport(dataDir)) return;
+        Path legacy = dataDir.resolve(NetworkStorePersistence.LEGACY_FILE);
         if (!Files.exists(legacy)) return;
         registry.networks().put(NetworkRegistry.DEFAULT_CAT, new ArrayList<>());
         NetworkStorePersistence.loadFile(legacy, NetworkRegistry.DEFAULT_CAT, registry.networks());

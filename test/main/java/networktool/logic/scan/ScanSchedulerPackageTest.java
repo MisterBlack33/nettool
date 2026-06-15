@@ -3,6 +3,7 @@ package main.java.networktool.logic.scan;
 import main.java.networktool.model.ScanProfile;
 import main.java.networktool.storage.ScanProfileStore;
 import main.java.networktool.storage.TestConstants;
+import networktool.util.PollHelper;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -21,37 +22,38 @@ class ScanSchedulerPackageTest {
         ScanProfileStore.getInstance().delete(PROFILE);
     }
 
-    @Test void start_knownProfile_isRunning() throws InterruptedException {
+    @Test void start_knownProfile_isRunning() {
         sched.start(PROFILE, 999, "");
-        Thread.sleep(100);
-        assertTrue(sched.isRunning(PROFILE));
+        assertTrue(PollHelper.waitFor(() -> sched.isRunning(PROFILE), 2000),
+                "Scanner sollte innerhalb von 2 Sekunden laufen");
     }
 
-    @Test void stop_afterStart_notRunning() throws InterruptedException {
+    @Test void stop_afterStart_notRunning() {
         sched.start(PROFILE, 999, "");
-        Thread.sleep(100);
+        assertTrue(PollHelper.waitFor(() -> sched.isRunning(PROFILE), 2000));
         sched.stop(PROFILE);
-        assertFalse(sched.isRunning(PROFILE));
+        assertTrue(PollHelper.waitFor(() -> !sched.isRunning(PROFILE), 2000),
+                "Scanner sollte innerhalb von 2 Sekunden gestoppt sein");
     }
 
-    @Test void getRunning_containsStarted() throws InterruptedException {
+    @Test void getRunning_containsStarted() {
         sched.start(PROFILE, 999, "");
-        Thread.sleep(100);
-        assertTrue(sched.getRunning().contains(PROFILE));
+        assertTrue(PollHelper.waitFor(() -> sched.getRunning().contains(PROFILE), 2000),
+                "Started Scanner sollte in getRunning() enthalten sein");
     }
 
-    @Test void startTwice_replacesExisting() throws InterruptedException {
+    @Test void startTwice_replacesExisting() {
         sched.start(PROFILE, 999, "");
-        Thread.sleep(50);
         sched.start(PROFILE, 999, "");
-        Thread.sleep(50);
-        assertEquals(1, sched.getRunning().stream().filter(PROFILE::equals).count());
+        assertTrue(PollHelper.waitFor(() ->
+                sched.getRunning().stream().filter(PROFILE::equals).count() == 1, 2000),
+                "Sollte nur noch 1 Instanz des Profils gibt");
     }
 
-    @Test void stopAll_clearsAll() throws InterruptedException {
+    @Test void stopAll_clearsAll() {
         sched.start(PROFILE, 999, "");
-        Thread.sleep(50);
         sched.stopAll();
-        assertTrue(sched.getRunning().isEmpty());
+        assertTrue(PollHelper.waitFor(() -> sched.getRunning().isEmpty(), 2000),
+                "getRunning() sollte leer sein nach stopAll()");
     }
 }

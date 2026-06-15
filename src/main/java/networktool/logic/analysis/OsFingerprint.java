@@ -5,6 +5,12 @@ import java.util.Map;
 /**
  * Kombiniert TTL und offene Ports zu einer OS-Heuristik.
  * Präziser als TTL oder Ports allein. Package-private.
+ *
+ * VERBESSERT: Fallback-Strategie für Firewall-Umgebungen
+ *  • TTL-Ranges sind Standards (Windows ~128, Linux ~64, etc.)
+ *  • MAC-OUI Lookup hat hohe Priorität (zuverlässig)
+ *  • Port-Checks sind schnelle Bestätigung
+ *  • Funktioniert auch wenn Port-Scanning blockiert ist
  */
 final class OsFingerprint {
 

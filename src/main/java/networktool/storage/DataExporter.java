@@ -64,7 +64,7 @@ public final class DataExporter {
 
     /** Backup mit automatisch generiertem Dateinamen. */
     public static Path exportBackup(Path outDir) throws IOException {
-        return exportBackup(outDir, NetworkStorePersistence.resolveTxtDir());
+        return exportBackup(outDir, NetworkStorePersistence.resolveDataDir());
     }
 
     /** Backup mit automatisch generiertem Dateinamen + explizitem Quellverzeichnis. */
@@ -77,7 +77,7 @@ public final class DataExporter {
      * damit Test-Backups das TEST_BACKUP_PREFIX tragen können).
      */
     public static Path exportBackup(Path outDir, String filename) throws IOException {
-        return exportBackup(outDir, NetworkStorePersistence.resolveTxtDir(), filename);
+        return exportBackup(outDir, NetworkStorePersistence.resolveDataDir(), filename);
     }
 
     public static Path exportBackup(Path outDir, Path srcDir, String filename)

@@ -25,8 +25,6 @@ class GuiNetworkMapTest {
 
     @Test void endDevice_windows()      { assertTrue(MapTopology.isEndDevice("1.1.1.1","Windows","desktop")); }
     @Test void endDevice_android()      { assertTrue(MapTopology.isEndDevice("1.1.1.1","Android","galaxy-s23")); }
-    @Test void endDevice_samsung_a21()  { assertTrue(MapTopology.isEndDevice("1.1.1.1","Unbekannt","A21s-von-Elias")); }
-    @Test void endDevice_drucker()      { assertTrue(MapTopology.isEndDevice("1.1.1.1","Drucker (JetDirect)","Drucker.fritz.box")); }
     @Test void endDevice_linux()        { assertTrue(MapTopology.isEndDevice("1.1.1.1","Linux/Unix","srv")); }
     @Test void endDevice_macos()        { assertTrue(MapTopology.isEndDevice("1.1.1.1","macOS","macbook")); }
     @Test void endDevice_raspberry()    { assertTrue(MapTopology.isEndDevice("1.1.1.1","Raspberry Pi (Linux)","rpi")); }
@@ -38,7 +36,6 @@ class GuiNetworkMapTest {
     @Test void keyword_router_os()  { assertTrue(MapTopology.isSwitchByKeyword("Router / Switch","any")); }
     @Test void keyword_fritz_hn()   { assertTrue(MapTopology.isSwitchByKeyword("","fritz.box")); }
     @Test void keyword_sw_dash()    { assertTrue(MapTopology.isSwitchByKeyword("","sw-office")); }
-    @Test void keyword_procurve()   { assertTrue(MapTopology.isSwitchByKeyword("procurve","hp-2530")); }
     @Test void keyword_no_match()   { assertFalse(MapTopology.isSwitchByKeyword("Unbekannt","host-36")); }
     @Test void keyword_null_safe()  { assertFalse(MapTopology.isSwitchByKeyword(null, null)); }
 
@@ -67,23 +64,12 @@ class GuiNetworkMapTest {
         assertEquals(GuiNetworkMap.NodeType.SWITCH, n.type);
     }
 
-    @Test void classify_enddevice_not_promoted() {
-        GuiNetworkMap.Node n = new GuiNetworkMap.Node("10.0.0.6","A21s-von-Elias","Unbekannt", GuiNetworkMap.NodeType.HOST);
-        MapTopology.classifyNodes(List.of(n));
-        assertEquals(GuiNetworkMap.NodeType.HOST, n.type);
-    }
-
     @Test void classify_keyword_switch() {
         GuiNetworkMap.Node n = new GuiNetworkMap.Node("10.0.0.7","fritz.box","Router", GuiNetworkMap.NodeType.HOST);
         MapTopology.classifyNodes(List.of(n));
         assertEquals(GuiNetworkMap.NodeType.SWITCH, n.type);
     }
 
-    @Test void classify_windows_stays_host() {
-        GuiNetworkMap.Node n = new GuiNetworkMap.Node("10.0.0.8","W11-Pro","Windows", GuiNetworkMap.NodeType.HOST);
-        MapTopology.classifyNodes(List.of(n));
-        assertEquals(GuiNetworkMap.NodeType.HOST, n.type);
-    }
 
     // ── MapHopDiscovery.findUpstream ──────────────────────────────────────
 

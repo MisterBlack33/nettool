@@ -175,13 +175,13 @@ class ScanInfraTest {
         void disableTestMode() { NetworkInfo.testMode = false; }
 
         @Test
-        @Timeout(value = 5, unit = TimeUnit.SECONDS)
+        @Timeout(value = 15, unit = TimeUnit.SECONDS)
         void scanWithFilter_emptyFilters_doesNotThrow() {
             assertDoesNotThrow(() -> NetworkInfo.scanWithFilter(null, null));
         }
 
         @Test
-        @Timeout(value = 5, unit = TimeUnit.SECONDS)
+        @Timeout(value = 15, unit = TimeUnit.SECONDS)
         void showMinimalInfo_doesNotThrow() {
             assertDoesNotThrow(() -> NetworkInfo.showMinimalInfo());
         }

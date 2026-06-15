@@ -65,8 +65,9 @@ class NetworkStoreFixTest extends NetworkStoreTestBase {
         Thread remover = new Thread(() -> store.remove(TestConstants.IP_3, NET));
         Thread reader  = new Thread(() -> store.getAllHosts());
         remover.start(); reader.start();
-        remover.join(3000); reader.join(3000);
-        assertFalse(remover.isAlive());
-        assertFalse(reader.isAlive());
+        remover.join(4000);
+        reader.join(4000);
+        assertFalse(remover.isAlive(), "remover hängt noch - möglicher Deadlock");
+        assertFalse(reader.isAlive(),  "reader hängt noch - möglicher Deadlock");
     }
 }

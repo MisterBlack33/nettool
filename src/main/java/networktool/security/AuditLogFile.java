@@ -32,8 +32,8 @@ public final class AuditLogFile {
 
     private final Path logFile;
 
-    public AuditLogFile(Path txtDir) {
-        this.logFile = txtDir.resolve(FILE_NAME);
+    public AuditLogFile(Path dataDir) {
+        this.logFile = dataDir.resolve(FILE_NAME);
     }
 
     // ── Schreiben ─────────────────────────────────────────────────────────

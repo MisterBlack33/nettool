@@ -129,4 +129,27 @@ final class OsBannerAnalyzer {
         } catch (Exception ignored) {}
         return null;
     }
+
+    // ── FTP ───────────────────────────────────────────────────────────────
+
+    private static OsSignature analyzeFtp(String ip) {
+        try (Socket s = new Socket()) {
+            s.connect(new InetSocketAddress(ip, 21), TIMEOUT);
+            s.setSoTimeout(TIMEOUT);
+            String banner = new BufferedReader(
+                    new InputStreamReader(s.getInputStream(), StandardCharsets.UTF_8))
+                    .readLine();
+            if (banner == null) return null;
+            return parseFtpBanner(banner.toLowerCase());
+        } catch (Exception e) { return null; }
+    }
+
+    private static OsSignature parseFtpBanner(String banner) {
+        if (banner.contains("windows"))  return OsSignature.of("Windows",              65, "FTP-Banner");
+        if (banner.contains("linux"))    return OsSignature.of("Linux/Unix",           65, "FTP-Banner");
+        if (banner.contains("busybox"))  return OsSignature.of("Router / IoT-Gerät",   70, "FTP-Banner");
+        if (banner.contains("synology")) return OsSignature.of("NAS (Synology)",      75, "FTP-Banner");
+        if (banner.contains("qnap"))     return OsSignature.of("NAS (QNAP)",          75, "FTP-Banner");
+        return null;
+    }
 }

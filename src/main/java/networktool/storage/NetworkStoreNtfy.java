@@ -10,8 +10,8 @@ final class NetworkStoreNtfy {
 
     private NetworkStoreNtfy() {}
 
-    static List<String> loadTopics(Path txtDir) {
-        Path file = txtDir.resolve(NetworkStorePersistence.NTFY_FILE);
+    static List<String> loadTopics(Path dataDir) {
+        Path file = dataDir.resolve(NetworkStorePersistence.NTFY_FILE);
         if (!Files.exists(file)) return new ArrayList<>();
         try {
             return JsonHelper.extractStringArray(
@@ -21,15 +21,15 @@ final class NetworkStoreNtfy {
         }
     }
 
-    static void saveTopic(Path txtDir, String topic) {
+    static void saveTopic(Path dataDir, String topic) {
         if (topic == null || topic.isBlank()) return;
         try {
-            Files.createDirectories(txtDir);
-            List<String> existing = new ArrayList<>(loadTopics(txtDir));
+            Files.createDirectories(dataDir);
+            List<String> existing = new ArrayList<>(loadTopics(dataDir));
             if (existing.contains(topic)) return;
             existing.add(topic);
             Collections.sort(existing);
-            Files.writeString(txtDir.resolve(NetworkStorePersistence.NTFY_FILE),
+            Files.writeString(dataDir.resolve(NetworkStorePersistence.NTFY_FILE),
                     JsonHelper.buildStringArrayJson("topics", existing),
                     StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);

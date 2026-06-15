@@ -74,7 +74,10 @@ class GuiThemeFixTest {
             });
         }
         for (Thread t : threads) t.start();
-        for (Thread t : threads) t.join(1000);
+        for (Thread t : threads) {
+            t.join(5000);  // Längeres Timeout
+            assertFalse(t.isAlive(), "Thread sollte beendet sein, möglicherweise Deadlock");
+        }
         // Kein Fehler = volatile schützt korrekt
         assertNotNull(GuiTheme.BG);
     }

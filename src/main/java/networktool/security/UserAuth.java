@@ -16,25 +16,27 @@ public final class UserAuth {
     private static final int    SALT_LEN   = 32;
     private static final String ALGO       = "PBKDF2WithHmacSHA256";
 
-    private Path txtDir;
+    private Path dataDir;
     private volatile String currentUser;
 
     private UserAuth() {}
 
     public synchronized void init(Path dir) {
-        this.txtDir = dir;
+        // Wenn kein Verzeichnis übergeben wurde, verwende das zentrale Datenverzeichnis
+        if (dir == null) this.dataDir = main.java.networktool.storage.StorageUtils.resolveDataDir();
+        else this.dataDir = dir;
     }
 
     // ── Public API ────────────────────────────────────────────────────────
 
     public boolean hasUsers() {
-        return txtDir != null && !UserAuthPersistence.load(txtDir).isEmpty();
+        return dataDir != null && !UserAuthPersistence.load(dataDir).isEmpty();
     }
 
     public synchronized boolean createUser(String username, String password) {
         if (isBlank(username) || isBlank(password) || password.length() < 4) return false;
         String canonical = username.trim().toLowerCase();
-        List<Map<String, String>> users = UserAuthPersistence.load(txtDir);
+        List<Map<String, String>> users = UserAuthPersistence.load(dataDir);
         if (users.stream().anyMatch(u -> canonical.equals(u.get("username")))) return false;
         try {
             byte[] salt = generateSalt();
@@ -44,7 +46,7 @@ public final class UserAuth {
             entry.put("hash",     hash(password, salt));
             entry.put("role",     users.isEmpty() ? "admin" : "user");
             users.add(entry);
-            UserAuthPersistence.save(txtDir, users);
+            UserAuthPersistence.save(dataDir, users);
             return true;
         } catch (Exception e) {
             System.err.println("[UserAuth] createUser: " + e.getMessage());
@@ -55,7 +57,7 @@ public final class UserAuth {
     public synchronized boolean authenticate(String username, String password) {
         if (username == null || password == null) return false;
         String canonical = username.trim().toLowerCase();
-        for (Map<String, String> u : UserAuthPersistence.load(txtDir)) {
+        for (Map<String, String> u : UserAuthPersistence.load(dataDir)) {
             if (!canonical.equals(u.get("username"))) continue;
             try {
                 byte[] salt = Base64.getDecoder().decode(u.get("salt"));
@@ -75,14 +77,14 @@ public final class UserAuth {
 
     public boolean isAdmin() {
         if (currentUser == null) return false;
-        return UserAuthPersistence.load(txtDir).stream()
+        return UserAuthPersistence.load(dataDir).stream()
                 .filter(u -> currentUser.equals(u.get("username")))
                 .anyMatch(u -> "admin".equals(u.get("role")));
     }
 
     public String getCurrentRole() {
         if (currentUser == null) return "user";
-        return UserAuthPersistence.load(txtDir).stream()
+        return UserAuthPersistence.load(dataDir).stream()
                 .filter(u -> currentUser.equals(u.get("username")))
                 .map(u -> u.getOrDefault("role", "user"))
                 .findFirst().orElse("user");
@@ -91,14 +93,14 @@ public final class UserAuth {
     public synchronized boolean changePassword(String username, String oldPw, String newPw) {
         if (!authenticate(username, oldPw) || isBlank(newPw) || newPw.length() < 4) return false;
         String canonical = username.trim().toLowerCase();
-        List<Map<String, String>> users = UserAuthPersistence.load(txtDir);
+        List<Map<String, String>> users = UserAuthPersistence.load(dataDir);
         for (Map<String, String> u : users) {
             if (!canonical.equals(u.get("username"))) continue;
             try {
                 byte[] salt = generateSalt();
                 u.put("salt", Base64.getEncoder().encodeToString(salt));
                 u.put("hash", hash(newPw, salt));
-                UserAuthPersistence.save(txtDir, users);
+                UserAuthPersistence.save(dataDir, users);
                 return true;
             } catch (Exception e) { return false; }
         }
@@ -108,10 +110,10 @@ public final class UserAuth {
     public synchronized boolean deleteUser(String username, String password) {
         if (!authenticate(username, password)) return false;
         String canonical = username.trim().toLowerCase();
-        List<Map<String, String>> users = UserAuthPersistence.load(txtDir);
+        List<Map<String, String>> users = UserAuthPersistence.load(dataDir);
         if (users.size() <= 1) return false;
         users.removeIf(u -> canonical.equals(u.get("username")));
-        UserAuthPersistence.save(txtDir, users);
+        UserAuthPersistence.save(dataDir, users);
         if (canonical.equals(currentUser)) currentUser = null;
         return true;
     }
@@ -121,13 +123,13 @@ public final class UserAuth {
 
     public List<String> listUsernames() {
         List<String> names = new ArrayList<>();
-        UserAuthPersistence.load(txtDir).forEach(u -> names.add(u.get("username")));
+        UserAuthPersistence.load(dataDir).forEach(u -> names.add(u.get("username")));
         return Collections.unmodifiableList(names);
     }
 
     // ── Crypto ────────────────────────────────────────────────────────────
 
-    private static String hash(String password, byte[] salt) throws Exception {
+    static String hash(String password, byte[] salt) throws Exception {
         SecretKeyFactory f = SecretKeyFactory.getInstance(ALGO);
         PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, ITERATIONS, KEY_LEN);
         byte[] key = f.generateSecret(spec).getEncoded();
@@ -135,7 +137,7 @@ public final class UserAuth {
         return Base64.getEncoder().encodeToString(key);
     }
 
-    private static byte[] generateSalt() {
+    static byte[] generateSalt() {
         byte[] s = new byte[SALT_LEN];
         new SecureRandom().nextBytes(s);
         return s;

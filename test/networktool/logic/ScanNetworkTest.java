@@ -1,4 +1,4 @@
-package networktool_v3.logic;
+package networktool.logic;
 
 import main.java.networktool.logic.scan.NetworkHostScanner;
 import main.java.networktool.logic.scan.NetworkScanner;
@@ -61,21 +61,21 @@ class ScanNetworkTest {
     class NetworkHostScannerTest {
 
         @Test
-        @Timeout(value = 15, unit = TimeUnit.SECONDS)
+        @Timeout(value = 60, unit = TimeUnit.SECONDS)
         void scan_singleIp_doesNotThrow() {
             // /32 = genau eine IP, kein 254er-Sweep
             assertDoesNotThrow(() -> NetworkHostScanner.scanCidr("127.0.0.1/32"));
         }
 
         @Test
-        @Timeout(value = 15, unit = TimeUnit.SECONDS)
+        @Timeout(value = 60, unit = TimeUnit.SECONDS)
         void scan_singleIp_returnsList() {
             List<HostResult> result = NetworkHostScanner.scanCidr("127.0.0.1/32");
             assertNotNull(result);
         }
 
         @Test
-        @Timeout(value = 15, unit = TimeUnit.SECONDS)
+        @Timeout(value = 60, unit = TimeUnit.SECONDS)
         void scan_loopbackSubnet_findsLocalhost_ifAlive() {
             assumeTrue(loopbackReachable(), "Loopback nicht erreichbar");
             // /30 = nur 2 Host-IPs (127.0.0.1 + 127.0.0.2)

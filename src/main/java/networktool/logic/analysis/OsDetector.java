@@ -23,37 +23,42 @@ public final class OsDetector {
     public static OsResult detectWithConfidence(String ip) {
         OsSignature best = null;
 
-        // 1. Banner-Analyse (SSH/HTTP/SMB) — sehr zuverlässig
+        // 1. Banner-Analyse (SSH/HTTP/SMB) — sehr zuverlässig (SCHNELL)
         best = OsSignature.best(best, OsBannerAnalyzer.analyze(ip));
         if (best != null && best.score >= 85) return toResult(best);
 
-        // 2. Port-Kombination — zuverlässig
-        best = OsSignature.best(best, OsDetectorPorts.detectWithSignature(ip));
-        if (best != null && best.score >= 80) return toResult(best);
-
-        // 3. Hostname-Erkennung
+        // 2. Hostname-Erkennung — oft zuverlässig und schnell
+        // VERBESSERT: Höhere Priorität wenn Firewall Ports blockiert
         String hostname = resolveHostname(ip);
         if (hostname != null) {
             String fromHn = OsDetectorHostname.classify(hostname.toLowerCase());
-            if (fromHn != null)
-                best = OsSignature.best(best, OsSignature.of(fromHn, 70, "Hostname"));
+            if (fromHn != null) {
+                best = OsSignature.best(best, OsSignature.of(fromHn, 75, "Hostname"));
+                if (best.score >= 75) return toResult(best);
+            }
         }
-        if (best != null && best.score >= 70) return toResult(best);
 
-        // 4. MAC/OUI
+        // 3. MAC/OUI — schnell und zuverlässig wenn ARP funktioniert
         String mac = OsDetectorArp.getMacFromArp(ip);
         if (mac != null) {
             String vendor = OuiDatabase.lookup(mac);
-            if (vendor != null)
-                best = OsSignature.best(best, OsSignature.of(vendor, 60, "OUI/MAC"));
+            if (vendor != null) {
+                best = OsSignature.best(best, OsSignature.of(vendor, 65, "OUI/MAC"));
+                if (best != null && best.score >= 65) return toResult(best);
+            }
         }
-        if (best != null && best.score >= 60) return toResult(best);
 
-        // 5. TTL-Fingerprint
+        // 4. Port-Kombination — kann blockiert sein (LANGSAM BIS TIMEOUT)
+        OsSignature portSig = OsDetectorPorts.detectWithSignature(ip);
+        best = OsSignature.best(best, portSig);
+        if (best != null && best.score >= 80) return toResult(best);
+
+        // 5. TTL-Fingerprint — Fallback wenn alles andere fehlschlägt
         int ttl = OsDetectorArp.getTtl(ip);
         String fingerprint = OsFingerprint.resolve(ip, ttl, mac);
-        if (fingerprint != null)
-            best = OsSignature.best(best, OsSignature.of(fingerprint, 35, ttl > 0 ? "TTL=" + ttl : "MAC"));
+        if (fingerprint != null) {
+            best = OsSignature.best(best, OsSignature.of(fingerprint, 40, ttl > 0 ? "TTL=" + ttl : "MAC"));
+        }
 
         return best != null ? toResult(best) : new OsResult("Unbekannt", Confidence.NIEDRIG, "—");
     }
