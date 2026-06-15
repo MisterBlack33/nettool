@@ -1,6 +1,6 @@
-// src/main/java/networktool/gui/MapCanvas.java
 package main.java.networktool.gui;
 
+import main.java.networktool.logic.scan.MapTrafficObserver;
 import main.java.networktool.logic.scan.RemoteNetScanner;
 import main.java.networktool.logic.scan.ScanHistory;
 import main.java.networktool.model.HostResult;
@@ -18,16 +18,19 @@ import static main.java.networktool.gui.GuiTheme.*;
 
 /**
  * Rendert die Netzwerk-Topologie-Karte.
- * Liest Hosts ausschließlich aus ScanHistory und NetworkStore –
- * führt keinen eigenen Scan durch.
+ *
+ * Datenquellen (kein eigener Scan):
+ *  - ScanHistory (Session-Ergebnisse)
+ *  - NetworkStore (gespeicherte Hosts)
+ *  - MapHopDiscovery (Traceroute-Zwischenknoten)
+ *  - MapTrafficObserver (DNS/DHCP/mDNS-Rollen per UDP-Probe)
  */
 final class MapCanvas extends JPanel {
 
     final List<GuiNetworkMap.Node> nodes = new ArrayList<>();
     final List<GuiNetworkMap.Edge> edges = new ArrayList<>();
 
-    private final main.java.networktool.logic.scan.MapTrafficObserver trafficObserver =
-            new main.java.networktool.logic.scan.MapTrafficObserver();
+    private final MapTrafficObserver trafficObserver = new MapTrafficObserver();
     private final Color bg;
 
     private JLabel titleLabel;
@@ -63,7 +66,8 @@ final class MapCanvas extends JPanel {
         GuiNetworkMap.Node gwNode   = collectNodes();
         GuiNetworkMap.Node selfNode = nodes.stream()
                 .filter(n -> n.type == GuiNetworkMap.NodeType.SELF).findFirst().orElse(null);
-        MapTopology.classifyNodes(nodes, trafficObserver);
+        MapTopology.classifyNodes(nodes);
+        applyTrafficRoles();
         edges.addAll(MapTopology.buildEdges(nodes, gwNode, selfNode, GuiNetworkMap.HOP_PARENT));
         resetLayout();
         updateLabels();
@@ -76,9 +80,55 @@ final class MapCanvas extends JPanel {
         repaint();
     }
 
-    void probeTrafficRoles(List<String> ips) {
-        trafficObserver.clear();
-        ips.forEach(trafficObserver::probe);
+    /**
+     * Wendet bekannte Traffic-Rollen auf Nodes an.
+     * DNS/DHCP-Server → SWITCH-Typ (Infra-Knoten).
+     */
+    private void applyTrafficRoles() {
+        for (GuiNetworkMap.Node node : nodes) {
+            MapTrafficObserver.NodeRole role = trafficObserver.getRole(node.ip);
+            if (role == MapTrafficObserver.NodeRole.DNS_SERVER
+                    || role == MapTrafficObserver.NodeRole.DHCP_SERVER) {
+                if (node.type == GuiNetworkMap.NodeType.HOST)
+                    node.type = GuiNetworkMap.NodeType.SWITCH;
+                // Rolle im OS-Feld anzeigen (wird von Renderer als Label verwendet)
+                node.os = roleLabel(role) + (node.os != null && !node.os.isBlank()
+                        ? " / " + node.os : "");
+            }
+        }
+    }
+
+    private String roleLabel(MapTrafficObserver.NodeRole role) {
+        return switch (role) {
+            case DNS_SERVER  -> "DNS-Server";
+            case DHCP_SERVER -> "DHCP-Server";
+            case MDNS_NODE   -> "mDNS";
+            case NTP_SERVER  -> "NTP-Server";
+            default          -> "";
+        };
+    }
+
+    /**
+     * Traffic-Probing für alle bekannten Hosts.
+     * Läuft asynchron – Ergebnis wird in trafficObserver gespeichert.
+     */
+    void runTrafficProbing() {
+        List<String> ips = nodes.stream()
+                .filter(n -> n.type == GuiNetworkMap.NodeType.HOST
+                        || n.type == GuiNetworkMap.NodeType.SWITCH)
+                .map(n -> n.ip)
+                .toList();
+        if (ips.isEmpty()) return;
+
+        setStatus("  Probe DNS/DHCP/mDNS (" + ips.size() + " Hosts)…");
+        new Thread(() -> {
+            trafficObserver.probeAll(ips);
+            SwingUtilities.invokeLater(() -> {
+                applyTrafficRoles();
+                repaint();
+                setStatus("  Traffic-Probe abgeschlossen.");
+            });
+        }, "MapTrafficProbe").start();
     }
 
     GuiNetworkMap.Node nodeAt(Point world) {
@@ -99,16 +149,8 @@ final class MapCanvas extends JPanel {
         g2.dispose();
     }
 
-    // ── Node collection (kein Scan – nur lesen) ───────────────────────────
+    // ── Node collection ───────────────────────────────────────────────────
 
-    /**
-     * Sammelt Hosts aus:
-     *  1. Gateway (auto-detect)
-     *  2. Lokale Maschine
-     *  3. ScanHistory (letzte Scan-Ergebnisse)
-     *  4. NetworkStore (gespeicherte Hosts)
-     * Kein Netzwerk-Scan wird ausgelöst.
-     */
     private GuiNetworkMap.Node collectNodes() {
         Set<String> seen = new LinkedHashSet<>();
         GuiNetworkMap.Node gwNode = null;
@@ -123,16 +165,20 @@ final class MapCanvas extends JPanel {
                 addNode(self.getHostAddress(), self.getHostName() + " (ich)", localOs(), GuiNetworkMap.NodeType.SELF);
         } catch (Exception ignored) {}
 
-        // ScanHistory: alle bekannten Scan-Ergebnisse dieser Session
         for (ScanHistory.Entry entry : ScanHistory.getInstance().getAll())
             for (ScanResult r : entry.results)
                 if (seen.add(r.getIp()))
                     addNode(r.getIp(), r.getHostname(), r.getOsGuess(), GuiNetworkMap.NodeType.HOST);
 
-        // NetworkStore: dauerhaft gespeicherte Hosts
         for (HostResult h : NetworkStore.getInstance().getAllHosts())
             if (seen.add(h.ip))
                 addNode(h.ip, cleanHostname(h.hostname), h.os, GuiNetworkMap.NodeType.HOST);
+
+        // Zwischenknoten aus Hop-Discovery als Switch-Knoten einblenden
+        for (String hopIp : GuiNetworkMap.HOP_PARENT.values()) {
+            if (seen.add(hopIp))
+                addNode(hopIp, hopIp, "Router / Switch", GuiNetworkMap.NodeType.SWITCH);
+        }
 
         return gwNode;
     }
