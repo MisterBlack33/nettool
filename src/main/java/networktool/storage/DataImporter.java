@@ -46,13 +46,13 @@ public final class DataImporter {
     }
 
     public static int restoreBackup(Path zipFile) throws IOException {
-        Path targetDir = NetworkStorePersistence.resolveTxtDir();
+        Path dataDir = NetworkStorePersistence.resolveDataDir();
         int[] count = {0};
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile.toFile()))) {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
-                Path dest = targetDir.resolve(entry.getName()).normalize();
-                if (!dest.startsWith(targetDir)) continue; // Zip-Slip-Schutz
+                Path dest = dataDir.resolve(entry.getName()).normalize();
+                if (!dest.startsWith(dataDir)) continue; // Zip-Slip-Schutz
                 Files.createDirectories(dest.getParent());
                 Files.copy(zis, dest, StandardCopyOption.REPLACE_EXISTING);
                 count[0]++;

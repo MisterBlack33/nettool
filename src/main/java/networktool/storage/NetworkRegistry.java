@@ -30,25 +30,25 @@ final class NetworkRegistry {
         return true;
     }
 
-    boolean rename(String oldName, String newName, Path txtDir) {
+    boolean rename(String oldName, String newName, Path dataDir) {
         if (!networks.containsKey(oldName) || newName == null || newName.isBlank()) return false;
         String safe = safe(newName);
         if (networks.containsKey(safe)) return false;
         networks.put(safe, networks.remove(oldName));
         prefixes.put(safe, prefixes.remove(oldName));
         try {
-            Files.deleteIfExists(NetworkStorePersistence.savedDir(txtDir)
+            Files.deleteIfExists(NetworkStorePersistence.savedDir(dataDir)
                     .resolve(oldName + NetworkStorePersistence.FILE_EXT));
         } catch (IOException ignored) {}
         return true;
     }
 
-    boolean delete(String name, Path txtDir) {
+    boolean delete(String name, Path dataDir) {
         if (!networks.containsKey(name)) return false;
         networks.remove(name);
         prefixes.remove(name);
         try {
-            Files.deleteIfExists(NetworkStorePersistence.savedDir(txtDir)
+            Files.deleteIfExists(NetworkStorePersistence.savedDir(dataDir)
                     .resolve(name + NetworkStorePersistence.FILE_EXT));
         } catch (IOException ignored) {}
         ensureDefault();

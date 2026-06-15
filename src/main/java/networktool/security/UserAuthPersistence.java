@@ -12,21 +12,31 @@ final class UserAuthPersistence {
 
     static final String FILE_NAME = "users.json";
 
-    static List<Map<String, String>> load(Path txtDir) {
-        if (txtDir == null) return new ArrayList<>();
-        Path file = txtDir.resolve(FILE_NAME);
+    static List<Map<String, String>> load(Path dataDir) {
+        if (dataDir == null) return new ArrayList<>();
+        Path file = dataDir.resolve(FILE_NAME);
         if (!Files.exists(file)) return new ArrayList<>();
         try {
-            return parse(Files.readString(file, StandardCharsets.UTF_8));
+            String json = Files.readString(file, StandardCharsets.UTF_8);
+            List<Map<String, String>> parsed = parse(json);
+            if (!parsed.isEmpty()) return parsed;
+            // Versuche Legacy-Format: {"users": [{"username":"u","password":"pw"}, ...]}
+            List<Map<String, String>> legacy = legacyParse(json);
+            if (!legacy.isEmpty()) {
+                // Migriere: überschreibe file mit neuem Format (mit salt+hash)
+                save(dataDir, legacy);
+                return legacy;
+            }
+            return parsed;
         } catch (IOException e) {
             System.err.println("[UserAuth] load: " + e.getMessage());
             return new ArrayList<>();
         }
     }
 
-    static void save(Path txtDir, List<Map<String, String>> users) {
-        if (txtDir == null) return;
-        Path file = txtDir.resolve(FILE_NAME);
+    static void save(Path dataDir, List<Map<String, String>> users) {
+        if (dataDir == null) return;
+        Path file = dataDir.resolve(FILE_NAME);
         StringBuilder sb = new StringBuilder("{\n  \"users\": [\n");
         for (int i = 0; i < users.size(); i++) {
             Map<String, String> u = users.get(i);
@@ -65,6 +75,31 @@ final class UserAuthPersistence {
                 if (m.get("username") != null && m.get("hash") != null) result.add(m);
                 objStart = -1;
             }
+        }
+        return result;
+    }
+
+    /** Einfache Legacy-Erkennung: sucht nach username+password Paaren und erzeugt salt/hash */
+    private static List<Map<String, String>> legacyParse(String json) {
+        List<Map<String, String>> result = new ArrayList<>();
+        int idx = 0;
+        while (idx < json.length()) {
+            int u = json.indexOf("\"username\"", idx);
+            if (u < 0) break;
+            String username = extractStr(json.substring(u - 20, Math.min(json.length(), u + 200)), "username");
+            String password = extractStr(json.substring(u - 20, Math.min(json.length(), u + 200)), "password");
+            if (username != null && password != null) {
+                try {
+                    byte[] salt = main.java.networktool.security.UserAuth.generateSalt();
+                    Map<String,String> m = new LinkedHashMap<>();
+                    m.put("username", username.trim().toLowerCase());
+                    m.put("salt", Base64.getEncoder().encodeToString(salt));
+                    m.put("hash", main.java.networktool.security.UserAuth.hash(password, salt));
+                    m.put("role", "user");
+                    result.add(m);
+                } catch (Exception e) { /* ignore malformed entries */ }
+            }
+            idx = u + 10;
         }
         return result;
     }

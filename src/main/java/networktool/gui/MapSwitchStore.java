@@ -42,7 +42,7 @@ final class MapSwitchStore {
 
     private static void load() {
         try {
-            Path file = StorageUtils.resolveTxtDir().resolve(FILE);
+            Path file = StorageUtils.resolveDataDir().resolve(FILE);
             if (!Files.exists(file)) return;
             String raw = Files.readString(file, StandardCharsets.UTF_8)
                     .trim().replaceAll("^\\[|]$", "");
@@ -55,7 +55,7 @@ final class MapSwitchStore {
 
     private static void persist() {
         try {
-            Path dir = StorageUtils.resolveTxtDir();
+            Path dir = StorageUtils.resolveDataDir();
             Files.createDirectories(dir);
             List<String> sorted = new ArrayList<>(SWITCHES);
             Collections.sort(sorted);

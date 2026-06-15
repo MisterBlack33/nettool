@@ -3,6 +3,7 @@ package networktool.transfer;
 import main.java.networktool.transfer.BandwidthTester;
 import main.java.networktool.transfer.FileClient;
 import main.java.networktool.transfer.FileServer;
+import networktool.util.PollHelper;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -96,13 +97,27 @@ class TransferTest {
                 int port;
                 try (ServerSocket probe = new ServerSocket(0)) { port = probe.getLocalPort(); }
                 new FileServer(port).start();
-                Thread.sleep(200);
+                // Warte auf Server-Start statt festen Delay
+                assertTrue(PollHelper.waitFor(() -> {
+                    try {
+                        InetAddress.getByName("127.0.0.1").isReachable(500);
+                        return true;
+                    } catch (Exception e) {
+                        return false;
+                    }
+                }, 2000), "Server sollte erreichbar sein");
+
                 Path src = tmp.resolve("send.txt");
                 Files.writeString(src, "hello transfer test");
                 new FileClient("127.0.0.1", port).sendFile(src.toString());
-                Thread.sleep(400);
+
+                // Warte auf Datei-Empfang statt festen Delay
+                assertTrue(PollHelper.waitFor(() -> {
+                    Path received = Path.of("empfangen_send.txt");
+                    return Files.exists(received);
+                }, 2000), "Empfangene Datei sollte existieren");
+
                 Path received = Path.of("empfangen_send.txt");
-                assertTrue(Files.exists(received));
                 assertEquals("hello transfer test", Files.readString(received));
                 Files.deleteIfExists(received);
             }

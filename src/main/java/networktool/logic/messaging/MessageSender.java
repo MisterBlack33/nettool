@@ -70,6 +70,11 @@ public final class MessageSender {
         NotificationListener.start();
     }
 
+    /** Stoppt den Listener (nur für Tests). */
+    public static void stopListener() {
+        NotificationListener.stop();
+    }
+
     private static boolean isUnix(String os) {
         return os.contains("linux") || os.contains("unix")
                 || os.contains("macos") || os.contains("apple");

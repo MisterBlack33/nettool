@@ -29,23 +29,23 @@ public final class Main {
     private Main() {}
 
     public static void main(String[] args) {
-        // txt-Verzeichnis ermitteln
-        Path txtDir = StorageUtils.resolveTxtDir();
+        // Datenverzeichnis ermitteln (früher: "txt")
+        Path dataDir = StorageUtils.resolveDataDir();
 
         // Security-Subsysteme initialisieren
-        AuditLogger.getInstance().init(txtDir);
-        UserAuth.getInstance().init(txtDir);
+        AuditLogger.getInstance().init(dataDir);
+        UserAuth.getInstance().init(dataDir);
 
         if (isCliMode(args)) {
-            runCli(txtDir);
+            runCli(dataDir);
         } else {
-            runGui(txtDir);
+            runGui(dataDir);
         }
     }
 
     // ── GUI-Modus ─────────────────────────────────────────────────────────
 
-    private static void runGui(Path txtDir) {
+    private static void runGui(Path dataDir) {
         // Look & Feel zuerst setzen (vor jedem Swing-Aufruf)
         try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); }
         catch (Exception ignored) {}
@@ -66,7 +66,7 @@ public final class Main {
 
     // ── CLI-Modus ─────────────────────────────────────────────────────────
 
-    private static void runCli(Path txtDir) {
+    private static void runCli(Path dataDir) {
         Scanner scanner = new Scanner(System.in);
         System.out.println("\n=== NetTool v3  –  CLI-Modus ===");
 

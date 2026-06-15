@@ -1,10 +1,16 @@
 package main.java.networktool.gui;
 
+import main.java.networktool.logic.scan.LastScanCache;
+import main.java.networktool.logic.scan.NetworkScanner;
+import main.java.networktool.logic.scan.SubnetDetector;
+import main.java.networktool.model.ScanResult;
+
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static main.java.networktool.gui.GuiTheme.*;
@@ -12,7 +18,13 @@ import static main.java.networktool.gui.GuiTheme.*;
 /**
  * Orchestriert Netzwerk-Topologie-Karte.
  *
- * Daten kommen ausschließlich aus ScanHistory + NetworkStore.
+ * Beim Aufrufen führt die Karte automatisch einen Quick Scan des lokalen
+ * Netzwerks durch und aktualisiert die Host-Daten in LastScanCache.
+ *
+ * Daten kommen aus:
+ *  • Quick Scan des lokalen Netzwerks (automatisch beim Show)
+ *  • ScanHistory + NetworkStore für historische Daten
+ *
  * Hintergrund-Tasks:
  *  1. Hop-Discovery (Traceroute) → Switch-Erkennung per Pfad
  *  2. Traffic-Probe (DNS/DHCP/mDNS) → Infra-Rollen-Erkennung
@@ -28,6 +40,8 @@ public final class GuiNetworkMap {
 
     public static void show() {
         SwingUtilities.invokeLater(GuiNetworkMap::buildWindow);
+        // Starte Quick Scan des lokalen Netzwerks im Hintergrund
+        startQuickLocalScan();
     }
 
     private static void buildWindow() {
@@ -55,6 +69,42 @@ public final class GuiNetworkMap {
     }
 
     // ── Hintergrund-Tasks ─────────────────────────────────────────────────
+
+    /**
+     * Führt einen Quick Scan des lokalen Netzwerks durch
+     * und aktualisiert LastScanCache mit den Ergebnissen.
+     */
+    private static void startQuickLocalScan() {
+        new Thread(() -> {
+            try {
+                List<String> cidrs = SubnetDetector.getAllCidrs();
+                if (cidrs.isEmpty()) {
+                    System.out.println("[GuiNetworkMap] Keine lokalen Netze erkannt");
+                    return;
+                }
+
+                // Scanne das erste lokale Netzwerk (üblicherweise das Hauptnetzwerk)
+                String mainCidr = cidrs.getFirst();
+                System.out.println("[GuiNetworkMap] Starte Quick Scan für: " + mainCidr);
+
+                List<ScanResult> results = NetworkScanner.scanCIDR(mainCidr);
+
+                if (!results.isEmpty()) {
+                    LastScanCache.updateFromScanResults(results);
+                    System.out.println("[GuiNetworkMap] Quick Scan abgeschlossen: " + results.size() + " Hosts");
+
+                    // Benachrichtige User im GUI wenn aktiv
+                    if (GUI.isGuiActive()) {
+                        GUI.instance().setStatus(
+                            "Netzwerk-Karte aktualisiert (" + results.size() + " Hosts)",
+                            ACCENT2);
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("[GuiNetworkMap] Quick Scan Fehler: " + e.getMessage());
+            }
+        }, "GuiNetworkMapQuickScan").start();
+    }
 
     private static void startHopDiscovery(MapCanvas canvas) {
         new Thread(() -> {

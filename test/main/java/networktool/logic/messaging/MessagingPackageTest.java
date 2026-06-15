@@ -11,17 +11,18 @@ class MessagingPackageTest {
 
     @Test
     void tryListener_closedPort_returnsFalse() {
-        assertFalse(MessageDelivery.tryListener("127.0.0.1", "hello"));
+        // Verwende eine non-routable Dokumentationsadresse, die üblicherweise nicht erreichbar ist
+        assertFalse(MessageDelivery.tryListener("192.0.2.1", "hello"));
     }
 
     @Test
     void tryWinRM_closedPort_returnsFalse() {
-        assertFalse(MessageDelivery.tryWinRM("127.0.0.1", "hello"));
+        assertFalse(MessageDelivery.tryWinRM("192.0.2.1", "hello"));
     }
 
     @Test
     void trySsh_closedPort_returnsFalse() {
-        assertFalse(MessageDelivery.trySsh("127.0.0.1", "hello", false));
+        assertFalse(MessageDelivery.trySsh("192.0.2.1", "hello", false));
     }
 
     @Test

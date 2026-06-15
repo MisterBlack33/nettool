@@ -6,7 +6,9 @@ public final class StorageUtils {
 
     private StorageUtils() {}
 
-    public static Path resolveTxtDir() { return NetworkStorePersistence.resolveTxtDir(); }
+    // Liefert das zentrale Datenverzeichnis (früher: "txt").
+    // Bezeichner wurden von resolveTxtDir -> resolveDataDir umbenannt.
+    public static Path resolveDataDir() { return NetworkStorePersistence.resolveDataDir(); }
 
     public static String extractJsonStr(String json, String field) {
         return JsonHelper.extractStr(json, field);

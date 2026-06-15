@@ -21,7 +21,7 @@ class StorageExtTest {
 
         @BeforeEach void setup() {
             store = SavedHostsStore.getInstance();
-            store.setFilePath(tmp.resolve("saved_hosts.txt"));
+            store.setFilePath(tmp.resolve("saved_hosts.bin"));
         }
 
         @Test void save_and_getAll() {
@@ -66,7 +66,7 @@ class StorageExtTest {
 
         @Test void persistence_survivesReinit() {
             store.save(new HostResult(TestConstants.IP_6, TestConstants.HOST_7, "Linux", null));
-            store.setFilePath(tmp.resolve("saved_hosts.txt"));
+            store.setFilePath(tmp.resolve("saved_hosts.bin"));
             assertTrue(store.getAll().stream().anyMatch(h -> TestConstants.IP_6.equals(h.ip)));
         }
     }

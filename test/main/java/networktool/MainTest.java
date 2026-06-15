@@ -133,8 +133,8 @@ class MainTest {
     }
 
     @Test
-    void storageUtils_resolveTxtDir_notNull() {
-        assertNotNull(StorageUtils.resolveTxtDir());
+    void storageUtils_resolveDataDir_notNull() {
+        assertNotNull(StorageUtils.resolveDataDir());
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────

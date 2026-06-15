@@ -17,9 +17,9 @@ public final class AuditLogger {
 
     private AuditLogger() {}
 
-    public void init(Path txtDir) {
+    public void init(Path dataDir) {
         flushAndShutdown();
-        this.logFile = new AuditLogFile(txtDir);
+        this.logFile = new AuditLogFile(dataDir);
         this.writer  = newWriter();
     }
 
@@ -61,8 +61,8 @@ public final class AuditLogger {
         log("AUDIT_LOG_CLEARED");
     }
 
-    public void clearInternal(Path txtDir) {
-        new AuditLogFile(txtDir).clear();
+    public void clearInternal(Path dataDir) {
+        new AuditLogFile(dataDir).clear();
     }
 
     public void flush() {

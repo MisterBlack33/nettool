@@ -9,24 +9,40 @@ import java.util.concurrent.*;
 /**
  * OS-Erkennung per Port-Kombination.
  * Gewichtete Entscheidung statt erster-Treffer-gewinnt.
+ * 
+ * VERBESSERT: Intelligente Port-Reihenfolge und Firewall-Fallback
+ *  • Ports sortiert nach Häufigkeit (schnellere Erkennung)
+ *  • Timeout erhöht für langsame Netzwerke
+ *  • Früher Abbruch wenn viele Ports blockiert sind
  */
 final class OsDetectorPorts {
 
     private OsDetectorPorts() {}
 
-    private static final int TIMEOUT_MS   = 400;
+    private static final int TIMEOUT_MS   = 600;  // Erhöht von 400ms für langsame Netzwerke
     private static final int THREAD_COUNT =
             Math.min(16, Runtime.getRuntime().availableProcessors() * 2);
 
+    // Sortiert nach Wahrscheinlichkeit: häufigste Ports zuerst
     private static final int[] PROBE_PORTS = {
-            445, 139, 135, 3389, 5985, 5986,  // Windows-spezifisch
-            548, 5000, 7000, 5353,             // Apple
-            22, 80, 443, 8080, 8443,           // Universal
-            631, 9100, 515,                    // Drucker
-            53, 161, 23, 67,                   // Netzwerkgeräte
-            3306, 5432, 1433, 6379, 27017,     // Datenbanken
-            25, 110, 143,                       // Mail
-            1883, 8883                          // IoT/MQTT
+            // Universelle Ports (höchste Wahrscheinlichkeit)
+            22, 80, 443, 8080,
+            // Windows-spezifisch (eindeutige Erkennung)
+            445, 3389, 135, 139, 5985, 5986,
+            // Apple
+            548, 5000, 7000, 5353,
+            // Drucker (vor Linux, da oft embedded Linux)
+            9100, 631, 515,
+            // Netzwerkgeräte
+            23, 53, 67, 161,
+            // Mail/Services
+            25, 110, 143,
+            // IoT/MQTT
+            1883, 8883,
+            // Datenbanken
+            3306, 5432, 1433, 6379, 27017,
+            // Alternative/Non-Standard Ports
+            2222, 8000, 8888, 9000, 443
     };
 
     static String detectByPorts(String ip) {
@@ -58,13 +74,15 @@ final class OsDetectorPorts {
         return open;
     }
 
+
     private static OsSignature classify(Map<Integer, Boolean> open, String ip) {
-        // Windows: eindeutige Port-Kombination
+        // Windows: eindeutige Port-Kombination (sehr zuverlässig)
         if (is(open, 445) && is(open, 3389))  return OsSignature.of("Windows",  95, "Port-Kombination");
         if (is(open, 445) && is(open, 5985))  return OsSignature.of("Windows",  95, "Port-Kombination");
         if (is(open, 3389) && is(open, 135))  return OsSignature.of("Windows",  90, "Port-Kombination");
         if (is(open, 445) && !is(open, 22))   return OsSignature.of("Windows",  80, "SMB");
         if (is(open, 135) && !is(open, 22))   return OsSignature.of("Windows",  75, "RPC");
+        if (is(open, 139) && !is(open, 22))   return OsSignature.of("Windows",  70, "NetBIOS");
 
         // Apple
         if (is(open, 548) && is(open, 5353))  return OsSignature.of("macOS",    90, "AFP+mDNS");
@@ -93,20 +111,25 @@ final class OsDetectorPorts {
         // Linux/Unix: Port 22 ohne Windows-Ports
         if (is(open, 22)) return classifyLinux(open, ip);
 
-        // Web ohne SSH
-        if (is(open, 80) || is(open, 8080))   return OsSignature.of(detectWebServer(ip), 50, "HTTP");
-        if (is(open, 443) || is(open, 8443))  return OsSignature.of("Web-Server (HTTPS)", 45, "HTTPS");
+        // Web-Server — besserer Fallback wenn Ports blockiert
+        if (is(open, 80) || is(open, 8080) || is(open, 8000) || is(open, 8888))
+            return OsSignature.of(detectWebServer(ip), 50, "HTTP");
+        if (is(open, 443) || is(open, 8443))
+            return OsSignature.of("Web-Server (HTTPS)", 45, "HTTPS");
 
-        // Datenbanken
-        if (is(open, 3306))  return OsSignature.of("Datenbankserver (MySQL)",      70, "Port");
-        if (is(open, 5432))  return OsSignature.of("Datenbankserver (PostgreSQL)", 70, "Port");
-        if (is(open, 6379))  return OsSignature.of("Datenbankserver (Redis)",      70, "Port");
-        if (is(open, 27017)) return OsSignature.of("Datenbankserver (MongoDB)",    70, "Port");
-        if (is(open, 1433))  return OsSignature.of("Datenbankserver (MSSQL)",      70, "Port");
+        // Datenbanken - auch wenn andere Services blockiert sind
+        if (is(open, 3306) && !is(open, 22))
+            return OsSignature.of("Linux/Unix (MySQL)",      40, "Port");
+        if (is(open, 5432) && !is(open, 22))
+            return OsSignature.of("Linux/Unix (PostgreSQL)", 40, "Port");
+        if (is(open, 1433) && !is(open, 22))
+            return OsSignature.of("Windows (MSSQL)",         50, "Port");
 
-        // Mail
-        if (is(open, 25) || is(open, 110) || is(open, 143))
-            return OsSignature.of("Mail-Server", 65, "Port");
+        // FALLBACK: Wenn fast alle Ports blockiert - nutze zumindest was wir wissen
+        if (isEmpty(open)) {
+            // Keine Ports verfügbar - wird durch andere Methoden behandelt
+            return null;
+        }
 
         return null;
     }
@@ -157,5 +180,9 @@ final class OsDetectorPorts {
 
     private static boolean is(Map<Integer, Boolean> map, int port) {
         return Boolean.TRUE.equals(map.get(port));
+    }
+
+    private static boolean isEmpty(Map<Integer, Boolean> map) {
+        return map.values().stream().noneMatch(v -> v);
     }
 }

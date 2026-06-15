@@ -3,6 +3,7 @@ package main.java.networktool.logic.scan;
 import main.java.networktool.model.ScanProfile;
 import main.java.networktool.storage.ScanProfileStore;
 import main.java.networktool.storage.TestConstants;
+import networktool.util.PollHelper;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -26,24 +27,25 @@ class ScanSchedulerFixTest {
 
     @Test void start_doesNotThrow()                   { assertDoesNotThrow(() -> sched.start(PROFILE, 999, "")); }
 
-    @Test void isRunning_afterStart() throws InterruptedException {
+    @Test void isRunning_afterStart() {
         sched.start(PROFILE, 999, "");
-        Thread.sleep(100);
-        assertTrue(sched.isRunning(PROFILE));
+        assertTrue(PollHelper.waitFor(() -> sched.isRunning(PROFILE), 2000),
+                "Scanner sollte innerhalb von 2 Sekunden laufen");
     }
 
-    @Test void stop_afterStart_notRunning() throws InterruptedException {
+    @Test void stop_afterStart_notRunning() {
         sched.start(PROFILE, 999, "");
-        Thread.sleep(100);
+        assertTrue(PollHelper.waitFor(() -> sched.isRunning(PROFILE), 2000));
         sched.stop(PROFILE);
-        assertFalse(sched.isRunning(PROFILE));
+        assertTrue(PollHelper.waitFor(() -> !sched.isRunning(PROFILE), 2000),
+                "Scanner sollte innerhalb von 2 Sekunden gestoppt sein");
     }
 
-    @Test void stopAll_clearsAll() throws InterruptedException {
+    @Test void stopAll_clearsAll() {
         sched.start(PROFILE, 999, "");
-        Thread.sleep(50);
         sched.stopAll();
-        assertTrue(sched.getRunning().isEmpty());
+        assertTrue(PollHelper.waitFor(() -> sched.getRunning().isEmpty(), 2000),
+                "Alle Scanner sollten innerhalb von 2 Sekunden gestoppt sein");
     }
 
     @Test void getRunning_isUnmodifiable() {

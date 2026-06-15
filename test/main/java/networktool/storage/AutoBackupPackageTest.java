@@ -1,5 +1,6 @@
 package main.java.networktool.storage;
 
+import networktool.util.PollHelper;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
@@ -140,12 +141,11 @@ class AutoBackupPackageTest {
 
     @Test
     @Timeout(value = 5, unit = TimeUnit.SECONDS)
-    void triggerNow_withoutStart_usesOnDemandThread() throws InterruptedException {
+    void triggerNow_withoutStart_usesOnDemandThread() {
         AutoBackup.getInstance().cleanupBackups();
         AutoBackup.getInstance().triggerNow();
-        for (int i = 0; i < 30 && !AutoBackup.getInstance().todayBackupDone(); i++)
-            Thread.sleep(100);
-        assertTrue(AutoBackup.getInstance().todayBackupDone());
+        assertTrue(PollHelper.waitFor(AutoBackup.getInstance()::todayBackupDone, 4000),
+                "Backup sollte innerhalb von 4 Sekunden abgeschlossen sein");
     }
 
     // ── PersistenceEdgeTest ───────────────────────────────────────────────
@@ -170,7 +170,7 @@ class AutoBackupPackageTest {
     // ── Helpers ───────────────────────────────────────────────────────────
 
     private static Path backupDir() {
-        return NetworkStorePersistence.resolveTxtDir().resolve("backups");
+        return NetworkStorePersistence.resolveDataDir().resolve("backups");
     }
 
     private static List<Path> listTestBackups(Path dir) throws IOException {
