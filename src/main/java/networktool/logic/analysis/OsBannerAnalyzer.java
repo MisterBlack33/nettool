@@ -1,4 +1,3 @@
-// src/main/java/networktool/logic/analysis/OsBannerAnalyzer.java
 package main.java.networktool.logic.analysis;
 
 import java.io.*;
@@ -6,21 +5,25 @@ import java.net.*;
 import java.nio.charset.StandardCharsets;
 
 /**
- * Liest Banner von SSH, HTTP und SMB und leitet daraus das OS ab.
- * Schnell (Timeout 600ms), non-blocking bei geschlossenen Ports.
+ * Liest Banner von SSH, HTTP, HTTPS, FTP, SMB.
+ * Timeout 700ms; FTP und HTTPS nun aktiv eingebunden.
  */
 final class OsBannerAnalyzer {
 
     private OsBannerAnalyzer() {}
 
-    private static final int TIMEOUT = 600;
+    private static final int TIMEOUT = 700;
 
-    /** Gibt OsSignature zurück oder null wenn kein verwertbarer Banner. */
     static OsSignature analyze(String ip) {
-        OsSignature ssh  = analyzeSsh(ip);
-        OsSignature http = analyzeHttp(ip);
-        OsSignature smb  = analyzeSmb(ip);
-        return OsSignature.best(OsSignature.best(ssh, http), smb);
+        OsSignature best = null;
+        best = OsSignature.best(best, analyzeSsh(ip));
+        if (best != null && best.score >= 85) return best;
+        best = OsSignature.best(best, analyzeSmb(ip));
+        if (best != null && best.score >= 85) return best;
+        best = OsSignature.best(best, analyzeHttp(ip));
+        best = OsSignature.best(best, analyzeHttps(ip));
+        best = OsSignature.best(best, analyzeFtp(ip));
+        return best;
     }
 
     // ── SSH ───────────────────────────────────────────────────────────────
@@ -37,21 +40,47 @@ final class OsBannerAnalyzer {
         } catch (Exception e) { return null; }
     }
 
-    private static OsSignature parseSshBanner(String banner) {
-        // WICHTIG: windows VOR openssh prüfen —
-        // "openssh_for_windows" enthält beide Strings
-        if (banner.contains("windows"))  return OsSignature.of("Windows",             85, "SSH-Banner");
-        if (banner.contains("ubuntu"))   return OsSignature.of("Linux (Ubuntu)",       85, "SSH-Banner");
-        if (banner.contains("debian"))   return OsSignature.of("Linux (Debian)",       85, "SSH-Banner");
-        if (banner.contains("raspbian")) return OsSignature.of("Raspberry Pi (Linux)", 90, "SSH-Banner");
-        if (banner.contains("centos"))   return OsSignature.of("Linux (CentOS)",       85, "SSH-Banner");
-        if (banner.contains("fedora"))   return OsSignature.of("Linux (Fedora)",       85, "SSH-Banner");
-        if (banner.contains("arch"))     return OsSignature.of("Linux (Arch)",         85, "SSH-Banner");
-        if (banner.contains("alpine"))   return OsSignature.of("Linux (Alpine)",       85, "SSH-Banner");
-        if (banner.contains("freebsd"))  return OsSignature.of("FreeBSD",              85, "SSH-Banner");
-        if (banner.contains("openbsd"))  return OsSignature.of("OpenBSD",              85, "SSH-Banner");
-        if (banner.contains("openssh"))  return OsSignature.of("Linux/Unix",           60, "SSH-Banner");
+    private static OsSignature parseSshBanner(String b) {
+        // "openssh_for_windows" enthält beide → windows zuerst prüfen
+        if (b.contains("windows"))  return OsSignature.of("Windows",             85, "SSH-Banner");
+        if (b.contains("raspbian")) return OsSignature.of("Raspberry Pi (Linux)",90, "SSH-Banner");
+        if (b.contains("ubuntu"))   return OsSignature.of("Linux (Ubuntu)",       85, "SSH-Banner");
+        if (b.contains("debian"))   return OsSignature.of("Linux (Debian)",       85, "SSH-Banner");
+        if (b.contains("centos"))   return OsSignature.of("Linux (CentOS)",       85, "SSH-Banner");
+        if (b.contains("fedora"))   return OsSignature.of("Linux (Fedora)",       85, "SSH-Banner");
+        if (b.contains("arch"))     return OsSignature.of("Linux (Arch)",         85, "SSH-Banner");
+        if (b.contains("alpine"))   return OsSignature.of("Linux (Alpine)",       85, "SSH-Banner");
+        if (b.contains("freebsd"))  return OsSignature.of("FreeBSD",              85, "SSH-Banner");
+        if (b.contains("openbsd"))  return OsSignature.of("OpenBSD",              85, "SSH-Banner");
+        if (b.contains("openssh"))  return OsSignature.of("Linux/Unix",           60, "SSH-Banner");
         return null;
+    }
+
+    // ── SMB ───────────────────────────────────────────────────────────────
+
+    private static OsSignature analyzeSmb(String ip) {
+        try (Socket s = new Socket()) {
+            s.connect(new InetSocketAddress(ip, 445), TIMEOUT);
+            byte[] negotiate = buildSmbNegotiate();
+            s.getOutputStream().write(negotiate);
+            s.getOutputStream().flush();
+            s.setSoTimeout(TIMEOUT);
+            byte[] buf = new byte[128];
+            int read = s.getInputStream().read(buf);
+            if (read > 40) return OsSignature.of("Windows", 70, "SMB-Probe");
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    private static byte[] buildSmbNegotiate() {
+        return new byte[]{
+                0x00,0x00,0x00,0x54, (byte)0xFF,0x53,0x4D,0x42,
+                0x72, 0x00,0x00,0x00,0x00,
+                0x18,0x01,0x48,0x00,
+                0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+                0x00,0x00,0x00,0x00,0x00,0x00,
+                (byte)0xFF,(byte)0xFE, 0x00,0x00,0x00,0x00
+        };
     }
 
     // ── HTTP ──────────────────────────────────────────────────────────────
@@ -82,57 +111,61 @@ final class OsBannerAnalyzer {
 
     private static OsSignature parseHttpHeader(String header) {
         if (!header.startsWith("server:")) return null;
-        String server = header.substring(7).trim();
-        if (server.contains("ubuntu"))      return OsSignature.of("Linux (Ubuntu)",  75, "HTTP-Server");
-        if (server.contains("debian"))      return OsSignature.of("Linux (Debian)",  75, "HTTP-Server");
-        if (server.contains("centos"))      return OsSignature.of("Linux (CentOS)",  75, "HTTP-Server");
-        if (server.contains("win"))         return OsSignature.of("Windows",         70, "HTTP-Server");
-        if (server.contains("iis"))         return OsSignature.of("Windows (IIS)",   80, "HTTP-Server");
-        if (server.contains("mikrotik"))    return OsSignature.of("Router (MikroTik)", 85, "HTTP-Server");
-        if (server.contains("routeros"))    return OsSignature.of("Router (MikroTik)", 85, "HTTP-Server");
-        if (server.contains("fritz"))       return OsSignature.of("Router (FRITZ!Box)", 90, "HTTP-Server");
-        if (server.contains("synology"))    return OsSignature.of("NAS (Synology)",  90, "HTTP-Server");
-        if (server.contains("qnap"))        return OsSignature.of("NAS (QNAP)",      90, "HTTP-Server");
-        if (server.contains("unifi"))       return OsSignature.of("Access Point (Ubiquiti)", 90, "HTTP-Server");
-        if (server.contains("nginx") || server.contains("apache") || server.contains("lighttpd"))
-            return OsSignature.of("Linux/Unix",  50, "HTTP-Server");
+        String srv = header.substring(7).trim();
+        if (srv.contains("ubuntu"))    return OsSignature.of("Linux (Ubuntu)",     75, "HTTP-Server");
+        if (srv.contains("debian"))    return OsSignature.of("Linux (Debian)",     75, "HTTP-Server");
+        if (srv.contains("centos"))    return OsSignature.of("Linux (CentOS)",     75, "HTTP-Server");
+        if (srv.contains("win"))       return OsSignature.of("Windows",            70, "HTTP-Server");
+        if (srv.contains("iis"))       return OsSignature.of("Windows (IIS)",      80, "HTTP-Server");
+        if (srv.contains("mikrotik"))  return OsSignature.of("Router (MikroTik)",  85, "HTTP-Server");
+        if (srv.contains("routeros"))  return OsSignature.of("Router (MikroTik)",  85, "HTTP-Server");
+        if (srv.contains("fritz"))     return OsSignature.of("Router (FRITZ!Box)", 90, "HTTP-Server");
+        if (srv.contains("synology"))  return OsSignature.of("NAS (Synology)",     90, "HTTP-Server");
+        if (srv.contains("qnap"))      return OsSignature.of("NAS (QNAP)",         90, "HTTP-Server");
+        if (srv.contains("unifi"))     return OsSignature.of("Access Point (Ubiquiti)", 90, "HTTP-Server");
+        if (srv.contains("nginx") || srv.contains("apache") || srv.contains("lighttpd"))
+            return OsSignature.of("Linux/Unix", 50, "HTTP-Server");
         return null;
     }
 
-    // ── SMB ───────────────────────────────────────────────────────────────
+    // ── HTTPS TLS-Hello ───────────────────────────────────────────────────
+    // Liest Server-Name aus TLS-Extension (SNI-Response / Certificate CN)
 
-    private static OsSignature analyzeSmb(String ip) {
-        // SMB-Port offen → fast sicher Windows (oder Samba auf Linux)
-        try (Socket s = new Socket()) {
-            s.connect(new InetSocketAddress(ip, 445), TIMEOUT);
-            // SMB Negotiate Protocol Request
-            byte[] negotiate = {
-                    0x00,0x00,0x00,0x54,       // NetBIOS length
-                    (byte)0xFF,0x53,0x4D,0x42, // SMB magic
-                    0x72,                       // command: Negotiate
-                    0x00,0x00,0x00,0x00,       // status
-                    0x18,0x01,0x48,0x00,       // flags
-                    0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-                    0x00,0x00,0x00,0x00,0x00,0x00,
-                    (byte)0xFF,(byte)0xFE,      // PID
-                    0x00,0x00,0x00,0x00        // MID
-            };
-            s.getOutputStream().write(negotiate);
-            s.getOutputStream().flush();
-            s.setSoTimeout(TIMEOUT);
-            byte[] buf = new byte[128];
-            int read = s.getInputStream().read(buf);
-            if (read > 40) {
-                // Check for SMB2 response → Windows or modern Samba
-                return OsSignature.of("Windows", 70, "SMB-Probe");
+    static OsSignature analyzeHttps(String ip) {
+        try {
+            javax.net.ssl.SSLSocket ssl = (javax.net.ssl.SSLSocket)
+                    javax.net.ssl.SSLSocketFactory.getDefault()
+                            .createSocket();
+            ssl.connect(new InetSocketAddress(ip, 443), TIMEOUT);
+            ssl.setSoTimeout(TIMEOUT);
+            ssl.startHandshake();
+            java.security.cert.X509Certificate[] certs =
+                    (java.security.cert.X509Certificate[])
+                            ssl.getSession().getPeerCertificates();
+            if (certs.length > 0) {
+                String dn = certs[0].getSubjectX500Principal().getName().toLowerCase();
+                OsSignature sig = classifyTlsCn(dn);
+                ssl.close();
+                return sig;
             }
+            ssl.close();
         } catch (Exception ignored) {}
+        return null;
+    }
+
+    private static OsSignature classifyTlsCn(String dn) {
+        if (dn.contains("fritz"))     return OsSignature.of("Router (FRITZ!Box)", 88, "TLS-Cert");
+        if (dn.contains("synology"))  return OsSignature.of("NAS (Synology)",     88, "TLS-Cert");
+        if (dn.contains("mikrotik"))  return OsSignature.of("Router (MikroTik)",  88, "TLS-Cert");
+        if (dn.contains("unifi"))     return OsSignature.of("Access Point (Ubiquiti)", 88, "TLS-Cert");
+        if (dn.contains("qnap"))      return OsSignature.of("NAS (QNAP)",         88, "TLS-Cert");
+        if (dn.contains("windows"))   return OsSignature.of("Windows",            75, "TLS-Cert");
         return null;
     }
 
     // ── FTP ───────────────────────────────────────────────────────────────
 
-    private static OsSignature analyzeFtp(String ip) {
+    static OsSignature analyzeFtp(String ip) {
         try (Socket s = new Socket()) {
             s.connect(new InetSocketAddress(ip, 21), TIMEOUT);
             s.setSoTimeout(TIMEOUT);
@@ -144,12 +177,12 @@ final class OsBannerAnalyzer {
         } catch (Exception e) { return null; }
     }
 
-    private static OsSignature parseFtpBanner(String banner) {
-        if (banner.contains("windows"))  return OsSignature.of("Windows",              65, "FTP-Banner");
-        if (banner.contains("linux"))    return OsSignature.of("Linux/Unix",           65, "FTP-Banner");
-        if (banner.contains("busybox"))  return OsSignature.of("Router / IoT-Gerät",   70, "FTP-Banner");
-        if (banner.contains("synology")) return OsSignature.of("NAS (Synology)",      75, "FTP-Banner");
-        if (banner.contains("qnap"))     return OsSignature.of("NAS (QNAP)",          75, "FTP-Banner");
+    private static OsSignature parseFtpBanner(String b) {
+        if (b.contains("windows"))  return OsSignature.of("Windows",           65, "FTP-Banner");
+        if (b.contains("linux"))    return OsSignature.of("Linux/Unix",         65, "FTP-Banner");
+        if (b.contains("busybox"))  return OsSignature.of("Router / IoT-Gerät", 70, "FTP-Banner");
+        if (b.contains("synology")) return OsSignature.of("NAS (Synology)",     75, "FTP-Banner");
+        if (b.contains("qnap"))     return OsSignature.of("NAS (QNAP)",         75, "FTP-Banner");
         return null;
     }
 }
