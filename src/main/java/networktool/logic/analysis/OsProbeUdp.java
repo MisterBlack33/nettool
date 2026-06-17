@@ -161,7 +161,7 @@ final class OsProbeUdp {
                 0x30, 0x26,                         // SEQUENCE
                 0x02, 0x01, 0x00,                   // Version: 1
                 0x04, 0x06, 0x70, 0x75, 0x62, 0x6c, 0x69, 0x63, // Community: "public"
-                0xa0, 0x19,                         // GetRequest PDU
+                (byte) 0xa0, 0x19,                         // GetRequest PDU
                 0x02, 0x01, 0x01,                   // Request ID: 1
                 0x02, 0x01, 0x00,                   // Error status: 0
                 0x02, 0x01, 0x00,                   // Error index: 0
