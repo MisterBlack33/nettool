@@ -5,8 +5,7 @@ import java.util.Objects;
 
 /**
  * Zentrale OS-Erkennungs-Pipeline.
- * Reihenfolge: Banner → UDP-Probe → Hostname → MAC/OUI → Port-Kombination → TTL-Fingerprint.
- * UDP-Probe (mDNS/NetBIOS/SNMP) greift auch wenn TCP-Ports durch Firewalls blockiert sind.
+ * Reihenfolge: Banner → UDP-Probe → UPnP → mDNS → Hostname → MAC/OUI → Port-Kombination → TTL.
  */
 public final class OsDetector {
 
@@ -22,63 +21,30 @@ public final class OsDetector {
         public OsResult(String os, Confidence c, String method) {
             this.os = os; this.confidence = c; this.method = method;
         }
+
         public String display() { return os + " [" + confidence.name().charAt(0) + "]"; }
     }
 
     // ── Public API ────────────────────────────────────────────────────────
 
     public static OsResult detectWithConfidence(String ip) {
-        OsSignature best = null;
+        OsSignature best = runBannerProbe(ip);
+        if (isConfident(best, 85)) return toResult(best);
 
-        // 1. Banner (SSH/HTTP/HTTPS/FTP/SMB) — sehr zuverlässig
-        best = OsSignature.best(best, OsBannerAnalyzer.analyze(ip));
-        if (best != null && best.score >= 85) return toResult(best);
-
-        // 2. UDP-Probing (NetBIOS/mDNS/SNMP) — funktioniert auch hinter Firewalls
         best = OsSignature.best(best, OsProbeUdp.probe(ip));
-        if (best != null && best.score >= 80) return toResult(best);
+        if (isConfident(best, 80)) return toResult(best);
 
-        // 2b. UPnP-Geräte
-        List<UpnpDiscovery.Device> upnp = UpnpDiscovery.discover();
-        upnp.stream().filter(d -> d.ip().equals(ip)).findFirst()
-                .map(d -> d.guessOs())
-                .filter(Objects::nonNull)
-                .ifPresent(os -> best = OsSignature.best(best, OsSignature.of(os, 70, "UPnP")));
+        best = OsSignature.best(best, probeUpnp(ip));
+        best = OsSignature.best(best, probeHostname(ip));
+        if (isConfident(best, 75)) return toResult(best);
 
-        // 2c. mDNS
-        List<MdnsDiscovery.ServiceRecord> mdns = MdnsDiscovery.queryHost(ip);
+        best = OsSignature.best(best, probeMac(ip));
+        if (isConfident(best, 65)) return toResult(best);
 
-        // 3. Hostname-Analyse — oft zuverlässig und schnell
-        String hostname = resolveHostname(ip);
-        if (hostname != null) {
-            String fromHn = OsDetectorHostname.classify(hostname.toLowerCase());
-            if (fromHn != null) {
-                best = OsSignature.best(best, OsSignature.of(fromHn, 75, "Hostname"));
-                if (best.score >= 75) return toResult(best);
-            }
-        }
-
-        // 4. MAC/OUI — zuverlässig wenn ARP funktioniert
-        String mac = OsDetectorArp.getMacFromArp(ip);
-        if (mac != null) {
-            String vendor = OuiDatabase.lookup(mac);
-            if (vendor != null) {
-                best = OsSignature.best(best, OsSignature.of(vendor, 65, "OUI/MAC"));
-                if (best.score >= 65) return toResult(best);
-            }
-        }
-
-        // 5. Port-Kombination — kann durch Firewalls blockiert sein
         best = OsSignature.best(best, OsDetectorPorts.detectWithSignature(ip));
-        if (best != null && best.score >= 80) return toResult(best);
+        if (isConfident(best, 80)) return toResult(best);
 
-        // 6. TTL-Fingerprint — Fallback
-        int ttl = OsDetectorArp.getTtl(ip);
-        String fingerprint = OsFingerprint.resolve(ip, ttl, mac);
-        if (fingerprint != null) {
-            best = OsSignature.best(best, OsSignature.of(fingerprint, 40, ttl > 0 ? "TTL=" + ttl : "MAC"));
-        }
-
+        best = OsSignature.best(best, probeTtl(ip));
         return best != null ? toResult(best) : new OsResult("Unbekannt", Confidence.NIEDRIG, "—");
     }
 
@@ -100,11 +66,55 @@ public final class OsDetector {
         return OsDetectorArp.getMacFromArp(ip);
     }
 
+    // Package-private — used by tests
     static String classifyHostname(String h) {
         return OsDetectorHostname.classify(h);
     }
 
-    // ── Private ───────────────────────────────────────────────────────────
+    // ── Private probe steps ───────────────────────────────────────────────
+
+    private static OsSignature runBannerProbe(String ip) {
+        return OsBannerAnalyzer.analyze(ip);
+    }
+
+    /** UPnP: find the first device matching our IP and extract its OS hint. */
+    private static OsSignature probeUpnp(String ip) {
+        List<UpnpDiscovery.Device> devices = UpnpDiscovery.discover();
+        String osHint = devices.stream()
+                .filter(d -> d.ip().equals(ip))
+                .map(UpnpDiscovery.Device::guessOs)
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+        return osHint != null ? OsSignature.of(osHint, 70, "UPnP") : null;
+    }
+
+    private static OsSignature probeHostname(String ip) {
+        String hostname = resolveHostname(ip);
+        if (hostname == null) return null;
+        String classified = OsDetectorHostname.classify(hostname.toLowerCase());
+        return classified != null ? OsSignature.of(classified, 75, "Hostname") : null;
+    }
+
+    private static OsSignature probeMac(String ip) {
+        String mac = OsDetectorArp.getMacFromArp(ip);
+        if (mac == null) return null;
+        String vendor = OuiDatabase.lookup(mac);
+        return vendor != null ? OsSignature.of(vendor, 65, "OUI/MAC") : null;
+    }
+
+    private static OsSignature probeTtl(String ip) {
+        String mac = OsDetectorArp.getMacFromArp(ip);
+        int ttl = OsDetectorArp.getTtl(ip);
+        String fingerprint = OsFingerprint.resolve(ip, ttl, mac);
+        return fingerprint != null
+                ? OsSignature.of(fingerprint, 40, ttl > 0 ? "TTL=" + ttl : "MAC")
+                : null;
+    }
+
+    private static boolean isConfident(OsSignature sig, int threshold) {
+        return sig != null && sig.score >= threshold;
+    }
 
     private static OsResult toResult(OsSignature sig) {
         return new OsResult(sig.os, sig.toConfidence(), sig.method);
@@ -112,15 +122,19 @@ public final class OsDetector {
 
     private static String resolveHostname(String ip) {
         String[] result = {null};
-        Thread t = new Thread(() -> {
+        Thread thread = new Thread(() -> {
             try {
-                String h = java.net.InetAddress.getByName(ip).getCanonicalHostName();
-                if (!h.equals(ip)) result[0] = h;
-            } catch (Exception ignored) {}
+                String hostname = java.net.InetAddress.getByName(ip).getCanonicalHostName();
+                if (!hostname.equals(ip)) result[0] = hostname;
+            } catch (Exception ignored) { /* DNS not available */ }
         });
-        t.setDaemon(true);
-        t.start();
-        try { t.join(600); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        thread.setDaemon(true);
+        thread.start();
+        try {
+            thread.join(600);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
         return result[0];
     }
 }
