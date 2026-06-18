@@ -1,5 +1,8 @@
 package main.java.networktool.logic.analysis;
 
+import java.util.List;
+import java.util.Objects;
+
 /**
  * Zentrale OS-Erkennungs-Pipeline.
  * Reihenfolge: Banner → UDP-Probe → Hostname → MAC/OUI → Port-Kombination → TTL-Fingerprint.
@@ -34,6 +37,16 @@ public final class OsDetector {
         // 2. UDP-Probing (NetBIOS/mDNS/SNMP) — funktioniert auch hinter Firewalls
         best = OsSignature.best(best, OsProbeUdp.probe(ip));
         if (best != null && best.score >= 80) return toResult(best);
+
+        // 2b. UPnP-Geräte
+        List<UpnpDiscovery.Device> upnp = UpnpDiscovery.discover();
+        upnp.stream().filter(d -> d.ip().equals(ip)).findFirst()
+                .map(d -> d.guessOs())
+                .filter(Objects::nonNull)
+                .ifPresent(os -> best = OsSignature.best(best, OsSignature.of(os, 70, "UPnP")));
+
+        // 2c. mDNS
+        List<MdnsDiscovery.ServiceRecord> mdns = MdnsDiscovery.queryHost(ip);
 
         // 3. Hostname-Analyse — oft zuverlässig und schnell
         String hostname = resolveHostname(ip);
