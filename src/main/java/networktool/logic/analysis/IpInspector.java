@@ -1,4 +1,3 @@
-// src/main/java/networktool/logic/analysis/IpInspector.java
 package main.java.networktool.logic.analysis;
 
 import main.java.networktool.gui.GUI;
@@ -8,11 +7,14 @@ import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * IP-Detailanalyse. inspect() nutzt ExtendedOsDetector für maximale Präzision.
+ * quickScan() bleibt bei OsDetector für Geschwindigkeit.
+ */
 public final class IpInspector {
 
     private IpInspector() {}
 
-    /** Wenn true: Netzwerk-Operationen werden übersprungen (JUnit). */
     public static volatile boolean testMode = false;
 
     public static void quickScan(String target, int timeoutMs) {
@@ -43,7 +45,11 @@ public final class IpInspector {
             printBasicInfo(target, ip, inet);
             printReachability(inet);
             printArpInfo(ip);
-            printOsInfo(ip, inet);
+            printExtendedOs(ip);
+            printIcmpTiming(ip);
+            printDhcpInfo(ip);
+            printUpnpInfo(ip);
+            printMdnsInfo(ip);
             printPorts(ip, 1000);
             printTraceroute(ip, 0);
             System.out.println("\n═══════════════════════════════════════════════");
@@ -55,6 +61,8 @@ public final class IpInspector {
         try { printTraceroute(InetAddress.getByName(target).getHostAddress(), 0); }
         catch (Exception e) { System.err.println("Traceroute: " + e.getMessage()); }
     }
+
+    // ── Print-Methoden ────────────────────────────────────────────────────
 
     private static void printBanner(String title) {
         System.out.println("\n╔══════════════════════════════════════════════╗");
@@ -93,19 +101,62 @@ public final class IpInspector {
         }
     }
 
-    private static void printOsInfo(String ip, InetAddress inet) {
-        System.out.println("\n[ OS-Erkennung ]");
-        String os   = OsDetector.detect(ip);
-        String hint = OsDetector.detectFromHostname(inet.getCanonicalHostName(), ip);
-        System.out.println("  Erkannt: " + os);
-        if (hint != null && !hint.equals(os)) System.out.println("  Hostname: " + hint);
+    /** Nutzt ExtendedOsDetector für maximale Erkennungstiefe. */
+    private static void printExtendedOs(String ip) {
+        System.out.println("\n[ OS-Erkennung (erweitert) ]");
+        OsDetector.OsResult r = ExtendedOsDetector.detect(ip);
+        System.out.println("  OS       : " + r.os);
+        System.out.println("  Konfidenz: " + r.confidence);
+        System.out.println("  Methode  : " + r.method);
+    }
+
+    private static void printIcmpTiming(String ip) {
+        System.out.println("\n[ ICMP-Timing ]");
+        IcmpAnalyzer.Result r = IcmpAnalyzer.analyze(ip);
+        if (r == null) { System.out.println("  Nicht erreichbar."); return; }
+        System.out.println("  " + r);
+        if (r.isHighJitter())  System.out.println("  ⚠ Hoher Jitter – instabile Verbindung");
+        if (r.isUnstable())    System.out.println("  ⚠ Paketverlust > 20%");
+    }
+
+    private static void printDhcpInfo(String ip) {
+        System.out.println("\n[ DHCP Option 60 ]");
+        DhcpOptionAnalyzer.Result r = DhcpOptionAnalyzer.analyze(ip);
+        if (r == null) { System.out.println("  Kein DHCP-Server oder keine Antwort."); return; }
+        System.out.println("  Vendor Class : " + r.vendorClass());
+        System.out.println("  OS-Hinweis   : " + r.detectedOs());
+    }
+
+    private static void printUpnpInfo(String ip) {
+        System.out.println("\n[ UPnP / SSDP ]");
+        List<UpnpDiscovery.Device> devices = UpnpDiscovery.discover();
+        devices.stream()
+                .filter(d -> ip.equals(d.ip()))
+                .forEach(d -> {
+                    System.out.println("  Server  : " + d.server());
+                    System.out.println("  USN     : " + d.usn());
+                    System.out.println("  Location: " + d.location());
+                    String os = d.guessOs();
+                    if (os != null) System.out.println("  OS      : " + os);
+                });
+        if (devices.stream().noneMatch(d -> ip.equals(d.ip())))
+            System.out.println("  Kein UPnP-Gerät gefunden.");
+    }
+
+    private static void printMdnsInfo(String ip) {
+        System.out.println("\n[ mDNS / Bonjour ]");
+        List<MdnsDiscovery.ServiceRecord> records = MdnsDiscovery.queryHost(ip);
+        if (records.isEmpty()) { System.out.println("  Keine mDNS-Services gefunden."); return; }
+        records.forEach(r ->
+                System.out.println("  " + r.serviceType() + "  →  " + r.name()));
     }
 
     private static void printPorts(String ip, int timeout) throws InterruptedException {
         System.out.println("\n[ Offene Ports & Banner ]");
         Map<Integer, String> ports = PortScanner.scanParallel(ip, timeout);
         if (ports.isEmpty()) { System.out.println("  Keine."); return; }
-        ports.entrySet().stream().sorted(Map.Entry.comparingByKey())
+        ports.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
                 .forEach(e -> System.out.printf("  Port %-5d -> %s%n", e.getKey(), e.getValue()));
     }
 
