@@ -5,6 +5,7 @@ import javax.swing.border.*;
 import java.awt.*;
 
 import static main.java.networktool.gui.LoginFormBuilder.*;
+import static main.java.networktool.gui.LoginInputs.fieldLabel;
 
 /**
  * GridBag-Layout-Hilfsmethoden für Login- und Registrierungsformulare.
