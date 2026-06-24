@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Zentrale OS-Erkennungs-Pipeline.
- * Reihenfolge: Banner → UDP → UPnP → Hostname → MAC → Ports → TTL.
+ * OS-Erkennungs-Pipeline mit stufenweisem Logging.
+ * Jede Methode wird einzeln als [OK] oder [FAIL] gemeldet.
  */
 public final class OsDetector {
 
@@ -28,26 +28,36 @@ public final class OsDetector {
     // ── Public API ────────────────────────────────────────────────────────
 
     public static OsResult detectWithConfidence(String ip) {
-        OsSignature result = null;
+        System.out.println("  [OS-Detect] " + ip);
+        OsSignature best = null;
 
-        result = OsSignature.best(result, OsBannerAnalyzer.analyze(ip));
-        if (hasScore(result, 85)) return toResult(result);
+        best = OsSignature.best(best,
+                OsDetectionLogger.tryStep("Banner",   OsBannerAnalyzer.analyze(ip)));
+        if (isConfident(best, 85)) return toResult(best);
 
-        result = OsSignature.best(result, OsProbeUdp.probe(ip));
-        if (hasScore(result, 80)) return toResult(result);
+        best = OsSignature.best(best,
+                OsDetectionLogger.tryStep("UDP-Probe", OsProbeUdp.probe(ip)));
+        if (isConfident(best, 80)) return toResult(best);
 
-        result = OsSignature.best(result, fromUpnp(ip));
-        result = OsSignature.best(result, fromHostname(ip));
-        if (hasScore(result, 75)) return toResult(result);
+        best = OsSignature.best(best,
+                OsDetectionLogger.tryStep("UPnP",     probeUpnp(ip)));
+        best = OsSignature.best(best,
+                OsDetectionLogger.tryStep("Hostname",  probeHostname(ip)));
+        if (isConfident(best, 75)) return toResult(best);
 
-        result = OsSignature.best(result, fromMac(ip));
-        if (hasScore(result, 65)) return toResult(result);
+        best = OsSignature.best(best,
+                OsDetectionLogger.tryStep("MAC/OUI",   probeMac(ip)));
+        if (isConfident(best, 65)) return toResult(best);
 
-        result = OsSignature.best(result, OsDetectorPorts.detectWithSignature(ip));
-        if (hasScore(result, 80)) return toResult(result);
+        best = OsSignature.best(best,
+                OsDetectionLogger.tryStep("Port-Scan", OsDetectorPorts.detectWithSignature(ip)));
+        if (isConfident(best, 80)) return toResult(best);
 
-        result = OsSignature.best(result, fromTtl(ip));
-        return result != null ? toResult(result) : unknown();
+        best = OsSignature.best(best,
+                OsDetectionLogger.tryStep("TTL",       probeTtl(ip)));
+
+        return best != null ? toResult(best)
+                : new OsResult("Unbekannt", Confidence.NIEDRIG, "—");
     }
 
     public static String detect(String ip) {
@@ -55,7 +65,8 @@ public final class OsDetector {
     }
 
     public static String detectFromHostname(String hostname, String ip) {
-        if (hostname == null || hostname.equals(ip) || hostname.startsWith("host-")) return null;
+        if (hostname == null || hostname.equals(ip)) return null;
+        if (hostname.startsWith("host-"))             return null;
         return OsDetectorHostname.classify(hostname.toLowerCase());
     }
 
@@ -73,68 +84,59 @@ public final class OsDetector {
 
     // ── Probe steps ───────────────────────────────────────────────────────
 
-    private static OsSignature fromUpnp(String ip) {
-        String osHint = UpnpDiscovery.discover().stream()
+    private static OsSignature probeUpnp(String ip) {
+        List<UpnpDiscovery.Device> devices = UpnpDiscovery.discover();
+        String os = devices.stream()
                 .filter(d -> d.ip().equals(ip))
                 .map(UpnpDiscovery.Device::guessOs)
                 .filter(Objects::nonNull)
-                .findFirst()
-                .orElse(null);
-        return osHint != null ? OsSignature.of(osHint, 70, "UPnP") : null;
+                .findFirst().orElse(null);
+        return os != null ? OsSignature.of(os, 70, "UPnP") : null;
     }
 
-    private static OsSignature fromHostname(String ip) {
+    private static OsSignature probeHostname(String ip) {
         String hostname = resolveHostname(ip);
         if (hostname == null) return null;
-        String os = OsDetectorHostname.classify(hostname.toLowerCase());
-        return os != null ? OsSignature.of(os, 75, "Hostname") : null;
+        String classified = OsDetectorHostname.classify(hostname.toLowerCase());
+        return classified != null ? OsSignature.of(classified, 75, "Hostname") : null;
     }
 
-    private static OsSignature fromMac(String ip) {
+    private static OsSignature probeMac(String ip) {
         String mac = OsDetectorArp.getMacFromArp(ip);
         if (mac == null) return null;
         String vendor = OuiDatabase.lookup(mac);
         return vendor != null ? OsSignature.of(vendor, 65, "OUI/MAC") : null;
     }
 
-    private static OsSignature fromTtl(String ip) {
+    private static OsSignature probeTtl(String ip) {
         String mac = OsDetectorArp.getMacFromArp(ip);
-        int ttl = OsDetectorArp.getTtl(ip);
-        String os = OsFingerprint.resolve(ip, ttl, mac);
-        if (os == null) return null;
-        String method = ttl > 0 ? "TTL=" + ttl : "MAC";
-        return OsSignature.of(os, 40, method);
+        int ttl    = OsDetectorArp.getTtl(ip);
+        String fingerprint = OsFingerprint.resolve(ip, ttl, mac);
+        return fingerprint != null
+                ? OsSignature.of(fingerprint, 40, ttl > 0 ? "TTL=" + ttl : "MAC")
+                : null;
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────
-
-    private static boolean hasScore(OsSignature sig, int min) {
-        return sig != null && sig.score >= min;
+    private static boolean isConfident(OsSignature sig, int threshold) {
+        return sig != null && sig.score >= threshold;
     }
 
     private static OsResult toResult(OsSignature sig) {
         return new OsResult(sig.os, sig.toConfidence(), sig.method);
     }
 
-    private static OsResult unknown() {
-        return new OsResult("Unbekannt", Confidence.NIEDRIG, "—");
-    }
-
     private static String resolveHostname(String ip) {
         String[] result = {null};
-        Thread thread = new Thread(() -> {
+        Thread t = new Thread(() -> {
             try {
                 String name = java.net.InetAddress.getByName(ip).getCanonicalHostName();
                 if (!name.equals(ip)) result[0] = name;
-            } catch (Exception ignored) { /* DNS unavailable */ }
+            } catch (Exception ignored) {}
         });
-        thread.setDaemon(true);
-        thread.start();
-        try {
-            thread.join(600);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        t.setDaemon(true);
+        t.start();
+        try { t.join(600); }
+        catch (InterruptedException e) { Thread.currentThread().interrupt(); }
         return result[0];
     }
 }
