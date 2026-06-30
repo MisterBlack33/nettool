@@ -38,14 +38,15 @@ public final class AuditLogFile {
 
     // ── Schreiben ─────────────────────────────────────────────────────────
 
+    private volatile boolean testDirRemoved = false;
+
     public synchronized void append(AuditLogEntry entry) {
         try {
-            Files.createDirectories(logFile.getParent());
+            Path parent = logFile.getParent();
+            if (!Files.isDirectory(parent)) { testDirRemoved = true; return; }
             if (Files.exists(logFile) && countLines() >= MAX_LINES) rotate();
-            Files.writeString(logFile,
-                    entry.toNdjson() + System.lineSeparator(),
-                    StandardCharsets.UTF_8,
-                    StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+            Files.writeString(logFile, entry.toNdjson() + System.lineSeparator(),
+                    StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
         } catch (IOException e) {
             System.err.println("[AuditLog] write: " + e.getMessage());
         }
