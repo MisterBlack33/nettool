@@ -332,20 +332,10 @@ public class GuiMenuHandler {
     // ── Bandwidth ─────────────────────────────────────────────────────────
 
     private void handleBandwidthTest() {
-        String[] options = {"Server starten", "Test zu Ziel-IP"};
-        int choice = JOptionPane.showOptionDialog(null, "Bandwidth-Test:", "Bandwidth",
-                JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[1]);
-        if (choice < 0) return;
-        if (choice == 0) {
-            AuditLogger.getInstance().log("BW_SERVER_START", "");
-            runAsync(() -> { BandwidthTester.startServer(); Thread.currentThread().join(); });
-            ok("BW-Server Port " + BandwidthTester.TEST_PORT);
-        } else {
-            input.ask("Ziel-IP:", ip -> runAsync(() -> {
-                AuditLogger.getInstance().log("BW_TEST", ip);
-                BandwidthTester.testBoth(ip);
-            }));
-        }
+        input.ask("Ziel-IP / Hostname:", ip -> runAsync(() -> {
+            AuditLogger.getInstance().log("BW_TEST", ip);
+            BandwidthTester.testBoth(ip);
+        }));
     }
 
     // ── Dauerping ─────────────────────────────────────────────────────────
