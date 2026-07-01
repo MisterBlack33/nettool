@@ -1,6 +1,6 @@
 package networktool.logic.scan;
 
-import main.java.networktool.logic.scan.SubnetDetector;
+import networktool.logic.scan.SubnetDetector;
 import org.junit.jupiter.api.Test;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;

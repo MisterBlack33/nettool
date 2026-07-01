@@ -1,25 +1,27 @@
-package main.java.networktool.cli;
+package networktool.cli;
 
-import main.java.networktool.logic.analysis.ArpMonitor;
-import main.java.networktool.logic.analysis.PingMonitor;
-import main.java.networktool.logic.scan.NetworkScanner;
-import main.java.networktool.logic.scan.NetworkInfo;
-import main.java.networktool.logic.scan.RemoteNetScanner;
-import main.java.networktool.logic.scan.ScanScheduler;
-import main.java.networktool.logic.scan.PortChangeMonitor;
-import main.java.networktool.storage.DataExportImport;
-import main.java.networktool.transfer.BandwidthTester;
-import main.java.networktool.filter.JsonExporter;
-import main.java.networktool.filter.ScanFilter;
-import main.java.networktool.filter.TablePrinter;
-import main.java.networktool.logic.analysis.IpInspector;
-import main.java.networktool.logic.messaging.MessageSender;
-import main.java.networktool.model.ScanResult;
-import main.java.networktool.transfer.FileClient;
-import main.java.networktool.transfer.FileServer;
+import networktool.logic.analysis.ArpMonitor;
+import networktool.logic.analysis.PingMonitor;
+import networktool.logic.scan.NetworkScanner;
+import networktool.logic.scan.NetworkInfo;
+import networktool.logic.scan.RemoteNetScanner;
+import networktool.logic.scan.ScanScheduler;
+import networktool.logic.scan.PortChangeMonitor;
+import networktool.storage.DataExportImport;
+import networktool.transfer.BandwidthTester;
+import networktool.filter.JsonExporter;
+import networktool.filter.ScanFilter;
+import networktool.filter.TablePrinter;
+import networktool.logic.analysis.IpInspector;
+import networktool.logic.messaging.MessageSender;
+import networktool.model.ScanResult;
+import networktool.transfer.FileClient;
+import networktool.transfer.FileServer;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Verarbeitet Benutzereingaben im CLI-Modus.
@@ -38,6 +40,7 @@ import java.util.Scanner;
 public class MenuHandler {
 
     private final Scanner scanner;
+    private static final Logger LOGGER = Logger.getLogger(MenuHandler.class.getName());
 
     public MenuHandler(Scanner scanner) { this.scanner = scanner; }
 
@@ -232,7 +235,12 @@ public class MenuHandler {
         String host = scanner.nextLine().trim();
         System.out.print("  Max. Dauer in Sek. (0 = unbegrenzt): ");
         int sec = 0;
-        try { sec = Integer.parseInt(scanner.nextLine().trim()); } catch (NumberFormatException ignored) {}
+        try {
+            sec = Integer.parseInt(scanner.nextLine().trim());
+        } catch (NumberFormatException nfe) {
+            LOGGER.log(Level.FINE, "Invalid integer input for max duration", nfe);
+            sec = 0;  // Default: unbegrenzt
+        }
         final int maxSec = sec;
         runSafely(() -> PingMonitor.start(host, maxSec));
     }

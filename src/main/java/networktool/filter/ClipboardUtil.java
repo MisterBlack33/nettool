@@ -1,4 +1,4 @@
-package main.java.networktool.filter;
+package networktool.filter;
 
 import java.awt.*;
 import java.awt.datatransfer.*;

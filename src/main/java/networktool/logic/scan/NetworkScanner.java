@@ -1,9 +1,9 @@
-package main.java.networktool.logic.scan;
+package networktool.logic.scan;
 
-import main.java.networktool.logic.analysis.OsDetector;
-import main.java.networktool.logic.ports.PortScanner;
-import main.java.networktool.model.ScanResult;
-import main.java.networktool.util.CIDRUtils;
+import networktool.logic.analysis.OsDetector;
+import networktool.logic.ports.PortScanner;
+import networktool.model.ScanResult;
+import networktool.util.CIDRUtils;
 
 import java.net.InetAddress;
 import java.util.*;

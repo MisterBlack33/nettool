@@ -1,8 +1,8 @@
-package main.java.networktool.logic.messaging;
+package networktool.logic.messaging;
 
-import main.java.networktool.gui.notification.LocalToast;
-import main.java.networktool.gui.notification.NotificationListener;
-import main.java.networktool.logic.analysis.OsDetector;
+import networktool.gui.notification.LocalToast;
+import networktool.gui.notification.NotificationListener;
+import networktool.logic.analysis.OsDetector;
 
 /**
  * Sendet Benachrichtigungen an Netzwerk-Hosts.

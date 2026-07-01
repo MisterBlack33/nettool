@@ -4,6 +4,8 @@ import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Liest den Server-Banner eines offenen Ports.
@@ -20,11 +22,25 @@ public final class BannerGrabber {
 
     private BannerGrabber() {}
 
+    private static final Logger LOGGER = Logger.getLogger(BannerGrabber.class.getName());
+
     /** Maximale Banner-Länge in der Ausgabe. */
     private static final int MAX_BANNER_LEN = 200;
 
     /** Standard-Timeout wenn kein Wert übergeben wird. */
     private static final int DEFAULT_TIMEOUT = 1_200;
+
+    /** Timeout für Socket-Operationen bei Banner-Grabbing. */
+    private static final int SOCKET_OPERATION_TIMEOUT = 800;
+
+    /** Buffer-Größe für Banner-Lesevorgänge. */
+    private static final int BANNER_BUFFER_SIZE = 256;
+
+    /** Größerer Buffer für MySQL Handshake. */
+    private static final int MYSQL_BUFFER_SIZE = 64;
+
+    /** Buffer für Mongo- und Redis-Responses. */
+    private static final int RESPONSE_BUFFER_SIZE = 128;
 
     // ── Öffentliche API ───────────────────────────────────────────────────
 
@@ -93,15 +109,20 @@ public final class BannerGrabber {
     private static String grabPassive(String host, int port, int timeout) {
         try (Socket s = new Socket()) {
             s.connect(new InetSocketAddress(host, port), timeout);
-            s.setSoTimeout(Math.min(timeout, 800));
-            byte[] buf = new byte[256];
+            s.setSoTimeout(Math.min(timeout, SOCKET_OPERATION_TIMEOUT));
+            byte[] buf = new byte[BANNER_BUFFER_SIZE];
             int read = s.getInputStream().read(buf);
             if (read > 0) {
                 return new String(buf, 0, read, StandardCharsets.UTF_8);
             }
         } catch (SocketTimeoutException ignored) {
             // Kein Banner gesendet – trotzdem offen
-        } catch (Exception ignored) {}
+            LOGGER.log(Level.FINE, "Socket timeout for " + host + ":" + port + " - no banner sent");
+        } catch (IOException ioException) {
+            LOGGER.log(Level.FINE, "IO error reading banner from " + host + ":" + port, ioException);
+        } catch (Exception exception) {
+            LOGGER.log(Level.WARNING, "Unexpected error in grabPassive for " + host + ":" + port, exception);
+        }
         return null;
     }
 
@@ -111,7 +132,7 @@ public final class BannerGrabber {
     private static String grabHttp(String host, int port, int timeout, boolean winrm) {
         try (Socket s = new Socket()) {
             s.connect(new InetSocketAddress(host, port), timeout);
-            s.setSoTimeout(Math.min(timeout, 800));
+            s.setSoTimeout(Math.min(timeout, SOCKET_OPERATION_TIMEOUT));
 
             String request = winrm
                     ? "GET / HTTP/1.0\r\nHost: " + host + "\r\n\r\n"
@@ -146,7 +167,13 @@ public final class BannerGrabber {
             if (powered != null) parts.add(powered);
             return String.join(" | ", parts);
 
-        } catch (Exception ignored) {}
+        } catch (SocketTimeoutException ignored) {
+            LOGGER.log(Level.FINE, "Socket timeout for HTTP on " + host + ":" + port);
+        } catch (IOException ioException) {
+            LOGGER.log(Level.FINE, "IO error reading HTTP headers from " + host + ":" + port, ioException);
+        } catch (Exception exception) {
+            LOGGER.log(Level.WARNING, "Unexpected error in grabHttp for " + host + ":" + port, exception);
+        }
         return "HTTP";
     }
 
@@ -160,7 +187,7 @@ public final class BannerGrabber {
             try (javax.net.ssl.SSLSocket s =
                          (javax.net.ssl.SSLSocket) factory.createSocket()) {
                 s.connect(new InetSocketAddress(host, port), timeout);
-                s.setSoTimeout(Math.min(timeout, 800));
+                s.setSoTimeout(Math.min(timeout, SOCKET_OPERATION_TIMEOUT));
                 s.startHandshake();
 
                 String request = "HEAD / HTTP/1.1\r\nHost: " + host
@@ -183,7 +210,15 @@ public final class BannerGrabber {
                         ? statusLine.substring(9, 12) : "";
                 return "HTTPS " + status + (server != null ? " | " + server : "");
             }
-        } catch (Exception ignored) {}
+        } catch (SocketTimeoutException ignored) {
+            LOGGER.log(Level.FINE, "Socket timeout for HTTPS on " + host + ":" + port);
+        } catch (javax.net.ssl.SSLException sslException) {
+            LOGGER.log(Level.FINE, "SSL error with " + host + ":" + port, sslException);
+        } catch (IOException ioException) {
+            LOGGER.log(Level.FINE, "IO error reading HTTPS headers from " + host + ":" + port, ioException);
+        } catch (Exception exception) {
+            LOGGER.log(Level.WARNING, "Unexpected error in grabHttps for " + host + ":" + port, exception);
+        }
         return "HTTPS";
     }
 
@@ -193,7 +228,7 @@ public final class BannerGrabber {
     private static String grabSmtp(String host, int port, int timeout) {
         try (Socket s = new Socket()) {
             s.connect(new InetSocketAddress(host, port), timeout);
-            s.setSoTimeout(Math.min(timeout, 800));
+            s.setSoTimeout(Math.min(timeout, SOCKET_OPERATION_TIMEOUT));
             BufferedReader br = new BufferedReader(
                     new InputStreamReader(s.getInputStream(), StandardCharsets.UTF_8));
             StringBuilder sb = new StringBuilder();
@@ -206,7 +241,13 @@ public final class BannerGrabber {
                 }
             }
             return sb.length() > 0 ? "SMTP: " + sb : "SMTP";
-        } catch (Exception ignored) {}
+        } catch (SocketTimeoutException ignored) {
+            LOGGER.log(Level.FINE, "Socket timeout for SMTP on " + host + ":" + port);
+        } catch (IOException ioException) {
+            LOGGER.log(Level.FINE, "IO error reading SMTP greeting from " + host + ":" + port, ioException);
+        } catch (Exception exception) {
+            LOGGER.log(Level.WARNING, "Unexpected error in grabSmtp for " + host + ":" + port, exception);
+        }
         return "SMTP";
     }
 
@@ -216,8 +257,8 @@ public final class BannerGrabber {
     private static String grabMysql(String host, int port, int timeout) {
         try (Socket s = new Socket()) {
             s.connect(new InetSocketAddress(host, port), timeout);
-            s.setSoTimeout(Math.min(timeout, 800));
-            byte[] buf = new byte[64];
+            s.setSoTimeout(Math.min(timeout, SOCKET_OPERATION_TIMEOUT));
+            byte[] buf = new byte[MYSQL_BUFFER_SIZE];
             int read = s.getInputStream().read(buf);
             if (read > 5) {
                 // MySQL Handshake: Bytes 5+ sind die Server-Version als C-String
@@ -230,7 +271,13 @@ public final class BannerGrabber {
                         return "MySQL " + version;
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (SocketTimeoutException ignored) {
+            LOGGER.log(Level.FINE, "Socket timeout for MySQL on " + host + ":" + port);
+        } catch (IOException ioException) {
+            LOGGER.log(Level.FINE, "IO error reading MySQL handshake from " + host + ":" + port, ioException);
+        } catch (Exception exception) {
+            LOGGER.log(Level.WARNING, "Unexpected error in grabMysql for " + host + ":" + port, exception);
+        }
         return "MySQL";
     }
 
@@ -251,7 +298,13 @@ public final class BannerGrabber {
                 if (resp.startsWith("-")) return "Redis (Auth required)";
                 return "Redis";
             }
-        } catch (Exception ignored) {}
+        } catch (SocketTimeoutException ignored) {
+            LOGGER.log(Level.FINE, "Socket timeout for Redis on " + host + ":" + port);
+        } catch (IOException ioException) {
+            LOGGER.log(Level.FINE, "IO error reading Redis response from " + host + ":" + port, ioException);
+        } catch (Exception exception) {
+            LOGGER.log(Level.WARNING, "Unexpected error in grabRedis for " + host + ":" + port, exception);
+        }
         return "Redis";
     }
 
@@ -261,7 +314,7 @@ public final class BannerGrabber {
     private static String grabMongo(String host, int port, int timeout) {
         try (Socket s = new Socket()) {
             s.connect(new InetSocketAddress(host, port), timeout);
-            s.setSoTimeout(Math.min(timeout, 800));
+            s.setSoTimeout(Math.min(timeout, SOCKET_OPERATION_TIMEOUT));
             // MongoDB Wire Protocol: isMaster-Kommando
             byte[] msg = {
                     0x3f,0x00,0x00,0x00, // messageLength = 63
@@ -278,10 +331,16 @@ public final class BannerGrabber {
             };
             s.getOutputStream().write(msg);
             s.getOutputStream().flush();
-            byte[] buf = new byte[128];
+            byte[] buf = new byte[RESPONSE_BUFFER_SIZE];
             int read = s.getInputStream().read(buf);
             if (read > 0) return "MongoDB";
-        } catch (Exception ignored) {}
+        } catch (SocketTimeoutException ignored) {
+            LOGGER.log(Level.FINE, "Socket timeout for MongoDB on " + host + ":" + port);
+        } catch (IOException ioException) {
+            LOGGER.log(Level.FINE, "IO error reading MongoDB response from " + host + ":" + port, ioException);
+        } catch (Exception exception) {
+            LOGGER.log(Level.WARNING, "Unexpected error in grabMongo for " + host + ":" + port, exception);
+        }
         return "MongoDB";
     }
 

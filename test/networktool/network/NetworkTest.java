@@ -1,11 +1,11 @@
 package networktool.network;
 
-import main.java.networktool.logic.analysis.OuiDatabase;
-import main.java.networktool.logic.ports.PortScanner;
-import main.java.networktool.model.HostResult;
-import main.java.networktool.storage.AutoBackup;
-import main.java.networktool.storage.NetworkStore;
-import main.java.networktool.storage.TestConstants;
+import networktool.logic.analysis.OuiDatabase;
+import networktool.logic.ports.PortScanner;
+import networktool.model.HostResult;
+import networktool.storage.AutoBackup;
+import networktool.storage.NetworkStore;
+import networktool.storage.TestConstants;
 import org.junit.jupiter.api.*;
 
 import java.util.List;

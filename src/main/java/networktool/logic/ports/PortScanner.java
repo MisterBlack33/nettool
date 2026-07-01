@@ -1,4 +1,4 @@
-package main.java.networktool.logic.ports;
+package networktool.logic.ports;
 
 import java.net.*;
 import java.util.*;

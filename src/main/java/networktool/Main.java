@@ -1,16 +1,18 @@
-package main.java.networktool;
+package networktool;
 
-import main.java.networktool.cli.MenuHandler;
-import main.java.networktool.cli.MenuPrinter;
-import main.java.networktool.gui.GUI;
-import main.java.networktool.security.AuditLogger;
-import main.java.networktool.security.LoginDialog;
-import main.java.networktool.security.UserAuth;
-import main.java.networktool.storage.StorageUtils;
+import networktool.cli.MenuHandler;
+import networktool.cli.MenuPrinter;
+import networktool.gui.GUI;
+import networktool.security.AuditLogger;
+import networktool.security.LoginDialog;
+import networktool.security.UserAuth;
+import networktool.storage.StorageUtils;
 
 import javax.swing.*;
 import java.nio.file.Path;
 import java.util.Scanner;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Einstiegspunkt der Anwendung.
@@ -27,6 +29,8 @@ import java.util.Scanner;
 public final class Main {
 
     private Main() {}
+
+    private static final Logger LOGGER = Logger.getLogger(Main.class.getName());
 
     public static void main(String[] args) {
         // Datenverzeichnis ermitteln (früher: "txt")
@@ -47,8 +51,13 @@ public final class Main {
 
     private static void runGui(Path dataDir) {
         // Look & Feel zuerst setzen (vor jedem Swing-Aufruf)
-        try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); }
-        catch (Exception ignored) {}
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (UnsupportedLookAndFeelException unsupportedLaf) {
+            LOGGER.log(Level.WARNING, "System Look & Feel not supported, using default", unsupportedLaf);
+        } catch (Exception exception) {
+            LOGGER.log(Level.WARNING, "Failed to set Look & Feel", exception);
+        }
 
         // Login auf dem EDT ausführen
         SwingUtilities.invokeLater(() -> {
@@ -137,7 +146,12 @@ public final class Main {
             System.out.println("  Ungültige Anmeldedaten. (" + attempts + "/3)");
             AuditLogger.getInstance().log("LOGIN_FAILED", username);
             // Kurze Pause gegen Brute-Force im CLI
-            try { Thread.sleep(1_000L * attempts); } catch (InterruptedException ignored) {}
+            try {
+                Thread.sleep(1_000L * attempts);
+            } catch (InterruptedException interruptedException) {
+                LOGGER.log(Level.FINE, "Thread sleep interrupted during login", interruptedException);
+                Thread.currentThread().interrupt();
+            }
         }
         AuditLogger.getInstance().log("LOGIN_BLOCKED", "Zu viele Fehlversuche");
         return false;

@@ -1,9 +1,9 @@
 // test/networktool/cli/MenuHandlerTest.java
 package networktool.cli;
 
-import main.java.networktool.cli.MenuHandler;
-import main.java.networktool.logic.analysis.IpInspector;
-import main.java.networktool.logic.scan.NetworkInfo;
+import networktool.cli.MenuHandler;
+import networktool.logic.analysis.IpInspector;
+import networktool.logic.scan.NetworkInfo;
 import org.junit.jupiter.api.*;
 
 import java.io.*;

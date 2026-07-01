@@ -1,4 +1,4 @@
-package main.java.networktool.security;
+package networktool.security;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;

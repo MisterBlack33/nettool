@@ -1,4 +1,4 @@
-package main.java.networktool.gui;
+package networktool.gui;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

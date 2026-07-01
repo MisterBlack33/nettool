@@ -4,6 +4,8 @@ import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.regex.*;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Prüft ob ein Host erreichbar ist.
@@ -17,6 +19,7 @@ public final class HostAliveChecker {
 
     private HostAliveChecker() {}
 
+    private static final Logger LOGGER = Logger.getLogger(HostAliveChecker.class.getName());
     private static final int ICMP_TIMEOUT = 500;
     private static final int TCP_TIMEOUT  = 400;
     private static final int MAX_THREADS  =
@@ -119,7 +122,11 @@ public final class HostAliveChecker {
                 }
             }
             p.destroy();
-        } catch (Exception ignored) {}
+        } catch (java.io.IOException ioException) {
+            LOGGER.log(Level.FINE, "IO error reading ARP cache", ioException);
+        } catch (Exception exception) {
+            LOGGER.log(Level.WARNING, "Unexpected error loading ARP cache", exception);
+        }
         cachedArpIps = Collections.unmodifiableSet(ips);
         arpCacheTime = System.currentTimeMillis();
     }

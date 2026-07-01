@@ -1,4 +1,4 @@
-package main.java.networktool.model;
+package networktool.model;
 
 import java.util.Map;
 

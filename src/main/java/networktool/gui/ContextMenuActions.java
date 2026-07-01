@@ -1,13 +1,13 @@
-package main.java.networktool.gui;
+package networktool.gui;
 
-import main.java.networktool.gui.notification.NotificationListener;
-import main.java.networktool.logic.analysis.WakeOnLan;
-import main.java.networktool.logic.messaging.MessageSender;
-import main.java.networktool.storage.NetworkStore;
+import networktool.gui.notification.NotificationListener;
+import networktool.logic.analysis.WakeOnLan;
+import networktool.logic.messaging.MessageSender;
+import networktool.storage.NetworkStore;
 
 import javax.swing.*;
 
-import static main.java.networktool.gui.GuiTheme.*;
+import static networktool.gui.GuiTheme.*;
 
 /**
  * Aktionen für das Kontextmenü, die über einfache Speichervorgänge

@@ -1,5 +1,5 @@
 // test/main/java/networktool/logic/scan/MapTrafficObserverTest.java
-package main.java.networktool.logic.scan;
+package networktool.logic.scan;
 
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;

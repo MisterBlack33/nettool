@@ -1,6 +1,6 @@
-package main.java.networktool.filter;
+package networktool.filter;
 
-import main.java.networktool.model.HostResult;
+import networktool.model.HostResult;
 
 import java.util.ArrayList;
 import java.util.List;

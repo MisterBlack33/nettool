@@ -1,4 +1,4 @@
-package main.java.networktool.storage;
+package networktool.storage;
 
 import java.io.IOException;
 import java.nio.file.*;

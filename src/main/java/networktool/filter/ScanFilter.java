@@ -1,6 +1,6 @@
-package main.java.networktool.filter;
+package networktool.filter;
 
-import main.java.networktool.model.ScanResult;
+import networktool.model.ScanResult;
 
 import java.util.List;
 import java.util.regex.Pattern;

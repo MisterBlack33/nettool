@@ -1,7 +1,7 @@
-package main.java.networktool.gui;
+package networktool.gui;
 
-import main.java.networktool.security.AuditLogEntry;
-import main.java.networktool.security.AuditLogger;
+import networktool.security.AuditLogEntry;
+import networktool.security.AuditLogger;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -10,7 +10,7 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
 
-import static main.java.networktool.gui.GuiTheme.*;
+import static networktool.gui.GuiTheme.*;
 
 /** Audit-Log-Viewer (Menü-ID "23", nur Admins). */
 public final class GuiAuditPanel {

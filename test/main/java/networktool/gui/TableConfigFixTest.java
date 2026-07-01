@@ -1,4 +1,4 @@
-package main.java.networktool.gui;
+package networktool.gui;
 
 import org.junit.jupiter.api.*;
 

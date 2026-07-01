@@ -4,6 +4,8 @@ package main.java.networktool.security;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 public final class AuditLogger {
 
@@ -12,6 +14,7 @@ public final class AuditLogger {
     }
     public static AuditLogger getInstance() { return Holder.INSTANCE; }
 
+    private static final Logger LOGGER = Logger.getLogger(AuditLogger.class.getName());
     private volatile AuditLogFile    logFile;
     private volatile ExecutorService writer = newWriter();
 
@@ -92,7 +95,12 @@ public final class AuditLogger {
         try {
             w.shutdown();
             w.awaitTermination(3, TimeUnit.SECONDS);
-        } catch (Exception ignored) {}
+        } catch (InterruptedException interruptedException) {
+            LOGGER.log(Level.FINE, "ExecutorService termination interrupted", interruptedException);
+            Thread.currentThread().interrupt();
+        } catch (Exception exception) {
+            LOGGER.log(Level.WARNING, "Error shutting down AuditLogger", exception);
+        }
     }
 
     private static ExecutorService newWriter() {

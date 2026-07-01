@@ -1,4 +1,4 @@
-package main.java.networktool.storage;
+package networktool.storage;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;

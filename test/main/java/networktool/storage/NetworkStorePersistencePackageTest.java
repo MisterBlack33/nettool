@@ -1,4 +1,4 @@
-package main.java.networktool.storage;
+package networktool.storage;
 
 import main.java.networktool.model.HostResult;
 import org.junit.jupiter.api.*;

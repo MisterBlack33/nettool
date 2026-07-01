@@ -1,4 +1,4 @@
-package main.java.networktool.logic.scan;
+package networktool.logic.scan;
 
 import org.junit.jupiter.api.*;
 
@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests for RemoteNetScanner package-private methods.
- * Must be in package main.java.networktool_v3.logic.scan.
+ * Must be in package networktool.logic.scan.
  */
 class RemoteNetScannerPackageTest {
 

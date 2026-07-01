@@ -1,19 +1,21 @@
-package main.java.networktool.gui;
+package networktool.gui;
 
-import main.java.networktool.logic.analysis.OuiUpdater;
-import main.java.networktool.logic.messaging.MessageSender;
-import main.java.networktool.security.LoginDialog;
-import main.java.networktool.storage.NetworkStore;
-import main.java.networktool.model.HostResult;
-import main.java.networktool.model.ScanResult;
-import main.java.networktool.security.AuditLogger;
-import main.java.networktool.security.SecurityMonitor;
-import main.java.networktool.security.UserAuth;
+import networktool.logic.analysis.OuiUpdater;
+import networktool.logic.messaging.MessageSender;
+import networktool.security.LoginDialog;
+import networktool.storage.NetworkStore;
+import networktool.model.HostResult;
+import networktool.model.ScanResult;
+import networktool.security.AuditLogger;
+import networktool.security.SecurityMonitor;
+import networktool.security.UserAuth;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Haupt-Fenster der Anwendung.
@@ -29,6 +31,7 @@ import java.util.List;
 public class GUI extends JFrame {
 
     private static GUI INSTANCE;
+    private static final Logger LOGGER = Logger.getLogger(GUI.class.getName());
     public static boolean isGuiActive() {
         return INSTANCE != null && INSTANCE.isDisplayable();
     }
@@ -97,7 +100,12 @@ public class GUI extends JFrame {
 
         // SecurityMonitor nach 5 s passiv starten
         new Thread(() -> {
-            try { Thread.sleep(5_000); } catch (InterruptedException ignored) {}
+            try {
+                Thread.sleep(5_000);
+            } catch (InterruptedException interruptedException) {
+                LOGGER.log(Level.FINE, "SecurityMonitor initialization interrupted", interruptedException);
+                Thread.currentThread().interrupt();
+            }
             if (!SecurityMonitor.getInstance().isActive())
                 SecurityMonitor.getInstance().start("");
         }, "SecurityMonitor-Init").start();

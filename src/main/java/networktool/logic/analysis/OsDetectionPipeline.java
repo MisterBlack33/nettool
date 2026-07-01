@@ -2,6 +2,8 @@ package main.java.networktool.logic.analysis;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Logger;
+import java.util.logging.Level;
 
 /**
  * Schnelle OS-Erkennungs-Pipeline.
@@ -18,6 +20,8 @@ import java.util.Objects;
 final class OsDetectionPipeline {
 
     private OsDetectionPipeline() {}
+
+    private static final Logger LOGGER = Logger.getLogger(OsDetectionPipeline.class.getName());
 
     static OsDetector.OsResult run(String ip) {
         System.out.println("  [OS-Detect] " + ip);
@@ -105,11 +109,20 @@ final class OsDetectionPipeline {
             try {
                 String h = java.net.InetAddress.getByName(ip).getCanonicalHostName();
                 if (!h.equals(ip)) out[0] = h;
-            } catch (Exception ignored) {}
+            } catch (java.net.UnknownHostException uhe) {
+                LOGGER.log(Level.FINE, "Unable to resolve hostname for IP " + ip, uhe);
+            } catch (Exception exception) {
+                LOGGER.log(Level.WARNING, "Error resolving hostname for " + ip, exception);
+            }
         });
         t.setDaemon(true);
         t.start();
-        try { t.join(600); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        try {
+            t.join(600);
+        } catch (InterruptedException interruptedException) {
+            LOGGER.log(Level.FINE, "Thread.join interrupted", interruptedException);
+            Thread.currentThread().interrupt();
+        }
         return out[0];
     }
 }

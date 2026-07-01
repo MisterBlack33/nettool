@@ -1,6 +1,6 @@
 package networktool.logic;
 
-import main.java.networktool.logic.messaging.MessageSender;
+import networktool.logic.messaging.MessageSender;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;

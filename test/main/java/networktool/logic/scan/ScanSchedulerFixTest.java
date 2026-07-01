@@ -1,8 +1,8 @@
-package main.java.networktool.logic.scan;
+package networktool.logic.scan;
 
-import main.java.networktool.model.ScanProfile;
-import main.java.networktool.storage.ScanProfileStore;
-import main.java.networktool.storage.TestConstants;
+import networktool.model.ScanProfile;
+import networktool.storage.ScanProfileStore;
+import networktool.storage.TestConstants;
 import networktool.util.PollHelper;
 import org.junit.jupiter.api.*;
 

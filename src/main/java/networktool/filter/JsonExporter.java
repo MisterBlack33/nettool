@@ -1,7 +1,7 @@
-package main.java.networktool.filter;
+package networktool.filter;
 
-import main.java.networktool.model.ScanResult;
-import main.java.networktool.storage.JsonHelper;
+import networktool.model.ScanResult;
+import networktool.storage.JsonHelper;
 
 import java.io.IOException;
 import java.io.Writer;

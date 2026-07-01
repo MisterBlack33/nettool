@@ -1,10 +1,10 @@
 package networktool.logic;
 
-import main.java.networktool.logic.scan.NetworkHostScanner;
-import main.java.networktool.logic.scan.NetworkScanner;
-import main.java.networktool.logic.scan.RemoteNetScanner;
-import main.java.networktool.logic.scan.ScanHistory;
-import main.java.networktool.model.HostResult;
+import networktool.logic.scan.NetworkHostScanner;
+import networktool.logic.scan.NetworkScanner;
+import networktool.logic.scan.RemoteNetScanner;
+import networktool.logic.scan.ScanHistory;
+import networktool.model.HostResult;
 import org.junit.jupiter.api.*;
 
 import java.net.InetAddress;

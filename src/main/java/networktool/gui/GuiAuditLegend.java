@@ -1,10 +1,10 @@
-package main.java.networktool.gui;
+package networktool.gui;
 
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 
-import static main.java.networktool.gui.GuiTheme.*;
+import static networktool.gui.GuiTheme.*;
 
 /** Legende mit Aktions-Codes und Menü-IDs für den Audit-Log-Viewer. */
 final class GuiAuditLegend {

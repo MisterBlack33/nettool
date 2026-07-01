@@ -1,6 +1,6 @@
 package networktool.logic.scan;
 
-import main.java.networktool.logic.scan.HostAliveChecker;
+import networktool.logic.scan.HostAliveChecker;
 import org.junit.jupiter.api.*;
 
 import java.net.ServerSocket;

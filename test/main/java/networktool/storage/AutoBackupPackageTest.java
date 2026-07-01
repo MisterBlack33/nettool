@@ -1,4 +1,4 @@
-package main.java.networktool.storage;
+package networktool.storage;
 
 import networktool.util.PollHelper;
 import org.junit.jupiter.api.*;

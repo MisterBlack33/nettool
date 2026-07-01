@@ -1,4 +1,4 @@
-package main.java.networktool.util;
+package networktool.util;
 
 import java.util.ArrayList;
 import java.util.List;

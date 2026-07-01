@@ -1,8 +1,8 @@
-package main.java.networktool.logic.scan;
+package networktool.logic.scan;
 
-import main.java.networktool.filter.HostResultFilter;
-import main.java.networktool.filter.HostResultPrinter;
-import main.java.networktool.model.HostResult;
+import networktool.filter.HostResultFilter;
+import networktool.filter.HostResultPrinter;
+import networktool.model.HostResult;
 
 import java.net.*;
 import java.util.*;

@@ -1,4 +1,4 @@
-package main.java.networktool.logic.messaging;
+package networktool.logic.messaging;
 
 import org.junit.jupiter.api.*;
 

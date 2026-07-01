@@ -1,4 +1,4 @@
-package main.java.networktool.util;
+package networktool.util;
 
 import org.junit.jupiter.api.Test;
 import java.util.List;

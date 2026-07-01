@@ -1,10 +1,10 @@
-package main.java.networktool.logic.scan;
+package networktool.logic.scan;
 
-import main.java.networktool.logic.analysis.OsDetector;
-import main.java.networktool.logic.analysis.OuiDatabase;
-import main.java.networktool.model.HostResult;
-import main.java.networktool.model.ScanResult;
-import main.java.networktool.util.CIDRUtils;
+import networktool.logic.analysis.OsDetector;
+import networktool.logic.analysis.OuiDatabase;
+import networktool.model.HostResult;
+import networktool.model.ScanResult;
+import networktool.util.CIDRUtils;
 
 import java.io.*;
 import java.net.*;

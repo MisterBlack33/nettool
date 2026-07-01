@@ -1,4 +1,4 @@
-package main.java.networktool.logic.ports;
+package networktool.logic.ports;
 
 import org.junit.jupiter.api.*;
 

@@ -1,7 +1,7 @@
-package main.java.networktool.logic.scan;
+package networktool.logic.scan;
 
-import main.java.networktool.model.HostResult;
-import main.java.networktool.model.ScanResult;
+import networktool.model.HostResult;
+import networktool.model.ScanResult;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;

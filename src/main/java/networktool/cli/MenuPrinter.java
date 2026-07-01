@@ -1,4 +1,4 @@
-package main.java.networktool.cli;
+package networktool.cli;
 
 public final class MenuPrinter {
 

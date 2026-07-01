@@ -1,4 +1,4 @@
-package main.java.networktool.transfer;
+package networktool.transfer;
 
 import java.net.*;
 import java.util.*;

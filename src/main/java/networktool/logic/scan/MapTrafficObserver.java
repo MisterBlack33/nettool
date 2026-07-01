@@ -1,4 +1,4 @@
-package main.java.networktool.logic.scan;
+package networktool.logic.scan;
 
 import java.io.*;
 import java.net.*;

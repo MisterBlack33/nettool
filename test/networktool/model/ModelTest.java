@@ -1,8 +1,8 @@
 package networktool.model;
 
-import main.java.networktool.model.HostResult;
-import main.java.networktool.model.ScanProfile;
-import main.java.networktool.model.ScanResult;
+import networktool.model.HostResult;
+import networktool.model.ScanProfile;
+import networktool.model.ScanResult;
 import org.junit.jupiter.api.*;
 
 import java.util.*;

@@ -1,4 +1,4 @@
-package main.java.networktool.gui;
+package networktool.gui;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -6,7 +6,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import static main.java.networktool.gui.GuiTheme.*;
+import static networktool.gui.GuiTheme.*;
 
 /**
  * Zentrale Fabrik für einheitliche Swing-Buttons.

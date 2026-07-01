@@ -1,10 +1,10 @@
 package networktool.cli;
 
-import main.java.networktool.cli.MenuPrinter;
-import main.java.networktool.filter.ClipboardUtil;
-import main.java.networktool.filter.JsonExporter;
-import main.java.networktool.gui.notification.LocalToast;
-import main.java.networktool.model.ScanResult;
+import networktool.cli.MenuPrinter;
+import networktool.filter.ClipboardUtil;
+import networktool.filter.JsonExporter;
+import networktool.gui.notification.LocalToast;
+import networktool.model.ScanResult;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests for MenuPrinter, JsonExporter, ClipboardUtil, LocalToast.
- * HostJsonBuilder tests → StorageTest.java (same package: main.java.networktool_v3.storage)
+ * HostJsonBuilder tests → StorageTest.java (same package: networktool.storage)
  */
 class CliTest {
 
