@@ -2,7 +2,6 @@ package main.java.networktool.transfer;
 
 import java.io.*;
 import java.net.*;
-import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
 /** Führt die eigentliche HTTP-Messung für {@link BandwidthTester} durch. */
@@ -14,7 +13,7 @@ final class BandwidthHttpProbe {
         static Result fail() { return new Result(false, -1); }
     }
 
-    /** Lädt Testdaten vom Ziel-Host; fällt auf öffentlichen Endpunkt zurück. */
+    /** Lädt Testdaten vom Ziel-Host. Kein Fallback auf öffentliche Hosts. */
     static Result download(String host) {
         for (String url : candidateDownloadUrls(host)) {
             Result r = tryDownload(url);
@@ -23,7 +22,7 @@ final class BandwidthHttpProbe {
         return Result.fail();
     }
 
-    /** Sendet Testdaten an den Ziel-Host; fällt auf öffentlichen Endpunkt zurück. */
+    /** Sendet Testdaten an den Ziel-Host. Kein Fallback auf öffentliche Hosts. */
     static Result upload(String host) {
         for (String url : candidateUploadUrls(host)) {
             Result r = tryUpload(url);
@@ -105,18 +104,20 @@ final class BandwidthHttpProbe {
         return c;
     }
 
+    // Kein Fallback auf öffentliche Hosts (z. B. speed.cloudflare.com):
+    // Bei nicht erreichbarem Ziel-Host würde sonst trotzdem ein positiver
+    // Durchsatz gemessen werden (falsches Erfolgsergebnis), z.B. in
+    // BandwidthTesterActiveTest#testDownload_unreachable_negative().
     private static String[] candidateDownloadUrls(String host) {
         return new String[]{
                 "https://" + host + "/__down?bytes=" + BandwidthTester.TEST_BYTES,
-                "http://"  + host + "/",
-                "https://" + BandwidthTester.DEFAULT_FALLBACK_HOST + "/__down?bytes=" + BandwidthTester.TEST_BYTES
+                "http://"  + host + "/"
         };
     }
 
     private static String[] candidateUploadUrls(String host) {
         return new String[]{
-                "https://" + host + "/__up",
-                "https://" + BandwidthTester.DEFAULT_FALLBACK_HOST + "/__up"
+                "https://" + host + "/__up"
         };
     }
 
