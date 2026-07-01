@@ -19,7 +19,7 @@ public final class SubnetDetector {
     );
 
     public static List<String> getAllCidrs() throws SocketException {
-        List<String> cidrs = new ArrayList<>();
+        List<String> cidrs = new ArrayList<>(main.java.networktool.logic.windows.PsCidrResolver.resolveCidrs());
         Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces();
         if (ifaces == null) return cidrs;
         while (ifaces.hasMoreElements()) {
