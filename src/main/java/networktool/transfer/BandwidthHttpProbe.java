@@ -105,19 +105,16 @@ final class BandwidthHttpProbe {
         return c;
     }
 
+    // BandwidthHttpProbe.java – nur noch Ziel-Host testen, kein Public-Fallback
     private static String[] candidateDownloadUrls(String host) {
         return new String[]{
                 "https://" + host + "/__down?bytes=" + BandwidthTester.TEST_BYTES,
-                "http://"  + host + "/",
-                "https://" + BandwidthTester.DEFAULT_FALLBACK_HOST + "/__down?bytes=" + BandwidthTester.TEST_BYTES
+                "http://"  + host + "/"
         };
     }
 
     private static String[] candidateUploadUrls(String host) {
-        return new String[]{
-                "https://" + host + "/__up",
-                "https://" + BandwidthTester.DEFAULT_FALLBACK_HOST + "/__up"
-        };
+        return new String[]{ "https://" + host + "/__up" };
     }
 
     private static double toMbps(long bytes, long ms) {
