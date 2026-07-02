@@ -9,9 +9,8 @@ public final class PortScanner {
 
     private PortScanner() {}
 
-    // Increased timeouts slightly for reliable detection on slow networks
-    public static final int TIMEOUT_LAN  = 1_500;
-    public static final int TIMEOUT_FAST = 800;
+    public static int TIMEOUT_LAN  = 1_500;
+    public static int TIMEOUT_FAST = 800;
     private static final int RETRIES     = 1;
 
     public static final List<Integer> DEFAULT_PORTS = List.of(
@@ -34,7 +33,6 @@ public final class PortScanner {
 
     private static volatile List<Integer> activePorts = DEFAULT_PORTS;
 
-    // Adaptive thread cap: fewer on weak hardware
     private static final int MAX_SCAN_THREADS = Math.min(32, Runtime.getRuntime().availableProcessors() * 4);
 
     public static void setActivePorts(List<Integer> ports) {
@@ -121,10 +119,16 @@ public final class PortScanner {
             s.connect(new InetSocketAddress(host, port), timeout);
             return PortState.OPEN;
         } catch (ConnectException | SocketTimeoutException e) {
-            return PortState.CLOSED;
+            return psFallback(host, port);
         } catch (Exception e) {
-            return PortState.CLOSED;
+            return psFallback(host, port);
         }
+    }
+
+    // Windows-Fallback: Firewalls blocken teils rohe Sockets, aber nicht Test-NetConnection
+    private static PortState psFallback(String host, int port) {
+        return main.java.networktool.logic.windows.PsPortScanResolver.isOpen(host, port)
+                ? PortState.OPEN : PortState.CLOSED;
     }
 
     enum PortState { OPEN, REFUSED, CLOSED }

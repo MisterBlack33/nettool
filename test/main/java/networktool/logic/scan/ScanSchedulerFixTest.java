@@ -15,6 +15,7 @@ class ScanSchedulerFixTest {
 
     @BeforeEach void setup() {
         ScanProfile p = new ScanProfile(PROFILE);
+        p.cidrs.add("192.0.2.0/30");
         p.autoSave = true;
         p.category = TestConstants.NET_STANDARD;
         ScanProfileStore.getInstance().save(p);

@@ -2,6 +2,7 @@ package networktool.network;
 
 import main.java.networktool.logic.analysis.OuiDatabase;
 import main.java.networktool.logic.ports.PortScanner;
+import main.java.networktool.logic.scan.NetworkTimeoutTestBase;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.storage.AutoBackup;
 import main.java.networktool.storage.NetworkStore;
@@ -12,7 +13,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class NetworkTest {
+class NetworkTest extends NetworkTimeoutTestBase {
 
     // ══════════════════════════════════════════════════════════════
     //  OuiDatabase

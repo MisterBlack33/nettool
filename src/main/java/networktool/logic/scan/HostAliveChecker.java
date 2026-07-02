@@ -17,8 +17,9 @@ public final class HostAliveChecker {
 
     private HostAliveChecker() {}
 
-    private static final int ICMP_TIMEOUT = 500;
-    private static final int TCP_TIMEOUT  = 400;
+    private static volatile int ICMP_TIMEOUT = 500;
+    private static volatile int TCP_TIMEOUT  = 400;
+    static void setTestTimeouts(int icmp, int tcp) { ICMP_TIMEOUT = icmp; TCP_TIMEOUT = tcp; }
     private static final int MAX_THREADS  =
             Math.min(64, Runtime.getRuntime().availableProcessors() * 8);
 

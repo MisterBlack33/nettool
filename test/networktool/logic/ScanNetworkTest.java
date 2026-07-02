@@ -1,9 +1,6 @@
 package networktool.logic;
 
-import main.java.networktool.logic.scan.NetworkHostScanner;
-import main.java.networktool.logic.scan.NetworkScanner;
-import main.java.networktool.logic.scan.RemoteNetScanner;
-import main.java.networktool.logic.scan.ScanHistory;
+import main.java.networktool.logic.scan.*;
 import main.java.networktool.model.HostResult;
 import org.junit.jupiter.api.*;
 
@@ -14,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
 
-class ScanNetworkTest {
+class ScanNetworkTest extends NetworkTimeoutTestBase {
 
     static boolean loopbackReachable() {
         try { return InetAddress.getByName("127.0.0.1").isReachable(500); }
