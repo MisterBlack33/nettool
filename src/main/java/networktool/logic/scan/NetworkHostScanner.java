@@ -128,7 +128,7 @@ public final class NetworkHostScanner {
         knownMacs.forEach((ip, mac) -> {
             if (!foundIps.contains(ip)) {
                 String hostname = resolveHostname(ip);
-                String os = detectOsFast(ip, hostname, mac);
+                String os = detectOsFull(ip, hostname, mac);
                 found.add(new HostResult(ip, buildDisplay(hostname, mac), os));
                 foundIps.add(ip);
             }
@@ -137,7 +137,7 @@ public final class NetworkHostScanner {
         discovered.forEach(ip -> {
             if (!foundIps.contains(ip)) {
                 String hostname = resolveHostname(ip);
-                found.add(new HostResult(ip, hostname, detectOsFast(ip, hostname, null)));
+                found.add(new HostResult(ip, hostname, detectOsFull(ip, hostname, null)));
                 foundIps.add(ip);
             }
         });
@@ -156,7 +156,7 @@ public final class NetworkHostScanner {
             if (!alive) return;
             String mac      = knownMacs.getOrDefault(ip, readMacFromArp(ip));
             String hostname = resolveHostname(ip);
-            String os       = detectOsFast(ip, hostname, mac);
+            String os       = detectOsFull(ip, hostname, mac);
             found.add(new HostResult(ip, buildDisplay(hostname, mac), os));
         } catch (Exception ignored) {}
     }
@@ -169,6 +169,16 @@ public final class NetworkHostScanner {
             if (vendor != null) return vendor;
         }
         return "Unbekannt";
+    }
+
+    private static String detectOsFull(String ip, String hostname, String mac) {
+        String fast = detectOsFast(ip, hostname, mac);
+        if (!"Unbekannt".equals(fast)) return fast;
+        try {
+            String full = OsDetector.detect(ip); // volle Pipeline: Banner/UDP/mDNS/Ports/TTL
+            if (full != null && !"Unbekannt".equals(full)) return full;
+        } catch (Exception ignored) {}
+        return fast;
     }
 
     private static String resolveHostname(String ip) {
