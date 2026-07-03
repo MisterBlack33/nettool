@@ -4,6 +4,7 @@ package networktool.cli;
 import main.java.networktool.cli.MenuHandler;
 import main.java.networktool.logic.analysis.IpInspector;
 import main.java.networktool.logic.scan.NetworkInfo;
+import main.java.networktool.logic.scan.NetworkScanner;
 import org.junit.jupiter.api.*;
 
 import java.io.*;
@@ -19,12 +20,14 @@ class MenuHandlerTest {
     void enableTestMode() {
         NetworkInfo.testMode  = true;
         IpInspector.testMode  = true;
+        NetworkScanner.testMode = true;   // neu
     }
 
     @AfterEach
     void disableTestMode() {
         NetworkInfo.testMode  = false;
         IpInspector.testMode  = false;
+        NetworkScanner.testMode = false;  // neu
     }
 
     private static MenuHandler handler(String... lines) {
