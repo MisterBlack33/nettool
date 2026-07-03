@@ -33,7 +33,8 @@ public final class HostAliveChecker {
     private static final List<Integer> PROBE_PORTS = List.of(
             80, 443, 22, 445, 3389, 8080,
             135, 139, 21, 23, 53,
-            548, 631, 9100, 1883
+            548, 631, 9100, 1883,
+            62078, 5353, 7000   // iOS lockdownd, mDNS, AirPlay
     );
 
     // ARP-Cache: einmal pro Scan geladen, verhindert 254x "arp -a"
