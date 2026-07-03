@@ -14,24 +14,24 @@ public final class ExtendedOsDetector {
     private ExtendedOsDetector() {}
 
     public static OsDetector.OsResult detect(String ip) {
-        // Basis-Pipeline (Hostname→MAC→Banner→UDP→mDNS→Ports→TTL)
+        try {
+            return detectSafely(ip);
+        } catch (Exception e) {
+            return OsDetectionPipeline.run(ip); // Basis-Pipeline als Fallback
+        }
+    }
+
+    private static OsDetector.OsResult detectSafely(String ip) {
         OsDetector.OsResult base = OsDetectionPipeline.run(ip);
         if (base.confidence == OsDetector.Confidence.HOCH) return base;
 
-        // Basis als OsSignature weiterverwenden
         OsSignature best = OsSignature.of(base.os, confidenceToScore(base.confidence), base.method);
-
-        // DHCP Option 60
-        best = OsSignature.best(best, fromDhcp(ip));
+        best = OsSignature.best(best, OsDetectionStepRunner.safeCall("DHCP", () -> fromDhcp(ip)));
         if (best.score >= 78) return toResult(best);
-
-        // UPnP/SSDP
-        best = OsSignature.best(best, fromUpnp(ip));
+        best = OsSignature.best(best, OsDetectionStepRunner.safeCall("UPnP", () -> fromUpnp(ip)));
         if (best.score >= 72) return toResult(best);
-
-        // ICMP-Timing als letzter Hinweis
-        best = OsSignature.best(best, IcmpAnalyzer.fingerprintFromTiming(ip));
-
+        best = OsSignature.best(best, OsDetectionStepRunner.safeCall("ICMP-Timing",
+                () -> IcmpAnalyzer.fingerprintFromTiming(ip)));
         return toResult(best);
     }
 

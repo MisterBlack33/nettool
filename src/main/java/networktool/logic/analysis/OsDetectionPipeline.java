@@ -2,6 +2,7 @@ package main.java.networktool.logic.analysis;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * Schnelle OS-Erkennungs-Pipeline.
@@ -20,31 +21,54 @@ final class OsDetectionPipeline {
     private OsDetectionPipeline() {}
 
     static OsDetector.OsResult run(String ip) {
+        try {
+            return runSafely(ip);
+        } catch (Exception e) {
+            // Absoluter Notfall-Fallback – Pipeline darf nie eine Exception nach außen werfen
+            return new OsDetector.OsResult("Unbekannt", OsDetector.Confidence.NIEDRIG, "Fallback");
+        }
+    }
+
+    private static OsDetector.OsResult runSafely(String ip) {
         System.out.println("  [OS-Detect] " + ip);
         OsSignature best = null;
 
-        best = merge(best, step("Hostname", hostname(ip)));
+        best = merge(best, safe("Hostname", () -> hostname(ip)));
         if (hit(best, 75)) return result(best);
 
-        best = merge(best, step("MAC/OUI", macOui(ip)));
+        best = merge(best, safe("MAC/OUI", () -> macOui(ip)));
         if (hit(best, 65)) return result(best);
 
-        best = merge(best, step("Banner", OsBannerAnalyzer.analyze(ip)));
+        best = merge(best, safe("Banner", () -> OsBannerAnalyzer.analyze(ip)));
         if (hit(best, 85)) return result(best);
 
-        best = merge(best, step("UDP", OsProbeUdp.probe(ip)));
+        best = merge(best, safe("UDP", () -> OsProbeUdp.probe(ip)));
         if (hit(best, 80)) return result(best);
 
-        best = merge(best, step("mDNS", mdnsUnicast(ip)));
+        best = merge(best, safe("mDNS", () -> mdnsUnicast(ip)));
         if (hit(best, 75)) return result(best);
 
-        best = merge(best, step("Ports", OsDetectorPorts.detectWithSignature(ip)));
+        best = merge(best, safe("Ports", () -> OsDetectorPorts.detectWithSignature(ip)));
         if (hit(best, 60)) return result(best);
 
-        best = merge(best, step("TTL", ttlNoTcp(ip)));
+        best = merge(best, safe("TTL", () -> ttlNoTcp(ip)));
+        if (best != null) return result(best);
+
+        // Backup: mind. eine Klassifizierung liefern statt "Unbekannt", falls Host doch reagiert
+        best = merge(best, safe("Backup-Reachability", () -> reachabilityBackup(ip)));
 
         return best != null ? result(best)
                 : new OsDetector.OsResult("Unbekannt", OsDetector.Confidence.NIEDRIG, "—");
+    }
+
+    private static OsSignature safe(String name, Supplier<OsSignature> s) {
+        return OsDetectionStepRunner.safeCall(name, s);
+    }
+
+    private static OsSignature reachabilityBackup(String ip) {
+        boolean open = OsDetectorPorts.isOpen(ip, 80)  || OsDetectorPorts.isOpen(ip, 443)
+                || OsDetectorPorts.isOpen(ip, 22)  || OsDetectorPorts.isOpen(ip, 445);
+        return open ? OsSignature.of("Netzwerkgerät (unbestimmt)", 20, "Backup-Reachability") : null;
     }
 
     // ── Probe-Methoden ────────────────────────────────────────────────────
