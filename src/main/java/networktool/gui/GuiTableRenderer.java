@@ -48,6 +48,7 @@ public class GuiTableRenderer {
     public void showScanTable(List<ScanResult> rows) {
         LastScanCache.updateFromScanResults(rows);
         SwingUtilities.invokeLater(() -> {
+            // Sicherstellen dass die Tabelle auf einer neuen Zeile beginnt
             outputPanel.appendText("\n=== Scan-Ergebnisse ===\n\n", ACCENT);
             String[]   cols = {"IP", "Hostname", "OS", "Offene Ports"};
             Object[][] data = rows.stream()
@@ -84,9 +85,29 @@ public class GuiTableRenderer {
         sp.setPreferredSize(new Dimension(0, Math.min(preferredHeight(table), 400)));
 
         JTextPane pane = outputPanel.getOutputPane();
+
+        // Sicherstellen dass der Cursor am Zeilenende auf einer neuen Zeile steht
+        ensureNewLine(pane);
+
         pane.setCaretPosition(pane.getDocument().getLength());
         pane.insertComponent(sp);
         outputPanel.appendText("\n\n", FG);
+    }
+
+    /**
+     * Fügt einen Zeilenumbruch ein wenn das letzte Zeichen im Dokument
+     * kein Newline ist — verhindert dass die Tabelle inline in Text erscheint.
+     */
+    private void ensureNewLine(JTextPane pane) {
+        try {
+            int len = pane.getDocument().getLength();
+            if (len > 0) {
+                String lastChar = pane.getDocument().getText(len - 1, 1);
+                if (!"\n".equals(lastChar)) {
+                    outputPanel.appendText("\n", FG);
+                }
+            }
+        } catch (Exception ignored) {}
     }
 
     // ── Doppelklick-Handler ───────────────────────────────────────────────
