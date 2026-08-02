@@ -1,7 +1,8 @@
-// test/main/java/networktool/gui/MapLegendTest.java
-package main.java.networktool.gui;
+// test/main/java/networktool/gui/map/MapLegendTest.java
+package main.java.networktool.gui.map;
 
 import org.junit.jupiter.api.*;
+import main.java.networktool.gui.map.MapLegend;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MapLegendTest {

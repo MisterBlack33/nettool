@@ -1,0 +1,383 @@
+﻿javac : C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:46: error: : expected
+In Zeile:2 Zeichen:153
++ ...  ForEach-Object { $_.FullName }; javac -d . -cp . $files 2>&1 | Out-F ...
++                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (C:\Users\Anwend...ror: : expected:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+            case 1  -> runSafely(NetworkInfo::showMinimalInfo);
+                  ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:46: error: illegal start of 
+expression
+            case 1  -> runSafely(NetworkInfo::showMinimalInfo);
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:47: error: : expected
+            case 2  -> runSafely(NetworkInfo::showFullInfo);
+                  ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:47: error: illegal start of 
+expression
+            case 2  -> runSafely(NetworkInfo::showFullInfo);
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:48: error: : expected
+            case 3  -> handleDiagnose();
+                  ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:48: error: illegal start of 
+expression
+            case 3  -> handleDiagnose();
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:49: error: : expected
+            case 4  -> handleFileServer();
+                  ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:49: error: illegal start of 
+expression
+            case 4  -> handleFileServer();
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:50: error: : expected
+            case 5  -> handleFileSend();
+                  ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:50: error: illegal start of 
+expression
+            case 5  -> handleFileSend();
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:51: error: : expected
+            case 6  -> handleCidrScan();
+                  ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:51: error: illegal start of 
+expression
+            case 6  -> handleCidrScan();
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:52: error: : expected
+            case 7  -> handleFilterScan();
+                  ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:52: error: illegal start of 
+expression
+            case 7  -> handleFilterScan();
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:53: error: : expected
+            case 8  -> handleSendMessage();
+                  ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:53: error: illegal start of 
+expression
+            case 8  -> handleSendMessage();
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:54: error: : expected
+            case 9  -> handleRemoteNetScan();
+                  ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:54: error: illegal start of 
+expression
+            case 9  -> handleRemoteNetScan();
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:55: error: : expected
+            case 10 -> handleSchedulerCli();
+                   ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:55: error: illegal start of 
+expression
+            case 10 -> handleSchedulerCli();
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:56: error: : expected
+            case 11 -> handleSecurityMonitorCli();
+                   ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:56: error: illegal start of 
+expression
+            case 11 -> handleSecurityMonitorCli();
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:57: error: : expected
+            case 12 -> handleDauerpingCli();
+                   ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:57: error: illegal start of 
+expression
+            case 12 -> handleDauerpingCli();
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:58: error: : expected
+            case 13 -> handleBandwidthTestCli();
+                   ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:58: error: illegal start of 
+expression
+            case 13 -> handleBandwidthTestCli();
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:59: error: : expected
+            case 14 -> handleExportImportCli();
+                   ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:59: error: illegal start of 
+expression
+            case 14 -> handleExportImportCli();
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:60: error: : expected
+            case 0  -> System.exit(0);
+                  ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:60: error: illegal start of 
+expression
+            case 0  -> System.exit(0);
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:61: error: : expected
+            default -> System.out.println("Ungueltiger Auswahl");
+                   ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:61: error: illegal start of 
+expression
+            default -> System.out.println("Ungueltiger Auswahl");
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:163: error: : expected
+            case "1" -> { System.out.print("  CIDR: "); RemoteNetScanner.scanCidr(scanner.nextLine().trim()); }
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:163: error: illegal start of 
+expression
+            case "1" -> { System.out.print("  CIDR: "); RemoteNetScanner.scanCidr(scanner.nextLine().trim()); }
+                     ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:164: error: : expected
+            case "2" -> {
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:164: error: illegal start of 
+expression
+            case "2" -> {
+                     ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:174: error: : expected
+            case "3" -> {
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:174: error: illegal start of 
+expression
+            case "3" -> {
+                     ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:182: error: : expected
+            case "4" -> { System.out.print("  CIDR f├╝r Routing-Hilfe: "); 
+RemoteNetScanner.printRoutingHints(scanner.nextLine().trim()); }
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:182: error: illegal start of 
+expression
+            case "4" -> { System.out.print("  CIDR f├╝r Routing-Hilfe: "); 
+RemoteNetScanner.printRoutingHints(scanner.nextLine().trim()); }
+                     ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:183: error: : expected
+            default  -> System.out.println("  Ung├╝ltige Auswahl.");
+                   ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:183: error: illegal start of 
+expression
+            default  -> System.out.println("  Ung├╝ltige Auswahl.");
+                     ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:195: error: : expected
+            case "1" -> {
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:195: error: illegal start of 
+expression
+            case "1" -> {
+                     ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:204: error: : expected
+            case "2" -> { System.out.print("  Profil-Name: "); sched.stop(scanner.nextLine().trim()); }
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:204: error: illegal start of 
+expression
+            case "2" -> { System.out.print("  Profil-Name: "); sched.stop(scanner.nextLine().trim()); }
+                     ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:205: error: : expected
+            case "3" -> sched.stopAll();
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:205: error: illegal start of 
+expression
+            case "3" -> sched.stopAll();
+                     ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:206: error: : expected
+            default  -> System.out.println("  Ungueltiger Auswahl.");
+                   ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:206: error: illegal start of 
+expression
+            default  -> System.out.println("  Ungueltiger Auswahl.");
+                     ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:220: error: : expected
+            case "1" -> { if (arp.isActive()) arp.stop(); else { System.out.print("  ntfy-Topic: "); 
+arp.start(scanner.nextLine().trim()); } }
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:220: error: illegal start of 
+expression
+            case "1" -> { if (arp.isActive()) arp.stop(); else { System.out.print("  ntfy-Topic: "); 
+arp.start(scanner.nextLine().trim()); } }
+                     ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:221: error: : expected
+            case "2" -> { if (port.isActive()) port.stop(); else {
+                    ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:221: error: illegal start of 
+expression
+            case "2" -> { if (port.isActive()) port.stop(); else {
+                     ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:226: error: : expected
+            default  -> System.out.println("  Ungueltiger Auswahl.");
+                   ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:226: error: illegal start of 
+expression
+            default  -> System.out.println("  Ungueltiger Auswahl.");
+                     ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:255: error: : expected
+                case "1" -> System.out.println("  CSV: "  + DataExportImport.exportCsv(outDir));
+                        ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:255: error: illegal start of 
+expression
+                case "1" -> System.out.println("  CSV: "  + DataExportImport.exportCsv(outDir));
+                         ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:256: error: : expected
+                case "2" -> System.out.println("  JSON: " + DataExportImport.exportJson(outDir));
+                        ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:256: error: illegal start of 
+expression
+                case "2" -> System.out.println("  JSON: " + DataExportImport.exportJson(outDir));
+                         ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:257: error: : expected
+                case "3" -> System.out.println("  HTML: " + DataExportImport.exportHtml(outDir));
+                        ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:257: error: illegal start of 
+expression
+                case "3" -> System.out.println("  HTML: " + DataExportImport.exportHtml(outDir));
+                         ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:258: error: : expected
+                case "4" -> System.out.println("  ZIP: "  + DataExportImport.exportBackup(outDir));
+                        ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:258: error: illegal start of 
+expression
+                case "4" -> System.out.println("  ZIP: "  + DataExportImport.exportBackup(outDir));
+                         ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:259: error: : expected
+                case "5" -> { System.out.print("  Pfad: "); int n = 
+DataExportImport.importCsv(java.nio.file.Paths.get(scanner.nextLine().trim()));  System.out.println("  " + n + " 
+importiert."); }
+                        ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:259: error: illegal start of 
+expression
+                case "5" -> { System.out.print("  Pfad: "); int n = 
+DataExportImport.importCsv(java.nio.file.Paths.get(scanner.nextLine().trim()));  System.out.println("  " + n + " 
+importiert."); }
+                         ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:260: error: : expected
+                case "6" -> { System.out.print("  Pfad: "); int n = 
+DataExportImport.importJson(java.nio.file.Paths.get(scanner.nextLine().trim())); System.out.println("  " + n + " 
+importiert."); }
+                        ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:260: error: illegal start of 
+expression
+                case "6" -> { System.out.print("  Pfad: "); int n = 
+DataExportImport.importJson(java.nio.file.Paths.get(scanner.nextLine().trim())); System.out.println("  " + n + " 
+importiert."); }
+                         ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:261: error: : expected
+                case "7" -> { System.out.print("  Pfad: "); int n = 
+DataExportImport.restoreBackup(java.nio.file.Paths.get(scanner.nextLine().trim())); System.out.println("  " + n + " 
+Dateien wiederhergestellt."); }
+                        ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:261: error: illegal start of 
+expression
+                case "7" -> { System.out.print("  Pfad: "); int n = 
+DataExportImport.restoreBackup(java.nio.file.Paths.get(scanner.nextLine().trim())); System.out.println("  " + n + " 
+Dateien wiederhergestellt."); }
+                         ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:262: error: : expected
+                default  -> System.out.println("  Ungueltiger Auswahl.");
+                       ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\cli\MenuHandler.java:262: error: illegal start of 
+expression
+                default  -> System.out.println("  Ungueltiger Auswahl.");
+                         ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\components\GuiContextMenu.java:79: error: 
+unmappable character (0x8D) for encoding windows-1252
+        popup.add(menuItem("­ƒö?  Details anzeigen", ACCENT, () ->
+                               ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\components\GuiContextMenu.java:83: error: 
+unmappable character (0x90) for encoding windows-1252
+        popup.add(menuItem("Ôø?  Vollanalyse", FG, () ->
+                              ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\components\GuiSearchBar.java:36: error: 
+unmappable character (0x8D) for encoding windows-1252
+        JLabel icon = new JLabel("­ƒö?  ");
+                                     ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\components\GuiSidebar.java:278: error: unmappable 
+character (0x8F) for encoding windows-1252
+        JButton pb = new JButton("Ô?╗");
+                                   ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\components\GuiSidebar.java:322: error: unmappable 
+character (0x8F) for encoding windows-1252
+        m.add(pItem("Ô?╗  Beenden     Ctrl+Q", new Color(0xFF, 0x40, 0x40),
+                      ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\components\GuiSidebar.java:134: error: ')' 
+expected
+                if (c instanceof JButton btn) {
+                                        ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\components\GuiSidebar.java:134: error: not a 
+statement
+                if (c instanceof JButton btn) {
+                                         ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\components\GuiSidebar.java:134: error: ';' 
+expected
+                if (c instanceof JButton btn) {
+                                            ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\components\GuiSidebar.java:197: error: ')' 
+expected
+                if (c instanceof JLabel lbl && (lbl.getText().equals("ÔûÂ") || lbl.getText().equals("Ôû╝")))
+                                       ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\components\GuiSidebar.java:197: error: not a 
+statement
+                if (c instanceof JLabel lbl && (lbl.getText().equals("ÔûÂ") || lbl.getText().equals("Ôû╝")))
+                                            ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\components\GuiSidebar.java:197: error: ';' 
+expected
+                if (c instanceof JLabel lbl && (lbl.getText().equals("ÔûÂ") || lbl.getText().equals("Ôû╝")))
+                                                                                                           ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\core\GuiMenuHandler.java:59: error: : expected
+            case "01" -> input.ask("Netzwerkinfo starten? [Enter]",
+                     ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\core\GuiMenuHandler.java:59: error: illegal start 
+of expression
+            case "01" -> input.ask("Netzwerkinfo starten? [Enter]",
+                      ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\core\GuiMenuHandler.java:60: error: '_' used as 
+an identifier
+                    _ -> runAsync(() -> { AuditLogger.getInstance().log("SCAN_MINIMAL",""); 
+NetworkInfo.showMinimalInfo(); }));
+                    ^
+  (use of '_' as an identifier is forbidden for lambda parameters)
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\core\GuiMenuHandler.java:61: error: : expected
+            case "02" -> input.ask("Vollst├ñndige Info starten? [Enter]",
+                     ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\core\GuiMenuHandler.java:61: error: illegal start 
+of expression
+            case "02" -> input.ask("Vollst├ñndige Info starten? [Enter]",
+                      ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\core\GuiMenuHandler.java:62: error: '_' used as 
+an identifier
+                    _ -> runAsync(() -> { AuditLogger.getInstance().log("SCAN_FULL",""); NetworkInfo.showFullInfo(); 
+}));
+                    ^
+  (use of '_' as an identifier is forbidden for lambda parameters)
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\core\GuiMenuHandler.java:63: error: : expected
+            case "03" -> handleDiagnose();
+                     ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\core\GuiMenuHandler.java:63: error: illegal start 
+of expression
+            case "03" -> handleDiagnose();
+                      ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\core\GuiMenuHandler.java:64: error: : expected
+            case "04" -> input.ask("Port:", p -> runAsync(() -> {
+                     ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\core\GuiMenuHandler.java:64: error: illegal start 
+of expression
+            case "04" -> input.ask("Port:", p -> runAsync(() -> {
+                      ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\core\GuiMenuHandler.java:69: error: : expected
+            case "05" -> input.ask("Ziel-IP:", ip -> input.ask("Port:", p ->
+                     ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\core\GuiMenuHandler.java:69: error: illegal start 
+of expression
+            case "05" -> input.ask("Ziel-IP:", ip -> input.ask("Port:", p ->
+                      ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\core\GuiMenuHandler.java:74: error: : expected
+            case "06" -> GuiScanActions.handleCidrScan(input, output, tables, this);
+                     ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\core\GuiMenuHandler.java:74: error: illegal start 
+of expression
+            case "06" -> GuiScanActions.handleCidrScan(input, output, tables, this);
+                      ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\core\GuiMenuHandler.java:75: error: : expected
+            case "07" -> GuiScanActions.handleFilterScan(input, this);
+                     ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\core\GuiMenuHandler.java:75: error: illegal start 
+of expression
+            case "07" -> GuiScanActions.handleFilterScan(input, this);
+                      ^
+C:\Users\Anwender\IdeaProjects\nettool\src\main\java\networktool\gui\core\GuiMenuHandler.java:76: error: : expected
+            case "08" -> handleSendMessage();
+                     ^
+100 errors

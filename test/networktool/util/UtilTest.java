@@ -1,6 +1,6 @@
 package networktool.util;
 
-import main.java.networktool.gui.GuiLoginRateLimiter;
+import main.java.networktool.gui.login.GuiLoginRateLimiter;
 import main.java.networktool.util.IpValidator;
 import main.java.networktool.util.PlatformUtils;
 import org.junit.jupiter.api.*;

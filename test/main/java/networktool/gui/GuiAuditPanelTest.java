@@ -1,7 +1,10 @@
-package main.java.networktool.gui;
+package main.java.networktool.gui.panels;
 
 import main.java.networktool.security.AuditLogger;
 import org.junit.jupiter.api.*;
+import main.java.networktool.gui.panels.GuiAuditPanel;
+import main.java.networktool.gui.panels.GuiAuditTable;
+import main.java.networktool.theme.GuiTheme;
 
 import java.awt.Color;
 

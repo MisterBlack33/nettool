@@ -1,0 +1,99 @@
+package networktool.gui.hostdetails;
+
+import networktool.util.*;
+import networktool.gui.login.*;
+import networktool.gui.hostdetails.*;
+import networktool.gui.map.*;
+import networktool.gui.core.*;
+import networktool.gui.components.*;
+import networktool.gui.panels.*;
+import networktool.model.HostResult;
+import networktool.storage.NetworkStore;
+
+import javax.swing.*;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+
+import static networktool.theme.GuiTheme.*;
+
+/**
+ * Speichert einen Host in einem gewÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤hlten Netzwerk.
+ * Fragt bei mehreren Netzwerken nach Auswahl, warnt bei PrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤fix-Mismatch.
+ */
+final class HostSaveDialog {
+
+    private HostSaveDialog() {}
+
+    static void save(String ip, String hostname, String os, String portsDisplay, GuiOutputPanel output) {
+        Map<Integer, String> ports = parsePorts(portsDisplay);
+        HostResult host = new HostResult(ip, hostname, os, null, ports, "");
+
+        String targetNetwork = resolveTargetNetwork(ip);
+        if (targetNetwork == null) return;
+        if (!confirmPrefixMismatch(ip, targetNetwork)) return;
+
+        int caret = output.getOutputPane().getCaretPosition();
+        boolean saved = NetworkStore.getInstance().save(host, targetNetwork);
+        reportResult(ip, targetNetwork, saved, caret, output);
+    }
+
+    private static String resolveTargetNetwork(String ip) {
+        List<String> networks = NetworkStore.getInstance().getNetworkNames();
+        if (networks.size() == 1) return networks.get(0);
+
+        List<String> matching = NetworkStore.getInstance().matchingNetworks(ip);
+        String[] options = networks.toArray(new String[0]);
+        String defaultChoice = matching.isEmpty() ? options[0] : matching.get(0);
+
+        Object chosen = JOptionPane.showInputDialog(null,
+                "IP " + ip + " in welches Netzwerk speichern?",
+                "Netzwerk wÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤hlen", JOptionPane.QUESTION_MESSAGE,
+                null, options, defaultChoice);
+        return chosen != null ? chosen.toString() : null;
+    }
+
+    private static boolean confirmPrefixMismatch(String ip, String targetNetwork) {
+        if (NetworkStore.getInstance().ipMatchesNetwork(ip, targetNetwork)) return true;
+
+        String prefix = NetworkStore.getInstance().getPrefix(targetNetwork);
+        int choice = JOptionPane.showConfirmDialog(null,
+                "<html>IP <b>" + ip + "</b> passt nicht zum PrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤fix"
+                        + " <b>\"" + prefix + "\"</b> von <b>\"" + targetNetwork + "\"</b>.<br>"
+                        + "Trotzdem speichern?</html>",
+                "PrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤fix-Warnung", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+        return choice == JOptionPane.YES_OPTION;
+    }
+
+    private static void reportResult(String ip, String targetNetwork, boolean saved,
+                                     int caret, GuiOutputPanel output) {
+        SwingUtilities.invokeLater(() -> {
+            try {
+                javax.swing.text.SimpleAttributeSet a = new javax.swing.text.SimpleAttributeSet();
+                javax.swing.text.StyleConstants.setForeground(a, saved ? ACCENT2 : WARN);
+                javax.swing.text.StyleConstants.setFontFamily(a, "JetBrains Mono");
+                javax.swing.text.StyleConstants.setFontSize(a, 13);
+                String msg = saved
+                        ? "  ÃƒÆ’Ã‚Â¢Ãƒâ€¹Ã…â€œÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ " + ip + " gespeichert in \"" + targetNetwork + "\"\n"
+                        : "  ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ Speichern fehlgeschlagen\n";
+                output.doc.insertString(output.doc.getLength(), msg, a);
+                JTextPane pane = output.getOutputPane();
+                pane.setCaretPosition(Math.min(caret, output.doc.getLength()));
+            } catch (Exception ignored) {
+                /* Dokument wurde zwischenzeitlich geÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤ndert/geleert */
+            }
+        });
+    }
+
+    private static Map<Integer, String> parsePorts(String display) {
+        Map<Integer, String> map = new TreeMap<>();
+        if (display == null || display.isBlank()) return map;
+        String clean = display.replaceAll("[\\[\\]\\s]", "");
+        for (String part : clean.split(",")) {
+            try { map.put(Integer.parseInt(part), "offen"); }
+            catch (NumberFormatException ignored) { /* kein gÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼ltiger Port */ }
+        }
+        return map;
+    }
+}
+

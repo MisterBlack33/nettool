@@ -1,7 +1,8 @@
-// test/main/java/networktool/gui/MapContextMenuTest.java
-package main.java.networktool.gui;
+// test/main/java/networktool/gui/map/MapContextMenuTest.java
+package main.java.networktool.gui.map;
 
 import org.junit.jupiter.api.*;
+import main.java.networktool.gui.map.MapContextMenu;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MapContextMenuTest {

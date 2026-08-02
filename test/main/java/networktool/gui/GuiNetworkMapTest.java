@@ -1,7 +1,8 @@
-package main.java.networktool.gui;
+package main.java.networktool.gui.components;
 
 import main.java.networktool.logic.analysis.TracerouteRunner;
 import org.junit.jupiter.api.*;
+import main.java.networktool.gui.components.GuiNetworkMap;
 
 import java.util.*;
 
