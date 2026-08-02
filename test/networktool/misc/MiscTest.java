@@ -1,6 +1,6 @@
 package networktool.misc;
 
-import main.java.networktool.gui.GuiTheme;
+import main.java.networktool.theme.GuiTheme;
 import main.java.networktool.gui.security.NoteEncryption;
 import main.java.networktool.model.ScanProfile;
 import main.java.networktool.storage.*;

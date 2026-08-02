@@ -1,8 +1,9 @@
-// test/main/java/networktool/gui/MapNodeClassifierTest.java
-package main.java.networktool.gui;
+// test/main/java/networktool/gui/map/MapNodeClassifierTest.java
+package main.java.networktool.gui.map;
 
 import main.java.networktool.logic.scan.MapTrafficObserver;
 import org.junit.jupiter.api.*;
+import main.java.networktool.gui.map.MapNodeClassifier;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
