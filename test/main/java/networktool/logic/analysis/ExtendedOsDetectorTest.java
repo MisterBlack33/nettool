@@ -1,11 +1,11 @@
 package main.java.networktool.logic.analysis;
 
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Test;
+
+import java.net.InetAddress;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
-
-import java.net.InetAddress;
 
 class ExtendedOsDetectorTest {
 
@@ -15,7 +15,7 @@ class ExtendedOsDetectorTest {
     }
 
     @Test
-    void detect_unreachable_returnsUnbekannt() {
+    void detect_unreachable_returnsResult() {
         OsDetector.OsResult r = ExtendedOsDetector.detect("192.0.2.1");
         assertNotNull(r);
         assertNotNull(r.os);
@@ -37,26 +37,29 @@ class ExtendedOsDetectorTest {
     }
 
     @Test
-    void detect_result_confidenceNotNull() {
-        OsDetector.OsResult r = ExtendedOsDetector.detect("192.0.2.1");
-        assertNotNull(r.confidence);
-    }
-
-    @Test
     void detect_unreachable_confidenceNiedrig() {
         OsDetector.OsResult r = ExtendedOsDetector.detect("192.0.2.1");
         assertEquals(OsDetector.Confidence.NIEDRIG, r.confidence);
     }
 
     @Test
-    void detect_result_methodNotNull() {
+    void detect_result_display_containsOs() {
         OsDetector.OsResult r = ExtendedOsDetector.detect("192.0.2.1");
+        assertTrue(r.display().contains(r.os));
+    }
+
+    @Test
+    void detect_highConfidence_skipsExtendedSteps() {
+        // Loopback hat bekanntes OS – Pipeline sollte früh abbrechen
+        assumeTrue(loopbackReachable());
+        OsDetector.OsResult r = ExtendedOsDetector.detect("127.0.0.1");
         assertNotNull(r.method);
     }
 
     @Test
-    void detect_result_display_containsOs() {
+    void detect_resultMethod_notNull() {
         OsDetector.OsResult r = ExtendedOsDetector.detect("192.0.2.1");
-        assertTrue(r.display().contains(r.os));
+        assertNotNull(r.method);
+        assertFalse(r.method.isBlank());
     }
 }

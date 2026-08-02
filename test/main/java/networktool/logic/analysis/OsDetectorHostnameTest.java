@@ -36,6 +36,16 @@ class OsDetectorHostnameTest {
 
     // Network
     @Test void fritzbox()      { assertTrue(c("fritz.box").contains("FRITZ")); }
+
+    @Test void fritzSuffix_notMatchedAsRouter() {
+        assertNotEquals("Router (FRITZ!Box)", c("S24-FE-von-Elias.fritz.box"));
+        assertNotEquals("Router (FRITZ!Box)", c("Workbench.fritz.box"));
+    }
+    @Test void fritzHostname_stillDetected() {
+        assertTrue(c("fritz.box").contains("FRITZ"));
+        assertTrue(c("fritzbox-7590").contains("FRITZ"));
+    }
+    
     @Test void unifi()         { assertTrue(c("unifi-ap").contains("Ubiquiti")); }
     @Test void mikrotik()      { assertTrue(c("mikrotik-rb").contains("MikroTik")); }
     @Test void cisco()         { assertTrue(c("cisco-sw").contains("Cisco")); }

@@ -27,18 +27,27 @@ public final class NetworkHostScanner {
 
     /** Scannt /24-Präfixe — nutzt ARP-Cache + ICMP. */
     public static List<HostResult> scan(List<String> subnets) {
+        List<String> allIps = expandSubnets(subnets);
+        // Vor dem ARP-Read: zusätzliche Discovery, damit stille WLAN-Geräte
+        // im ARP-Cache erscheinen bzw. separat als erreichbar zählen.
+        Set<String> discovered = NetworkDiscoverySweep.discover(allIps);
         HostAliveChecker.warmCache();
-        // ARP-Cache als zusätzliche Quelle: alle Hosts die ARP beantwortet haben
         Map<String, String> arpHosts = readArpCache(subnets);
-        List<String> ips = mergeIps(expandSubnets(subnets), arpHosts.keySet());
-        return scanIpList(ips, arpHosts);
+        List<String> ips = mergeIps(allIps, union(arpHosts.keySet(), discovered));
+        return scanIpList(ips, arpHosts, discovered);
     }
 
-    /** Scannt einen CIDR-Block. */
     public static List<HostResult> scanCidr(String cidr) {
         HostAliveChecker.warmCache();
         List<String> ips = CIDRUtils.getAllIPs(cidr);
-        return scanIpList(ips, Collections.emptyMap());
+        Set<String> discovered = NetworkDiscoverySweep.discover(ips);
+        return scanIpList(ips, Collections.emptyMap(), discovered);
+    }
+
+    private static Set<String> union(Set<String> a, Set<String> b) {
+        Set<String> merged = new LinkedHashSet<>(a);
+        merged.addAll(b);
+        return merged;
     }
 
     // ── ARP-Cache lesen ───────────────────────────────────────────────────
@@ -98,7 +107,8 @@ public final class NetworkHostScanner {
 
     // ── Scan ──────────────────────────────────────────────────────────────
 
-    private static List<HostResult> scanIpList(List<String> ips, Map<String, String> knownMacs) {
+    private static List<HostResult> scanIpList(List<String> ips, Map<String, String> knownMacs,
+                                               Set<String> discovered) {
         System.out.println("Starte Scan: " + ips.size() + " Hosts, Threads: " + THREAD_COUNT);
         List<HostResult> found    = Collections.synchronizedList(new ArrayList<>());
         ScanProgress     progress = new ScanProgress(ips.size());
@@ -106,20 +116,29 @@ public final class NetworkHostScanner {
                 r -> { Thread t = new Thread(r); t.setDaemon(true); return t; });
 
         for (String host : ips)
-            executor.submit(() -> { scanHost(host, found, knownMacs); progress.step(); });
+            executor.submit(() -> { scanHost(host, found, knownMacs, discovered); progress.step(); });
 
         executor.shutdown();
         try { executor.awaitTermination(5, TimeUnit.MINUTES); }
         catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
 
-        // Hosts aus ARP-Cache die nicht per ICMP gefunden wurden, direkt hinzufügen
         Set<String> foundIps = new HashSet<>();
         found.forEach(h -> foundIps.add(h.ip));
+
         knownMacs.forEach((ip, mac) -> {
             if (!foundIps.contains(ip)) {
                 String hostname = resolveHostname(ip);
-                String os = detectOsFast(ip, hostname, mac);
+                String os = detectOsFull(ip, hostname, mac);
                 found.add(new HostResult(ip, buildDisplay(hostname, mac), os));
+                foundIps.add(ip);
+            }
+        });
+        // Nur per mDNS/UPnP/Zweit-Ping gefundene Hosts (kein ARP-Eintrag, kein TCP/ICMP-Treffer)
+        discovered.forEach(ip -> {
+            if (!foundIps.contains(ip)) {
+                String hostname = resolveHostname(ip);
+                found.add(new HostResult(ip, hostname, detectOsFull(ip, hostname, null)));
+                foundIps.add(ip);
             }
         });
 
@@ -128,13 +147,16 @@ public final class NetworkHostScanner {
         return found;
     }
 
-    private static void scanHost(String ip, List<HostResult> found, Map<String, String> knownMacs) {
+    private static void scanHost(String ip, List<HostResult> found, Map<String, String> knownMacs,
+                                 Set<String> discovered) {
         try {
-            boolean alive = HostAliveChecker.isAlive(ip) || knownMacs.containsKey(ip);
+            boolean alive = HostAliveChecker.isAlive(ip)
+                    || knownMacs.containsKey(ip)
+                    || discovered.contains(ip);
             if (!alive) return;
             String mac      = knownMacs.getOrDefault(ip, readMacFromArp(ip));
             String hostname = resolveHostname(ip);
-            String os       = detectOsFast(ip, hostname, mac);
+            String os       = detectOsFull(ip, hostname, mac);
             found.add(new HostResult(ip, buildDisplay(hostname, mac), os));
         } catch (Exception ignored) {}
     }
@@ -147,6 +169,16 @@ public final class NetworkHostScanner {
             if (vendor != null) return vendor;
         }
         return "Unbekannt";
+    }
+
+    private static String detectOsFull(String ip, String hostname, String mac) {
+        String fast = detectOsFast(ip, hostname, mac);
+        if (!"Unbekannt".equals(fast)) return fast;
+        try {
+            String full = OsDetector.detect(ip); // volle Pipeline: Banner/UDP/mDNS/Ports/TTL
+            if (full != null && !"Unbekannt".equals(full)) return full;
+        } catch (Exception ignored) {}
+        return fast;
     }
 
     private static String resolveHostname(String ip) {

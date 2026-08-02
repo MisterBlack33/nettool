@@ -72,7 +72,7 @@ final class OsDetectorHostname {
     }
 
     private static String classifyNetwork(String h) {
-        if (h.contains("fritz") || h.contains("fritzbox"))     return "Router (FRITZ!Box)";
+        if (h.startsWith("fritz") || h.startsWith("fritzbox")) return "Router (FRITZ!Box)";
         if (h.contains("unifi") || h.contains("ubiquiti"))     return "Access Point (Ubiquiti)";
         if (h.contains("mikrotik"))                            return "Router (MikroTik)";
         if (h.contains("cisco"))                               return "Cisco-Gerät";
@@ -84,7 +84,6 @@ final class OsDetectorHostname {
         if (h.contains("openwrt"))                             return "Router (OpenWrt)";
         if (h.contains("ddwrt") || h.contains("dd-wrt"))       return "Router (DD-WRT)";
         if (h.contains("router"))                              return "Router";
-        // "switch" nur als eigenständiges Wort oder mit Trennzeichen – nicht als Substring
         if (h.matches(".*\\bswitch\\b.*") || h.contains("sw-") || h.contains("-sw"))
             return "Netzwerk-Switch";
         if (h.contains("hub"))                                 return "Netzwerk-Switch";

@@ -23,6 +23,8 @@ final class OsDetectorArp {
             Pattern.compile("([0-9A-Fa-f]{2}-){5}[0-9A-Fa-f]{2}");
 
     static String getMacFromArp(String ip) {
+        String psMac = main.java.networktool.logic.windows.PsArpResolver.lookup(ip);
+        if (psMac != null) return psMac;
         triggerArp(ip);
         String[][] cmds = isWin()
                 ? new String[][]{{"arp", "-a", ip}, {"arp", "-a"}}

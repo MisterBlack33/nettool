@@ -75,6 +75,7 @@ public final class AuditLogger {
     }
 
     public void shutdown() {
+        flush();          // wait for pending writes first
         flushAndShutdown();
         writer = newWriter();
     }

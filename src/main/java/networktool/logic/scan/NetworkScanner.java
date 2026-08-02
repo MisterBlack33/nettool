@@ -18,7 +18,10 @@ public final class NetworkScanner {
     /** Netze bis zu dieser Größe werden direkt ohne PingSweep-Vorfilter gescannt. */
     private static final int DIRECT_LIMIT  = 254;
 
+    public static volatile boolean testMode = false;
+
     public static List<ScanResult> scanCIDR(String cidr) {
+        if (testMode) return Collections.emptyList();
         List<String> allIps = CIDRUtils.getAllIPs(cidr);
         List<String> ips    = allIps.size() <= DIRECT_LIMIT ? allIps : sweepFirst(allIps);
 

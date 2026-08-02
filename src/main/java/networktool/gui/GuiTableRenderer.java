@@ -63,6 +63,8 @@ public class GuiTableRenderer {
     // ── Tabelle einbetten ─────────────────────────────────────────────────
 
     private void embedTable(Object[][] data, String[] cols, int[] widths) {
+        outputPanel.appendText("\n", FG); // neue Zeile vor Tabelle
+
         DefaultTableModel model = new DefaultTableModel(data, cols) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };

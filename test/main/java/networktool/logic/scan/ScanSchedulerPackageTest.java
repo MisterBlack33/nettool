@@ -14,7 +14,9 @@ class ScanSchedulerPackageTest {
     ScanScheduler sched = ScanScheduler.getInstance();
 
     @BeforeEach void setup() {
-        ScanProfileStore.getInstance().save(new ScanProfile(PROFILE));
+        ScanProfile p = new ScanProfile(PROFILE);
+        p.cidrs.add("192.0.2.0/30");   // RFC5737, nie routbar, nur 2 Hosts
+        ScanProfileStore.getInstance().save(p);
     }
 
     @AfterEach void cleanup() {

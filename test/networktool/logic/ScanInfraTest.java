@@ -12,7 +12,7 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
 
-class ScanInfraTest {
+class ScanInfraTest extends NetworkTimeoutTestBase{
 
     static boolean loopbackReachable() {
         try { return InetAddress.getByName("127.0.0.1").isReachable(500); }

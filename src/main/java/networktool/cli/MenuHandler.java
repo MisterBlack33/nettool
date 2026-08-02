@@ -239,18 +239,9 @@ public class MenuHandler {
 
     private void handleBandwidthTestCli() {
         System.out.println("\n  [ Bandwidth-Test CLI ]");
-        System.out.println("  1 Server starten  2 Test zu Ziel-IP");
-        System.out.print("  Modus: ");
-        String m = scanner.nextLine().trim();
-        if ("1".equals(m)) {
-            BandwidthTester.startServer();
-            System.out.println("  BW-Server gestartet. Strg+C zum Beenden.");
-            try { Thread.currentThread().join(); } catch (InterruptedException ignored) {}
-        } else {
-            System.out.print("  Ziel-IP: ");
-            String ip = scanner.nextLine().trim();
-            runSafely(() -> BandwidthTester.testBoth(ip));
-        }
+        System.out.print("  Ziel-IP: ");
+        String ip = scanner.nextLine().trim();
+        runSafely(() -> BandwidthTester.testBoth(ip));
     }
 
     private void handleExportImportCli() {

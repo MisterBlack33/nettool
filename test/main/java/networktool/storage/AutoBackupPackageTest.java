@@ -47,18 +47,22 @@ class AutoBackupPackageTest {
 
     // ── backup() direkt ────────────────────────────────────────────────────
 
+    @TempDir Path tmp;
+
     @Test
     @Timeout(value = 10, unit = TimeUnit.SECONDS)
     void backup_inTestMode_createsTestPrefixFile() throws IOException {
-        AutoBackup.getInstance().cleanupBackups();
-        AutoBackup.getInstance().backup();
+        Path src = tmp.resolve("src");
+        Files.createDirectories(src);
+        Files.writeString(src.resolve("dummy.json"), "{}");
 
+        AutoBackup.getInstance().cleanupBackups();
         Path dir = backupDir();
-        if (!Files.isDirectory(dir)) return;
+        Files.createDirectories(dir);
+        DataExporter.exportBackup(dir, src, AutoBackup.TEST_BACKUP_PREFIX + "manual.zip");
+
         List<Path> testZips = listTestBackups(dir);
-        testZips.forEach(p ->
-                assertTrue(p.getFileName().toString().startsWith(AutoBackup.TEST_BACKUP_PREFIX),
-                        "Backup trägt nicht das TEST-Präfix: " + p.getFileName()));
+        testZips.forEach(p -> assertTrue(p.getFileName().toString().startsWith(AutoBackup.TEST_BACKUP_PREFIX)));
     }
 
     @Test

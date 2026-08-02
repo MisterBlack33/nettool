@@ -1,13 +1,15 @@
 package main.java.networktool.logic.scan;
 
+import main.java.networktool.logic.windows.PsNetScanResolver;
+
 import java.net.InetAddress;
 import java.util.*;
 import java.util.concurrent.*;
 
 /**
  * Schneller ICMP-Sweep.
- * Sendet vor dem isReachable()-Check ein ARP-Ping (ping -c1 / ping -n1)
- * damit der ARP-Cache gefüllt wird – HostAliveChecker kann ihn dann lesen.
+ * Auf Windows wird zuerst {@link PsNetScanResolver} (paralleles PowerShell-Ping)
+ * versucht; nur bei leerem Ergebnis läuft der klassische Java-Sweep.
  */
 public final class PingSweep {
 
@@ -26,7 +28,6 @@ public final class PingSweep {
         for (String ip : ips) {
             exec.submit(() -> {
                 try {
-                    // ARP-Trigger: füllt den lokalen ARP-Cache
                     triggerArp(ip);
                     if (InetAddress.getByName(ip).isReachable(TIMEOUT_MS))
                         alive.add(ip);
@@ -43,6 +44,11 @@ public final class PingSweep {
     }
 
     public static List<String> sweepSubnet(String prefix, Runnable progress) {
+        List<String> psResult = PsNetScanResolver.sweep(prefix);
+        if (!psResult.isEmpty()) {
+            if (progress != null) for (int i = 0; i < 254; i++) progress.run();
+            return psResult;
+        }
         List<String> ips = new ArrayList<>(254);
         for (int i = 1; i <= 254; i++) ips.add(prefix + "." + i);
         return sweep(ips, progress);
@@ -57,7 +63,6 @@ public final class PingSweep {
         return alive;
     }
 
-    /** Sendet einen kurzen Ping um den ARP-Cache zu befüllen. */
     private static void triggerArp(String ip) {
         boolean win = System.getProperty("os.name", "").toLowerCase().contains("win");
         try {

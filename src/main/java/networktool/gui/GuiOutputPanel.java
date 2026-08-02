@@ -63,17 +63,23 @@ public class GuiOutputPanel {
     // ── Text-Ausgabe ──────────────────────────────────────────────────────
 
     public void appendText(String text, Color color) {
-        SwingUtilities.invokeLater(() -> {
-            try {
-                trimIfNeeded();
-                SimpleAttributeSet a = new SimpleAttributeSet();
-                StyleConstants.setForeground(a, color);
-                StyleConstants.setFontFamily(a, "JetBrains Mono");
-                StyleConstants.setFontSize(a, 13);
-                doc.insertString(doc.getLength(), text, a);
-                output.setCaretPosition(doc.getLength());
-            } catch (BadLocationException ignored) {}
-        });
+        if (SwingUtilities.isEventDispatchThread()) {
+            doAppend(text, color);
+        } else {
+            SwingUtilities.invokeLater(() -> doAppend(text, color));
+        }
+    }
+
+    private void doAppend(String text, Color color) {
+        try {
+            trimIfNeeded();
+            SimpleAttributeSet a = new SimpleAttributeSet();
+            StyleConstants.setForeground(a, color);
+            StyleConstants.setFontFamily(a, "JetBrains Mono");
+            StyleConstants.setFontSize(a, 13);
+            doc.insertString(doc.getLength(), text, a);
+            output.setCaretPosition(doc.getLength());
+        } catch (BadLocationException ignored) {}
     }
 
     public void printBanner() {

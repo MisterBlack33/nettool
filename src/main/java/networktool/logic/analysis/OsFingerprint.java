@@ -1,49 +1,50 @@
 package main.java.networktool.logic.analysis;
 
-import java.util.Map;
-
 /**
- * Kombiniert TTL und offene Ports zu einer OS-Heuristik.
- * Präziser als TTL oder Ports allein. Package-private.
+ * TTL- und MAC-basiertes OS-Fingerprinting. Package-private.
  *
- * VERBESSERT: Fallback-Strategie für Firewall-Umgebungen
- *  • TTL-Ranges sind Standards (Windows ~128, Linux ~64, etc.)
- *  • MAC-OUI Lookup hat hohe Priorität (zuverlässig)
- *  • Port-Checks sind schnelle Bestätigung
- *  • Funktioniert auch wenn Port-Scanning blockiert ist
+ * resolve()      – inkl. TCP-Checks (ExtendedOsDetector)
+ * resolveNoTcp() – nur TTL + MAC/OUI (OsDetectionPipeline)
  */
 final class OsFingerprint {
 
     private OsFingerprint() {}
 
-    /** Gibt OS-String zurück oder null wenn nicht eindeutig. */
     static String resolve(String ip, int ttl, String mac) {
-        if (ttl <= 0) return resolveByMac(mac);
-
+        if (ttl <= 0)   return resolveByMac(mac);
         if (ttl <= 32)  return resolveSmallTtl(ip, mac);
         if (ttl <= 64)  return resolveMediumTtl(ip, mac);
         if (ttl <= 128) return resolveHighTtl(ip, mac);
         return resolveVeryHighTtl(ip, mac);
     }
 
+    /** Ohne TCP – für die schnelle Haupt-Pipeline. */
+    static String resolveNoTcp(String ip, int ttl, String mac) {
+        if (ttl <= 0)   return resolveByMac(mac);
+        if (ttl <= 32)  return macOr(mac, "Router / Netzwerkgerät");
+        if (ttl <= 64)  return macOr(mac, "Linux/Unix oder Android");
+        if (ttl <= 128) return macOr(mac, "Windows oder Android");
+        return macOr(mac, "iOS / macOS");
+    }
+
+    // ── TCP-Varianten ─────────────────────────────────────────────────────
+
     private static String resolveSmallTtl(String ip, String mac) {
-        String fromMac = resolveByMac(mac);
-        if (fromMac != null) return fromMac;
-        if (isOpen(ip, 23) || isOpen(ip, 161)) return "Router / Netzwerkgerät";
-        return "Router / Netzwerkgerät";
+        String m = resolveByMac(mac);
+        return m != null ? m : "Router / Netzwerkgerät";
     }
 
     private static String resolveMediumTtl(String ip, String mac) {
-        String fromMac = resolveByMac(mac);
-        if (fromMac != null) return fromMac;
+        String m = resolveByMac(mac);
+        if (m != null) return m;
         if (isOpen(ip, 22) || isOpen(ip, 80) || isOpen(ip, 443)) return "Linux/Unix";
         if (isOpen(ip, 1883) || isOpen(ip, 8883))                 return "IoT-Gerät (MQTT)";
         return "Linux/Unix oder Android";
     }
 
     private static String resolveHighTtl(String ip, String mac) {
-        String fromMac = resolveByMac(mac);
-        if (fromMac != null) return fromMac;
+        String m = resolveByMac(mac);
+        if (m != null) return m;
         if (isOpen(ip, 445) || isOpen(ip, 3389) || isOpen(ip, 5985)) return "Windows";
         if (isOpen(ip, 135) && !isOpen(ip, 22))                       return "Windows";
         if (isOpen(ip, 548) || isOpen(ip, 5000))                      return "macOS";
@@ -51,12 +52,19 @@ final class OsFingerprint {
     }
 
     private static String resolveVeryHighTtl(String ip, String mac) {
-        String fromMac = resolveByMac(mac);
-        if (fromMac != null) return fromMac;
-        if (isOpen(ip, 548) || isOpen(ip, 5000))   return "macOS";
-        if (isOpen(ip, 5353))                        return "Apple-Gerät (Bonjour)";
-        if (isOpen(ip, 23) || isOpen(ip, 161))       return "Router / Netzwerkgerät";
+        String m = resolveByMac(mac);
+        if (m != null) return m;
+        if (isOpen(ip, 548) || isOpen(ip, 5000)) return "macOS";
+        if (isOpen(ip, 5353))                     return "Apple-Gerät (Bonjour)";
+        if (isOpen(ip, 23)  || isOpen(ip, 161))  return "Router / Netzwerkgerät";
         return "iOS / macOS";
+    }
+
+    // ── Hilfsmethoden ─────────────────────────────────────────────────────
+
+    private static String macOr(String mac, String fallback) {
+        String m = resolveByMac(mac);
+        return m != null ? m : fallback;
     }
 
     private static String resolveByMac(String mac) {

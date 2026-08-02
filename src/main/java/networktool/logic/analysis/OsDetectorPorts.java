@@ -15,11 +15,12 @@ import java.util.concurrent.*;
  *  • Timeout erhöht für langsame Netzwerke
  *  • Früher Abbruch wenn viele Ports blockiert sind
  */
-final class OsDetectorPorts {
+public final class OsDetectorPorts {
 
     private OsDetectorPorts() {}
 
-    private static final int TIMEOUT_MS   = 600;  // Erhöht von 400ms für langsame Netzwerke
+    static volatile int TIMEOUT_MS = 600;   // war: private static final int TIMEOUT_MS = 600;
+    public static void setTestTimeout(int ms) { TIMEOUT_MS = ms; } // package-private Hook für Tests
     private static final int THREAD_COUNT =
             Math.min(16, Runtime.getRuntime().availableProcessors() * 2);
 
