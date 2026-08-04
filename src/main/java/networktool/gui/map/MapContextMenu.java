@@ -1,7 +1,8 @@
-// src/main/java/networktool/gui/MapContextMenu.java
 package networktool.gui.map;
 
-import networktool.storage.NetworkStore;
+import main.java.networktool.storage.NetworkStore;
+import networktool.gui.components.GuiNetworkMap;
+import networktool.gui.hostdetails.HostDetailsPanel;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -11,7 +12,7 @@ import java.awt.event.*;
 import static networktool.theme.GuiTheme.*;
 
 /**
- * Rechtsklick-KontextmenÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼ fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r Netzwerk-Karte.
+ * Rechtsklick-Kontextmenü für Netzwerk-Karte.
  */
 final class MapContextMenu {
 
@@ -36,7 +37,7 @@ final class MapContextMenu {
         menu.add(header);
         menu.addSeparator();
 
-        String switchLabel = isSwitch ? "ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢  Kein Switch" : "S  Als Switch markieren";
+        String switchLabel = isSwitch ? "✕  Kein Switch" : "S  Als Switch markieren";
         Color  switchColor = isSwitch ? WARN : new Color(0xFF, 0xA0, 0x30);
         JMenuItem switchItem = item(switchLabel, switchColor);
         switchItem.addActionListener(e -> {
@@ -45,7 +46,7 @@ final class MapContextMenu {
         });
         menu.add(switchItem);
 
-        JMenuItem details = item("ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒâ€šÃ‚Â  Details", ACCENT);
+        JMenuItem details = item("🔍  Details", ACCENT);
         details.addActionListener(e -> HostDetailsPanel.show(node.ip, node.hostname, node.os,
                 NetworkStore.getInstance().findNetwork(node.ip)));
         menu.add(details);
@@ -66,6 +67,6 @@ final class MapContextMenu {
 
     private static String clip(String s, int max) {
         if (s == null || s.isEmpty()) return "";
-        return s.length() <= max ? s : s.substring(0, max - 1) + "ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦";
+        return s.length() <= max ? s : s.substring(0, max - 1) + "…";
     }
 }

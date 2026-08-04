@@ -7,10 +7,10 @@ import networktool.gui.map.*;
 import networktool.gui.core.*;
 import networktool.gui.components.*;
 import networktool.gui.panels.*;
-import networktool.logic.analysis.OsDetector;
-import networktool.logic.analysis.OuiDatabase;
-import networktool.model.HostResult;
-import networktool.storage.NetworkStore;
+import main.java.networktool.logic.analysis.OsDetector;
+import main.java.networktool.logic.analysis.OuiDatabase;
+import main.java.networktool.model.HostResult;
+import main.java.networktool.storage.NetworkStore;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -19,7 +19,7 @@ import java.net.InetAddress;
 
 import static networktool.theme.GuiTheme.*;
 
-/** Tab ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“Ãƒâ€šÃ‚Â : Basis-Info (IP, Hostname, OS, MAC/OUI, Erreichbarkeit). */
+/** Tab ①: Basis-Info (IP, Hostname, OS, MAC/OUI, Erreichbarkeit). */
 final class HostInfoTab {
 
     private HostInfoTab() {}
@@ -47,7 +47,7 @@ final class HostInfoTab {
                                       String os, HostResult stored, Color panBg) {
         String hn       = stored != null && stored.hostname != null ? stored.hostname : hostname;
         String storedOs = stored != null && stored.os != null       ? stored.os       : os;
-        String savedAt  = stored != null && stored.savedAt != null  ? stored.savedAt  : "ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ";
+        String savedAt  = stored != null && stored.savedAt != null  ? stored.savedAt  : "–";
 
         OsDetector.OsResult osResult = OsDetector.detectWithConfidence(ip);
         String confLabel = osResult.confidence.name() + "  [" + osResult.method + "]";
@@ -55,7 +55,7 @@ final class HostInfoTab {
         String mac = OsDetector.getMacFromArp(ip);
         String oui = mac != null ? OuiDatabase.lookup(mac) : null;
         String macStr = mac != null
-                ? mac + (oui != null ? "  ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢  " + oui : "  (unbekannt)")
+                ? mac + (oui != null ? "  →  " + oui : "  (unbekannt)")
                 : "nicht im ARP-Cache";
 
         String cleanHn = hn != null && hn.contains(" [")
@@ -71,7 +71,7 @@ final class HostInfoTab {
     }
 
     private static void addReachabilityRow(JPanel panel, String ip, Color panBg) {
-        JLabel reachLbl = HostDetailRows.label("PrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼fe...", FG_DIM);
+        JLabel reachLbl = HostDetailRows.label("Prüfe...", FG_DIM);
         HostDetailRows.addRowWithLabel(panel, "Erreichbar", reachLbl, panBg);
 
         new Thread(() -> {
@@ -80,7 +80,7 @@ final class HostInfoTab {
                 boolean alive = InetAddress.getByName(ip).isReachable(2000);
                 long ms       = System.currentTimeMillis() - start;
                 SwingUtilities.invokeLater(() -> {
-                    reachLbl.setText(alive ? "ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ja  (" + ms + " ms)" : "ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ nein");
+                    reachLbl.setText(alive ? "✔ ja  (" + ms + " ms)" : "✕ nein");
                     reachLbl.setForeground(alive ? ACCENT2 : WARN);
                 });
             } catch (Exception e) {
@@ -92,4 +92,3 @@ final class HostInfoTab {
         }, "HostInfoTab-Reachability").start();
     }
 }
-

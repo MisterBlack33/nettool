@@ -11,15 +11,16 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 
+import networktool.theme.GuiTheme;
 import static networktool.theme.GuiTheme.*;
 
 /**
- * Fortschrittsanzeige. Refresh-Intervall auf 750ms erhÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¶ht (war 500ms)
+ * Fortschrittsanzeige. Refresh-Intervall auf 750ms erhöht (war 500ms)
  * um EDT-Last auf schwacher Hardware zu reduzieren.
  */
 public class GuiProgressBar {
 
-    // Increased from 500ms ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ 750ms to reduce EDT load on weak hardware
+    // Increased from 500ms → 750ms to reduce EDT load on weak hardware
     private static final int REFRESH_INTERVAL_MS = 750;
     private static final int HIDE_DELAY_MS        = 2500;
 
@@ -36,7 +37,7 @@ public class GuiProgressBar {
 
     public GuiProgressBar() {
         panel    = new JPanel(new BorderLayout(12, 0));
-        label    = new JLabel("Scan lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤uft...");
+        label    = new JLabel("Scan läuft...");
         etaLabel = new JLabel("ETA: --");
         bar      = buildProgressBar();
         assemblePanel();
@@ -54,7 +55,7 @@ public class GuiProgressBar {
             bar.setValue(0);
             bar.setForeground(ACCENT);
             label.setForeground(ACCENT);
-            label.setText("Scan lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤uft ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â 0 / " + total);
+            label.setText("Scan läuft — 0 / " + total);
             etaLabel.setText("ETA: ...");
             panel.setVisible(true);
             startRefreshTimer();
@@ -80,7 +81,7 @@ public class GuiProgressBar {
         int  pct      = total == 0 ? 100 : (int) (done * 100.0 / total);
 
         bar.setValue(Math.min(done, total));
-        label.setText(String.format("Scan lÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤uft ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â %d / %d  (%d%%)", done, total, pct));
+        label.setText(String.format("Scan läuft — %d / %d  (%d%%)", done, total, pct));
         etaLabel.setText("ETA: " + eta + "s");
 
         if (finished || done >= total) {
@@ -93,7 +94,7 @@ public class GuiProgressBar {
         bar.setValue(total);
         bar.setForeground(ACCENT2);
         label.setForeground(ACCENT2);
-        label.setText("Scan abgeschlossen ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â " + total + " Hosts geprÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼ft");
+        label.setText("Scan abgeschlossen — " + total + " Hosts geprüft");
         etaLabel.setText("");
 
         Timer hideTimer = new Timer(HIDE_DELAY_MS, ev -> panel.setVisible(false));

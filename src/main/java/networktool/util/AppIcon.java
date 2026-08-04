@@ -16,7 +16,7 @@ import java.nio.file.*;
 import java.util.logging.Logger;
 
 /**
- * LÃƒÂ¤dt das App-Icon (ICO-Format) und setzt es fÃƒÂ¼r Fenster + Taskleiste.
+ * Lädt das App-Icon (ICO-Format) und setzt es für Fenster + Taskleiste.
  *
  * Suchpfade (in dieser Reihenfolge):
  *  1. Classpath: /icon.ico
@@ -65,7 +65,7 @@ public final class AppIcon {
             }
         } catch (Exception ignored) {}
 
-        LOG.warning("[AppIcon] icon.ico nicht gefunden Ã¢â‚¬â€œ lege icon.ico unter src/main/resources/ ab.");
+        LOG.warning("[AppIcon] icon.ico nicht gefunden – lege icon.ico unter src/main/resources/ ab.");
         return null;
     }
 
@@ -82,7 +82,7 @@ public final class AppIcon {
         } catch (UnsupportedOperationException | SecurityException ignored) {}
     }
 
-    // Ã¢â€â‚¬Ã¢â€â‚¬ Loader Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    // ────────────────────────────────────── Loader ──────────────────────────────────────
 
     private static Image loadFromClasspath(String path) {
         try (InputStream is = AppIcon.class.getResourceAsStream(path)) {

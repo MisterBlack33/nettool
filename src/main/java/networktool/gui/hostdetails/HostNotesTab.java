@@ -7,8 +7,7 @@ import networktool.gui.map.*;
 import networktool.gui.core.*;
 import networktool.gui.components.*;
 import networktool.gui.panels.*;
-import networktool.model.HostResult;
-import networktool.storage.NetworkStore;
+import main.java.networktool.storage.NetworkStore;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -16,10 +15,11 @@ import java.awt.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import networktool.theme.GuiTheme;
 import static networktool.theme.GuiTheme.*;
 import static networktool.gui.hostdetails.HostDetailRows.detailButton;
 
-/** Tab ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“Ãƒâ€šÃ‚Â£: Notiz-Editor ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ direkt bearbeiten und speichern. */
+/** Tab ④: Notiz-Editor – direkt bearbeiten und speichern. */
 final class HostNotesTab {
 
     private HostNotesTab() {}
@@ -64,11 +64,11 @@ final class HostNotesTab {
         savedLbl.setFont(MONO_XS);
         savedLbl.setForeground(ACCENT2);
 
-        JButton saveBtn = detailButton("ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢Ãƒâ€šÃ‚Â¾ Speichern", ACCENT2);
+        JButton saveBtn = detailButton("💾 Speichern", ACCENT2);
         saveBtn.addActionListener(e -> {
             String cat = category != null ? category : NetworkStore.ALL_CATEGORY;
             NetworkStore.getInstance().updateNotes(ip, cat, area.getText());
-            savedLbl.setText("ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â gespeichert  "
+            savedLbl.setText("✔ gespeichert  "
                     + LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
         });
 
@@ -77,4 +77,3 @@ final class HostNotesTab {
         return row;
     }
 }
-

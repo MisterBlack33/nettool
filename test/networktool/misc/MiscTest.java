@@ -1,7 +1,7 @@
 package networktool.misc;
 
-import main.java.networktool.theme.GuiTheme;
-import main.java.networktool.gui.security.NoteEncryption;
+import networktool.theme.GuiTheme;
+import networktool.gui.security.NoteEncryption;
 import main.java.networktool.model.ScanProfile;
 import main.java.networktool.storage.*;
 import org.junit.jupiter.api.*;

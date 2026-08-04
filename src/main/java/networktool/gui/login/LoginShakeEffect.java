@@ -11,7 +11,7 @@ import javax.swing.*;
 import java.awt.*;
 
 /**
- * Visueller "Shake"-Effekt fÃƒÆ’Ã‚Â¼r Fehlermeldungen im Login-Dialog.
+ * Visueller "Shake"-Effekt für Fehlermeldungen im Login-Dialog.
  * Bewegt das Eltern-Fenster kurz horizontal hin und her.
  */
 final class LoginShakeEffect {

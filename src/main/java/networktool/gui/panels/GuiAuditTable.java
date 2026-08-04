@@ -13,6 +13,7 @@ import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
 
+import networktool.theme.GuiTheme;
 import static networktool.theme.GuiTheme.*;
 
 final class GuiAuditTable {
@@ -94,16 +95,16 @@ final class GuiAuditTable {
         if (action == null) return FG;
         String a = action.toUpperCase().trim();
 
-        // Angriffsereignisse ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ rot
+        // Angriffsereignisse → rot
         if (a.contains("SPOOF") || a.contains("POISON") || a.contains("ROGUE")) return WARN;
         if (a.contains("FAIL")  || a.contains("BLOCK"))                          return WARN;
         if (a.contains("ALERT"))                                                  return WARN;
 
-        // Monitor-Ereignisse ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ orange (vor generischen Prefix-Checks)
+        // Monitor-Ereignisse → orange (vor generischen Prefix-Checks)
         if (a.startsWith("SECURITY_MONITOR") || a.startsWith("ARP_MONITOR")
                 || a.startsWith("PORT_MONITOR"))                        return new Color(0xFF, 0xA0, 0x30);
 
-        // Generische Security/ARP ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ orange
+        // Generische Security/ARP → orange
         if (a.startsWith("SECURITY") || a.startsWith("ARP"))           return new Color(0xFF, 0xA0, 0x30);
 
         if (a.startsWith("SCAN") || a.startsWith("DIAGNOSE") || a.startsWith("CIDR")) return INFO;

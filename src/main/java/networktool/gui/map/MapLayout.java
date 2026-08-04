@@ -11,7 +11,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * Berechnet initiale Node-Positionen fÃƒÆ’Ã‚Â¼r die Netzwerkkarte.
+ * Berechnet initiale Node-Positionen für die Netzwerkkarte.
  * Gateway zentral, Switches im Ring, Hosts um ihren Parent gruppiert.
  */
 final class MapLayout {

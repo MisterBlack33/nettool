@@ -7,26 +7,30 @@ import networktool.gui.map.*;
 import networktool.gui.core.*;
 import networktool.gui.components.*;
 import networktool.gui.panels.*;
-import networktool.logic.analysis.TracerouteRunner;
-import networktool.logic.scan.RemoteNetScanner;
-import networktool.model.HostResult;
-import networktool.storage.NetworkStore;
+import main.java.networktool.logic.analysis.TracerouteRunner;
+import main.java.networktool.logic.scan.RemoteNetScanner;
+import main.java.networktool.model.HostResult;
+import main.java.networktool.storage.NetworkStore;
 
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Ermittelt Netzwerk-Zwischenknoten per Traceroute (max. 5 Hops).
  *
- * Ergebnis: Host-IP ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ direkter Upstream-Knoten.
+ * Ergebnis: Host-IP → direkter Upstream-Knoten.
  * Alle entdeckten Zwischenknoten werden in HOP_PARENT persistent gespeichert.
  *
  * Verbesserungen:
  *  - Zwischenknoten (nicht nur direkte Upstream) werden als Switch-Kandidaten erkannt
- *  - IPs die mehrfach als Hop-Parent auftauchen ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ automatisch als Switch markiert
- *  - Timeout-Hops werden ÃƒÆ’Ã‚Â¼bersprungen, aber die letzte bekannte IP davor gilt als Upstream
+ *  - IPs die mehrfach als Hop-Parent auftauchen → automatisch als Switch markiert
+ *  - Timeout-Hops werden übersprungen, aber die letzte bekannte IP davor gilt als Upstream
  */
-final class MapHopDiscovery {
+public final class MapHopDiscovery {
+
+    private static final Logger LOG = Logger.getLogger(MapHopDiscovery.class.getName());
 
     private MapHopDiscovery() {}
 
@@ -34,15 +38,15 @@ final class MapHopDiscovery {
     private static final int MAX_THREADS = 20;
     private static final int TIMEOUT_SEC = 30;
 
-    // IP ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ wie oft als Hop-Zwischenknoten gesehen
+    // IP → wie oft als Hop-Zwischenknoten gesehen
     private static final Map<String, Integer> hopFrequency = new ConcurrentHashMap<>();
 
-    // Schwelle: ab dieser HÃƒÆ’Ã‚Â¤ufigkeit wird ein Hop automatisch als Switch markiert
+    // Schwelle: ab dieser Häufigkeit wird ein Hop automatisch als Switch markiert
     private static final int SWITCH_PROMOTE_THRESHOLD = 3;
 
-    // ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Public API ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+    // ── Public API ────────────────────────────────────────────────────────
 
-    static Map<String, String> discover() {
+    public static Map<String, String> discover() {
         String gatewayIp = RemoteNetScanner.detectDefaultGateway();
         List<HostResult> hosts = NetworkStore.getInstance().getAllHosts();
         if (hosts.isEmpty()) return Collections.emptyMap();
@@ -63,7 +67,7 @@ final class MapHopDiscovery {
         return Collections.unmodifiableMap(hopParent);
     }
 
-    // ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Private ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+    // ── Private ───────────────────────────────────────────────────────────
 
     private static void discoverHost(String hostIp, String gatewayIp,
                                      Map<String, String> result) {
@@ -76,12 +80,14 @@ final class MapHopDiscovery {
             String upstream = findUpstream(hops, hostIp, gatewayIp);
             if (upstream != null) result.put(hostIp, upstream);
 
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            LOG.log(Level.FINE, "Hop-Ermittlung für Host " + hostIp + " fehlgeschlagen", e);
+        }
     }
 
     /**
-     * ZÃƒÆ’Ã‚Â¤hlt wie oft eine IP als Zwischenknoten (nicht Ziel, nicht Gateway) auftaucht.
-     * HÃƒÆ’Ã‚Â¤ufige Zwischenknoten sind mit hoher Wahrscheinlichkeit Switches.
+     * Zählt wie oft eine IP als Zwischenknoten (nicht Ziel, nicht Gateway) auftaucht.
+     * Häufige Zwischenknoten sind mit hoher Wahrscheinlichkeit Switches.
      */
     private static void recordAllIntermediateHops(List<TracerouteRunner.HopInfo> hops,
                                                   String targetIp, String gatewayIp) {
@@ -93,15 +99,15 @@ final class MapHopDiscovery {
     }
 
     /**
-     * Gibt letzten Nicht-Timeout-Hop vor dem Ziel zurÃƒÆ’Ã‚Â¼ck.
-     * ÃƒÆ’Ã…â€œberspringt Gateway (direkte Verbindung ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ kein Zwischenknoten).
-     * BerÃƒÆ’Ã‚Â¼cksichtigt auch Timeout-Sequenzen: letzte bekannte IP vor Timeout-Block.
+     * Gibt letzten Nicht-Timeout-Hop vor dem Ziel zurück.
+     * Überspringt Gateway (direkte Verbindung → kein Zwischenknoten).
+     * Berücksichtigt auch Timeout-Sequenzen: letzte bekannte IP vor Timeout-Block.
      */
     static String findUpstream(List<TracerouteRunner.HopInfo> hops,
                                String targetIp, String gatewayIp) {
         if (hops.size() < 2) return null;
 
-        // RÃƒÆ’Ã‚Â¼ckwÃƒÆ’Ã‚Â¤rts iterieren: letzter Knoten vor dem Ziel der kein Gateway ist
+        // Rückwärts iterieren: letzter Knoten vor dem Ziel der kein Gateway ist
         for (int i = hops.size() - 1; i >= 0; i--) {
             TracerouteRunner.HopInfo hop = hops.get(i);
             if (hop.timeout || hop.ip == null || hop.ip.isBlank()) continue;
@@ -114,8 +120,8 @@ final class MapHopDiscovery {
     }
 
     /**
-     * Markiert IPs die hÃƒÆ’Ã‚Â¤ufig als Zwischenknoten auftreten als Switch in MapSwitchStore.
-     * Verhindert, dass derselbe Switch fÃƒÆ’Ã‚Â¼r jede Route einzeln erkannt werden muss.
+     * Markiert IPs die häufig als Zwischenknoten auftreten als Switch in MapSwitchStore.
+     * Verhindert, dass derselbe Switch für jede Route einzeln erkannt werden muss.
      */
     private static void promoteFrequentHopsToSwitches() {
         hopFrequency.forEach((ip, count) -> {
@@ -124,4 +130,3 @@ final class MapHopDiscovery {
         });
     }
 }
-

@@ -10,14 +10,15 @@ import networktool.gui.panels.*;
 import java.awt.*;
 import java.util.List;
 
+import networktool.theme.GuiTheme;
 import static networktool.theme.GuiTheme.*;
 
-/** Zeichnet die Latenz-Verlaufskurve fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r {@link HostPingTab}. */
-final class PingGraphRenderer {
+/** Zeichnet die Latenz-Verlaufskurve für {@link HostPingTab}. */
+public final class PingGraphRenderer {
 
     private PingGraphRenderer() {}
 
-    static void paint(Graphics2D g2, Color bg, List<Long> history, int w, int h) {
+    public static void paint(Graphics2D g2, Color bg, List<Long> history, int w, int h) {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g2.setColor(bg);
         g2.fillRect(0, 0, w, h);

@@ -7,7 +7,7 @@ import networktool.gui.map.*;
 import networktool.gui.core.*;
 import networktool.gui.components.*;
 import networktool.gui.panels.*;
-import networktool.storage.NetworkStore;
+import main.java.networktool.storage.NetworkStore;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -18,11 +18,11 @@ import java.util.List;
 import static networktool.theme.GuiTheme.*;
 
 /**
- * Tab-Leiste fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r die Netzwerk-Auswahl im {@link GuiSavedHostsPanel}.
+ * Tab-Leiste für die Netzwerk-Auswahl im {@link GuiSavedHostsPanel}.
  *
- * EnthÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤lt:
+ * Enthält:
  *  - Einen Tab-Button je Netzwerk (mit Host-Anzahl)
- *  - [+ Neu]  [ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“Ãƒâ€¦Ã‚Â½ Umbenennen]  [ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ LÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¶schen]
+ *  - [+ Neu]  [✎ Umbenennen]  [✕ Löschen]
  */
 public final class GuiNetworkBar {
 
@@ -31,9 +31,9 @@ public final class GuiNetworkBar {
     /**
      * @param active         aktuell aktives Netzwerk
      * @param onSelect       Callback wenn Tab geklickt wird
-     * @param onNew          Callback fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r "+ Neu"
-     * @param onRename       Callback fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r "ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“Ãƒâ€¦Ã‚Â½"
-     * @param onDelete       Callback fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r "ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢"
+     * @param onNew          Callback für "+ Neu"
+     * @param onRename       Callback für "✎"
+     * @param onDelete       Callback für "✕"
      */
     public static JPanel build(String active,
                                 Runnable onNew, Runnable onRename, Runnable onDelete,
@@ -51,8 +51,8 @@ public final class GuiNetworkBar {
 
         bar.add(Box.createHorizontalStrut(8));
         bar.add(iconBtn("+ Neu",  ACCENT2, onNew));
-        bar.add(iconBtn("ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“Ãƒâ€¦Ã‚Â½",      FG_DIM,  onRename));
-        bar.add(iconBtn("ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã¢â‚¬Å“ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢",      WARN,    onDelete));
+        bar.add(iconBtn("✎",      FG_DIM,  onRename));
+        bar.add(iconBtn("✕",      WARN,    onDelete));
         return bar;
     }
 
@@ -76,7 +76,7 @@ public final class GuiNetworkBar {
         return btn;
     }
 
-    static JButton iconBtn(String label, Color fg, Runnable action) {
+    public static JButton iconBtn(String label, Color fg, Runnable action) {
         JButton btn = new JButton(label);
         btn.setFont(new Font("JetBrains Mono", Font.BOLD, 11));
         btn.setForeground(fg);
@@ -95,5 +95,3 @@ public final class GuiNetworkBar {
         return btn;
     }
 }
-
-

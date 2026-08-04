@@ -1,7 +1,7 @@
 package main.java.networktool.logic.analysis;
 
-import main.java.networktool.gui.GUI;
-import main.java.networktool.gui.GuiTheme;
+import networktool.gui.core.GUI;
+import networktool.theme.GuiTheme;
 
 import javax.swing.*;
 import java.awt.*;

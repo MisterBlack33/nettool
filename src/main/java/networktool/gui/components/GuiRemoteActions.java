@@ -7,9 +7,9 @@ import networktool.gui.map.*;
 import networktool.gui.core.*;
 import networktool.gui.components.*;
 import networktool.gui.panels.*;
-import networktool.filter.ClipboardUtil;
-import networktool.logic.analysis.OsDetector;
-import networktool.security.AuditLogger;
+import main.java.networktool.filter.ClipboardUtil;
+import main.java.networktool.logic.analysis.OsDetector;
+import main.java.networktool.security.AuditLogger;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -18,7 +18,7 @@ import java.net.*;
 
 import static networktool.theme.GuiTheme.*;
 
-/** Remote-Simulation-Dialoge und Browser-ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ffnung. Paket-privat. */
+/** Remote-Simulation-Dialoge und Browser-Öffnung. Paket-privat. */
 final class GuiRemoteActions {
 
     private GuiRemoteActions() {}
@@ -58,24 +58,24 @@ final class GuiRemoteActions {
         JPanel btns = row();
         btns.add(btn("RDP kopieren",  new Color(0x60,0xA8,0xF0), () -> ClipboardUtil.copy("mstsc /v:"+ip)));
         btns.add(btn("SSH kopieren",  new Color(0xA0,0xC8,0x80), () -> ClipboardUtil.copy("ssh user@"+ip)));
-        btns.add(btn("HTTP ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¶ffnen",   new Color(0xD0,0xC0,0x60), () -> { browseUrl("http://"+ip); dlg.dispose(); }));
-        btns.add(btn("SchlieÃƒÆ’Ã†â€™Ãƒâ€¦Ã‚Â¸en",     WARN, dlg::dispose));
+        btns.add(btn("HTTP öffnen",   new Color(0xD0,0xC0,0x60), () -> { browseUrl("http://"+ip); dlg.dispose(); }));
+        btns.add(btn("Schließen",     WARN, dlg::dispose));
         p.add(btns);
         dlg.add(p); dlg.setVisible(true);
         AuditLogger.getInstance().log("REMOTE_DESKTOP_SIM", ip);
     }
 
     private static void showPhone(String ip, String os) {
-        JDialog dlg = dialog("Remote GerÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤t  -  " + ip, 380, 180);
+        JDialog dlg = dialog("Remote Gerät  -  " + ip, 380, 180);
         JPanel p = panel(new Color(0x10,0x10,0x14));
-        p.add(lbl("Remote GerÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤t Simulation", new Color(0x78,0xD8,0x78), Font.BOLD, 12));
+        p.add(lbl("Remote Gerät Simulation", new Color(0x78,0xD8,0x78), Font.BOLD, 12));
         p.add(lbl("IP: " + ip, new Color(0xB0,0xD0,0xB0), Font.PLAIN, 11));
         p.add(lbl("OS: " + (os.isBlank() ? "Android/iOS" : os), new Color(0xB0,0xD0,0xB0), Font.PLAIN, 11));
         p.add(Box.createVerticalStrut(10));
         JPanel btns = row();
         btns.add(btn("scrcpy kopieren", new Color(0x78,0xD8,0x78), () -> ClipboardUtil.copy("scrcpy --tcpip="+ip)));
         btns.add(btn("ADB kopieren",    new Color(0xA0,0xD0,0xA0), () -> ClipboardUtil.copy("adb connect "+ip+":5555")));
-        btns.add(btn("SchlieÃƒÆ’Ã†â€™Ãƒâ€¦Ã‚Â¸en",       WARN, dlg::dispose));
+        btns.add(btn("Schließen",       WARN, dlg::dispose));
         p.add(btns);
         dlg.add(p); dlg.setVisible(true);
         AuditLogger.getInstance().log("REMOTE_PHONE_SIM", ip);
@@ -160,4 +160,3 @@ final class GuiRemoteActions {
         return b;
     }
 }
-

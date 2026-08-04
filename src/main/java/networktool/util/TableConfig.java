@@ -12,6 +12,7 @@ import javax.swing.border.*;
 import javax.swing.table.*;
 import java.awt.*;
 
+import networktool.theme.GuiTheme;
 import static networktool.theme.GuiTheme.*;
 
 public final class TableConfig {

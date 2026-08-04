@@ -11,9 +11,10 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 
+import networktool.theme.GuiTheme;
 import static networktool.theme.GuiTheme.*;
 
-/** Wiederverwendbare Zeilen-Layouts fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r Host-Detail-Tabs (Label + Wert). */
+/** Wiederverwendbare Zeilen-Layouts für Host-Detail-Tabs (Label + Wert). */
 final class HostDetailRows {
 
     private HostDetailRows() {}
@@ -41,7 +42,7 @@ final class HostDetailRows {
     }
 
     static JLabel label(String text, Color color) {
-        JLabel label = new JLabel(text != null ? text : "ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ");
+        JLabel label = new JLabel(text != null ? text : "–");
         label.setFont(MONO_S);
         label.setForeground(color);
         return label;

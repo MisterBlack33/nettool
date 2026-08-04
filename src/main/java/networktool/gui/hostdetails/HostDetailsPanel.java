@@ -11,13 +11,14 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 
+import networktool.theme.GuiTheme;
 import static networktool.theme.GuiTheme.*;
 import static networktool.gui.hostdetails.HostDetailRows.detailButton;
 
 /**
- * VollstÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤ndiges Host-Details-Fenster.
- * Tabs: ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“Ãƒâ€šÃ‚Â  Info  ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“Ãƒâ€šÃ‚Â¡ Ping  ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“Ãƒâ€šÃ‚Â¢ Ports  ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“Ãƒâ€šÃ‚Â£ Notiz (siehe HostXTab-Klassen).
- * ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ffnen: GuiContextMenu ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ "ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒâ€šÃ‚Â Details".
+ * Vollständiges Host-Details-Fenster.
+ * Tabs: ① Info  ② Ping  ③ Ports  ④ Notiz (siehe HostXTab-Klassen).
+ * Öffnen: GuiContextMenu → "🔍 Details".
  */
 public final class HostDetailsPanel {
 
@@ -28,7 +29,7 @@ public final class HostDetailsPanel {
     }
 
     private static void openWindow(String ip, String hostname, String os, String category) {
-        JDialog dlg = new JDialog((Frame) null, "Host Details  ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ  " + ip, false);
+        JDialog dlg = new JDialog((Frame) null, "Host Details  –  " + ip, false);
         dlg.setSize(680, 700);
         dlg.setLocationRelativeTo(null);
         dlg.setResizable(true);
@@ -73,7 +74,7 @@ public final class HostDetailsPanel {
         left.add(catLbl);
         header.add(left, BorderLayout.WEST);
 
-        JButton refreshBtn = detailButton("ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Ãƒâ€šÃ‚Â» Refresh", ACCENT);
+        JButton refreshBtn = detailButton("↻ Refresh", ACCENT);
         refreshBtn.addActionListener(e -> {
             pingTab.restart();
             portsTab.refresh();
@@ -91,10 +92,10 @@ public final class HostDetailsPanel {
         tabs.setForeground(FG);
         tabs.setFont(MONO_S);
 
-        tabs.addTab("  ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“Ãƒâ€šÃ‚Â  Info  ",  HostInfoTab.build(ip, hostname, os, panBg));
-        tabs.addTab("  ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“Ãƒâ€šÃ‚Â¡ Ping  ",  pingTab);
-        tabs.addTab("  ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“Ãƒâ€šÃ‚Â¢ Ports  ", portsTab);
-        tabs.addTab("  ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“Ãƒâ€šÃ‚Â£ Notiz  ", HostNotesTab.build(ip, category, panBg));
+        tabs.addTab("  ① Info  ",  HostInfoTab.build(ip, hostname, os, panBg));
+        tabs.addTab("  ② Ping  ",  pingTab);
+        tabs.addTab("  ③ Ports  ", portsTab);
+        tabs.addTab("  ④ Notiz  ", HostNotesTab.build(ip, category, panBg));
         return tabs;
     }
 }

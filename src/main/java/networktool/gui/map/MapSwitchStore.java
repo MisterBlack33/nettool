@@ -7,17 +7,21 @@ import networktool.gui.map.*;
 import networktool.gui.core.*;
 import networktool.gui.components.*;
 import networktool.gui.panels.*;
-import networktool.storage.StorageUtils;
+import main.java.networktool.storage.StorageUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Persistiert manuell markierte Switch-IPs in txt/mapSwitches.json.
- * LÃƒÆ’Ã‚Â¤dt beim Start automatisch.
+ * Lädt beim Start automatisch.
  */
-final class MapSwitchStore {
+public final class MapSwitchStore {
+
+    private static final Logger LOG = Logger.getLogger(MapSwitchStore.class.getName());
 
     private MapSwitchStore() {}
 
@@ -28,7 +32,7 @@ final class MapSwitchStore {
         load();
     }
 
-    static void add(String ip) {
+    public static void add(String ip) {
         SWITCHES.add(ip);
         persist();
     }
@@ -57,7 +61,9 @@ final class MapSwitchStore {
                 String ip = part.trim().replaceAll("^\"|\"$", "");
                 if (!ip.isBlank()) SWITCHES.add(ip);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Switch-Liste konnte nicht geladen werden", e);
+        }
     }
 
     private static void persist() {
@@ -74,7 +80,8 @@ final class MapSwitchStore {
             Files.writeString(dir.resolve(FILE), sb.append("]").toString(),
                     StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Switch-Liste konnte nicht gespeichert werden", e);
+        }
     }
 }
-

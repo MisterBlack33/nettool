@@ -11,15 +11,16 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 
+import networktool.theme.GuiTheme;
 import static networktool.theme.GuiTheme.*;
 import static networktool.gui.login.LoginFormBuilder.*;
 import static networktool.gui.login.LoginInputs.*;
 import static networktool.gui.login.LoginButtons.*;
-import static networktool.gui.login.LoginLayoutHelper.*;
+import static networktool.gui.login.LoginFormLayout.*;
 
 /**
- * Baut den Registrierungsbildschirm inkl. Passwort-StÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤rkeanzeige.
- * GegenstÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼ck zu {@link LoginScreens}.
+ * Baut den Registrierungsbildschirm inkl. Passwort-Stärkeanzeige.
+ * Gegenstück zu {@link LoginScreens}.
  */
 public final class RegisterScreen {
 
@@ -112,7 +113,7 @@ public final class RegisterScreen {
         footer.setBorder(new EmptyBorder(0, 40, 24, 40));
 
         if (!isFirst) {
-            JButton backBtn = linkButton("ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Ãƒâ€šÃ‚Â ZurÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼ck zur Anmeldung");
+            JButton backBtn = linkButton("← Zurück zur Anmeldung");
             backBtn.addActionListener(e -> onBack.run());
             footer.add(backBtn, BorderLayout.WEST);
         }
