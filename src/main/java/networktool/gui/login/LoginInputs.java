@@ -15,7 +15,7 @@ import java.util.List;
 import static networktool.theme.GuiTheme.*;
 import static networktool.gui.login.LoginFormBuilder.INPUT_BG;
 
-/** Eingabefeld-Fabrik fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r Login-/Registrierungsformulare. */
+/** Eingabefeld-Fabrik für Login-/Registrierungsformulare. */
 final class LoginInputs {
 
     private LoginInputs() {}

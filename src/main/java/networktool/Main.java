@@ -2,7 +2,7 @@ package main.java.networktool;
 
 import main.java.networktool.cli.MenuHandler;
 import main.java.networktool.cli.MenuPrinter;
-import main.java.networktool.gui.GUI;
+import networktool.gui.core.GUI;
 import main.java.networktool.security.AuditLogger;
 import main.java.networktool.security.LoginDialog;
 import main.java.networktool.security.UserAuth;

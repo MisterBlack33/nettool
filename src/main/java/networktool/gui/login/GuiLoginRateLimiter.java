@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
- * Rate-Limiter fÃƒÆ’Ã‚Â¼r GUI-Login-Versuche.
+ * Rate-Limiter für GUI-Login-Versuche.
  * Max. MAX_ATTEMPTS Versuche, dann LOCKOUT_MS Sperre.
  */
 public final class GuiLoginRateLimiter {
@@ -34,7 +34,7 @@ public final class GuiLoginRateLimiter {
         return rem > 0 ? (rem / 1000) + 1 : 0;
     }
 
-    /** Registriert einen Fehlversuch. Gibt true zurÃƒÆ’Ã‚Â¼ck wenn jetzt gesperrt. */
+    /** Registriert einen Fehlversuch. Gibt true zurück wenn jetzt gesperrt. */
     public static boolean recordFailure() {
         int count = attempts.incrementAndGet();
         if (count >= MAX_ATTEMPTS) {

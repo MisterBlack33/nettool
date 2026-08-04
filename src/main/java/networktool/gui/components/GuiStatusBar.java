@@ -11,11 +11,12 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 
+import networktool.theme.GuiTheme;
 import static networktool.theme.GuiTheme.*;
 
 /**
  * Statusleiste am unteren Fensterrand.
- * Rechts: "NetTool v3" in WeiÃƒÆ’Ã†â€™Ãƒâ€¦Ã‚Â¸ statt "MenÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼punkt wÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤hlen".
+ * Rechts: "NetTool v3" in Weiß statt "Menüpunkt wählen".
  */
 public class GuiStatusBar {
 

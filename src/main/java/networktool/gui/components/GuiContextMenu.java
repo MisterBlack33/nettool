@@ -7,9 +7,9 @@ import networktool.gui.map.*;
 import networktool.gui.core.*;
 import networktool.gui.components.*;
 import networktool.gui.panels.*;
-import networktool.logic.analysis.IpInspector;
-import networktool.logic.analysis.WakeOnLan;
-import networktool.storage.NetworkStore;
+import main.java.networktool.logic.analysis.IpInspector;
+import main.java.networktool.logic.analysis.WakeOnLan;
+import main.java.networktool.storage.NetworkStore;
 import networktool.gui.core.GuiMenuHandler;
 import networktool.gui.panels.GuiOutputPanel;
 
@@ -21,9 +21,9 @@ import java.awt.event.*;
 import static networktool.theme.GuiTheme.*;
 
 /**
- * Rechtsklick-KontextmenÃƒÆ’Ã‚Â¼ fÃƒÆ’Ã‚Â¼r alle JTables.
+ * Rechtsklick-Kontextmenü für alle JTables.
  *
- * EintrÃƒÆ’Ã‚Â¤ge: Details, Schnelldiagnose, Vollanalyse, SSH, Nachricht,
+ * Einträge: Details, Schnelldiagnose, Vollanalyse, SSH, Nachricht,
  * IP speichern/entfernen, Wake-on-LAN (wenn MAC bekannt).
  *
  * Aktionslogik ausgelagert: {@link HostSaveDialog}, {@link ContextMenuActions}.
@@ -48,12 +48,12 @@ public class GuiContextMenu {
         });
     }
 
-    /** Delegiert an {@link NtfyTopicPrompt}; bleibt hier fÃƒÆ’Ã‚Â¼r AufrufkompatibilitÃƒÆ’Ã‚Â¤t. */
+    /** Delegiert an {@link NtfyTopicPrompt}; bleibt hier für Aufrufkompatibilität. */
     public static String promptNtfyTopic() {
         return NtfyTopicPrompt.prompt();
     }
 
-    // ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ Aufbau ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬ÃƒÂ¢Ã¢â‚¬ÂÃ¢â€šÂ¬
+    // ── Aufbau ────────────────────────────────────────────────────────────
 
     private void maybeShow(MouseEvent e, JTable table) {
         if (!e.isPopupTrigger()) return;
@@ -83,25 +83,25 @@ public class GuiContextMenu {
     }
 
     private void addAnalysisItems(JPopupMenu popup, String ip, String hn, String os) {
-        popup.add(menuItem("ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â  Details anzeigen", ACCENT, () ->
+        popup.add(menuItem("🔍  Details anzeigen", ACCENT, () ->
                 HostDetailsPanel.show(ip, hn, os, NetworkStore.getInstance().findNetwork(ip))));
-        popup.add(menuItem("ÃƒÂ¢Ã¢â‚¬â€œÃ‚Â¶  Schnelldiagnose", new Color(0x80, 0xC8, 0xFF), () ->
+        popup.add(menuItem("▶  Schnelldiagnose", new Color(0x80, 0xC8, 0xFF), () ->
                 menuHandler.runAsync(() -> IpInspector.quickScan(ip, 5000))));
-        popup.add(menuItem("ÃƒÂ¢Ã¢â‚¬ÂºÃ‚Â  Vollanalyse", FG, () ->
+        popup.add(menuItem("⛐  Vollanalyse", FG, () ->
                 menuHandler.runAsync(() -> IpInspector.inspect(ip))));
-        popup.add(menuItem("ÃƒÂ¢Ã…â€™Ã‚Â¨  SSH-Terminal", new Color(0x00, 0xFF, 0x80), () ->
+        popup.add(menuItem("⌨  SSH-Terminal", new Color(0x00, 0xFF, 0x80), () ->
                 GuiSshTerminal.open(ip)));
-        popup.add(menuItem("ÃƒÂ¢Ã…â€œÃ¢â‚¬Â°  Nachricht senden", new Color(0xFF, 0xD5, 0x4F), () ->
+        popup.add(menuItem("✉  Nachricht senden", new Color(0xFF, 0xD5, 0x4F), () ->
                 ContextMenuActions.promptAndSendMessage(ip, menuHandler)));
     }
 
     private void addSaveOrRemoveItem(JPopupMenu popup, String ip, String hn, String os, String col3) {
         String inNetwork = NetworkStore.getInstance().findNetwork(ip);
         if (inNetwork != null) {
-            popup.add(menuItem("ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¢  Aus \"" + inNetwork + "\" entfernen", WARN, () ->
+            popup.add(menuItem("✕  Aus \"" + inNetwork + "\" entfernen", WARN, () ->
                     NetworkStore.getInstance().removeFromAll(ip)));
         } else {
-            popup.add(menuItem("ÃƒÂ¢Ã‹Å“Ã¢â‚¬Â¦  IP speichern", ACCENT2, () ->
+            popup.add(menuItem("★  IP speichern", ACCENT2, () ->
                     HostSaveDialog.save(ip, hn, os, col3, output)));
         }
     }
@@ -110,7 +110,7 @@ public class GuiContextMenu {
         String mac = WakeOnLan.extractMacFromHostname(hn);
         if (mac == null) return;
         popup.addSeparator();
-        popup.add(menuItem("ÃƒÂ¢Ã…Â¡Ã‚Â¡  Wake-on-LAN", new Color(0xFF, 0xD5, 0x4F), () ->
+        popup.add(menuItem("⚡  Wake-on-LAN", new Color(0xFF, 0xD5, 0x4F), () ->
                 ContextMenuActions.sendWakeOnLan(ip, mac, menuHandler, output)));
     }
 
@@ -135,4 +135,3 @@ public class GuiContextMenu {
         return val != null ? String.valueOf(val) : "";
     }
 }
-

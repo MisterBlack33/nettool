@@ -7,8 +7,8 @@ import networktool.gui.map.*;
 import networktool.gui.core.*;
 import networktool.gui.components.*;
 import networktool.gui.panels.*;
-import networktool.security.AuditLogEntry;
-import networktool.security.AuditLogger;
+import main.java.networktool.security.AuditLogEntry;
+import main.java.networktool.security.AuditLogger;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -17,9 +17,10 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
 
+import networktool.theme.GuiTheme;
 import static networktool.theme.GuiTheme.*;
 
-/** Audit-Log-Viewer (MenÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼-ID "23", nur Admins). */
+/** Audit-Log-Viewer (Menü-ID "23", nur Admins). */
 public final class GuiAuditPanel {
 
     private GuiAuditPanel() {}
@@ -33,7 +34,7 @@ public final class GuiAuditPanel {
 
     public static void show(GuiOutputPanel output) {
         SwingUtilities.invokeLater(() -> {
-            output.appendText("\nÃƒÆ’Ã‚Â¢Ãƒâ€¹Ã…â€œÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦ Audit-Log\n\n", ACCENT);
+            output.appendText("\n★ Audit-Log\n\n", ACCENT);
             embedPanel(output);
         });
     }
@@ -83,10 +84,10 @@ public final class GuiAuditPanel {
             model.setRowCount(0);
             for (AuditLogEntry e : entries) {
                 String shortDetail = e.detail().length() > MAX_DETAIL
-                        ? e.detail().substring(0, MAX_DETAIL) + "ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦" : e.detail();
+                        ? e.detail().substring(0, MAX_DETAIL) + "…" : e.detail();
                 model.addRow(new Object[]{e.timestamp(), e.user(), e.action(), shortDetail, e.detail()});
             }
-            refs.countLbl().setText(model.getRowCount() + " EintrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤ge");
+            refs.countLbl().setText(model.getRowCount() + " Einträge");
         });
     }
 
@@ -94,7 +95,7 @@ public final class GuiAuditPanel {
         refs.filterField().getDocument().addDocumentListener(docListener(() -> {
             String q = refs.filterField().getText().trim();
             sorter.setRowFilter(q.isEmpty() ? null : RowFilter.regexFilter("(?i)" + q));
-            refs.countLbl().setText(table.getRowCount() + " EintrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤ge");
+            refs.countLbl().setText(table.getRowCount() + " Einträge");
         }));
     }
 
@@ -103,12 +104,12 @@ public final class GuiAuditPanel {
                 new Thread(() -> reload(model, outer, refs), "AuditLoad").start());
         refs.clearBtn().addActionListener(e -> {
             int ok = JOptionPane.showConfirmDialog(null, "Audit-Log wirklich leeren?",
-                    "BestÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤tigung", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+                    "Bestätigung", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
             if (ok != JOptionPane.YES_OPTION) return;
             try {
                 AuditLogger.getInstance().clear();
                 model.setRowCount(0);
-                refs.countLbl().setText("0 EintrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤ge");
+                refs.countLbl().setText("0 Einträge");
             } catch (SecurityException ex) {
                 JOptionPane.showMessageDialog(null, "Keine Berechtigung: " + ex.getMessage(),
                         "Fehler", JOptionPane.ERROR_MESSAGE);
@@ -128,9 +129,9 @@ public final class GuiAuditPanel {
         filterField.setBackground(bg);
         filterField.setCaretColor(ACCENT);
         filterField.setBorder(new CompoundBorder(new LineBorder(BORDER, 1), new EmptyBorder(2, 6, 2, 6)));
-        filterField.putClientProperty("JTextField.placeholderText", "FilterÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦");
+        filterField.putClientProperty("JTextField.placeholderText", "Filter…");
 
-        JLabel countLbl = new JLabel("ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ");
+        JLabel countLbl = new JLabel("–");
         countLbl.setFont(MONO_XS);
         countLbl.setForeground(FG_DIM);
         countLbl.setBorder(new EmptyBorder(0, 8, 0, 0));
@@ -140,8 +141,8 @@ public final class GuiAuditPanel {
         left.add(filterField, BorderLayout.CENTER);
         left.add(countLbl,    BorderLayout.EAST);
 
-        JButton refreshBtn = toolBtn("ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â Ãƒâ€šÃ‚Â»", ACCENT);
-        JButton clearBtn   = toolBtn("ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬ÂÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“", WARN);
+        JButton refreshBtn = toolBtn("↻", ACCENT);
+        JButton clearBtn   = toolBtn("🗑", WARN);
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
         right.setOpaque(false);
@@ -176,4 +177,3 @@ public final class GuiAuditPanel {
         };
     }
 }
-

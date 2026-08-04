@@ -7,7 +7,7 @@ import networktool.gui.map.*;
 import networktool.gui.core.*;
 import networktool.gui.components.*;
 import networktool.gui.panels.*;
-import networktool.storage.NetworkStore;
+import main.java.networktool.storage.NetworkStore;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -28,13 +28,13 @@ public final class NtfyTopicPrompt {
     /**
      * Zeigt Dropdown mit: kein Push / gespeicherte Topics / neues Topic eingeben.
      *
-     * @return gewÃƒÆ’Ã‚Â¤hltes Topic (leer = kein Push), oder null bei Abbruch
+     * @return gewähltes Topic (leer = kein Push), oder null bei Abbruch
      */
     public static String prompt() {
         List<String> options = buildOptions();
 
         Object chosen = JOptionPane.showInputDialog(null,
-                "<html><b>ntfy-Topic wÃƒÆ’Ã‚Â¤hlen</b><br>"
+                "<html><b>ntfy-Topic wählen</b><br>"
                         + "<small>Handy-Push: ntfy-App installieren, gleiches Topic abonnieren.<br>"
                         + "Topics werden alphabetisch gespeichert.</small></html>",
                 "ntfy-Topic", JOptionPane.QUESTION_MESSAGE, null,
@@ -65,4 +65,3 @@ public final class NtfyTopicPrompt {
         return topic != null ? topic.trim() : null;
     }
 }
-

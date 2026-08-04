@@ -1,9 +1,9 @@
 package main.java.networktool.security;
 
-import main.java.networktool.gui.GUI;
-import main.java.networktool.gui.GuiLoginRateLimiter;
-import main.java.networktool.gui.LoginScreens;
-import main.java.networktool.gui.RegisterScreen;
+import networktool.gui.core.GUI;
+import networktool.gui.login.GuiLoginRateLimiter;
+import networktool.gui.login.LoginScreens;
+import networktool.gui.login.RegisterScreen;
 
 import javax.swing.*;
 import java.awt.*;

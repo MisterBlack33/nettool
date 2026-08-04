@@ -12,7 +12,7 @@ import java.awt.*;
 /**
  * Zentrale Farb- und Font-Definitionen mit Dark/Light Theme Toggle.
  *
- * Alle mutable statischen Aliase sind volatile fÃƒÂ¼r Thread-Sichtbarkeit.
+ * Alle mutable statischen Aliase sind volatile für Thread-Sichtbarkeit.
  * Nach toggleTheme() muss applyToStatics() aufgerufen werden.
  */
 public final class GuiTheme {
@@ -22,11 +22,11 @@ public final class GuiTheme {
     private static volatile boolean darkMode = true;
 
     public static boolean isDark()    { return darkMode; }
-    public static String  themeName() { return darkMode ? "Ã¢Ëœâ‚¬  Hell" : "Ã°Å¸Å’â„¢  Dunkel"; }
+    public static String  themeName() { return darkMode ? "☀  Hell" : "🌙  Dunkel"; }
 
     public static boolean toggleTheme() { darkMode = !darkMode; return darkMode; }
 
-    // Ã¢â€â‚¬Ã¢â€â‚¬ Dynamische Accessoren Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    // ────────────────────────────────────── Dynamische Accessoren ──────────────────────────────────────
 
     public static Color bg()         { return darkMode ? D_BG        : L_BG; }
     public static Color panelBg()    { return darkMode ? D_PANEL_BG  : L_PANEL_BG; }
@@ -40,7 +40,7 @@ public final class GuiTheme {
     public static Color rowEven()    { return darkMode ? D_ROW_EVEN   : L_ROW_EVEN; }
     public static Color rowOdd()     { return darkMode ? D_ROW_ODD    : L_ROW_ODD; }
 
-    // Ã¢â€â‚¬Ã¢â€â‚¬ DARK THEME Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    // ────────────────────────────────────── DARK THEME ──────────────────────────────────────
 
     private static final Color D_BG          = new Color(0x08, 0x0A, 0x09);
     private static final Color D_PANEL_BG    = new Color(0x0F, 0x12, 0x10);
@@ -54,7 +54,7 @@ public final class GuiTheme {
     private static final Color D_ROW_EVEN    = new Color(0x08, 0x0A, 0x09);
     private static final Color D_ROW_ODD     = new Color(0x0E, 0x12, 0x10);
 
-    // Ã¢â€â‚¬Ã¢â€â‚¬ LIGHT THEME Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    // ────────────────────────────────────── LIGHT THEME ──────────────────────────────────────
 
     private static final Color L_BG          = new Color(0xF4, 0xF2, 0xEE);
     private static final Color L_PANEL_BG    = new Color(0xE8, 0xE6, 0xE0);
@@ -68,7 +68,7 @@ public final class GuiTheme {
     private static final Color L_ROW_EVEN    = new Color(0xF4, 0xF2, 0xEE);
     private static final Color L_ROW_ODD     = new Color(0xE4, 0xE2, 0xDA);
 
-    // Ã¢â€â‚¬Ã¢â€â‚¬ UnverÃƒÂ¤nderliche Farben Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    // ────────────────────────────────────── Unveränderliche Farben ──────────────────────────────────────
 
     public static final Color ACCENT  = new Color(0xD4, 0xA0, 0x20);
     public static final Color ACCENT2 = new Color(0x4C, 0xC2, 0x60);
@@ -86,7 +86,7 @@ public final class GuiTheme {
     public static final Color IOT_COL = new Color(0xF0, 0xE0, 0x60);
     public static final Color RPI_COL = new Color(0xFF, 0x70, 0xA0);
 
-    // Ã¢â€â‚¬Ã¢â€â‚¬ Volatile statische Aliase (fÃƒÂ¼r Legacy-Code) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+    // ────────────────────────────────────── Volatile statische Aliase (für Legacy-Code) ──────────────────────────────────────
     // Werden via applyToStatics() nach jedem Theme-Wechsel aktualisiert.
 
     public static volatile Color BG         = D_BG;
@@ -137,7 +137,7 @@ public final class GuiTheme {
                 ||l.contains("motorola")||l.contains("sony"))                      return AND_COL;
         if (l.contains("mobil"))                                           return AND_COL;
         if (l.contains("linux")||l.contains("unix"))                      return LIN_COL;
-        if (l.contains("router")||l.contains("switch")||l.contains("netzwerkgerÃƒÂ¤t")) return NET_COL;
+        if (l.contains("router")||l.contains("switch")||l.contains("netzwerkgerät")) return NET_COL;
         if (l.contains("drucker")||l.contains("printer"))                 return PRN_COL;
         if (l.contains("iot")||l.contains("mqtt"))                        return IOT_COL;
         if (l.contains("unbekannt"))                                       return FG_DIM;

@@ -1,4 +1,4 @@
-package main.java.networktool.gui.notification;
+package networktool.gui.notification;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -67,7 +67,11 @@ public final class LocalToast {
             icon.displayMessage(title, message, TrayIcon.MessageType.INFO);
 
             new Thread(() -> {
-                try { Thread.sleep(8000); } catch (InterruptedException ignored) {}
+                try {
+                    Thread.sleep(8000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
                 SystemTray.getSystemTray().remove(icon);
             }, "ToastCleanup").start();
         } catch (Exception e) {

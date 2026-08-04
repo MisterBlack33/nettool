@@ -13,7 +13,7 @@ import java.awt.*;
 
 import static networktool.theme.GuiTheme.*;
 
-/** Legende mit Aktions-Codes und MenÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼-IDs fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r den Audit-Log-Viewer. */
+/** Legende mit Aktions-Codes und Menü-IDs für den Audit-Log-Viewer. */
 final class GuiAuditLegend {
 
     private GuiAuditLegend() {}
@@ -25,7 +25,7 @@ final class GuiAuditLegend {
             {"USER_CREATED",      "Neuer Benutzer angelegt"},
             {"APP_START/EXIT",    "Programm gestartet / beendet"},
             {"APP_RESTART",       "Neustart"},
-            {"MENU",              "MenÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼punkt geklickt (Detail = MenÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼-ID)"},
+            {"MENU",              "Menüpunkt geklickt (Detail = Menü-ID)"},
             {"SCAN / DIAGNOSE",   "Netzwerk-Scan / IP-Diagnose"},
             {"SECURITY_ALERT",    "Sicherheitswarnung"},
             {"EXPORT / IMPORT",   "Datenexport / -import"},
@@ -34,7 +34,7 @@ final class GuiAuditLegend {
     };
 
     private static final String[][] MENU_ID_LEGEND = {
-            {"01", "Minimale Netzwerkinfo"},   {"02", "VollstÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤ndige Netzwerkinfo"},
+            {"01", "Minimale Netzwerkinfo"},   {"02", "Vollständige Netzwerkinfo"},
             {"03", "IP-Diagnose"},             {"04", "File-Server starten"},
             {"05", "Datei senden"},            {"06", "CIDR-Scan"},
             {"07", "Filter-Scan"},             {"08", "Nachricht senden"},
@@ -45,7 +45,7 @@ final class GuiAuditLegend {
             {"17", "Sicherheitsmonitor"},      {"18", "Export / Import"},
             {"19", "Benachrichtigungs-Verlauf"},{"20", "Netzwerk-Karte"},
             {"21", "Port-Liste"},              {"22", "Scan-Verlauf"},
-            {"23", "Audit-Log"},               {"30", "PrivatsphÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤re / VPN"},
+            {"23", "Audit-Log"},               {"30", "Privatsphäre / VPN"},
     };
 
     static JPanel build(Color panBg) {
@@ -53,7 +53,7 @@ final class GuiAuditLegend {
         wrapper.setBackground(panBg);
         wrapper.setBorder(new MatteBorder(0, 1, 1, 1, BORDER));
 
-        JButton toggleBtn = new JButton("ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¶  Aktions-Codes & MenÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼-IDs");
+        JButton toggleBtn = new JButton("▶  Aktions-Codes & Menü-IDs");
         toggleBtn.setFont(new Font("JetBrains Mono", Font.BOLD, 10));
         toggleBtn.setForeground(FG_DIM);
         toggleBtn.setBackground(panBg);
@@ -69,9 +69,9 @@ final class GuiAuditLegend {
         content.setBorder(new EmptyBorder(4, 14, 8, 14));
         content.setVisible(false);
         content.add(buildGrid(panBg, "Aktions-Codes", ACTION_LEGEND, ACCENT));
-        content.add(buildGrid(panBg, "MenÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼-IDs",      MENU_ID_LEGEND, INFO));
+        content.add(buildGrid(panBg, "Menü-IDs",      MENU_ID_LEGEND, INFO));
 
-        JLabel hint = new JLabel("  Rotation ab 200.000 EintrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤gen  ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·  Logs bleiben ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼ber Neustarts erhalten");
+        JLabel hint = new JLabel("  Rotation ab 200.000 Einträgen  ·  Logs bleiben über Neustarts erhalten");
         hint.setFont(new Font("JetBrains Mono", Font.PLAIN, 9));
         hint.setForeground(FG_DIM);
         hint.setBorder(new EmptyBorder(2, 10, 4, 10));
@@ -79,7 +79,7 @@ final class GuiAuditLegend {
         toggleBtn.addActionListener(e -> {
             boolean open = content.isVisible();
             content.setVisible(!open);
-            toggleBtn.setText((open ? "ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¶" : "ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â¼") + "  Aktions-Codes & MenÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼-IDs");
+            toggleBtn.setText((open ? "▶" : "▼") + "  Aktions-Codes & Menü-IDs");
             wrapper.revalidate(); wrapper.repaint();
         });
 

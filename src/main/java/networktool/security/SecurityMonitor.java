@@ -3,7 +3,7 @@ package main.java.networktool.security;
 import main.java.networktool.logic.analysis.OuiDatabase;
 import main.java.networktool.logic.messaging.MessageSender;
 import main.java.networktool.storage.NetworkStore;
-import main.java.networktool.gui.notification.LocalToast;
+import networktool.gui.notification.LocalToast;
 
 import java.io.*;
 import java.util.*;

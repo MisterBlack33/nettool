@@ -1,6 +1,6 @@
 package main.java.networktool.logic.scan;
 
-import main.java.networktool.gui.GUI;
+import networktool.gui.core.GUI;
 
 import java.util.concurrent.atomic.AtomicInteger;
 

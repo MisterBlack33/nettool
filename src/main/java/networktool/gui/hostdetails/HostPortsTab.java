@@ -7,7 +7,7 @@ import networktool.gui.map.*;
 import networktool.gui.core.*;
 import networktool.gui.components.*;
 import networktool.gui.panels.*;
-import networktool.logic.ports.PortScanner;
+import main.java.networktool.logic.ports.PortScanner;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -19,7 +19,7 @@ import java.util.Map;
 import static networktool.theme.GuiTheme.*;
 import static networktool.gui.hostdetails.HostDetailRows.detailButton;
 
-/** Tab ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“Ãƒâ€šÃ‚Â¢: Offene Ports ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ Scan + Banner-Grabbing on-demand. */
+/** Tab ③: Offene Ports – Scan + Banner-Grabbing on-demand. */
 final class HostPortsTab extends JPanel {
 
     private final String ip;
@@ -32,11 +32,11 @@ final class HostPortsTab extends JPanel {
         setBackground(panBg);
         setBorder(new EmptyBorder(12, 16, 12, 16));
 
-        statusLbl = new JLabel("  Noch nicht gescannt  ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢  Klicke 'Scan starten'");
+        statusLbl = new JLabel("  Noch nicht gescannt  →  Klicke 'Scan starten'");
         statusLbl.setFont(MONO_S);
         statusLbl.setForeground(FG_DIM);
 
-        JButton scanBtn = detailButton("ÃƒÆ’Ã‚Â¢Ãƒâ€¦Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ Scan starten", ACCENT2);
+        JButton scanBtn = detailButton("⊕ Scan starten", ACCENT2);
         scanBtn.addActionListener(e -> refresh());
 
         JPanel top = new JPanel(new BorderLayout(8, 0));
@@ -55,7 +55,7 @@ final class HostPortsTab extends JPanel {
     }
 
     void refresh() {
-        statusLbl.setText("  Scanne PortsÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦");
+        statusLbl.setText("  Scanne Ports…");
         statusLbl.setForeground(ACCENT);
         listPanel.removeAll();
         listPanel.revalidate();
@@ -83,7 +83,7 @@ final class HostPortsTab extends JPanel {
                     .sorted(Map.Entry.comparingByKey())
                     .forEach(e -> listPanel.add(portRow(e.getKey(), e.getValue())));
         }
-        statusLbl.setText("  " + ports.size() + " Port(s) offen  ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ  "
+        statusLbl.setText("  " + ports.size() + " Port(s) offen  –  "
                 + LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
         statusLbl.setForeground(ACCENT2);
         listPanel.revalidate();
@@ -110,4 +110,3 @@ final class HostPortsTab extends JPanel {
         return row;
     }
 }
-

@@ -1,6 +1,6 @@
 package main.java.networktool.filter;
 
-import main.java.networktool.gui.GUI;
+import networktool.gui.core.GUI;
 import main.java.networktool.model.ScanResult;
 
 import java.util.List;

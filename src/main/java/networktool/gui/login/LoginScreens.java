@@ -7,18 +7,19 @@ import networktool.gui.map.*;
 import networktool.gui.core.*;
 import networktool.gui.components.*;
 import networktool.gui.panels.*;
-import networktool.security.UserAuth;
+import main.java.networktool.security.UserAuth;
 
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 import java.util.List;
 
+import networktool.theme.GuiTheme;
 import static networktool.theme.GuiTheme.*;
 import static networktool.gui.login.LoginFormBuilder.*;
 import static networktool.gui.login.LoginInputs.*;
 import static networktool.gui.login.LoginButtons.*;
-import static networktool.gui.login.LoginLayoutHelper.*;
+import static networktool.gui.login.LoginFormLayout.*;
 
 /**
  * Baut den Anmeldebildschirm. Reine UI-Assemblierung;
@@ -118,4 +119,3 @@ public final class LoginScreens {
         return footer;
     }
 }
-

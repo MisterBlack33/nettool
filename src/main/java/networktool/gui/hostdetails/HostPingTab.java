@@ -16,10 +16,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
 
+import networktool.theme.GuiTheme;
 import static networktool.theme.GuiTheme.*;
 import static networktool.gui.hostdetails.HostDetailRows.detailButton;
 
-/** Tab ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‹Å“Ãƒâ€šÃ‚Â¡: Live-Ping mit Verlaufsgraph (letzte 20 Pings) und History-Liste. */
+/** Tab ②: Live-Ping mit Verlaufsgraph (letzte 20 Pings) und History-Liste. */
 final class HostPingTab extends JPanel {
 
     private final String ip;
@@ -37,11 +38,11 @@ final class HostPingTab extends JPanel {
         setBackground(panBg);
         setBorder(new EmptyBorder(12, 16, 12, 16));
 
-        statsLbl = new JLabel("  Starte PingÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦");
+        statsLbl = new JLabel("  Starte Ping…");
         statsLbl.setFont(MONO_S);
         statsLbl.setForeground(FG_DIM);
 
-        JButton stopBtn = detailButton("ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“Ãƒâ€šÃ‚Â  Stop", WARN);
+        JButton stopBtn = detailButton("■ Stop", WARN);
         stopBtn.addActionListener(e -> stopPinging());
 
         JPanel top = new JPanel(new BorderLayout(8, 0));
@@ -100,7 +101,7 @@ final class HostPingTab extends JPanel {
             } catch (InterruptedException ex) {
                 break;
             } catch (Exception ex) {
-                /* transient lookup failure ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â retry next cycle */
+                /* transient lookup failure — retry next cycle */
             }
         }
     }
@@ -120,7 +121,7 @@ final class HostPingTab extends JPanel {
         SwingUtilities.invokeLater(() -> {
             listModel.add(0, entry);
             if (listModel.size() > 100) listModel.remove(listModel.size() - 1);
-            statsLbl.setText(String.format("  Gesendet: %d  Verlust: %d (%.0f%%)  ÃƒÆ’Ã†â€™Ãƒâ€¹Ã…â€œ: %d ms",
+            statsLbl.setText(String.format("  Gesendet: %d  Verlust: %d (%.0f%%)  Ø: %d ms",
                     sent, lost, lost * 100.0 / Math.max(sent, 1), avg));
             statsLbl.setForeground(lost == 0 ? ACCENT2 : WARN);
             graphPanel.repaint();

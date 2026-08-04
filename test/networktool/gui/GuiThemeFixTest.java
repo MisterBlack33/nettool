@@ -1,6 +1,6 @@
 package networktool.gui;
 
-import main.java.networktool.theme.GuiTheme;
+import networktool.theme.GuiTheme;
 import org.junit.jupiter.api.*;
 
 import java.lang.reflect.Field;

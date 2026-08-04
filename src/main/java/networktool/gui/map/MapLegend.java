@@ -13,8 +13,8 @@ import java.awt.*;
 
 import static networktool.theme.GuiTheme.*;
 
-/** Legende fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r die Netzwerk-Karte. */
-final class MapLegend {
+/** Legende für die Netzwerk-Karte. */
+public final class MapLegend {
 
     private MapLegend() {}
 
@@ -29,12 +29,12 @@ final class MapLegend {
             {"L", "Linux",         LIN_COL},
             {"M", "macOS / iOS",   APL_COL},
             {"A", "Android",       AND_COL},
-            {"ÃƒÆ’Ã‚ÂÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬", "Raspberry Pi",  RPI_COL},
+            {"π", "Raspberry Pi",  RPI_COL},
             {"P", "Drucker",       PRN_COL},
             {"?", "Unbekannt",     FG_DIM},
     };
 
-    static JPanel build() {
+    public static JPanel build() {
         JPanel panel = new JPanel() {
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();

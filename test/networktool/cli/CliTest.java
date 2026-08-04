@@ -3,7 +3,7 @@ package networktool.cli;
 import main.java.networktool.cli.MenuPrinter;
 import main.java.networktool.filter.ClipboardUtil;
 import main.java.networktool.filter.JsonExporter;
-import main.java.networktool.gui.notification.LocalToast;
+import networktool.gui.notification.LocalToast;
 import main.java.networktool.model.ScanResult;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;

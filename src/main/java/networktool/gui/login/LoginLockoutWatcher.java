@@ -12,8 +12,8 @@ import javax.swing.*;
 import static networktool.theme.GuiTheme.WARN;
 
 /**
- * ÃƒÆ’Ã†â€™Ãƒâ€¦Ã¢â‚¬Å“berwacht {@link GuiLoginRateLimiter} und sperrt den Login-Button
- * wÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¤hrend einer aktiven Sperre, mit Sekunden-Countdown im Fehlerlabel.
+ * Überwacht {@link GuiLoginRateLimiter} und sperrt den Login-Button
+ * während einer aktiven Sperre, mit Sekunden-Countdown im Fehlerlabel.
  */
 final class LoginLockoutWatcher {
 
@@ -21,7 +21,7 @@ final class LoginLockoutWatcher {
 
     private LoginLockoutWatcher() {}
 
-    /** PrÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼ft beim ÃƒÆ’Ã†â€™ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ffnen des Bildschirms sofort, ob noch eine Sperre aktiv ist. */
+    /** Prüft beim Öffnen des Bildschirms sofort, ob noch eine Sperre aktiv ist. */
     static void attach(JButton loginBtn, JLabel errLabel) {
         if (GuiLoginRateLimiter.isLocked()) {
             startCountdown(loginBtn, errLabel);
@@ -48,6 +48,6 @@ final class LoginLockoutWatcher {
 
     private static void updateLabel(JLabel errLabel) {
         errLabel.setForeground(WARN);
-        errLabel.setText("Gesperrt ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ noch " + GuiLoginRateLimiter.remainingSeconds() + "s");
+        errLabel.setText("Gesperrt – noch " + GuiLoginRateLimiter.remainingSeconds() + "s");
     }
 }

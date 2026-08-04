@@ -7,12 +7,12 @@ import networktool.gui.map.*;
 import networktool.gui.core.*;
 import networktool.gui.components.*;
 import networktool.gui.panels.*;
-import networktool.logic.sonify.TrafficSonifier;
-import networktool.security.AuditLogger;
+import main.java.networktool.logic.sonify.TrafficSonifier;
+import main.java.networktool.security.AuditLogger;
 
 import static networktool.theme.GuiTheme.*;
 
-/** Sidebar-Aktion fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r den Netzwerk-Sonifier (MenÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼-ID "24"). */
+/** Sidebar-Aktion für den Netzwerk-Sonifier (Menü-ID "24"). */
 final class GuiSonifyActions {
 
     private GuiSonifyActions() {}
@@ -22,14 +22,14 @@ final class GuiSonifyActions {
         if (sonifier.isActive()) {
             sonifier.stop();
             AuditLogger.getInstance().log("SONIFY_STOP", "");
-            output.appendText("  ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸ÃƒÂ¢Ã¢â€šÂ¬Ã‚ÂÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¡ Sonify gestoppt\n", WARN);
+            output.appendText("  ⏹ Sonify gestoppt\n", WARN);
             return;
         }
         input.ask("Interface (z.B. eth0, leer = eth0):", iface -> {
             String name = iface.isBlank() ? "eth0" : iface.trim();
             sonifier.start(name);
             AuditLogger.getInstance().log("SONIFY_START", name);
-            output.appendText("  ÃƒÆ’Ã‚Â°Ãƒâ€¦Ã‚Â¸Ãƒâ€¦Ã‚Â½Ãƒâ€šÃ‚Âµ Sonify aktiv auf \"" + name + "\"\n", ACCENT2);
+            output.appendText("  🎵 Sonify aktiv auf \"" + name + "\"\n", ACCENT2);
         });
     }
 }

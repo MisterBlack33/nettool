@@ -14,7 +14,7 @@ import java.awt.*;
 import static networktool.theme.GuiTheme.*;
 
 /**
- * Header- und Root-Panel-Aufbau fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r Login/Register.
+ * Header- und Root-Panel-Aufbau für Login/Register.
  * Eingabefelder siehe {@link LoginInputs}, Buttons siehe {@link LoginButtons}.
  */
 final class LoginFormBuilder {

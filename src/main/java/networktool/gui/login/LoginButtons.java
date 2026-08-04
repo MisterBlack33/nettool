@@ -16,7 +16,7 @@ import java.awt.event.MouseEvent;
 import static networktool.theme.GuiTheme.*;
 import static networktool.gui.login.LoginFormBuilder.INPUT_BG;
 
-/** Button-Fabrik fÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¼r Login-/Registrierungsformulare. */
+/** Button-Fabrik für Login-/Registrierungsformulare. */
 final class LoginButtons {
 
     private LoginButtons() {}
