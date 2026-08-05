@@ -11,10 +11,12 @@ public final class UserAuth {
     private static final class Holder { static final UserAuth INSTANCE = new UserAuth(); }
     public static UserAuth getInstance() { return Holder.INSTANCE; }
 
-    private static final int    ITERATIONS = 310_000;
-    private static final int    KEY_LEN    = 256;
-    private static final int    SALT_LEN   = 32;
-    private static final String ALGO       = "PBKDF2WithHmacSHA256";
+    private static final int    ITERATIONS   = 310_000;
+    private static final int    KEY_LEN      = 256;
+    private static final int    SALT_LEN     = 32;
+    private static final String ALGO         = "PBKDF2WithHmacSHA256";
+    /** Passwort-Policy: mind. 8 Zeichen, mind. ein Buchstabe und eine Ziffer. */
+    private static final int    MIN_PW_LEN   = 8;
 
     private Path dataDir;
     private volatile String currentUser;
@@ -34,7 +36,7 @@ public final class UserAuth {
     }
 
     public synchronized boolean createUser(String username, String password) {
-        if (isBlank(username) || isBlank(password) || password.length() < 4) return false;
+        if (isBlank(username) || !isStrongPassword(password)) return false;
         String canonical = username.trim().toLowerCase();
         List<Map<String, String>> users = UserAuthPersistence.load(dataDir);
         if (users.stream().anyMatch(u -> canonical.equals(u.get("username")))) return false;
@@ -91,7 +93,7 @@ public final class UserAuth {
     }
 
     public synchronized boolean changePassword(String username, String oldPw, String newPw) {
-        if (!authenticate(username, oldPw) || isBlank(newPw) || newPw.length() < 4) return false;
+        if (!authenticate(username, oldPw) || !isStrongPassword(newPw)) return false;
         String canonical = username.trim().toLowerCase();
         List<Map<String, String>> users = UserAuthPersistence.load(dataDir);
         for (Map<String, String> u : users) {
@@ -125,6 +127,15 @@ public final class UserAuth {
         List<String> names = new ArrayList<>();
         UserAuthPersistence.load(dataDir).forEach(u -> names.add(u.get("username")));
         return Collections.unmodifiableList(names);
+    }
+
+    // ── Passwort-Policy ───────────────────────────────────────────────────
+
+    /** Mind. 8 Zeichen, mind. ein Buchstabe und eine Ziffer. */
+    public static boolean isStrongPassword(String pw) {
+        return pw != null && pw.length() >= MIN_PW_LEN
+                && pw.matches(".*[A-Za-z].*")
+                && pw.matches(".*[0-9].*");
     }
 
     // ── Crypto ────────────────────────────────────────────────────────────

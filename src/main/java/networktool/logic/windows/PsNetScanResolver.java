@@ -1,5 +1,7 @@
 package main.java.networktool.logic.windows;
 
+import main.java.networktool.util.PlatformUtils;
+
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -13,7 +15,7 @@ public final class PsNetScanResolver {
 
     /** Scannt IPs prefix.1 bis prefix.254 auf ICMP-Erreichbarkeit. */
     public static List<String> sweep(String subnetPrefix) {
-        if (!PowerShellRunner.isAvailable() || subnetPrefix == null || subnetPrefix.isBlank())
+        if (!PowerShellRunner.isAvailable() || !PlatformUtils.isSafeSubnetPrefix(subnetPrefix))
             return List.of();
 
         List<String> alive = new ArrayList<>();

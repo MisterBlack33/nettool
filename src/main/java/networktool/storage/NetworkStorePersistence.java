@@ -66,6 +66,7 @@ final class NetworkStorePersistence {
                                      Map<String, String> prefixes) {
         try {
             String json   = Files.readString(file, StandardCharsets.UTF_8);
+            HostSchemaMigration.logIfLegacy(name, HostJsonBuilder.readSchemaVersion(json));
             String prefix = JsonHelper.extractStr(json, "prefix");
             if (prefixes != null && prefix != null) prefixes.put(name, prefix);
             List<HostResult> list = networks.computeIfAbsent(name, k -> new ArrayList<>());

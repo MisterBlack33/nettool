@@ -61,6 +61,17 @@ public final class DataImporter {
         return count[0];
     }
 
+    /** Stellt ein mit {@link DataExporter#exportEncryptedBackup} erzeugtes Backup wieder her. */
+    public static int restoreEncryptedBackup(Path encryptedFile, String password) throws Exception {
+        Path tmpZip = Files.createTempFile("nettool_restore_", ".zip");
+        try {
+            BackupCrypto.decryptFile(encryptedFile, tmpZip, password);
+            return restoreBackup(tmpZip);
+        } finally {
+            Files.deleteIfExists(tmpZip);
+        }
+    }
+
     private static boolean saveHost(String ip, String hn, String os,
                                     String date, String notes, String cat) {
         NetworkStore store = NetworkStore.getInstance();

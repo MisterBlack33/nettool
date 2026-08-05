@@ -10,6 +10,10 @@ import java.nio.charset.StandardCharsets;
 /**
  * Enthält die einzelnen Übertragungsmethoden für Nachrichten.
  * Wird ausschließlich von {@link MessageSender} aufgerufen.
+ *
+ * Sicherheit: jede IP, die in einen exec()-Aufruf oder PowerShell-Skript-
+ * String eingebettet wird, wird zuvor über {@link PlatformUtils#isSafeIp}
+ * validiert (Command-/Script-Injection-Schutz).
  */
 final class MessageDelivery {
 
@@ -61,6 +65,11 @@ final class MessageDelivery {
     // ── WinRM ─────────────────────────────────────────────────────────────
 
     static boolean tryWinRM(String ip, String message) {
+        // Ziel-IP wird direkt in ein PowerShell-Skript eingebettet → Pflichtvalidierung
+        if (!PlatformUtils.isSafeIp(ip)) {
+            System.out.println("  ✕ WinRM: ungültige Ziel-IP");
+            return false;
+        }
         if (!OsDetector.isOpen(ip, 5985)) {
             System.out.println("  WinRM (5985) nicht offen → Enable-PSRemoting -Force auf Ziel");
             return false;
@@ -92,12 +101,16 @@ final class MessageDelivery {
     // ── SSH ───────────────────────────────────────────────────────────────
 
     static boolean trySsh(String ip, String message, boolean mac) {
+        // Ziel-IP wird als ssh-Argument verwendet → Pflichtvalidierung
+        if (!PlatformUtils.isSafeIp(ip)) {
+            System.out.println("  ✕ SSH: ungültige Ziel-IP");
+            return false;
+        }
         if (!OsDetector.isOpen(ip, 22)) {
             System.out.println("  SSH (22) nicht offen.");
             return false;
         }
         System.out.println("  Methode : SSH → " + (mac ? "osascript" : "notify-send"));
-        // PlatformUtils.escapeSshArg statt eigenem shell()-Helper
         String safe = PlatformUtils.escapeSshArg(message);
         String cmd  = mac
                 ? "osascript -e 'display notification \"" + safe + "\" with title \"NetTool\"'"

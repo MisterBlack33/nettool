@@ -9,9 +9,13 @@ final class HostJsonBuilder {
 
     private HostJsonBuilder() {}
 
+    /** Aktuelle Schema-Version der Netzwerk-Datei. Erhöhen bei künftigen Layout-Änderungen. */
+    static final int CURRENT_SCHEMA_VERSION = 1;
+
     static String buildNetworkJson(String name, String prefix, List<HostResult> hosts) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\n")
+                .append("  \"schemaVersion\": ").append(CURRENT_SCHEMA_VERSION).append(",\n")
                 .append("  \"network\": \"").append(JsonHelper.esc(name)).append("\",\n")
                 .append("  \"prefix\": \"").append(JsonHelper.esc(prefix)).append("\",\n")
                 .append("  \"hosts\": [\n");
@@ -30,6 +34,12 @@ final class HostJsonBuilder {
                 .append("      \"ports\": ")      .append(serPortsJson(h.ports))      .append(",\n")
                 .append("      \"notes\": \"")    .append(JsonHelper.esc(h.notes))    .append("\"\n")
                 .append("    }").append(comma ? "," : "").append("\n");
+    }
+
+    /** Liest schemaVersion aus einer Netzwerk-Datei. Fehlt es (Altbestand), gilt Version 0. */
+    static int readSchemaVersion(String networkJson) {
+        Integer v = JsonHelper.extractInt(networkJson, "schemaVersion");
+        return v != null ? v : 0;
     }
 
     static HostResult parseHost(String obj) {

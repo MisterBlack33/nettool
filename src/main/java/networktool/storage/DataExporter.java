@@ -102,6 +102,21 @@ public final class DataExporter {
         return zipFile;
     }
 
+    /**
+     * Erstellt ein AES-256-GCM-verschlüsseltes Backup (additiv zu exportBackup()).
+     * Das unverschlüsselte ZIP wird nur temporär angelegt und danach gelöscht.
+     */
+    public static Path exportEncryptedBackup(Path outDir, String password) throws Exception {
+        Path plain = exportBackup(outDir);
+        Path encrypted = outDir.resolve(plain.getFileName() + BackupCrypto.ENCRYPTED_SUFFIX);
+        try {
+            BackupCrypto.encryptFile(plain, encrypted, password);
+        } finally {
+            Files.deleteIfExists(plain);
+        }
+        return encrypted;
+    }
+
     // ── Hilfsmethoden ────────────────────────────────────────────────────
 
     @FunctionalInterface
