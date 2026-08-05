@@ -17,6 +17,8 @@ public final class PlatformUtils {
     public static boolean isLinux()   { return OS.contains("linux") || OS.contains("nix") || OS.contains("nux"); }
 
     // ── Sicherheits-Validierung ───────────────────────────────────────────
+    // Jede Eingabe, die in einen exec()-Aufruf oder einen PowerShell-Skript-
+    // String eingebettet wird, MUSS vorher hierüber validiert werden.
 
     private static final Pattern SAFE_IP =
             Pattern.compile("^(\\d{1,3}\\.){3}\\d{1,3}$");
@@ -28,12 +30,16 @@ public final class PlatformUtils {
             Pattern.compile("^(\\d{1,3}\\.){3}\\d{1,3}/\\d{1,2}$");
     private static final Pattern SAFE_HOSTNAME =
             Pattern.compile("^[a-zA-Z0-9.\\-]{1,253}$");
+    /** 3-Oktett-Subnetz-Präfix, z.B. "192.168.1" (für PsNetScanResolver.sweep). */
+    private static final Pattern SAFE_SUBNET_PREFIX =
+            Pattern.compile("^(\\d{1,3}\\.){2}\\d{1,3}$");
 
-    public static boolean isSafeIp(String s)       { return s != null && SAFE_IP.matcher(s).matches(); }
-    public static boolean isSafeInterface(String s){ return s != null && SAFE_IFACE.matcher(s).matches(); }
-    public static boolean isSafeMac(String s)      { return s != null && SAFE_MAC.matcher(s).matches(); }
-    public static boolean isSafeCidr(String s)     { return s != null && SAFE_CIDR.matcher(s).matches(); }
-    public static boolean isSafeHostname(String s) { return s != null && SAFE_HOSTNAME.matcher(s).matches(); }
+    public static boolean isSafeIp(String s)            { return s != null && SAFE_IP.matcher(s).matches(); }
+    public static boolean isSafeInterface(String s)     { return s != null && SAFE_IFACE.matcher(s).matches(); }
+    public static boolean isSafeMac(String s)           { return s != null && SAFE_MAC.matcher(s).matches(); }
+    public static boolean isSafeCidr(String s)          { return s != null && SAFE_CIDR.matcher(s).matches(); }
+    public static boolean isSafeHostname(String s)       { return s != null && SAFE_HOSTNAME.matcher(s).matches(); }
+    public static boolean isSafeSubnetPrefix(String s)  { return s != null && SAFE_SUBNET_PREFIX.matcher(s).matches(); }
 
     /**
      * Gibt den validierten String zurück oder wirft IllegalArgumentException.
@@ -52,6 +58,11 @@ public final class PlatformUtils {
     public static String requireSafeMac(String mac) {
         if (!isSafeMac(mac)) throw new IllegalArgumentException("Ungültige MAC: " + mac);
         return mac;
+    }
+
+    public static String requireSafeSubnetPrefix(String prefix) {
+        if (!isSafeSubnetPrefix(prefix)) throw new IllegalArgumentException("Ungültiges Subnetz-Präfix: " + prefix);
+        return prefix;
     }
 
     // ── Shell-Escaping (nur für Logging/Anzeige, nicht für exec) ─────────

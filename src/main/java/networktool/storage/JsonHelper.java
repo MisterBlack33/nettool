@@ -26,8 +26,11 @@ public final class JsonHelper {
                 switch (nx) {
                     case '"'  -> sb.append('"');
                     case '\\' -> sb.append('\\');
+                    case '/'  -> sb.append('/');
                     case 'n'  -> sb.append('\n');
                     case 't'  -> sb.append('\t');
+                    case 'r'  -> sb.append('\r');
+                    case 'u'  -> { i = appendUnicodeEscape(json, i, sb); }
                     default   -> { sb.append(c); sb.append(nx); }
                 }
             } else if (c == '"') {
@@ -37,6 +40,33 @@ public final class JsonHelper {
             }
         }
         return sb.toString();
+    }
+
+    /** Dekodiert \\uXXXX ab Index i (Position von 'u'). Gibt neuen Index zurück; ungültige Sequenzen bleiben unverändert. */
+    private static int appendUnicodeEscape(String json, int i, StringBuilder sb) {
+        if (i + 4 < json.length()) {
+            String hex = json.substring(i + 1, i + 5);
+            try { sb.append((char) Integer.parseInt(hex, 16)); return i + 4; }
+            catch (NumberFormatException ignored) { /* fall through: keep raw */ }
+        }
+        sb.append("\\u");
+        return i;
+    }
+
+    /** Extrahiert ein Integer-Feld, z.B. für Schema-Versionen. Null wenn Feld fehlt oder ungültig ist. */
+    static Integer extractInt(String json, String field) {
+        String key = "\"" + field + "\"";
+        int ki = json.indexOf(key);
+        if (ki < 0) return null;
+        int colon = json.indexOf(':', ki + key.length());
+        if (colon < 0) return null;
+        int s = colon + 1;
+        while (s < json.length() && Character.isWhitespace(json.charAt(s))) s++;
+        int e = s;
+        while (e < json.length() && (Character.isDigit(json.charAt(e)) || json.charAt(e) == '-')) e++;
+        if (e == s) return null;
+        try { return Integer.parseInt(json.substring(s, e)); }
+        catch (NumberFormatException ex) { return null; }
     }
 
     public static String esc(String s) {
