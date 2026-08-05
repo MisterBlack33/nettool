@@ -40,4 +40,16 @@ class MessageDeliveryInjectionTest {
     @Test void trySsh_validButUnreachable_returnsFalse() {
         assertFalse(MessageDelivery.trySsh("192.0.2.1", "hi", false));
     }
+
+    @Test void tryListener_injectionAttemptIp_falseNotThrow() {
+        assertFalse(MessageDelivery.tryListener("1.1.1.1'; calc", "hi"));
+    }
+
+    @Test void tryListener_null_falseNotThrow() {
+        assertFalse(MessageDelivery.tryListener(null, "hi"));
+    }
+
+    @Test void tryNtfy_injectionAttemptTopic_doesNotThrow() {
+        assertDoesNotThrow(() -> MessageDelivery.tryNtfy("__test__'; calc; '", "hi"));
+    }
 }

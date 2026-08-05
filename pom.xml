@@ -48,6 +48,14 @@
         <sourceDirectory>src</sourceDirectory>
         <testSourceDirectory>test</testSourceDirectory>
 
+        <!-- junit-platform.properties liegt unter test/resources und muss hier
+             als testResources referenziert werden, da testSourceDirectory != src/test/java -->
+        <testResources>
+            <testResource>
+                <directory>test/resources</directory>
+            </testResource>
+        </testResources>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -70,12 +78,14 @@
                 <version>3.2.5</version>
                 <configuration>
                     <useModulePath>false</useModulePath>
-                    <!-- Parallel test execution limited to 1 per CPU core -->
-                    <forkCount>1</forkCount>
+                    <!-- 1 Fork pro CPU-Kern; JUnit5 parallelisiert Tests zusätzlich
+                         innerhalb jedes Forks via junit-platform.properties -->
+                    <forkCount>1C</forkCount>
                     <reuseForks>true</reuseForks>
-                    <!-- Increased timeout for slow hardware -->
                     <forkedProcessTimeoutInSeconds>300</forkedProcessTimeoutInSeconds>
                     <argLine>-Xmx512m -Xms128m</argLine>
+                    <!-- Standard-Build (CI on push/PR): langsame/IO-lastige Tests ausschließen -->
+                    <excludedGroups>slow</excludedGroups>
                 </configuration>
             </plugin>
 
@@ -122,6 +132,9 @@
                                     <element>PACKAGE</element>
                                     <excludes>
                                         <exclude>*Test</exclude>
+                                        <!-- Reine Swing-Dialog-Wrapper, ohne UI-Test-Framework
+                                             (AssertJ-Swing) nicht sinnvoll headless testbar -->
+                                        <exclude>networktool.gui.login</exclude>
                                     </excludes>
                                     <limits>
                                         <limit>
@@ -138,4 +151,22 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- Nightly-CI: volle Suite inkl. @Tag("slow") -->
+        <profile>
+            <id>nightly</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <excludedGroups combine.self="override"></excludedGroups>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
