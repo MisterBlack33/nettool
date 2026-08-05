@@ -2,6 +2,7 @@ package main.java.networktool.storage;
 
 import networktool.util.PollHelper;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Tag("slow")
 class AutoBackupPackageTest {
 
     @BeforeEach

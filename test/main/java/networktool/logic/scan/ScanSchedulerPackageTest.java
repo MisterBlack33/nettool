@@ -5,9 +5,11 @@ import main.java.networktool.storage.ScanProfileStore;
 import main.java.networktool.storage.TestConstants;
 import networktool.util.PollHelper;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Tag;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Tag("slow")
 class ScanSchedulerPackageTest {
 
     final String PROFILE = TestConstants.PROFILE_SCHED;  // "__junit__sched"
@@ -48,7 +50,7 @@ class ScanSchedulerPackageTest {
         sched.start(PROFILE, 999, "");
         sched.start(PROFILE, 999, "");
         assertTrue(PollHelper.waitFor(() ->
-                sched.getRunning().stream().filter(PROFILE::equals).count() == 1, 2000),
+                        sched.getRunning().stream().filter(PROFILE::equals).count() == 1, 2000),
                 "Sollte nur noch 1 Instanz des Profils gibt");
     }
 

@@ -1,6 +1,7 @@
 package main.java.networktool.storage;
 
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.Timeout;
 
@@ -10,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Tag("slow")
 class DataExporterPackageTest {
 
     @TempDir Path tmp;

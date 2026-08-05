@@ -3,6 +3,7 @@ package networktool.gui.panels;
 import org.junit.jupiter.api.*;
 
 import javax.swing.*;
+import java.lang.reflect.InvocationTargetException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -73,7 +74,7 @@ class PrivacyNetworkActionsTest {
         assertDoesNotThrow(() -> {});
     }
 
-    @Test void checkEncryption_writesToLog() throws InterruptedException {
+    @Test void checkEncryption_writesToLog() throws InterruptedException, InvocationTargetException {
         JTextArea log = new JTextArea();
         PrivacyNetworkActions.checkEncryption(log);
         Thread.sleep(200);
