@@ -5,9 +5,11 @@ import main.java.networktool.storage.ScanProfileStore;
 import main.java.networktool.storage.TestConstants;
 import networktool.util.PollHelper;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Tag;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Tag("slow")
 class ScanSchedulerFixTest {
 
     final String PROFILE = TestConstants.PROFILE_SCHED_FIX;  // "__junit__sched_fix"

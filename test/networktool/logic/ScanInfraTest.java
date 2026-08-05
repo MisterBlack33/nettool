@@ -4,6 +4,7 @@ import main.java.networktool.logic.scan.*;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.model.ScanResult;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.Tag;
 
 import java.net.InetAddress;
 import java.util.*;
@@ -12,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
 
+@Tag("slow")
 class ScanInfraTest extends NetworkTimeoutTestBase{
 
     static boolean loopbackReachable() {
