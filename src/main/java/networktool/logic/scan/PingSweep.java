@@ -1,5 +1,7 @@
 package main.java.networktool.logic.scan;
 
+import main.java.networktool.logging.DebugLogger;
+import main.java.networktool.logic.TimeoutConfig;
 import main.java.networktool.logic.windows.PsNetScanResolver;
 
 import java.net.InetAddress;
@@ -15,7 +17,6 @@ public final class PingSweep {
 
     private PingSweep() {}
 
-    private static final int TIMEOUT_MS   = 800;
     private static final int THREAD_COUNT =
             Math.min(128, Runtime.getRuntime().availableProcessors() * 8);
 
@@ -29,9 +30,11 @@ public final class PingSweep {
             exec.submit(() -> {
                 try {
                     triggerArp(ip);
-                    if (InetAddress.getByName(ip).isReachable(TIMEOUT_MS))
+                    if (InetAddress.getByName(ip).isReachable(TimeoutConfig.PING_SWEEP_MS))
                         alive.add(ip);
-                } catch (Exception ignored) {}
+                } catch (Exception e) {
+                    DebugLogger.getInstance().log("FINE", "[PingSweep] Ping fehlgeschlagen (" + ip + "): " + e);
+                }
                 if (progress != null) progress.run();
             });
         }
@@ -72,6 +75,8 @@ public final class PingSweep {
             Process p = Runtime.getRuntime().exec(cmd);
             p.waitFor(600, java.util.concurrent.TimeUnit.MILLISECONDS);
             p.destroy();
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            DebugLogger.getInstance().log("FINE", "[PingSweep] ARP-Trigger fehlgeschlagen: " + e);
+        }
     }
 }

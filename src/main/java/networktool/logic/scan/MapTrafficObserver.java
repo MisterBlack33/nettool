@@ -1,5 +1,7 @@
 package main.java.networktool.logic.scan;
 
+import main.java.networktool.logic.TimeoutConfig;
+
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
@@ -21,7 +23,6 @@ public class MapTrafficObserver {
 
     public enum NodeRole { DNS_SERVER, DHCP_SERVER, MDNS_NODE, NTP_SERVER, UNKNOWN }
 
-    private static final int TIMEOUT_MS   = 600;
     private static final int DNS_PORT     = 53;
     private static final int DHCP_PORT    = 67;
     private static final int MDNS_PORT    = 5353;
@@ -41,7 +42,7 @@ public class MapTrafficObserver {
                 Math.min(ips.size(), 16));
         ips.forEach(ip -> exec.submit(() -> probe(ip)));
         exec.shutdown();
-        try { exec.awaitTermination(TIMEOUT_MS * 2L + 500, TimeUnit.MILLISECONDS); }
+        try { exec.awaitTermination(TimeoutConfig.MAP_TRAFFIC_MS * 2L + 500, TimeUnit.MILLISECONDS); }
         catch (InterruptedException e) { Thread.currentThread().interrupt(); }
     }
 
@@ -106,7 +107,7 @@ public class MapTrafficObserver {
      */
     private boolean sendDnsQuery(String ip) {
         try (DatagramSocket socket = new DatagramSocket()) {
-            socket.setSoTimeout(TIMEOUT_MS);
+            socket.setSoTimeout(TimeoutConfig.MAP_TRAFFIC_MS);
             byte[] query = buildDnsQuery("version.bind", true);
             InetAddress addr = InetAddress.getByName(ip);
             socket.send(new DatagramPacket(query, query.length, addr, DNS_PORT));
@@ -189,7 +190,7 @@ public class MapTrafficObserver {
 
     private boolean sendMdnsQuery(String ip) {
         try (MulticastSocket socket = new MulticastSocket()) {
-            socket.setSoTimeout(TIMEOUT_MS);
+            socket.setSoTimeout(TimeoutConfig.MAP_TRAFFIC_MS);
             socket.setTimeToLive(1);
             byte[] query = buildDnsQuery("_services._dns-sd._udp.local", false);
             InetAddress mdnsGroup = InetAddress.getByName("224.0.0.251");
@@ -216,7 +217,7 @@ public class MapTrafficObserver {
 
     private boolean isUdpResponsive(String ip, int port, byte[] payload) {
         try (DatagramSocket socket = new DatagramSocket()) {
-            socket.setSoTimeout(TIMEOUT_MS);
+            socket.setSoTimeout(TimeoutConfig.MAP_TRAFFIC_MS);
             InetAddress addr = InetAddress.getByName(ip);
             socket.send(new DatagramPacket(payload, payload.length, addr, port));
             byte[] buf = new byte[512];
@@ -233,7 +234,7 @@ public class MapTrafficObserver {
 
     private boolean isTcpOpen(String ip, int port) {
         try (Socket s = new Socket()) {
-            s.connect(new InetSocketAddress(ip, port), TIMEOUT_MS);
+            s.connect(new InetSocketAddress(ip, port), TimeoutConfig.MAP_TRAFFIC_MS);
             return true;
         } catch (Exception e) {
             return false;

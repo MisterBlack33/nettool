@@ -1,5 +1,7 @@
 package main.java.networktool.logic.analysis;
 
+import main.java.networktool.logic.TimeoutConfig;
+
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
@@ -12,7 +14,6 @@ final class OsBannerAnalyzer {
 
     private OsBannerAnalyzer() {}
 
-    private static final int TIMEOUT = 700;
 
     static OsSignature analyze(String ip) {
         OsSignature best = null;
@@ -30,8 +31,8 @@ final class OsBannerAnalyzer {
 
     private static OsSignature analyzeSsh(String ip) {
         try (Socket s = new Socket()) {
-            s.connect(new InetSocketAddress(ip, 22), TIMEOUT);
-            s.setSoTimeout(TIMEOUT);
+            s.connect(new InetSocketAddress(ip, 22), TimeoutConfig.BANNER_GRAB_MS);
+            s.setSoTimeout(TimeoutConfig.BANNER_GRAB_MS);
             String banner = new BufferedReader(
                     new InputStreamReader(s.getInputStream(), StandardCharsets.UTF_8))
                     .readLine();
@@ -60,11 +61,11 @@ final class OsBannerAnalyzer {
 
     private static OsSignature analyzeSmb(String ip) {
         try (Socket s = new Socket()) {
-            s.connect(new InetSocketAddress(ip, 445), TIMEOUT);
+            s.connect(new InetSocketAddress(ip, 445), TimeoutConfig.BANNER_GRAB_MS);
             byte[] negotiate = buildSmbNegotiate();
             s.getOutputStream().write(negotiate);
             s.getOutputStream().flush();
-            s.setSoTimeout(TIMEOUT);
+            s.setSoTimeout(TimeoutConfig.BANNER_GRAB_MS);
             byte[] buf = new byte[128];
             int read = s.getInputStream().read(buf);
             if (read > 40) return OsSignature.of("Windows", 70, "SMB-Probe");
@@ -92,8 +93,8 @@ final class OsBannerAnalyzer {
 
     private static OsSignature probeHttp(String ip, int port) {
         try (Socket s = new Socket()) {
-            s.connect(new InetSocketAddress(ip, port), TIMEOUT);
-            s.setSoTimeout(TIMEOUT);
+            s.connect(new InetSocketAddress(ip, port), TimeoutConfig.BANNER_GRAB_MS);
+            s.setSoTimeout(TimeoutConfig.BANNER_GRAB_MS);
             String req = "HEAD / HTTP/1.0\r\nHost: " + ip + "\r\n\r\n";
             s.getOutputStream().write(req.getBytes(StandardCharsets.UTF_8));
             s.getOutputStream().flush();
@@ -136,8 +137,8 @@ final class OsBannerAnalyzer {
             javax.net.ssl.SSLSocket ssl = (javax.net.ssl.SSLSocket)
                     javax.net.ssl.SSLSocketFactory.getDefault()
                             .createSocket();
-            ssl.connect(new InetSocketAddress(ip, 443), TIMEOUT);
-            ssl.setSoTimeout(TIMEOUT);
+            ssl.connect(new InetSocketAddress(ip, 443), TimeoutConfig.BANNER_GRAB_MS);
+            ssl.setSoTimeout(TimeoutConfig.BANNER_GRAB_MS);
             ssl.startHandshake();
             java.security.cert.X509Certificate[] certs =
                     (java.security.cert.X509Certificate[])
@@ -167,8 +168,8 @@ final class OsBannerAnalyzer {
 
     static OsSignature analyzeFtp(String ip) {
         try (Socket s = new Socket()) {
-            s.connect(new InetSocketAddress(ip, 21), TIMEOUT);
-            s.setSoTimeout(TIMEOUT);
+            s.connect(new InetSocketAddress(ip, 21), TimeoutConfig.BANNER_GRAB_MS);
+            s.setSoTimeout(TimeoutConfig.BANNER_GRAB_MS);
             String banner = new BufferedReader(
                     new InputStreamReader(s.getInputStream(), StandardCharsets.UTF_8))
                     .readLine();

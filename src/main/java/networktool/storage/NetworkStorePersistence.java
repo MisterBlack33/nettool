@@ -1,5 +1,6 @@
 package main.java.networktool.storage;
 
+import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.model.HostResult;
 
 import java.io.IOException;
@@ -180,7 +181,9 @@ final class NetworkStorePersistence {
             } catch (Throwable t) {
                 System.err.println("[NetworkStorePersistence] NetworkStoreLegacy migration failed: " + t.getMessage());
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            DebugLogger.getInstance().log("FINE", "[NetworkStorePersistence] Migrations-Check fehlgeschlagen: " + e);
+        }
     }
 
     // Backward compat

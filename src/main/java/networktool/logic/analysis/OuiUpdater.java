@@ -1,5 +1,6 @@
 package main.java.networktool.logic.analysis;
 
+import main.java.networktool.logic.TimeoutConfig;
 import java.io.*;
 import java.net.*;
 import java.nio.file.*;
@@ -19,7 +20,6 @@ public final class OuiUpdater {
     private static final String OUI_URL  =
             "https://standards-oui.ieee.org/oui/oui.txt";
     private static final String CACHE_FILE = "oui_cache.bin";
-    private static final int    TIMEOUT_MS = 10_000;
 
     // Geladene externe OUIs (zusätzlich zu OuiDatabase-Einträgen)
     private static final Map<String, String> EXTENDED = new HashMap<>();
@@ -71,7 +71,7 @@ public final class OuiUpdater {
             Files.createDirectories(dataDir);
             URL url = new URL(OUI_URL);
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-            conn.setConnectTimeout(TIMEOUT_MS);
+            conn.setConnectTimeout(TimeoutConfig.OUI_UPDATE_MS);
             conn.setReadTimeout(60_000);
             conn.setRequestProperty("User-Agent", "NetTool/3.0");
 

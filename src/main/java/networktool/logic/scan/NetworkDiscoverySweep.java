@@ -1,7 +1,9 @@
 package main.java.networktool.logic.scan;
 
+import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.logic.analysis.MdnsDiscovery;
 import main.java.networktool.logic.analysis.UpnpDiscovery;
+import main.java.networktool.logic.TimeoutConfig;
 
 import java.util.*;
 import java.util.concurrent.*;
@@ -17,7 +19,6 @@ import java.util.concurrent.*;
  */
 final class NetworkDiscoverySweep {
 
-    private static final int TIMEOUT_SEC = 35;
 
     private NetworkDiscoverySweep() {}
 
@@ -34,7 +35,7 @@ final class NetworkDiscoverySweep {
         exec.submit(() -> collect(found, () -> UpnpDiscovery.discover().stream().map(UpnpDiscovery.Device::ip)));
 
         exec.shutdown();
-        try { exec.awaitTermination(TIMEOUT_SEC, TimeUnit.SECONDS); }
+        try { exec.awaitTermination(TimeoutConfig.DISCOVERY_SWEEP_SEC, TimeUnit.SECONDS); }
         catch (InterruptedException e) { Thread.currentThread().interrupt(); }
 
         Set<String> allowed = new HashSet<>(candidateIps);
@@ -43,6 +44,7 @@ final class NetworkDiscoverySweep {
     }
 
     private static void collect(Set<String> found, java.util.function.Supplier<java.util.stream.Stream<String>> src) {
-        try { src.get().forEach(found::add); } catch (Exception ignored) {}
+        try { src.get().forEach(found::add); }
+        catch (Exception e) { DebugLogger.getInstance().log("FINE", "[NetworkDiscoverySweep] Discovery-Quelle fehlgeschlagen: " + e); }
     }
 }

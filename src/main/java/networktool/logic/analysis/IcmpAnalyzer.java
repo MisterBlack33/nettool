@@ -1,5 +1,6 @@
 package main.java.networktool.logic.analysis;
 
+import main.java.networktool.logic.TimeoutConfig;
 import java.net.InetAddress;
 import java.util.*;
 
@@ -11,7 +12,6 @@ public final class IcmpAnalyzer {
 
     private IcmpAnalyzer() {}
 
-    private static final int TIMEOUT_MS   = 1500;
     private static final int PROBE_COUNT  = 5;
 
     public record Result(
@@ -54,7 +54,7 @@ public final class IcmpAnalyzer {
         for (int i = 0; i < PROBE_COUNT; i++) {
             long start = System.currentTimeMillis();
             try {
-                boolean alive = addr.isReachable(TIMEOUT_MS);
+                boolean alive = addr.isReachable(TimeoutConfig.ICMP_ANALYSIS_MS);
                 long ms = System.currentTimeMillis() - start;
                 if (alive) {
                     times.add(ms);

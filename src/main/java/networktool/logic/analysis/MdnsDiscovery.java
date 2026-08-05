@@ -1,5 +1,6 @@
 package main.java.networktool.logic.analysis;
 
+import main.java.networktool.logic.TimeoutConfig;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -20,7 +21,6 @@ public final class MdnsDiscovery {
 
     private static final String MDNS_GROUP  = "224.0.0.251";
     private static final int    MDNS_PORT   = 5353;
-    private static final int    TIMEOUT_MS  = 2000;
 
     private static final String[] SERVICE_TYPES = {
             "_http._tcp.local",
@@ -65,14 +65,14 @@ public final class MdnsDiscovery {
         try (MulticastSocket socket = new MulticastSocket(MDNS_PORT)) {
             InetAddress group = InetAddress.getByName(MDNS_GROUP);
             socket.joinGroup(group);
-            socket.setSoTimeout(TIMEOUT_MS);
+            socket.setSoTimeout(TimeoutConfig.MDNS_DISCOVERY_MS);
 
             for (String serviceType : SERVICE_TYPES) {
                 byte[] query = buildQuery(serviceType);
                 socket.send(new DatagramPacket(query, query.length, group, MDNS_PORT));
             }
 
-            long deadline = System.currentTimeMillis() + TIMEOUT_MS;
+            long deadline = System.currentTimeMillis() + TimeoutConfig.MDNS_DISCOVERY_MS;
             while (System.currentTimeMillis() < deadline) {
                 try {
                     byte[] buf = new byte[4096];
@@ -100,7 +100,7 @@ public final class MdnsDiscovery {
     public static List<ServiceRecord> queryHost(String ip) {
         List<ServiceRecord> results = new ArrayList<>();
         try (DatagramSocket socket = new DatagramSocket()) {
-            socket.setSoTimeout(TIMEOUT_MS);
+            socket.setSoTimeout(TimeoutConfig.MDNS_DISCOVERY_MS);
             InetAddress addr = InetAddress.getByName(ip);
 
             for (String serviceType : SERVICE_TYPES) {
@@ -108,7 +108,7 @@ public final class MdnsDiscovery {
                 socket.send(new DatagramPacket(query, query.length, addr, MDNS_PORT));
             }
 
-            long deadline = System.currentTimeMillis() + TIMEOUT_MS;
+            long deadline = System.currentTimeMillis() + TimeoutConfig.MDNS_DISCOVERY_MS;
             while (System.currentTimeMillis() < deadline) {
                 try {
                     byte[] buf = new byte[4096];

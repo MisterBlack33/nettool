@@ -1,5 +1,6 @@
 package main.java.networktool.logic.analysis;
 
+import main.java.networktool.logic.TimeoutConfig;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -17,7 +18,6 @@ public final class UpnpDiscovery {
 
     private static final String SSDP_MULTICAST = "239.255.255.250";
     private static final int    SSDP_PORT      = 1900;
-    private static final int    TIMEOUT_MS     = 3000;
 
     public record Device(
             String ip,
@@ -52,7 +52,7 @@ public final class UpnpDiscovery {
         Set<String> seen = ConcurrentHashMap.newKeySet();
 
         try (MulticastSocket socket = new MulticastSocket()) {
-            socket.setSoTimeout(TIMEOUT_MS);
+            socket.setSoTimeout(TimeoutConfig.UPNP_DISCOVERY_MS);
             socket.setTimeToLive(4);
 
             String msearch =
@@ -66,7 +66,7 @@ public final class UpnpDiscovery {
             InetAddress group = InetAddress.getByName(SSDP_MULTICAST);
             socket.send(new DatagramPacket(data, data.length, group, SSDP_PORT));
 
-            long deadline = System.currentTimeMillis() + TIMEOUT_MS;
+            long deadline = System.currentTimeMillis() + TimeoutConfig.UPNP_DISCOVERY_MS;
             while (System.currentTimeMillis() < deadline) {
                 try {
                     byte[] buf = new byte[2048];
