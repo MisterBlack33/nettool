@@ -1,5 +1,8 @@
 package main.java.networktool.logic.scan;
 
+import main.java.networktool.logging.DebugLogger;
+import main.java.networktool.logic.TimeoutConfig;
+
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -17,9 +20,10 @@ public final class HostAliveChecker {
 
     private HostAliveChecker() {}
 
-    private static volatile int ICMP_TIMEOUT = 500;
-    private static volatile int TCP_TIMEOUT  = 400;
-    static void setTestTimeouts(int icmp, int tcp) { ICMP_TIMEOUT = icmp; TCP_TIMEOUT = tcp; }
+    static void setTestTimeouts(int icmp, int tcp) {
+        TimeoutConfig.ICMP_REACHABLE_MS = icmp;
+        TimeoutConfig.TCP_PROBE_MS      = tcp;
+    }
     private static final int MAX_THREADS  =
             Math.min(64, Runtime.getRuntime().availableProcessors() * 8);
 
@@ -52,7 +56,7 @@ public final class HostAliveChecker {
         List<Future<Boolean>> futures = new ArrayList<>();
 
         futures.add(cs.submit(() -> {
-            try { return InetAddress.getByName(host).isReachable(ICMP_TIMEOUT); }
+            try { return InetAddress.getByName(host).isReachable(TimeoutConfig.ICMP_REACHABLE_MS); }
             catch (Exception e) { return false; }
         }));
 
@@ -60,13 +64,13 @@ public final class HostAliveChecker {
             final int p = port;
             futures.add(cs.submit(() -> {
                 try (Socket s = new Socket()) {
-                    s.connect(new InetSocketAddress(host, p), TCP_TIMEOUT);
+                    s.connect(new InetSocketAddress(host, p), TimeoutConfig.TCP_PROBE_MS);
                     return true;
                 } catch (Exception e) { return false; }
             }));
         }
 
-        long deadline = System.currentTimeMillis() + TCP_TIMEOUT + 300L;
+        long deadline = System.currentTimeMillis() + TimeoutConfig.TCP_PROBE_MS + 300L;
         boolean alive = false;
         int checked = 0;
 
@@ -79,7 +83,8 @@ public final class HostAliveChecker {
                 checked++;
                 if (Boolean.TRUE.equals(f.get())) { alive = true; break; }
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            DebugLogger.getInstance().log("FINE", "[HostAliveChecker] TCP-Probe fehlgeschlagen: " + e);
         } finally {
             futures.forEach(f -> f.cancel(true));
         }
@@ -121,7 +126,9 @@ public final class HostAliveChecker {
                 }
             }
             p.destroy();
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            DebugLogger.getInstance().log("FINE", "[HostAliveChecker] ARP-Cache-Warmup fehlgeschlagen: " + e);
+        }
         cachedArpIps = Collections.unmodifiableSet(ips);
         arpCacheTime = System.currentTimeMillis();
     }

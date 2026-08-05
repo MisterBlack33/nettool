@@ -1,5 +1,7 @@
 package main.java.networktool.logic.scan;
 
+import main.java.networktool.logging.DebugLogger;
+import main.java.networktool.logic.TimeoutConfig;
 import main.java.networktool.util.CIDRUtils;
 
 import java.net.InetAddress;
@@ -12,7 +14,6 @@ final class RemoteNetProbe {
     private RemoteNetProbe() {}
 
     static final int PROBE_COUNT   = 8;
-    static final int REACH_TIMEOUT = 1200;
 
     static RemoteNetScanner.ReachResult parallelProbe(String cidr) {
         List<String> allIps;
@@ -29,7 +30,9 @@ final class RemoteNetProbe {
             try {
                 long ms = f.get(100, TimeUnit.MILLISECONDS);
                 if (ms >= 0) { responded++; totalMs += ms; }
-            } catch (Exception ignored) {}
+            } catch (Exception e) {
+                DebugLogger.getInstance().log("FINE", "[RemoteNetProbe] Reachability-Probe fehlgeschlagen: " + e);
+            }
         }
         return new RemoteNetScanner.ReachResult(
                 responded > 0, responded, responded > 0 ? totalMs / responded : 0);
@@ -40,7 +43,7 @@ final class RemoteNetProbe {
         ExecutorService exec = Executors.newFixedThreadPool(Math.min(cidrs.size(), 8));
         cidrs.forEach(cidr -> exec.submit(() -> result.put(cidr, parallelProbe(cidr))));
         exec.shutdown();
-        try { exec.awaitTermination(REACH_TIMEOUT * 2L + 1000, TimeUnit.MILLISECONDS); }
+        try { exec.awaitTermination(TimeoutConfig.REMOTE_REACH_MS * 2L + 1000, TimeUnit.MILLISECONDS); }
         catch (InterruptedException e) { Thread.currentThread().interrupt(); }
         cidrs.forEach(c -> result.putIfAbsent(c, new RemoteNetScanner.ReachResult(false, 0, 0)));
         return result;
@@ -63,13 +66,13 @@ final class RemoteNetProbe {
         List<Future<Long>> futures = probes.stream()
                 .map(ip -> exec.submit(() -> {
                     long t = System.currentTimeMillis();
-                    try { return InetAddress.getByName(ip).isReachable(REACH_TIMEOUT)
+                    try { return InetAddress.getByName(ip).isReachable(TimeoutConfig.REMOTE_REACH_MS)
                             ? System.currentTimeMillis() - t : -1L; }
                     catch (Exception e) { return -1L; }
                 }))
                 .toList();
         exec.shutdown();
-        try { exec.awaitTermination(REACH_TIMEOUT + 500L, TimeUnit.MILLISECONDS); }
+        try { exec.awaitTermination(TimeoutConfig.REMOTE_REACH_MS + 500L, TimeUnit.MILLISECONDS); }
         catch (InterruptedException e) { Thread.currentThread().interrupt(); }
         return futures;
     }

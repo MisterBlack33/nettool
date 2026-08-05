@@ -1,5 +1,6 @@
 package main.java.networktool.logic.analysis;
 
+import main.java.networktool.logic.TimeoutConfig;
 import java.net.*;
 
 /**
@@ -10,7 +11,6 @@ final class OsProbeUdp {
 
     private OsProbeUdp() {}
 
-    private static final int TIMEOUT_MS = 800;
 
     /** Kombiniertes UDP-Probing. Gibt beste OsSignature oder null zurück. */
     static OsSignature probe(String ip) {
@@ -27,7 +27,7 @@ final class OsProbeUdp {
     static OsSignature probeNetBios(String ip) {
         byte[] query = buildNetBiosQuery();
         try (DatagramSocket sock = new DatagramSocket()) {
-            sock.setSoTimeout(TIMEOUT_MS);
+            sock.setSoTimeout(TimeoutConfig.UDP_PROBE_MS);
             InetAddress addr = InetAddress.getByName(ip);
             sock.send(new DatagramPacket(query, query.length, addr, 137));
             byte[] buf = new byte[512];
@@ -83,7 +83,7 @@ final class OsProbeUdp {
     static OsSignature probeMdns(String ip) {
         byte[] query = buildMdnsQuery();
         try (DatagramSocket sock = new DatagramSocket()) {
-            sock.setSoTimeout(TIMEOUT_MS);
+            sock.setSoTimeout(TimeoutConfig.UDP_PROBE_MS);
             InetAddress addr = InetAddress.getByName(ip);
             // Unicast mDNS (direkt an Host, nicht Multicast)
             sock.send(new DatagramPacket(query, query.length, addr, 5353));
@@ -141,7 +141,7 @@ final class OsProbeUdp {
     static OsSignature probeSnmp(String ip) {
         byte[] getRequest = buildSnmpGetRequest();
         try (DatagramSocket sock = new DatagramSocket()) {
-            sock.setSoTimeout(TIMEOUT_MS);
+            sock.setSoTimeout(TimeoutConfig.UDP_PROBE_MS);
             InetAddress addr = InetAddress.getByName(ip);
             sock.send(new DatagramPacket(getRequest, getRequest.length, addr, 161));
             byte[] buf = new byte[512];

@@ -2,6 +2,7 @@ package main.java.networktool.logic.scan;
 
 import main.java.networktool.logic.messaging.MessageSender;
 import main.java.networktool.logic.ports.PortScanner;
+import main.java.networktool.logic.TimeoutConfig;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.storage.NetworkStore;
 
@@ -25,7 +26,6 @@ public final class PortChangeMonitor {
     }
     public static PortChangeMonitor getInstance() { return Holder.INSTANCE; }
 
-    private static final int PORT_TIMEOUT_MS = 500;
 
     // IP → zuletzt bekannte offene Ports
     private final Map<String, Set<Integer>> lastKnownPorts = new ConcurrentHashMap<>();
@@ -94,7 +94,7 @@ public final class PortChangeMonitor {
         try {
             // Aktueller Scan
             Map<Integer, String> current =
-                    PortScanner.scanSimple(host.ip, PORT_TIMEOUT_MS);
+                    PortScanner.scanSimple(host.ip, TimeoutConfig.PORT_CHANGE_SCAN_MS);
             Set<Integer> currentPorts = current.keySet();
             Set<Integer> previous     = lastKnownPorts.getOrDefault(
                     host.ip, Collections.emptySet());

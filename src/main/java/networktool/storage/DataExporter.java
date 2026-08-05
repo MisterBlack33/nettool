@@ -2,74 +2,41 @@ package main.java.networktool.storage;
 
 import main.java.networktool.model.HostResult;
 
-import java.io.*;
-import java.nio.file.*;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
-import java.util.zip.*;
+import java.io.IOException;
+import java.nio.file.Path;
 
 /**
  * Export gespeicherter Hosts in CSV / JSON / HTML / ZIP.
+ *
+ * Öffentliche Fassade — Implementierung aufgeteilt in:
+ *  {@link DataExportFormatters} (CSV/JSON/HTML) und
+ *  {@link DataExportBackup} (ZIP / verschlüsseltes Backup).
+ * Reiner Struktur-Split, keine Logik-Änderung.
  */
 public final class DataExporter {
 
     private DataExporter() {}
 
-    private static final DateTimeFormatter FMT =
-            DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
-
     public static Path exportCsv(Path outDir) throws IOException {
-        Files.createDirectories(outDir);
-        Path file = outDir.resolve("hosts_export_" + now() + ".csv");
-        List<String> lines = new ArrayList<>();
-        lines.add("IP;Hostname;OS;Datum;Ports;Notiz;Kategorie");
-        forEachHost((h, cat) -> lines.add(
-                csv(h.ip) + ";" + csv(h.hostname) + ";" + csv(h.os) + ";"
-                        + csv(h.savedAt) + ";" + csv(h.portsToString()) + ";"
-                        + csv(h.notes) + ";" + csv(cat)));
-        Files.write(file, lines, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-        return file;
+        return DataExportFormatters.exportCsv(outDir);
     }
 
     public static Path exportJson(Path outDir) throws IOException {
-        Files.createDirectories(outDir);
-        Path file = outDir.resolve("hosts_export_" + now() + ".json");
-        StringBuilder sb = new StringBuilder("[\n");
-        boolean[] first = {true};
-        forEachHost((h, cat) -> {
-            if (!first[0]) sb.append(",\n");
-            sb.append("  {")
-                    .append("\"ip\":\"").append(esc(h.ip)).append("\",")
-                    .append("\"hostname\":\"").append(esc(h.hostname)).append("\",")
-                    .append("\"os\":\"").append(esc(h.os)).append("\",")
-                    .append("\"savedAt\":\"").append(esc(h.savedAt)).append("\",")
-                    .append("\"ports\":\"").append(esc(h.portsToString())).append("\",")
-                    .append("\"notes\":\"").append(esc(h.notes)).append("\",")
-                    .append("\"category\":\"").append(esc(cat)).append("\"")
-                    .append("}");
-            first[0] = false;
-        });
-        sb.append("\n]");
-        Files.writeString(file, sb.toString());
-        return file;
+        return DataExportFormatters.exportJson(outDir);
     }
 
     public static Path exportHtml(Path outDir) throws IOException {
-        Files.createDirectories(outDir);
-        Path file = outDir.resolve("hosts_report_" + now() + ".html");
-        Files.writeString(file, HtmlReportBuilder.build());
-        return file;
+        return DataExportFormatters.exportHtml(outDir);
     }
 
     /** Backup mit automatisch generiertem Dateinamen. */
     public static Path exportBackup(Path outDir) throws IOException {
-        return exportBackup(outDir, NetworkStorePersistence.resolveDataDir());
+        return DataExportBackup.exportBackup(outDir);
     }
 
     /** Backup mit automatisch generiertem Dateinamen + explizitem Quellverzeichnis. */
     public static Path exportBackup(Path outDir, Path srcDir) throws IOException {
-        return exportBackup(outDir, srcDir, "nettool_backup_" + now() + ".zip");
+        return DataExportBackup.exportBackup(outDir, srcDir);
     }
 
     /**
@@ -77,29 +44,11 @@ public final class DataExporter {
      * damit Test-Backups das TEST_BACKUP_PREFIX tragen können).
      */
     public static Path exportBackup(Path outDir, String filename) throws IOException {
-        return exportBackup(outDir, NetworkStorePersistence.resolveDataDir(), filename);
+        return DataExportBackup.exportBackup(outDir, filename);
     }
 
-    public static Path exportBackup(Path outDir, Path srcDir, String filename)
-            throws IOException {
-        Files.createDirectories(outDir);
-        Path zipFile = outDir.resolve(filename);
-        try (ZipOutputStream zos = new ZipOutputStream(
-                new FileOutputStream(zipFile.toFile()))) {
-            if (Files.isDirectory(srcDir)) {
-                try (var stream = Files.walk(srcDir)) {
-                    stream.filter(Files::isRegularFile).forEach(p -> {
-                        try {
-                            zos.putNextEntry(new ZipEntry(
-                                    srcDir.relativize(p).toString().replace('\\', '/')));
-                            Files.copy(p, zos);
-                            zos.closeEntry();
-                        } catch (IOException ignored) {}
-                    });
-                }
-            }
-        }
-        return zipFile;
+    public static Path exportBackup(Path outDir, Path srcDir, String filename) throws IOException {
+        return DataExportBackup.exportBackup(outDir, srcDir, filename);
     }
 
     /**
@@ -107,39 +56,19 @@ public final class DataExporter {
      * Das unverschlüsselte ZIP wird nur temporär angelegt und danach gelöscht.
      */
     public static Path exportEncryptedBackup(Path outDir, String password) throws Exception {
-        Path plain = exportBackup(outDir);
-        Path encrypted = outDir.resolve(plain.getFileName() + BackupCrypto.ENCRYPTED_SUFFIX);
-        try {
-            BackupCrypto.encryptFile(plain, encrypted, password);
-        } finally {
-            Files.deleteIfExists(plain);
-        }
-        return encrypted;
+        return DataExportBackup.exportEncryptedBackup(outDir, password);
     }
 
-    // ── Hilfsmethoden ────────────────────────────────────────────────────
+    // ── Hilfsmethoden (Testzugriff über Package-Sichtbarkeit) ──────────────
 
     @FunctionalInterface
     interface HostConsumer { void accept(HostResult h, String category); }
 
     static void forEachHost(HostConsumer consumer) {
-        NetworkStore.getInstance().getNetworkNames().stream()
-                .filter(n -> !n.equals(NetworkStore.ALL_CATEGORY))
-                .forEach(cat -> NetworkStore.getInstance().getAll(cat)
-                        .forEach(h -> consumer.accept(h, cat)));
+        DataExportFormatters.forEachHost(consumer::accept);
     }
 
-    static String csv(String s) {
-        if (s == null) return "";
-        s = s.replace(";", ",").replace("\n", " ").replace("\r", "");
-        return s.contains(",") ? "\"" + s + "\"" : s;
-    }
+    static String csv(String s) { return DataExportFormatters.csv(s); }
 
-    static String esc(String s) {
-        if (s == null) return "";
-        return s.replace("\\", "\\\\").replace("\"", "\\\"")
-                .replace("\n", "\\n").replace("\r", "");
-    }
-
-    private static String now() { return LocalDateTime.now().format(FMT); }
+    static String esc(String s) { return DataExportFormatters.esc(s); }
 }

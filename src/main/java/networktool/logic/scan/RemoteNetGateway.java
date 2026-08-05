@@ -1,5 +1,7 @@
 package main.java.networktool.logic.scan;
 
+import main.java.networktool.logging.DebugLogger;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
@@ -30,7 +32,9 @@ final class RemoteNetGateway {
                     }
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            DebugLogger.getInstance().log("FINE", "[RemoteNetGateway] Gateway-Ermittlung fehlgeschlagen: " + e);
+        }
         return null;
     }
 

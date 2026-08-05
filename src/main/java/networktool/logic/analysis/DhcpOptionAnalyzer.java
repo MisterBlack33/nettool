@@ -1,5 +1,6 @@
 package main.java.networktool.logic.analysis;
 
+import main.java.networktool.logic.TimeoutConfig;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Random;
@@ -21,7 +22,6 @@ public final class DhcpOptionAnalyzer {
 
     private static final int DHCP_SERVER_PORT = 67;
     private static final int DHCP_CLIENT_PORT = 68;
-    private static final int TIMEOUT_MS       = 1500;
 
     public record Result(String vendorClass, String detectedOs) {}
 
@@ -31,7 +31,7 @@ public final class DhcpOptionAnalyzer {
      */
     public static Result analyze(String ip) {
         try (DatagramSocket socket = new DatagramSocket(DHCP_CLIENT_PORT)) {
-            socket.setSoTimeout(TIMEOUT_MS);
+            socket.setSoTimeout(TimeoutConfig.DHCP_ANALYSIS_MS);
             socket.setBroadcast(true);
 
             byte[] discover = buildDiscover();

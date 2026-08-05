@@ -1,5 +1,6 @@
 package main.java.networktool.logic.scan;
 
+import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.model.ScanResult;
 import main.java.networktool.filter.TablePrinter;
@@ -132,7 +133,9 @@ public final class RemoteNetScanner {
                 for (int i = 0; i < count; i++)
                     prefixes.add(oct[0] + "." + (second + i / 256) + "." + (i % 256));
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            DebugLogger.getInstance().log("FINE", "[RemoteNetScanner] Präfix-Erweiterung fehlgeschlagen: " + e);
+        }
         return prefixes;
     }
 
@@ -143,7 +146,8 @@ public final class RemoteNetScanner {
         String[] p = ip.split("\\.");
         int r = 0;
         for (String s : p) {
-            try { r = (r << 8) | Integer.parseInt(s.trim()); } catch (Exception ignored) {}
+            try { r = (r << 8) | Integer.parseInt(s.trim()); }
+            catch (Exception e) { DebugLogger.getInstance().log("FINE", "[RemoteNetScanner] IP-Oktett nicht parsebar: " + s); }
         }
         return r;
     }

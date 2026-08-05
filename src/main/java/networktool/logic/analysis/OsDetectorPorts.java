@@ -1,6 +1,8 @@
 // src/main/java/networktool/logic/analysis/OsDetectorPorts.java
 package main.java.networktool.logic.analysis;
 
+import main.java.networktool.logic.TimeoutConfig;
+
 import java.io.*;
 import java.net.*;
 import java.util.Map;
@@ -19,8 +21,7 @@ public final class OsDetectorPorts {
 
     private OsDetectorPorts() {}
 
-    static volatile int TIMEOUT_MS = 600;   // war: private static final int TIMEOUT_MS = 600;
-    public static void setTestTimeout(int ms) { TIMEOUT_MS = ms; } // package-private Hook für Tests
+    public static void setTestTimeout(int ms) { TimeoutConfig.OS_DETECT_PORT_SCAN_MS = ms; } // package-private Hook für Tests
     private static final int THREAD_COUNT =
             Math.min(16, Runtime.getRuntime().availableProcessors() * 2);
 
@@ -67,7 +68,7 @@ public final class OsDetectorPorts {
                 exec.submit(() -> open.put(p, isOpen(ip, p)));
             }
             exec.shutdown();
-            exec.awaitTermination(TIMEOUT_MS + 200L, TimeUnit.MILLISECONDS);
+            exec.awaitTermination(TimeoutConfig.OS_DETECT_PORT_SCAN_MS + 200L, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             exec.shutdownNow();
             Thread.currentThread().interrupt();
@@ -174,7 +175,7 @@ public final class OsDetectorPorts {
 
     static boolean isOpen(String ip, int port) {
         try (Socket s = new Socket()) {
-            s.connect(new InetSocketAddress(ip, port), TIMEOUT_MS);
+            s.connect(new InetSocketAddress(ip, port), TimeoutConfig.OS_DETECT_PORT_SCAN_MS);
             return true;
         } catch (Exception e) { return false; }
     }

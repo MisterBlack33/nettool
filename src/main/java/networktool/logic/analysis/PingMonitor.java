@@ -1,5 +1,6 @@
 package main.java.networktool.logic.analysis;
 
+import main.java.networktool.logic.TimeoutConfig;
 import networktool.gui.core.GUI;
 import networktool.theme.GuiTheme;
 
@@ -26,7 +27,6 @@ public final class PingMonitor {
 
     private static final int INTERVAL_MS  = 1000;  // Ping-Intervall
     private static final int MAX_SAMPLES  = 60;    // Sichtfenster (60 Sekunden)
-    private static final int TIMEOUT_MS   = 2000;
     private static final int PANEL_HEIGHT = 120;
     private static final int PANEL_WIDTH  = 620;
 
@@ -93,7 +93,7 @@ public final class PingMonitor {
             stats[0]++;
             long t = System.currentTimeMillis();
             try {
-                boolean alive = inet.isReachable(TIMEOUT_MS);
+                boolean alive = inet.isReachable(TimeoutConfig.PING_MONITOR_MS);
                 long ms = System.currentTimeMillis() - t;
                 if (alive) {
                     synchronized (latencies) {
@@ -216,7 +216,7 @@ public final class PingMonitor {
             if (maxSeconds > 0 && System.currentTimeMillis() - start > maxSeconds * 1000L)
                 break;
             long t = System.currentTimeMillis();
-            boolean alive = inet.isReachable(TIMEOUT_MS);
+            boolean alive = inet.isReachable(TimeoutConfig.PING_MONITOR_MS);
             long ms = System.currentTimeMillis() - t;
             sent++;
             if (alive) {

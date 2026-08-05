@@ -1,5 +1,6 @@
 package main.java.networktool.storage;
 
+import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.model.HostResult;
 
 import java.time.LocalDateTime;
@@ -80,7 +81,10 @@ final class NetworkStoreHostOps {
         if (ip == null) return 0;
         String[] p = ip.split("\\.");
         int r = 0;
-        for (String s : p) { try { r = (r << 8) | Integer.parseInt(s.trim()); } catch (Exception ignored) {} }
+        for (String s : p) {
+            try { r = (r << 8) | Integer.parseInt(s.trim()); }
+            catch (Exception e) { DebugLogger.getInstance().log("FINE", "[NetworkStoreHostOps] IP-Oktett nicht parsebar: " + s); }
+        }
         return r;
     }
 }
