@@ -1,5 +1,7 @@
 package main.java.networktool.storage;
 
+import main.java.networktool.model.HostResult;
+import networktool.storage.HostJsonBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -80,7 +82,7 @@ class JsonHelperFuzzTest {
 
     @Test void hostJsonBuilder_roundtrip_bannerWithBrace() {
         Map<Integer, String> ports = Map.of(80, "HTTP | {nginx}");
-        var h = new main.java.networktool.model.HostResult(
+        var h = new HostResult(
                 TestConstants.IP_1, TestConstants.HOST_1, "Linux", "2024", ports, "note {x}");
         String json = HostJsonBuilder.buildNetworkJson(TestConstants.NET_STANDARD, "", List.of(h));
         int start = json.indexOf('{', json.indexOf("\"hosts\""));
@@ -92,7 +94,7 @@ class JsonHelperFuzzTest {
     }
 
     @Test void hostJsonBuilder_roundtrip_notesWithBracketAndComma() {
-        var h = new main.java.networktool.model.HostResult(
+        var h = new HostResult(
                 TestConstants.IP_2, TestConstants.HOST_2, "Win", "2024", Map.of(), "list [1,2], done");
         String json = HostJsonBuilder.buildNetworkJson(TestConstants.NET_STANDARD, "", List.of(h));
         int start = json.indexOf('{', json.indexOf("\"hosts\""));

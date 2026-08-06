@@ -1,4 +1,4 @@
-package networktool.gui.security;
+package main.java.networktool.gui.security;
 
 import javax.crypto.*;
 import javax.crypto.spec.*;

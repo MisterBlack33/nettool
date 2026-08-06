@@ -1,5 +1,6 @@
 package main.java.networktool.logic.scan;
 
+import networktool.logic.scan.NetworkDiscoverySweep;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

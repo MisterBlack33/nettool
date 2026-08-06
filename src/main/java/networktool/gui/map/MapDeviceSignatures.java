@@ -1,4 +1,4 @@
-package networktool.gui.map;
+package main.java.networktool.gui.map;
 
 import java.util.List;
 import java.util.Set;

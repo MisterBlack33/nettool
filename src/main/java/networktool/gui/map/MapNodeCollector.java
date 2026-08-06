@@ -1,12 +1,7 @@
-package networktool.gui.map;
+package main.java.networktool.gui.map;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.gui.components.GuiNetworkMap;
+import main.java.networktool.gui.components.*;
 import main.java.networktool.logic.scan.MapTrafficObserver;
 import main.java.networktool.logic.scan.RemoteNetScanner;
 import main.java.networktool.logic.scan.ScanHistory;

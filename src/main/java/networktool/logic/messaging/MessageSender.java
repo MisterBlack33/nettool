@@ -1,7 +1,7 @@
 package main.java.networktool.logic.messaging;
 
-import networktool.gui.notification.LocalToast;
-import networktool.gui.notification.NotificationListener;
+import main.java.networktool.gui.notification.LocalToast;
+import main.java.networktool.gui.notification.NotificationListener;
 import main.java.networktool.logic.analysis.OsDetector;
 
 /**

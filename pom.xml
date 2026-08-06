@@ -96,7 +96,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>networktool.Main</mainClass>
+                            <mainClass>main.java.networktool.Main</mainClass>
                         </manifest>
                     </archive>
                     <finalName>nettool</finalName>

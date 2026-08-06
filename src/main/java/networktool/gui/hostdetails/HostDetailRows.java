@@ -1,18 +1,11 @@
-package networktool.gui.hostdetails;
+package main.java.networktool.gui.hostdetails;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 
-import networktool.theme.GuiTheme;
-import static networktool.theme.GuiTheme.*;
+import main.java.networktool.theme.GuiTheme;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /** Wiederverwendbare Zeilen-Layouts für Host-Detail-Tabs (Label + Wert). */
 final class HostDetailRows {

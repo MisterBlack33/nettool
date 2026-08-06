@@ -1,12 +1,5 @@
-package networktool.gui.panels;
+package main.java.networktool.gui.panels;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
 import main.java.networktool.model.HostResult;
 
 import javax.swing.*;
@@ -15,7 +8,7 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import static networktool.theme.GuiTheme.*;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Wiederverwendete Style-Bausteine (Buttons, Labels) für den Saved-Hosts-Bereich.

@@ -1,12 +1,8 @@
-package networktool.gui.components;
+package main.java.networktool.gui.components;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.gui.core.GuiMenuHandler;
+import main.java.networktool.gui.panels.GuiInputPanel;
+import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.scan.RemoteNetScanner;
 import main.java.networktool.security.AuditLogger;
 
@@ -14,7 +10,7 @@ import javax.swing.*;
 import java.util.Arrays;
 import java.util.List;
 
-import static networktool.theme.GuiTheme.*;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Dialog-Kaskade für den Fremdnetz-Scanner (Menüpunkt "11").
@@ -24,7 +20,7 @@ public final class GuiForeignNetActions {
     private GuiForeignNetActions() {}
 
     public static void handleRemoteNetScan(GuiInputPanel input, GuiOutputPanel output,
-                                            GuiStatusBar status, GuiMenuHandler handler) {
+                                           GuiStatusBar status, GuiMenuHandler handler) {
         String gw = RemoteNetScanner.detectDefaultGateway();
         status.set("Gateway: " + (gw != null ? gw : "–"), FG_DIM);
         String[] options = {"Einzelnes Netz", "Mehrere Netze", "Erreichbarkeitstest", "Routing-Hilfe"};

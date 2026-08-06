@@ -1,5 +1,6 @@
 package main.java.networktool.logic.analysis;
 
+import networktool.logic.analysis.OsFingerprint;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

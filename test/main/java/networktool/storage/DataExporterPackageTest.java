@@ -1,5 +1,6 @@
 package main.java.networktool.storage;
 
+import networktool.storage.HtmlReportBuilder;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.io.TempDir;

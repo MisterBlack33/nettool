@@ -1,5 +1,7 @@
 package main.java.networktool.logic.ports;
 
+import main.java.networktool.logic.windows.PsPortScanResolver;
+
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -127,7 +129,7 @@ public final class PortScanner {
 
     // Windows-Fallback: Firewalls blocken teils rohe Sockets, aber nicht Test-NetConnection
     private static PortState psFallback(String host, int port) {
-        return main.java.networktool.logic.windows.PsPortScanResolver.isOpen(host, port)
+        return PsPortScanResolver.isOpen(host, port)
                 ? PortState.OPEN : PortState.CLOSED;
     }
 

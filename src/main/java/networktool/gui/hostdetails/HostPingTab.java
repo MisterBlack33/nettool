@@ -1,12 +1,5 @@
-package networktool.gui.hostdetails;
+package main.java.networktool.gui.hostdetails;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
@@ -16,9 +9,10 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.List;
 
-import networktool.theme.GuiTheme;
-import static networktool.theme.GuiTheme.*;
-import static networktool.gui.hostdetails.HostDetailRows.detailButton;
+import main.java.networktool.gui.components.PingGraphRenderer;
+import main.java.networktool.theme.GuiTheme;
+import static main.java.networktool.theme.GuiTheme.*;
+import static main.java.networktool.gui.hostdetails.HostDetailRows.detailButton;
 
 /** Tab ②: Live-Ping mit Verlaufsgraph (letzte 20 Pings) und History-Liste. */
 final class HostPingTab extends JPanel {

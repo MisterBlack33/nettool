@@ -1,15 +1,8 @@
-package networktool.gui.login;
+package main.java.networktool.gui.login;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
 import javax.swing.*;
 
-import static networktool.theme.GuiTheme.WARN;
+import static main.java.networktool.theme.GuiTheme.WARN;
 
 /**
  * Überwacht {@link GuiLoginRateLimiter} und sperrt den Login-Button

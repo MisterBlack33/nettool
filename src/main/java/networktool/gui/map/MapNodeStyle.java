@@ -1,10 +1,10 @@
-package networktool.gui.map;
+package main.java.networktool.gui.map;
 
-import networktool.gui.components.GuiNetworkMap;
+import main.java.networktool.gui.components.GuiNetworkMap;
 
 import java.awt.Color;
 
-import static networktool.theme.GuiTheme.*;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Reine Lookup-Logik für das Aussehen eines Knotens (Farbe, Icon, Radius,

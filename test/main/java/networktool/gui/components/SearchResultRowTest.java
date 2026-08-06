@@ -3,8 +3,6 @@ package networktool.gui.components;
 import main.java.networktool.model.HostResult;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class SearchResultRowTest {
 
     private HostResult host(String ip, String hostname, String os, String notes) {

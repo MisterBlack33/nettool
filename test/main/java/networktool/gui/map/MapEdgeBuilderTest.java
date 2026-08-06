@@ -1,6 +1,7 @@
-package networktool.gui.map;
+package main.java.networktool.gui.map;
 
-import networktool.gui.components.GuiNetworkMap;
+import main.java.networktool.gui.components.GuiNetworkMap;
+import networktool.gui.map.MapEdgeBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;

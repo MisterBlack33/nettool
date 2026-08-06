@@ -1,6 +1,8 @@
 package main.java.networktool.storage;
 
 import main.java.networktool.model.HostResult;
+import networktool.storage.HostJsonBuilder;
+import networktool.storage.HostSchemaMigration;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

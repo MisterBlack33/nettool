@@ -1,12 +1,5 @@
-package networktool.gui.components;
+package main.java.networktool.gui.components;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
 import main.java.networktool.filter.ClipboardUtil;
 import main.java.networktool.logic.analysis.OsDetector;
 import main.java.networktool.security.AuditLogger;
@@ -16,7 +9,7 @@ import javax.swing.border.*;
 import java.awt.*;
 import java.net.*;
 
-import static networktool.theme.GuiTheme.*;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /** Remote-Simulation-Dialoge und Browser-Öffnung. Paket-privat. */
 final class GuiRemoteActions {

@@ -1,27 +1,17 @@
-package networktool.gui.core;
+package main.java.networktool.gui.core;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.gui.components.*;
+import main.java.networktool.gui.components.*;
 import main.java.networktool.security.LoginDialog;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.model.ScanResult;
 import main.java.networktool.security.AuditLogger;
 import main.java.networktool.security.SecurityMonitor;
 import main.java.networktool.security.UserAuth;
-import networktool.util.AppIcon;
-import networktool.gui.components.GuiSearchBar;
-import networktool.gui.components.GuiProgressBar;
-import networktool.gui.components.GuiStatusBar;
-import networktool.gui.components.GuiTableRenderer;
-import networktool.gui.components.GuiContextMenu;
-import networktool.gui.panels.GuiOutputPanel;
-import networktool.gui.panels.GuiInputPanel;
-import networktool.gui.panels.GuiSavedHostsPanel;
+import main.java.networktool.util.AppIcon;
+import main.java.networktool.gui.panels.GuiOutputPanel;
+import main.java.networktool.gui.panels.GuiInputPanel;
+import main.java.networktool.gui.panels.GuiSavedHostsPanel;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,8 +19,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import networktool.theme.GuiTheme;
-import static networktool.theme.GuiTheme.*;
+import main.java.networktool.theme.GuiTheme;
 
 /**
  * Haupt-Fenster der Anwendung.

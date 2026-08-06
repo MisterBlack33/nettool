@@ -1,17 +1,12 @@
-package networktool.gui.components;
+package main.java.networktool.gui.components;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.gui.hostdetails.*;
+
 import java.awt.*;
 import java.util.List;
 
-import networktool.theme.GuiTheme;
-import static networktool.theme.GuiTheme.*;
+import main.java.networktool.theme.GuiTheme;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /** Zeichnet die Latenz-Verlaufskurve für {@link HostPingTab}. */
 public final class PingGraphRenderer {

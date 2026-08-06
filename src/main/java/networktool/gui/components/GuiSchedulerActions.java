@@ -1,12 +1,7 @@
-package networktool.gui.components;
+package main.java.networktool.gui.components;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.gui.panels.GuiInputPanel;
+import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.scan.ScanScheduler;
 import main.java.networktool.model.ScanProfile;
 import main.java.networktool.security.AuditLogger;
@@ -17,7 +12,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static networktool.theme.GuiTheme.*;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Planen, Stoppen und Anzeigen wiederkehrender Scans (Menüpunkt "14").
@@ -29,7 +24,7 @@ public final class GuiSchedulerActions {
     private GuiSchedulerActions() {}
 
     public static void handleScheduler(GuiInputPanel input, GuiOutputPanel output,
-                                        GuiStatusBar status) {
+                                       GuiStatusBar status) {
         ScanScheduler sched = ScanScheduler.getInstance();
         List<ScanProfile> profiles = ScanProfileStore.getInstance().getAll();
         String running = sched.getRunning().isEmpty() ? "–" : String.join(", ", sched.getRunning());

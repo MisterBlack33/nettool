@@ -1,4 +1,4 @@
-package networktool.gui.panels;
+package main.java.networktool.gui.panels;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -6,8 +6,8 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import networktool.theme.GuiTheme;
-import static networktool.theme.GuiTheme.*;
+import main.java.networktool.theme.GuiTheme;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Wiederverwendete Swing-Bausteine für {@link GuiPrivacyPanel}.

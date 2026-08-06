@@ -1,5 +1,7 @@
 package main.java.networktool.logic.analysis;
 
+import networktool.logic.analysis.OsBannerAnalyzer;
+import networktool.logic.analysis.OsSignature;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -1,4 +1,4 @@
-package networktool.gui.panels;
+package main.java.networktool.gui.panels;
 
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
@@ -7,8 +7,8 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.function.BiConsumer;
 
-import networktool.theme.GuiTheme;
-import static networktool.theme.GuiTheme.*;
+import main.java.networktool.theme.GuiTheme;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Baut PrintStreams, die {@code System.out}/{@code System.err} zeilenweise

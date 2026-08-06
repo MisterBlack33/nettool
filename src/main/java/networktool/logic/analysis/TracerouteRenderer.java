@@ -1,7 +1,7 @@
 package main.java.networktool.logic.analysis;
 
-import networktool.gui.core.GUI;
-import networktool.util.TableConfig;
+import main.java.networktool.gui.core.GUI;
+import main.java.networktool.util.TableConfig;
 
 import javax.swing.*;
 import javax.swing.border.LineBorder;
@@ -10,8 +10,8 @@ import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.util.List;
 
-import static networktool.theme.GuiTheme.*;
-import static networktool.util.TableConfig.*;
+import static main.java.networktool.theme.GuiTheme.*;
+import static main.java.networktool.util.TableConfig.*;
 
 /**
  * Gibt Traceroute-Ergebnisse aus:

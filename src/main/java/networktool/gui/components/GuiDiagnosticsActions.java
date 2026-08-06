@@ -1,12 +1,8 @@
-package networktool.gui.components;
+package main.java.networktool.gui.components;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.gui.core.GuiMenuHandler;
+import main.java.networktool.gui.panels.GuiInputPanel;
+import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.analysis.ArpMonitor;
 import main.java.networktool.logic.analysis.IpInspector;
 import main.java.networktool.logic.analysis.PingMonitor;
@@ -19,7 +15,7 @@ import javax.swing.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static networktool.theme.GuiTheme.*;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * IP-Diagnose, Bandbreitentest, Dauerping und Sicherheits-Monitore

@@ -1,7 +1,6 @@
 package main.java.networktool.util;
 
 import org.junit.jupiter.api.*;
-import networktool.util.TableConfig;
 
 import java.lang.reflect.Method;
 

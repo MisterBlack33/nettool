@@ -1,13 +1,13 @@
-package networktool.gui.core;
+package main.java.networktool.gui.core;
 
-import networktool.gui.panels.GuiOutputPanel;
+import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.analysis.OuiUpdater;
 import main.java.networktool.logic.messaging.MessageSender;
 import main.java.networktool.security.SecurityMonitor;
 import main.java.networktool.security.UserAuth;
 import main.java.networktool.storage.NetworkStore;
 
-import networktool.theme.GuiTheme;
+import main.java.networktool.theme.GuiTheme;
 
 /**
  * Hintergrundaufgaben, die direkt nach dem Anzeigen des Hauptfensters

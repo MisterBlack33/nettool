@@ -1,4 +1,4 @@
-package networktool.gui.components;
+package main.java.networktool.gui.components;
 
 import javax.swing.*;
 import javax.swing.border.*;

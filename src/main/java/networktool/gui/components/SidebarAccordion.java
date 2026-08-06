@@ -1,12 +1,4 @@
-package networktool.gui.components;
-
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+package main.java.networktool.gui.components;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -17,8 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-import networktool.theme.GuiTheme;
-import static networktool.theme.GuiTheme.*;
+import main.java.networktool.theme.GuiTheme;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Aufklappbares Accordion-Menü der Sidebar: Gruppen-Header, Buttons,

@@ -1,7 +1,8 @@
 package networktool.gui.map;
 
+import main.java.networktool.gui.map.MapLegend;
 import org.junit.jupiter.api.*;
-import networktool.gui.map.MapLegend;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class MapLegendTest {

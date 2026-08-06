@@ -1,24 +1,20 @@
-package networktool.gui.components;
+package main.java.networktool.gui.components;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.util.*;
+import main.java.networktool.gui.hostdetails.HostDetailsPanel;
+import main.java.networktool.gui.hostdetails.HostSaveDialog;
 import main.java.networktool.logic.analysis.IpInspector;
 import main.java.networktool.logic.analysis.WakeOnLan;
 import main.java.networktool.storage.NetworkStore;
-import networktool.gui.core.GuiMenuHandler;
-import networktool.gui.panels.GuiOutputPanel;
+import main.java.networktool.gui.core.GuiMenuHandler;
+import main.java.networktool.gui.panels.GuiOutputPanel;
 
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
 
-import static networktool.theme.GuiTheme.*;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Rechtsklick-Kontextmenü für alle JTables.

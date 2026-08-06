@@ -1,23 +1,16 @@
-package networktool.util;
+package main.java.networktool.util;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
-import networktool.gui.components.NtfyTopicPrompt;
-import networktool.gui.core.GuiMenuHandler;
-import networktool.gui.notification.NotificationListener;
-import networktool.gui.panels.GuiOutputPanel;
+import main.java.networktool.gui.components.NtfyTopicPrompt;
+import main.java.networktool.gui.core.GuiMenuHandler;
+import main.java.networktool.gui.notification.NotificationListener;
+import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.analysis.WakeOnLan;
 import main.java.networktool.logic.messaging.MessageSender;
 import main.java.networktool.storage.NetworkStore;
 
 import javax.swing.*;
 
-import static networktool.theme.GuiTheme.*;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Aktionen für das Kontextmenü, die über einfache Speichervorgänge

@@ -1,7 +1,7 @@
-package networktool.gui.core;
+package main.java.networktool.gui.core;
 
-import networktool.gui.components.GuiStatusBar;
-import networktool.gui.panels.GuiOutputPanel;
+import main.java.networktool.gui.components.GuiStatusBar;
+import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.security.AuditLogger;
 import main.java.networktool.security.UserAuth;
 
@@ -9,7 +9,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-import networktool.theme.GuiTheme;
+import main.java.networktool.theme.GuiTheme;
 
 /**
  * Fenster-nahe Querschnitts-Funktionen des Hauptfensters:

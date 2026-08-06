@@ -1,5 +1,7 @@
-package networktool.gui.core;
+package main.java.networktool.gui.core;
 
+import main.java.networktool.gui.panels.GuiInputPanel;
+import networktool.gui.core.GuiWindowActions;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.parallel.Isolated;
 
@@ -51,7 +53,7 @@ class GuiWindowActionsTest {
     @Test void installKeyboardShortcuts_doesNotThrow() {
         JFrame f = new JFrame();
         GuiMenuHandler handler = new GuiMenuHandler(
-                new networktool.gui.panels.GuiInputPanel(new JLabel(), null),
+                new GuiInputPanel(new JLabel(), null),
                 null, null, null);
         assertDoesNotThrow(() -> GuiWindowActions.installKeyboardShortcuts(
                 f, handler, () -> {}, () -> {}, () -> {}));

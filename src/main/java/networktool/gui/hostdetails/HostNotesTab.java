@@ -1,12 +1,5 @@
-package networktool.gui.hostdetails;
+package main.java.networktool.gui.hostdetails;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
 import main.java.networktool.storage.NetworkStore;
 
 import javax.swing.*;
@@ -15,9 +8,9 @@ import java.awt.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-import networktool.theme.GuiTheme;
-import static networktool.theme.GuiTheme.*;
-import static networktool.gui.hostdetails.HostDetailRows.detailButton;
+import main.java.networktool.theme.GuiTheme;
+import static main.java.networktool.theme.GuiTheme.*;
+import static main.java.networktool.gui.hostdetails.HostDetailRows.detailButton;
 
 /** Tab ④: Notiz-Editor – direkt bearbeiten und speichern. */
 final class HostNotesTab {

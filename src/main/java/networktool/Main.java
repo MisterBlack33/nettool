@@ -1,6 +1,6 @@
 package main.java.networktool;
 
-import networktool.gui.core.GUI;
+import main.java.networktool.gui.core.GUI;
 import main.java.networktool.security.AuditLogger;
 import main.java.networktool.security.LoginDialog;
 import main.java.networktool.security.UserAuth;
@@ -8,7 +8,6 @@ import main.java.networktool.storage.StorageUtils;
 
 import javax.swing.*;
 import java.nio.file.Path;
-import java.util.Scanner;
 
 /**
  * Einstiegspunkt der Anwendung.

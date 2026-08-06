@@ -1,17 +1,13 @@
-package networktool.gui.map;
+package main.java.networktool.gui.map;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.gui.components.GuiNetworkMap;
+import main.java.networktool.gui.components.*;
+
 import java.awt.*;
 
-import networktool.theme.GuiTheme;
-import static networktool.theme.GuiTheme.*;
-import static networktool.gui.map.MapNodeStyle.*;
+import main.java.networktool.theme.GuiTheme;
+import static main.java.networktool.theme.GuiTheme.*;
+import static main.java.networktool.gui.map.MapNodeStyle.*;
 
 /**
  * Zeichnet Knoten und Kanten der Netzwerkkarte.
