@@ -1,5 +1,6 @@
 package main.java.networktool.logic.scan;
 
+import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.logic.messaging.MessageSender;
 import main.java.networktool.logic.ports.PortScanner;
 import main.java.networktool.logic.TimeoutConfig;
@@ -129,6 +130,7 @@ public final class PortChangeMonitor {
 
         } catch (Exception e) {
             System.err.println("[PortMonitor] " + host.ip + ": " + e.getMessage());
+            DebugLogger.getInstance().log("FINE", "[PortChangeMonitor] " + host.ip + ": " + e);
         }
     }
 
