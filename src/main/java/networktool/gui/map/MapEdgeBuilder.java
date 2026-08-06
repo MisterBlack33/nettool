@@ -39,6 +39,8 @@ final class MapEdgeBuilder {
         return edges;
     }
 
+    // ── Parent-Auflösung ──────────────────────────────────────────────────
+
     private static GuiNetworkMap.Node resolveParent(
             GuiNetworkMap.Node node,
             List<GuiNetworkMap.Node> switches,
@@ -54,15 +56,23 @@ final class MapEdgeBuilder {
         String subnet = MapTopology.subnet24(node.ip);
         if (subnet == null) return gateway;
 
-        GuiNetworkMap.Node manualSwitch = switches.stream()
-                .filter(sw -> MapSwitchStore.contains(sw.ip) && subnet.equals(MapTopology.subnet24(sw.ip)))
-                .findFirst().orElse(null);
+        GuiNetworkMap.Node manualSwitch = findManualSwitch(switches, subnet);
         if (manualSwitch != null) return manualSwitch;
 
+        return nearestSwitchInSubnet(switches, subnet, node).orElse(gateway);
+    }
+
+    private static GuiNetworkMap.Node findManualSwitch(List<GuiNetworkMap.Node> switches, String subnet) {
+        return switches.stream()
+                .filter(sw -> MapSwitchStore.contains(sw.ip) && subnet.equals(MapTopology.subnet24(sw.ip)))
+                .findFirst().orElse(null);
+    }
+
+    private static java.util.Optional<GuiNetworkMap.Node> nearestSwitchInSubnet(
+            List<GuiNetworkMap.Node> switches, String subnet, GuiNetworkMap.Node node) {
         return switches.stream()
                 .filter(sw -> subnet.equals(MapTopology.subnet24(sw.ip)))
-                .min(Comparator.comparingInt(sw -> Math.abs(MapTopology.lastOctet(sw.ip) - MapTopology.lastOctet(node.ip))))
-                .orElse(gateway);
+                .min(Comparator.comparingInt(sw -> Math.abs(MapTopology.lastOctet(sw.ip) - MapTopology.lastOctet(node.ip))));
     }
 
     private static GuiNetworkMap.Node findOrCreateSwitch(
@@ -89,6 +99,8 @@ final class MapEdgeBuilder {
         }
         return existing;
     }
+
+    // ── Hilfsmethoden ─────────────────────────────────────────────────────
 
     private static List<GuiNetworkMap.Node> collectSwitches(List<GuiNetworkMap.Node> nodes) {
         return nodes.stream()
