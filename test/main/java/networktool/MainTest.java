@@ -5,6 +5,7 @@ import main.java.networktool.security.UserAuth;
 import main.java.networktool.storage.StorageUtils;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.Isolated;
 
 import java.io.*;
 import java.lang.reflect.*;
@@ -17,6 +18,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * Tests for Main – isCliMode(), cliLogin(), security init.
  * GUI-Start wird nicht getestet (headless).
  */
+
+@Isolated
 class MainTest {
 
     @TempDir Path tmp;
