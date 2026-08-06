@@ -1,12 +1,5 @@
 package networktool.gui.map;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
 import main.java.networktool.storage.StorageUtils;
 
 import java.nio.charset.StandardCharsets;
@@ -16,7 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Persistiert manuell markierte Switch-IPs in txt/mapSwitches.json.
+ * Persistiert manuell markierte Switch-IPs in data/mapSwitches.json.
  * Lädt beim Start automatisch.
  */
 public final class MapSwitchStore {
@@ -27,6 +20,9 @@ public final class MapSwitchStore {
 
     static final Set<String> SWITCHES = Collections.synchronizedSet(new HashSet<>());
     private static final String FILE = "mapSwitches.json";
+
+    /** Wenn true: keine Datei-I/O, nur In-Memory. Von Tests gesetzt, damit produktive Daten unverändert bleiben. */
+    static volatile boolean testMode = false;
 
     static {
         load();
@@ -67,6 +63,7 @@ public final class MapSwitchStore {
     }
 
     private static void persist() {
+        if (testMode) return;
         try {
             Path dir = StorageUtils.resolveDataDir();
             Files.createDirectories(dir);

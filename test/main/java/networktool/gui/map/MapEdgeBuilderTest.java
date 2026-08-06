@@ -1,7 +1,9 @@
 package networktool.gui.map;
 
 import networktool.gui.components.GuiNetworkMap;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Isolated;
 
@@ -12,6 +14,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @Isolated
 class MapEdgeBuilderTest {
+
+    // testMode verhindert, dass MapSwitchStore.add/remove die produktive
+    // mapSwitches.json beschreibt (siehe MapSwitchStore.testMode).
+    @BeforeAll static void enableTestMode() { MapSwitchStore.testMode = true; }
+    @AfterAll  static void disableTestMode() { MapSwitchStore.testMode = false; }
 
     private GuiNetworkMap.Node node(String ip, GuiNetworkMap.NodeType type) {
         return new GuiNetworkMap.Node(ip, ip, "", type);
@@ -81,7 +88,6 @@ class MapEdgeBuilderTest {
         List<GuiNetworkMap.Edge> edges = MapEdgeBuilder.build(
                 nodes, gw, null, Map.of("10.0.0.5", "10.0.0.254"));
 
-        // Zwischenknoten 10.0.0.254 sollte neu angelegt worden sein
         assertTrue(nodes.stream().anyMatch(n -> n.ip.equals("10.0.0.254")));
         GuiNetworkMap.Edge hostEdge = edges.stream()
                 .filter(e -> e.from == host).findFirst().orElseThrow();
