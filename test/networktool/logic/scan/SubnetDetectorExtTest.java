@@ -12,7 +12,9 @@ class SubnetDetectorExtTest {
     }
 
     @Test void getAllCidrs_validFormat() throws Exception {
-        for (String cidr : SubnetDetector.getAllCidrs()) {
+        List<String> cidrs = SubnetDetector.getAllCidrs();
+        org.junit.jupiter.api.Assumptions.assumeFalse(cidrs.isEmpty(), "Keine Netzwerkschnittstellen in dieser Umgebung");
+        for (String cidr : cidrs) {
             assertTrue(cidr.contains("/"), "Kein CIDR-Format: " + cidr);
             String[] parts = cidr.split("/");
             assertEquals(2, parts.length);

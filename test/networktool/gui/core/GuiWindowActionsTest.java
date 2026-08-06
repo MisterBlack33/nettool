@@ -1,6 +1,7 @@
 package networktool.gui.core;
 
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.parallel.Isolated;
 
 import javax.swing.*;
 
@@ -12,6 +13,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * auf und werden hier bewusst NICHT getestet (blockierender Dialog headless nicht
  * automatisierbar ohne UI-Test-Framework, siehe JaCoCo-Exclude in pom.xml).
  */
+
+@Isolated
 class GuiWindowActionsTest {
 
     @BeforeAll

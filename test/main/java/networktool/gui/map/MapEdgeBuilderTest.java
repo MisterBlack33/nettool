@@ -3,12 +3,14 @@ package networktool.gui.map;
 import networktool.gui.components.GuiNetworkMap;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Isolated;
 
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Isolated
 class MapEdgeBuilderTest {
 
     private GuiNetworkMap.Node node(String ip, GuiNetworkMap.NodeType type) {

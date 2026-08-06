@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.List;
+import org.junit.jupiter.api.parallel.Isolated;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -181,6 +182,7 @@ class AuditLoggerTest {
 
     // ── AuditLogger API ───────────────────────────────────────────────────
 
+    @Isolated
     @Nested
     class AuditLoggerApiTest {
 
