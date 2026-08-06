@@ -1,12 +1,8 @@
-package networktool.gui.components;
+package main.java.networktool.gui.components;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.gui.core.GUI;
+import main.java.networktool.gui.map.MapCanvas;
+import main.java.networktool.gui.map.*;
 import main.java.networktool.logic.scan.LastScanCache;
 import main.java.networktool.logic.scan.NetworkScanner;
 import main.java.networktool.logic.scan.SubnetDetector;
@@ -18,7 +14,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static networktool.theme.GuiTheme.*;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Hintergrund-Tasks der Netzwerk-Karte: initialer Quick-Scan des lokalen

@@ -162,7 +162,7 @@ final class NetworkStorePersistence {
         try {
             // 1) Trigger SavedHostsStore migration: setFilePath() lädt und migriert
             try {
-                main.java.networktool.storage.SavedHostsStore.getInstance()
+                SavedHostsStore.getInstance()
                         .setFilePath(dataDir.resolve("saved_hosts.bin"));
             } catch (Throwable t) {
                 System.err.println("[NetworkStorePersistence] SavedHostsStore migration failed: " + t.getMessage());
@@ -170,7 +170,7 @@ final class NetworkStorePersistence {
 
             // 2) Trigger ScanProfileStore constructor/migration
             try {
-                main.java.networktool.storage.ScanProfileStore.getInstance();
+                ScanProfileStore.getInstance();
             } catch (Throwable t) {
                 System.err.println("[NetworkStorePersistence] ScanProfileStore migration failed: " + t.getMessage());
             }

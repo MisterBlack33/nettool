@@ -1,18 +1,10 @@
-package networktool.gui.login;
+package main.java.networktool.gui.login;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 
-import static networktool.gui.login.LoginFormBuilder.*;
-import static networktool.gui.login.LoginInputs.fieldLabel;
+import static main.java.networktool.gui.login.LoginInputs.fieldLabel;
 
 /**
  * GridBag-Layout-Hilfsmethoden für Login- und Registrierungsformulare.

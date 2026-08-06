@@ -1,8 +1,5 @@
 package main.java.networktool.transfer;
 
-import java.io.*;
-import java.net.*;
-
 /**
  * Misst die Bandbreite einer Verbindung aktiv – ohne eigenen Server.
  *

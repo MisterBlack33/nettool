@@ -1,15 +1,15 @@
-package networktool.gui.map;
+package main.java.networktool.gui.map;
 
 import main.java.networktool.storage.NetworkStore;
-import networktool.gui.components.GuiNetworkMap;
-import networktool.gui.hostdetails.HostDetailsPanel;
+import main.java.networktool.gui.components.GuiNetworkMap;
+import main.java.networktool.gui.hostdetails.HostDetailsPanel;
 
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
 
-import static networktool.theme.GuiTheme.*;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Rechtsklick-Kontextmenü für Netzwerk-Karte.

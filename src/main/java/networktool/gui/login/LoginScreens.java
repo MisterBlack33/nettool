@@ -1,12 +1,5 @@
-package networktool.gui.login;
+package main.java.networktool.gui.login;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
 import main.java.networktool.security.UserAuth;
 
 import javax.swing.*;
@@ -14,12 +7,12 @@ import javax.swing.border.*;
 import java.awt.*;
 import java.util.List;
 
-import networktool.theme.GuiTheme;
-import static networktool.theme.GuiTheme.*;
-import static networktool.gui.login.LoginFormBuilder.*;
-import static networktool.gui.login.LoginInputs.*;
-import static networktool.gui.login.LoginButtons.*;
-import static networktool.gui.login.LoginFormLayout.*;
+import main.java.networktool.theme.GuiTheme;
+import static main.java.networktool.theme.GuiTheme.*;
+import static main.java.networktool.gui.login.LoginFormBuilder.*;
+import static main.java.networktool.gui.login.LoginInputs.*;
+import static main.java.networktool.gui.login.LoginButtons.*;
+import static main.java.networktool.gui.login.LoginFormLayout.*;
 
 /**
  * Baut den Anmeldebildschirm. Reine UI-Assemblierung;

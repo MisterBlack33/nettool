@@ -1,12 +1,12 @@
-package networktool.theme;
+package main.java.networktool.theme;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.util.*;
+import main.java.networktool.gui.login.*;
+import main.java.networktool.gui.hostdetails.*;
+import main.java.networktool.gui.map.*;
+import main.java.networktool.gui.core.*;
+import main.java.networktool.gui.components.*;
+import main.java.networktool.gui.panels.*;
 import java.awt.*;
 
 /**

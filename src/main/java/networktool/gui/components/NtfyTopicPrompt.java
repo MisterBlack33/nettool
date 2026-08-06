@@ -1,12 +1,6 @@
-package networktool.gui.components;
+package main.java.networktool.gui.components;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.gui.core.GuiMenuHandler;
 import main.java.networktool.storage.NetworkStore;
 
 import javax.swing.*;

@@ -1,14 +1,13 @@
-package networktool.gui.panels;
+package main.java.networktool.gui.panels;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.gui.components.GuiContextMenu;
+import main.java.networktool.gui.components.GuiNetworkBar;
+import main.java.networktool.gui.components.GuiSearchBar;
+import main.java.networktool.gui.components.GuiTableRenderer;
+import main.java.networktool.gui.core.GuiMenuHandler;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.storage.NetworkStore;
+import main.java.networktool.util.TableConfig;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -17,10 +16,9 @@ import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import static networktool.theme.GuiTheme.*;
-import static networktool.util.TableConfig.*;
+import static main.java.networktool.theme.GuiTheme.*;
+import static main.java.networktool.util.TableConfig.*;
 
 /**
  * Gespeicherte Hosts Panel.
@@ -38,7 +36,7 @@ public class GuiSavedHostsPanel {
 
     private final GuiOutputPanel output;
     private final GuiContextMenu contextMenu;
-    private final GuiSearchBar   searchBar;
+    private final GuiSearchBar searchBar;
 
     private String            activeNetwork;
     private DefaultTableModel tableModel;

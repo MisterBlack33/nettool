@@ -1,13 +1,13 @@
-package networktool.gui.core;
+package main.java.networktool.gui.core;
 
-import networktool.gui.components.GuiSearchBar;
-import networktool.gui.panels.GuiOutputPanel;
-import networktool.gui.panels.GuiAuditPanel;
-import networktool.gui.panels.GuiPrivacyPanel;
+import main.java.networktool.gui.components.GuiSearchBar;
+import main.java.networktool.gui.panels.GuiOutputPanel;
+import main.java.networktool.gui.panels.GuiAuditPanel;
+import main.java.networktool.gui.panels.GuiPrivacyPanel;
 import main.java.networktool.security.AuditLogger;
 import main.java.networktool.security.UserAuth;
 
-import networktool.theme.GuiTheme;
+import main.java.networktool.theme.GuiTheme;
 
 /**
  * Zentraler Menü-Dispatch mit Admin-Check und SearchBar-Steuerung.

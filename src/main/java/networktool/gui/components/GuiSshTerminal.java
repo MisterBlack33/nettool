@@ -1,12 +1,5 @@
-package networktool.gui.components;
+package main.java.networktool.gui.components;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.text.*;
@@ -17,8 +10,8 @@ import java.net.Socket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static networktool.theme.GuiTheme.*;
-import static networktool.gui.components.TerminalChrome.*;
+import static main.java.networktool.theme.GuiTheme.*;
+import static main.java.networktool.gui.components.TerminalChrome.*;
 
 /**
  * Eingebettetes SSH-Terminal (ohne externe Library).

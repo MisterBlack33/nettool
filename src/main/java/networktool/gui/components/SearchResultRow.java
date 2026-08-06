@@ -1,12 +1,6 @@
-package networktool.gui.components;
+package main.java.networktool.gui.components;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.gui.hostdetails.HostDetailsPanel;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.storage.NetworkStore;
 
@@ -16,8 +10,8 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import networktool.theme.GuiTheme;
-import static networktool.theme.GuiTheme.*;
+import main.java.networktool.theme.GuiTheme;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Treffer-Zeile und Match-Logik der {@link GuiSearchBar}.

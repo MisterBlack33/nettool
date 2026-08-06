@@ -1,12 +1,8 @@
-package networktool.gui.components;
+package main.java.networktool.gui.components;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.gui.core.GuiMenuHandler;
+import main.java.networktool.gui.panels.GuiInputPanel;
+import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.scan.NetworkScanner;
 import main.java.networktool.logic.scan.ScanDelta;
 import main.java.networktool.logic.scan.ScanHistory;
@@ -19,7 +15,7 @@ import javax.swing.*;
 import java.util.Arrays;
 import java.util.List;
 
-import static networktool.theme.GuiTheme.*;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Vergleicht Scan-Ergebnisse: CIDR-vs-CIDR, gespeichert-vs-aktuell

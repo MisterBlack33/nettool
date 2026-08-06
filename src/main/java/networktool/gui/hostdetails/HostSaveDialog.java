@@ -1,12 +1,6 @@
-package networktool.gui.hostdetails;
+package main.java.networktool.gui.hostdetails;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.storage.NetworkStore;
 
@@ -15,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static networktool.theme.GuiTheme.*;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Speichert einen Host in einem gewählten Netzwerk.

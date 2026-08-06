@@ -1,16 +1,11 @@
-package networktool.gui.components;
+package main.java.networktool.gui.components;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.gui.panels.GuiInputPanel;
+import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.sonify.TrafficSonifier;
 import main.java.networktool.security.AuditLogger;
 
-import static networktool.theme.GuiTheme.*;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /** Sidebar-Aktion für den Netzwerk-Sonifier (Menü-ID "24"). */
 final class GuiSonifyActions {

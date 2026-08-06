@@ -1,5 +1,6 @@
 package main.java.networktool.logic.messaging;
 
+import networktool.logic.messaging.MessageDelivery;
 import org.junit.jupiter.api.*;
 
 import java.io.ByteArrayInputStream;

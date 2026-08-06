@@ -1,4 +1,4 @@
-package networktool.gui.notification;
+package main.java.networktool.gui.notification;
 
 import main.java.networktool.logic.messaging.MessageSender;
 import main.java.networktool.storage.NotificationHistory;

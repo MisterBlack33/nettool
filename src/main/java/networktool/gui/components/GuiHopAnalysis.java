@@ -1,12 +1,6 @@
-package networktool.gui.components;
+package main.java.networktool.gui.components;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.gui.core.GUI;
 import main.java.networktool.logic.analysis.TracerouteRunner;
 import main.java.networktool.logic.scan.NetworkHostScanner;
 import main.java.networktool.logic.scan.SubnetDetector;
@@ -17,7 +11,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import networktool.theme.GuiTheme;
+import main.java.networktool.theme.GuiTheme;
+import main.java.networktool.util.TableConfig;
 
 /**
  * Sammelt für alle Hosts eines Netzes die Traceroute-Hop-Anzahl und Latenz

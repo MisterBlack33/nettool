@@ -1,12 +1,5 @@
-package networktool.util;
+package main.java.networktool.util;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.*;

@@ -1,9 +1,9 @@
 package main.java.networktool.logic.analysis;
 
+import main.java.networktool.logic.windows.PsArpResolver;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.*;
@@ -23,7 +23,7 @@ final class OsDetectorArp {
             Pattern.compile("([0-9A-Fa-f]{2}-){5}[0-9A-Fa-f]{2}");
 
     static String getMacFromArp(String ip) {
-        String psMac = main.java.networktool.logic.windows.PsArpResolver.lookup(ip);
+        String psMac = PsArpResolver.lookup(ip);
         if (psMac != null) return psMac;
         triggerArp(ip);
         String[][] cmds = isWin()

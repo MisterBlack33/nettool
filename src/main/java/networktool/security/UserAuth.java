@@ -1,5 +1,7 @@
 package main.java.networktool.security;
 
+import main.java.networktool.storage.StorageUtils;
+
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import java.nio.file.Path;
@@ -25,7 +27,7 @@ public final class UserAuth {
 
     public synchronized void init(Path dir) {
         // Wenn kein Verzeichnis übergeben wurde, verwende das zentrale Datenverzeichnis
-        if (dir == null) this.dataDir = main.java.networktool.storage.StorageUtils.resolveDataDir();
+        if (dir == null) this.dataDir = StorageUtils.resolveDataDir();
         else this.dataDir = dir;
     }
 

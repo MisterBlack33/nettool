@@ -1,6 +1,6 @@
 package main.java.networktool.logic.analysis;
 
-import networktool.gui.core.GUI;
+import main.java.networktool.gui.core.GUI;
 import main.java.networktool.logic.ports.PortScanner;
 
 import java.net.InetAddress;

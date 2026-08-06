@@ -1,18 +1,21 @@
-package networktool.gui.core;
+package main.java.networktool.gui.core;
 
-import networktool.gui.notification.NotificationListener;
+import main.java.networktool.gui.components.*;
+import main.java.networktool.gui.notification.NotificationListener;
+import main.java.networktool.gui.panels.GuiInputPanel;
+import main.java.networktool.gui.panels.GuiOutputPanel;
+import main.java.networktool.gui.panels.GuiSavedHostsPanel;
 import main.java.networktool.logic.messaging.MessageSender;
 import main.java.networktool.logic.scan.NetworkInfo;
 import main.java.networktool.security.AuditLogger;
 import main.java.networktool.storage.NetworkStore;
 import main.java.networktool.transfer.FileClient;
 import main.java.networktool.transfer.FileServer;
-import networktool.gui.panels.*;
-import networktool.gui.components.*;
+import main.java.networktool.gui.components.*;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import static networktool.theme.GuiTheme.*;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Verarbeitet Sidebar-Klicks und startet Aktionen asynchron.
@@ -23,11 +26,11 @@ public class GuiMenuHandler {
 
     @FunctionalInterface public interface RunnableEx { void run() throws Exception; }
 
-    private final GuiInputPanel    input;
-    private final GuiOutputPanel   output;
+    private final GuiInputPanel input;
+    private final GuiOutputPanel output;
     private final GuiTableRenderer tables;
     private final GuiStatusBar     status;
-    private GuiSavedHostsPanel     savedHostsPanel;
+    private GuiSavedHostsPanel savedHostsPanel;
 
     private final AtomicReference<Thread> runningThread = new AtomicReference<>();
 

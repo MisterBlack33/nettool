@@ -1,4 +1,4 @@
-package networktool.gui.notification;
+package main.java.networktool.gui.notification;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;

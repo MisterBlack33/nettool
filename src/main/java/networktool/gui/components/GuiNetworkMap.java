@@ -1,18 +1,11 @@
-package networktool.gui.components;
-
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+package main.java.networktool.gui.components;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.*;
 
-import networktool.theme.GuiTheme;
+import main.java.networktool.gui.map.MapCanvas;
+import main.java.networktool.theme.GuiTheme;
 
 /**
  * Orchestriert Netzwerk-Topologie-Karte.

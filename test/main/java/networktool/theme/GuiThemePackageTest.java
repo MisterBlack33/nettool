@@ -1,7 +1,7 @@
 package networktool.theme;
 
 import org.junit.jupiter.api.*;
-import networktool.theme.GuiTheme;
+import main.java.networktool.theme.GuiTheme;
 
 import java.awt.Color;
 import java.lang.reflect.Field;

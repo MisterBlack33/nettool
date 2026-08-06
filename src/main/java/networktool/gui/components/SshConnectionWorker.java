@@ -1,4 +1,4 @@
-package networktool.gui.components;
+package main.java.networktool.gui.components;
 
 import javax.swing.text.StyledDocument;
 import java.awt.Color;
@@ -10,8 +10,8 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Consumer;
 
-import static networktool.theme.GuiTheme.*;
-import static networktool.gui.components.TerminalChrome.appendTerm;
+import static main.java.networktool.theme.GuiTheme.*;
+import static main.java.networktool.gui.components.TerminalChrome.appendTerm;
 
 /**
  * Baut eine rohe TCP-Verbindung zu Port 22 auf, liest den SSH-Banner

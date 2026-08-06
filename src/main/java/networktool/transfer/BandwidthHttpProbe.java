@@ -2,7 +2,6 @@ package main.java.networktool.transfer;
 
 import java.io.*;
 import java.net.*;
-import java.nio.charset.StandardCharsets;
 import java.util.Random;
 
 /** Führt die eigentliche HTTP-Messung für {@link BandwidthTester} durch. */

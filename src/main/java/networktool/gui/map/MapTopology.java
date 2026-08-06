@@ -1,19 +1,14 @@
-package networktool.gui.map;
+package main.java.networktool.gui.map;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.gui.components.GuiNetworkMap;
+import main.java.networktool.gui.components.*;
 import main.java.networktool.storage.NetworkStore;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static networktool.gui.map.MapDeviceSignatures.*;
+import static main.java.networktool.gui.map.MapDeviceSignatures.*;
 
 /**
  * Klassifiziert Netzknoten und leitet Verbindungen ab.

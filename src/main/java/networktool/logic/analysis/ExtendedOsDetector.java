@@ -1,6 +1,5 @@
 package main.java.networktool.logic.analysis;
 
-import java.util.List;
 import java.util.Objects;
 
 /**

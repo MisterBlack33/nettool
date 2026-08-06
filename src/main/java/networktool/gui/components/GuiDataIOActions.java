@@ -1,17 +1,15 @@
-package networktool.gui.components;
+package main.java.networktool.gui.components;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.gui.core.GUI;
+import main.java.networktool.gui.core.GuiMenuHandler;
+import main.java.networktool.gui.panels.GuiInputPanel;
+import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.ports.PortScanner;
 import main.java.networktool.security.AuditLogger;
 import main.java.networktool.storage.DataExporter;
 import main.java.networktool.storage.DataImporter;
 import main.java.networktool.storage.NotificationHistory;
+import main.java.networktool.util.TableConfig;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -19,7 +17,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static networktool.theme.GuiTheme.*;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Export/Import von Scan-Daten, Notification-History-Anzeige

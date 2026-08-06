@@ -1,6 +1,7 @@
 package main.java.networktool.logic.scan;
 
 import main.java.networktool.util.CIDRUtils;
+import main.java.networktool.logic.windows.PsCidrResolver;
 
 import java.net.*;
 import java.util.*;
@@ -19,7 +20,7 @@ public final class SubnetDetector {
     );
 
     public static List<String> getAllCidrs() throws SocketException {
-        List<String> cidrs = new ArrayList<>(main.java.networktool.logic.windows.PsCidrResolver.resolveCidrs());
+        List<String> cidrs = new ArrayList<>(PsCidrResolver.resolveCidrs());
         Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces();
         if (ifaces == null) return cidrs;
         while (ifaces.hasMoreElements()) {

@@ -1,6 +1,7 @@
 package main.java.networktool.storage;
 
-import networktool.util.PollHelper;
+import main.java.networktool.storage.NetworkStorePersistence;
+import main.java.networktool.util.PollHelper;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Timeout;

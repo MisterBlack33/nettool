@@ -188,7 +188,7 @@ class AuditLoggerTest {
 
         @TempDir Path tmp;
         AuditLogger logger;
-        UserAuth    auth;
+        UserAuth auth;
 
         @BeforeEach void setup() {
             logger = AuditLogger.getInstance();

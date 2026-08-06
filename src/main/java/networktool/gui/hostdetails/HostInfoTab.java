@@ -1,12 +1,5 @@
-package networktool.gui.hostdetails;
+package main.java.networktool.gui.hostdetails;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
 import main.java.networktool.logic.analysis.OsDetector;
 import main.java.networktool.logic.analysis.OuiDatabase;
 import main.java.networktool.model.HostResult;
@@ -17,7 +10,7 @@ import javax.swing.border.*;
 import java.awt.*;
 import java.net.InetAddress;
 
-import static networktool.theme.GuiTheme.*;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /** Tab ①: Basis-Info (IP, Hostname, OS, MAC/OUI, Erreichbarkeit). */
 final class HostInfoTab {

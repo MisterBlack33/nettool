@@ -1,12 +1,8 @@
-package networktool.gui.components;
+package main.java.networktool.gui.components;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.gui.core.GuiMenuHandler;
+import main.java.networktool.gui.panels.GuiInputPanel;
+import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.scan.NetworkInfo;
 import main.java.networktool.logic.scan.NetworkScanner;
 import main.java.networktool.logic.ports.PortScanner;
@@ -20,7 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static networktool.theme.GuiTheme.*;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Anlegen, Ausführen und Löschen von Scan-Profilen (Menüpunkt "12").
@@ -30,8 +26,8 @@ public final class GuiScanProfileActions {
     private GuiScanProfileActions() {}
 
     public static void handleScanProfiles(GuiInputPanel input, GuiOutputPanel output,
-                                           GuiTableRenderer tables, GuiStatusBar status,
-                                           GuiMenuHandler handler) {
+                                          GuiTableRenderer tables, GuiStatusBar status,
+                                          GuiMenuHandler handler) {
         List<ScanProfile> profiles = ScanProfileStore.getInstance().getAll();
         String[] actions = {"Ausführen", "Neu anlegen", "Löschen"};
         int action = JOptionPane.showOptionDialog(null,

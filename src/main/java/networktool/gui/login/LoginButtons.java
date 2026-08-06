@@ -1,20 +1,13 @@
-package networktool.gui.login;
+package main.java.networktool.gui.login;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
-import static networktool.theme.GuiTheme.*;
-import static networktool.gui.login.LoginFormBuilder.INPUT_BG;
+import static main.java.networktool.theme.GuiTheme.*;
+import static main.java.networktool.gui.login.LoginFormBuilder.INPUT_BG;
 
 /** Button-Fabrik für Login-/Registrierungsformulare. */
 final class LoginButtons {

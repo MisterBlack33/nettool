@@ -1,16 +1,11 @@
-package networktool.gui.components;
+package main.java.networktool.gui.components;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
 import main.java.networktool.filter.ClipboardUtil;
+import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.scan.LastScanCache;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.model.ScanResult;
+import main.java.networktool.util.TableConfig;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -22,8 +17,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static networktool.theme.GuiTheme.*;
-import static networktool.util.TableConfig.*;
+import static main.java.networktool.theme.GuiTheme.*;
+import static main.java.networktool.util.TableConfig.*;
 
 public class GuiTableRenderer {
 

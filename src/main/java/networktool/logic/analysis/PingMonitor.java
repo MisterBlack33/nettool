@@ -1,8 +1,8 @@
 package main.java.networktool.logic.analysis;
 
 import main.java.networktool.logic.TimeoutConfig;
-import networktool.gui.core.GUI;
-import networktool.theme.GuiTheme;
+import main.java.networktool.gui.core.GUI;
+import main.java.networktool.theme.GuiTheme;
 
 import javax.swing.*;
 import java.awt.*;

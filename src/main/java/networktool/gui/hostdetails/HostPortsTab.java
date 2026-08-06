@@ -1,12 +1,5 @@
-package networktool.gui.hostdetails;
+package main.java.networktool.gui.hostdetails;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
 import main.java.networktool.logic.ports.PortScanner;
 
 import javax.swing.*;
@@ -16,8 +9,8 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
-import static networktool.theme.GuiTheme.*;
-import static networktool.gui.hostdetails.HostDetailRows.detailButton;
+import static main.java.networktool.theme.GuiTheme.*;
+import static main.java.networktool.gui.hostdetails.HostDetailRows.detailButton;
 
 /** Tab ③: Offene Ports – Scan + Banner-Grabbing on-demand. */
 final class HostPortsTab extends JPanel {

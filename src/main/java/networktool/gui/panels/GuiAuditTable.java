@@ -1,20 +1,20 @@
-package networktool.gui.panels;
+package main.java.networktool.gui.panels;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
+import main.java.networktool.util.TableConfig;
+import main.java.networktool.util.*;
+import main.java.networktool.gui.login.*;
+import main.java.networktool.gui.hostdetails.*;
+import main.java.networktool.gui.map.*;
+import main.java.networktool.gui.core.*;
+import main.java.networktool.gui.components.*;
+import main.java.networktool.gui.panels.*;
 import javax.swing.*;
-import javax.swing.border.*;
 import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
 
-import networktool.theme.GuiTheme;
-import static networktool.theme.GuiTheme.*;
+import main.java.networktool.theme.GuiTheme;
+import static main.java.networktool.theme.GuiTheme.*;
 
 final class GuiAuditTable {
 

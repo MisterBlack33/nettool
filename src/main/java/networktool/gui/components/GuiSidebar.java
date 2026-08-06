@@ -1,12 +1,5 @@
-package networktool.gui.components;
+package main.java.networktool.gui.components;
 
-import networktool.util.*;
-import networktool.gui.login.*;
-import networktool.gui.hostdetails.*;
-import networktool.gui.map.*;
-import networktool.gui.core.*;
-import networktool.gui.components.*;
-import networktool.gui.panels.*;
 import main.java.networktool.security.UserAuth;
 
 import javax.swing.*;
@@ -14,7 +7,7 @@ import javax.swing.border.*;
 import java.awt.*;
 import java.util.function.Consumer;
 
-import static networktool.theme.GuiTheme.*;
+import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Linke Seitenleiste als aufklappbares Accordion-Menü.

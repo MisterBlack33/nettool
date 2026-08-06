@@ -1,4 +1,4 @@
-package networktool.gui.notification;
+package main.java.networktool.gui.notification;
 
 /**
  * Minimaler, abhängigkeitsfreier Parser für einzelne ntfy.sh-NDJSON-Zeilen.

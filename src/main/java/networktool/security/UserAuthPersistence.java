@@ -90,11 +90,11 @@ final class UserAuthPersistence {
             String password = extractStr(json.substring(u - 20, Math.min(json.length(), u + 200)), "password");
             if (username != null && password != null) {
                 try {
-                    byte[] salt = main.java.networktool.security.UserAuth.generateSalt();
+                    byte[] salt = UserAuth.generateSalt();
                     Map<String,String> m = new LinkedHashMap<>();
                     m.put("username", username.trim().toLowerCase());
                     m.put("salt", Base64.getEncoder().encodeToString(salt));
-                    m.put("hash", main.java.networktool.security.UserAuth.hash(password, salt));
+                    m.put("hash", UserAuth.hash(password, salt));
                     m.put("role", "user");
                     result.add(m);
                 } catch (Exception e) { /* ignore malformed entries */ }
