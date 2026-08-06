@@ -1,5 +1,6 @@
 package main.java.networktool.logic.scan;
 
+import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.logic.messaging.MessageSender;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.model.ScanProfile;
@@ -102,6 +103,7 @@ public final class ScanScheduler {
 
         } catch (Exception e) {
             System.err.println("[Scheduler] Fehler bei '" + profileName + "': " + e.getMessage());
+            DebugLogger.getInstance().log("WARN", "[ScanScheduler] " + profileName + ": " + e);
         }
     }
 

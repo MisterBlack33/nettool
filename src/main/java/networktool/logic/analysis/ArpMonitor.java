@@ -1,5 +1,6 @@
 package main.java.networktool.logic.analysis;
 
+import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.logic.messaging.MessageSender;
 import main.java.networktool.storage.NetworkStore;
 
@@ -166,7 +167,9 @@ public final class ArpMonitor {
                         result.put(ip, mac);
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            DebugLogger.getInstance().log("FINE", "[ArpMonitor] ARP-Cache-Lesen fehlgeschlagen: " + e);
+        }
         return result;
     }
 

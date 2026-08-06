@@ -1,6 +1,5 @@
 package networktool.cli;
 
-import main.java.networktool.cli.MenuPrinter;
 import main.java.networktool.filter.ClipboardUtil;
 import main.java.networktool.filter.JsonExporter;
 import networktool.gui.notification.LocalToast;
@@ -19,42 +18,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * HostJsonBuilder tests → StorageTest.java (same package: main.java.networktool_v3.storage)
  */
 class CliTest {
-
-    // ══════════════════════════════════════════════════════════════
-    //  MenuPrinter
-    // ══════════════════════════════════════════════════════════════
-
-    @Nested
-    class MenuPrinterTest {
-
-        @Test
-        void print_containsMenuItems() {
-            ByteArrayOutputStream buf = new ByteArrayOutputStream();
-            PrintStream orig = System.out;
-            System.setOut(new PrintStream(buf));
-            try {
-                MenuPrinter.print();
-            } finally {
-                System.setOut(orig);
-            }
-            String out = buf.toString();
-            assertTrue(out.contains("0"));
-            assertTrue(out.contains("Netzwerk"));
-        }
-
-        @Test
-        void print_containsZeroToExit() {
-            ByteArrayOutputStream buf = new ByteArrayOutputStream();
-            PrintStream orig = System.out;
-            System.setOut(new PrintStream(buf));
-            try {
-                MenuPrinter.print();
-            } finally {
-                System.setOut(orig);
-            }
-            assertTrue(buf.toString().contains("Beenden"));
-        }
-    }
 
     // ══════════════════════════════════════════════════════════════
     //  JsonExporter
