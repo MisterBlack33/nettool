@@ -83,6 +83,11 @@ final class HostJsonBuilder {
         return map;
     }
 
+    /**
+     * Extrahiert den rohen "ports"-Objektstring. Nutzt {@link JsonHelper#matchBracket}
+     * statt eines naiven Zählers, damit Klammerzeichen innerhalb von Banner-/Notiz-Werten
+     * (z.B. "HTTP | {nginx}") das Parsing nicht zerstören.
+     */
     private static String extractRawPorts(String obj) {
         String key   = "\"ports\"";
         int ki       = obj.indexOf(key);
@@ -92,12 +97,8 @@ final class HostJsonBuilder {
         int s = colon + 1;
         while (s < obj.length() && obj.charAt(s) == ' ') s++;
         if (s >= obj.length() || obj.charAt(s) != '{') return null;
-        int depth = 0, end = s;
-        for (int i = s; i < obj.length(); i++) {
-            if      (obj.charAt(i) == '{') depth++;
-            else if (obj.charAt(i) == '}') { if (--depth == 0) { end = i; break; } }
-        }
-        return obj.substring(s, end + 1);
+        int end = JsonHelper.matchBracket(obj, s);
+        return end < 0 ? null : obj.substring(s, end + 1);
     }
 
     private static List<String> splitPairs(String inner) {
