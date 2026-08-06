@@ -28,11 +28,17 @@ public final class DataImporter {
         return count;
     }
 
+    /**
+     * Parst das JSON-Array string-sicher über {@link JsonHelper#extractObjects}
+     * statt eines naiven Regex-Splits ("},\\s*{"). Werte, die selbst "},"-artige
+     * Zeichenfolgen enthalten (z.B. in Notizen), zerreißen die Objektgrenzen sonst.
+     */
     public static int importJson(Path file) throws IOException {
         String content = Files.readString(file);
+        int arrStart = content.indexOf('[');
+        if (arrStart < 0) return 0;
         int count = 0;
-        for (String obj : content.split("\\},\\s*\\{")) {
-            // FIX: delegate to JsonHelper instead of own copy
+        for (String obj : JsonHelper.extractObjects(content, arrStart)) {
             String ip    = JsonHelper.extractStr(obj, "ip");
             String hn    = JsonHelper.extractStr(obj, "hostname");
             String os    = JsonHelper.extractStr(obj, "os");

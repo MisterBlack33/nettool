@@ -82,11 +82,42 @@ public final class JsonHelper {
         return (s == null || s.isBlank()) ? fallback : s;
     }
 
+    // ── String-sicheres Struktur-Scanning ───────────────────────────────────
+    // Zählt Klammern nur außerhalb von JSON-Strings, damit strukturelle
+    // Zeichen ({, }, [, ], ,) innerhalb von Werten das Parsing nicht brechen.
+
+    /** Überspringt einen JSON-String ab der öffnenden Anführung; gibt Index der schließenden zurück. */
+    private static int skipString(String json, int quoteIdx) {
+        int i = quoteIdx + 1;
+        while (i < json.length()) {
+            char c = json.charAt(i);
+            if (c == '\\') { i += 2; continue; }
+            if (c == '"') return i;
+            i++;
+        }
+        return json.length() - 1; // unterminiert – fail safe statt Exception
+    }
+
+    /** Findet die schließende Klammer zu openIdx ('{' oder '['), ignoriert Klammern innerhalb von Strings. */
+    static int matchBracket(String json, int openIdx) {
+        char open = json.charAt(openIdx);
+        char close = open == '{' ? '}' : ']';
+        int depth = 0;
+        for (int i = openIdx; i < json.length(); i++) {
+            char c = json.charAt(i);
+            if (c == '"') { i = skipString(json, i); continue; }
+            if (c == open) depth++;
+            else if (c == close && --depth == 0) return i;
+        }
+        return -1;
+    }
+
     static List<String> extractObjects(String json, int arrStart) {
         List<String> objects = new ArrayList<>();
         int depth = 0, objStart = -1;
         for (int i = arrStart; i < json.length(); i++) {
             char c = json.charAt(i);
+            if (c == '"') { i = skipString(json, i); continue; } // String-Inhalt zählt nicht als Struktur
             if (c == '{') { if (depth++ == 0) objStart = i; }
             else if (c == '}') {
                 if (--depth == 0 && objStart >= 0) {
