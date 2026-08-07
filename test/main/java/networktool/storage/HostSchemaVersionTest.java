@@ -1,8 +1,8 @@
 package main.java.networktool.storage;
 
 import main.java.networktool.model.HostResult;
-import networktool.storage.HostJsonBuilder;
-import networktool.storage.HostSchemaMigration;
+import main.java.networktool.storage.HostJsonBuilder;
+import main.java.networktool.storage.HostSchemaMigration;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -25,7 +25,7 @@ class HostSchemaVersionTest {
     }
 
     @Test void legacyFile_stillParsesHosts() {
-        // Altbestand ohne schemaVersion darf weiterhin vollständig geladen werden.
+        // Altbestand ohne schemaVersion darf weiterhin vollstÃ¤ndig geladen werden.
         String legacy = "{\n  \"network\": \"Old\",\n  \"prefix\": \"\",\n  \"hosts\": [\n"
                 + "    {\"ip\":\"1.2.3.4\",\"hostname\":\"h\",\"os\":\"Linux\",\"savedAt\":\"\",\"ports\":{},\"notes\":\"\"}\n"
                 + "  ]\n}";
@@ -58,7 +58,7 @@ class HostSchemaVersionTest {
     }
 
     @Test void extractStr_unicodeEscape_decoded() {
-        assertEquals("café", JsonHelper.extractStr("{\"s\":\"caf\\u00e9\"}", "s"));
+        assertEquals("cafÃ©", JsonHelper.extractStr("{\"s\":\"caf\\u00e9\"}", "s"));
     }
 
     @Test void extractStr_malformedUnicodeEscape_keptRaw() {

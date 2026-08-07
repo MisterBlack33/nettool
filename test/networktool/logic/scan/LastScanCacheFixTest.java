@@ -1,4 +1,4 @@
-package networktool.logic.scan;
+package main.java.networktool.logic.scan;
 
 import main.java.networktool.logic.scan.LastScanCache;
 import main.java.networktool.model.HostResult;
@@ -9,7 +9,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests für LastScanCache — jetzt korrekt über GuiTableRenderer verdrahtet. */
+/** Tests fÃ¼r LastScanCache â€” jetzt korrekt Ã¼ber GuiTableRenderer verdrahtet. */
 class LastScanCacheFixTest {
 
     @BeforeEach

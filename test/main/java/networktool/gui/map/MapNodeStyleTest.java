@@ -1,4 +1,4 @@
-package networktool.gui.map;
+package main.java.networktool.gui.map;
 
 import main.java.networktool.gui.components.GuiNetworkMap;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,7 @@ class MapNodeStyleTest {
     }
 
     @Test void infraRoleOverridesTypeIcon() {
-        // Switch-Typ mit DNS-Server-Rolle im os-Feld → D statt S
+        // Switch-Typ mit DNS-Server-Rolle im os-Feld â†’ D statt S
         assertEquals("D", MapNodeStyle.nodeIcon(
                 node("1.1.1.1", "dns", "DNS-Server", GuiNetworkMap.NodeType.SWITCH)));
     }
@@ -74,7 +74,7 @@ class MapNodeStyleTest {
         String result = MapNodeStyle.cleanHostname("this-is-a-very-long-hostname-indeed", "10.0.0.5");
         assertNotNull(result);
         assertTrue(result.length() <= 18);
-        assertTrue(result.endsWith("…"));
+        assertTrue(result.endsWith("â€¦"));
     }
 
     @Test void cleanHostnameStripsMacSuffix() {

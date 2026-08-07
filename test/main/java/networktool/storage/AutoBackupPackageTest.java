@@ -33,7 +33,7 @@ class AutoBackupPackageTest {
         AutoBackup.testMode = false;
     }
 
-    // ── Basis-State ───────────────────────────────────────────────────────
+    // â”€â”€ Basis-State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test void isActive_initiallyFalse()  { assertFalse(AutoBackup.getInstance().isActive()); }
     @Test void start_setsActive()         { AutoBackup.getInstance().start(24); assertTrue(AutoBackup.getInstance().isActive()); }
@@ -48,7 +48,7 @@ class AutoBackupPackageTest {
         assertFalse(AutoBackup.getInstance().todayBackupDone());
     }
 
-    // ── backup() direkt ────────────────────────────────────────────────────
+    // â”€â”€ backup() direkt â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @TempDir Path tmp;
 
@@ -89,7 +89,7 @@ class AutoBackupPackageTest {
         assertEquals(countBefore, countAfter);
     }
 
-    // ── Test-Backup-Prefix ────────────────────────────────────────────────
+    // â”€â”€ Test-Backup-Prefix â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     void cleanupTestBackups_removesOnlyTestFiles(@TempDir Path tmp) throws IOException {
@@ -103,8 +103,8 @@ class AutoBackupPackageTest {
                     .forEach(p -> { try { Files.delete(p); } catch (IOException ignored) {} });
         }
 
-        assertTrue(Files.exists(real),  "Produktiv-Backup wurde fälschlicherweise gelöscht");
-        assertFalse(Files.exists(test), "Test-Backup wurde nicht gelöscht");
+        assertTrue(Files.exists(real),  "Produktiv-Backup wurde fÃ¤lschlicherweise gelÃ¶scht");
+        assertFalse(Files.exists(test), "Test-Backup wurde nicht gelÃ¶scht");
     }
 
     @Test
@@ -113,7 +113,7 @@ class AutoBackupPackageTest {
         assertTrue(AutoBackup.TEST_BACKUP_PREFIX.contains("TEST"));
     }
 
-    // ── triggerNow ────────────────────────────────────────────────────────
+    // â”€â”€ triggerNow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     @Timeout(value = 5, unit = TimeUnit.SECONDS)
@@ -155,7 +155,7 @@ class AutoBackupPackageTest {
                 "Backup sollte innerhalb von 4 Sekunden abgeschlossen sein");
     }
 
-    // ── PersistenceEdgeTest ───────────────────────────────────────────────
+    // â”€â”€ PersistenceEdgeTest â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class PersistenceEdgeTest {
@@ -174,7 +174,7 @@ class AutoBackupPackageTest {
         @Test void extractStr_missing_null() { assertNull(NetworkStorePersistence.extractStr("{}", "nope")); }
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────
+    // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private static Path backupDir() {
         return NetworkStorePersistence.resolveDataDir().resolve("backups");

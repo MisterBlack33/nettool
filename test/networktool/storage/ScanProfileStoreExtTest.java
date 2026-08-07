@@ -1,4 +1,4 @@
-package networktool.storage;
+package main.java.networktool.storage;
 
 import main.java.networktool.model.ScanProfile;
 import main.java.networktool.storage.ScanProfileStore;

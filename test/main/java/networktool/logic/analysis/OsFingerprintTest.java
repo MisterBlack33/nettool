@@ -1,13 +1,13 @@
 package main.java.networktool.logic.analysis;
 
-import networktool.logic.analysis.OsFingerprint;
+import main.java.networktool.logic.analysis.OsFingerprint;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class OsFingerprintTest {
 
-    // ── resolveNoTcp ──────────────────────────────────────────────────────
+    // â”€â”€ resolveNoTcp â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     void noTcp_ttl0_noMac_returnsNull() {
@@ -16,7 +16,7 @@ class OsFingerprintTest {
 
     @Test
     void noTcp_ttl32_returnsRouter() {
-        assertEquals("Router / Netzwerkgerät",
+        assertEquals("Router / NetzwerkgerÃ¤t",
                 OsFingerprint.resolveNoTcp("192.0.2.1", 32, null));
     }
 
@@ -58,10 +58,10 @@ class OsFingerprintTest {
         long start = System.currentTimeMillis();
         OsFingerprint.resolveNoTcp("192.0.2.1", 64, null);
         assertTrue(System.currentTimeMillis() - start < 50,
-                "resolveNoTcp darf keine TCP-Verbindungen öffnen");
+                "resolveNoTcp darf keine TCP-Verbindungen Ã¶ffnen");
     }
 
-    // ── resolve (mit TCP) ─────────────────────────────────────────────────
+    // â”€â”€ resolve (mit TCP) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     void resolve_ttl0_noMac_returnsNull() {

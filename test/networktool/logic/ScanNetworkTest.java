@@ -1,4 +1,4 @@
-package networktool.logic;
+package main.java.networktool.logic;
 
 import main.java.networktool.logic.scan.*;
 import main.java.networktool.logic.scan.NetworkHostScanner;
@@ -52,13 +52,13 @@ class ScanNetworkTest extends NetworkTimeoutTestBase {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     //  NetworkHostScannerTest
     //
-    //  scan(List<String>) erwartet /24-Präfixe und scannt jeweils
-    //  254 IPs — zu langsam für Tests. Stattdessen scanCidr("/32")
-    //  verwenden, das nur exakt eine IP prüft.
-    // ══════════════════════════════════════════════════════════════
+    //  scan(List<String>) erwartet /24-PrÃ¤fixe und scannt jeweils
+    //  254 IPs â€” zu langsam fÃ¼r Tests. Stattdessen scanCidr("/32")
+    //  verwenden, das nur exakt eine IP prÃ¼ft.
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     @Nested
     class NetworkHostScannerTest {

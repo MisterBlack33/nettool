@@ -13,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class AuditLoggerTest {
 
-    // ── AuditLogEntry ─────────────────────────────────────────────────────
+    // â”€â”€ AuditLogEntry â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class AuditLogEntryTest {
@@ -56,7 +56,7 @@ class AuditLoggerTest {
         }
     }
 
-    // ── AuditLogFile parse ────────────────────────────────────────────────
+    // â”€â”€ AuditLogFile parse â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class AuditLogFileParseTest {
@@ -106,7 +106,7 @@ class AuditLoggerTest {
         }
     }
 
-    // ── AuditLogFile I/O ──────────────────────────────────────────────────
+    // â”€â”€ AuditLogFile I/O â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class AuditLogFileIoTest {
@@ -180,7 +180,7 @@ class AuditLoggerTest {
         }
     }
 
-    // ── AuditLogger API ───────────────────────────────────────────────────
+    // â”€â”€ AuditLogger API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Isolated
     @Nested
@@ -199,7 +199,7 @@ class AuditLoggerTest {
 
         @AfterEach void teardown() {
             auth.logout();
-            logger.shutdown(); // schließt Writer-Thread → TempDir kann gelöscht werden
+            logger.shutdown(); // schlieÃŸt Writer-Thread â†’ TempDir kann gelÃ¶scht werden
         }
 
         @Test void log_singleAction_persisted() {
@@ -274,7 +274,7 @@ class AuditLoggerTest {
         }
     }
 
-    // ── LogEntry Legacy ───────────────────────────────────────────────────
+    // â”€â”€ LogEntry Legacy â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class LogEntryCompatTest {

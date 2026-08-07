@@ -1,4 +1,4 @@
-package networktool.logic;
+package main.java.networktool.logic;
 
 import main.java.networktool.logic.analysis.*;
 import org.junit.jupiter.api.*;

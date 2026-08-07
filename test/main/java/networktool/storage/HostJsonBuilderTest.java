@@ -1,7 +1,7 @@
 package main.java.networktool.storage;
 
 import main.java.networktool.model.HostResult;
-import networktool.storage.HostJsonBuilder;
+import main.java.networktool.storage.HostJsonBuilder;
 import org.junit.jupiter.api.*;
 
 import java.util.*;

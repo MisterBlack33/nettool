@@ -1,4 +1,4 @@
-package networktool.security;
+package main.java.networktool.security;
 
 import main.java.networktool.security.SecurityMonitor;
 import org.junit.jupiter.api.*;
@@ -67,7 +67,7 @@ class SecurityMonitorTest {
         assertDoesNotThrow(() -> SecurityMonitor.getInstance().stop());
     }
 
-    // ARP-Baseline wird beim Start geladen — kein Rogue-Alert für bekannte Geräte
+    // ARP-Baseline wird beim Start geladen â€” kein Rogue-Alert fÃ¼r bekannte GerÃ¤te
     @Test
     void start_loadsArpBaseline_doesNotThrow() {
         assertDoesNotThrow(() -> {

@@ -1,4 +1,4 @@
-package networktool.gui;
+package main.java.networktool.gui;
 
 import main.java.networktool.gui.login.GuiLoginRateLimiter;
 import org.junit.jupiter.api.*;

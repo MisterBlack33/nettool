@@ -1,7 +1,7 @@
 package main.java.networktool.gui.map;
 
 import main.java.networktool.gui.components.GuiNetworkMap;
-import networktool.gui.map.MapEdgeBuilder;
+import main.java.networktool.gui.map.MapEdgeBuilder;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -107,6 +107,6 @@ class MapEdgeBuilderTest {
 
         GuiNetworkMap.Edge hostEdge = edges.stream()
                 .filter(e -> e.from == host).findFirst().orElseThrow();
-        assertSame(manual, hostEdge.to, "Manuell markierter Switch hat Vorrang vor Oktett-Nähe");
+        assertSame(manual, hostEdge.to, "Manuell markierter Switch hat Vorrang vor Oktett-NÃ¤he");
     }
 }

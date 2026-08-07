@@ -1,7 +1,7 @@
 package main.java.networktool.storage;
 
 import main.java.networktool.model.HostResult;
-import networktool.storage.NetworkStorePersistence;
+import main.java.networktool.storage.NetworkStorePersistence;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -85,7 +85,7 @@ class NetworkStorePersistencePackageTest {
     void loadLegacyFile_parsesCorrectly() throws IOException {
         Path file = tmp.resolve("legacy.txt");
         Files.writeString(file,
-                "IP-PRÄFIX:" + TestConstants.PREFIX_88 + "\n"
+                "IP-PRÃ„FIX:" + TestConstants.PREFIX_88 + "\n"
                         + TestConstants.IP_1 + ";" + TestConstants.HOST_1 + ";Linux;2024-01-01;22:SSH;note1\n",
                 StandardCharsets.UTF_8);
         Map<String, List<HostResult>> nets = new LinkedHashMap<>();

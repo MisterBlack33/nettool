@@ -1,4 +1,4 @@
-package networktool.gui.map;
+package main.java.networktool.gui.map;
 
 import main.java.networktool.gui.map.MapLegend;
 import org.junit.jupiter.api.*;

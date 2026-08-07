@@ -6,12 +6,12 @@ import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests für OsDetector-Fixes: tote extractOui() entfernt, ExecutorService-Leak geschlossen. */
+/** Tests fÃ¼r OsDetector-Fixes: tote extractOui() entfernt, ExecutorService-Leak geschlossen. */
 class OsDetectorFixTest {
 
     @Test
     void extractOui_methodDoesNotExist() throws Exception {
-        // extractOui() war @SuppressWarnings("unused") — soll gelöscht sein
+        // extractOui() war @SuppressWarnings("unused") â€” soll gelÃ¶scht sein
         boolean found = false;
         for (Method m : OsDetector.class.getDeclaredMethods()) {
             if (m.getName().equals("extractOui")) { found = true; break; }
@@ -21,7 +21,7 @@ class OsDetectorFixTest {
 
     @Test
     void detectWithConfidence_unreachable_returnsResult() {
-        // darf nicht hängen bleiben (ExecutorService wird korrekt beendet)
+        // darf nicht hÃ¤ngen bleiben (ExecutorService wird korrekt beendet)
         OsDetector.OsResult r = OsDetector.detectWithConfidence("192.0.2.1");
         assertNotNull(r);
         assertNotNull(r.confidence);

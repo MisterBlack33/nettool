@@ -1,4 +1,4 @@
-package networktool.logic.scan;
+package main.java.networktool.logic.scan;
 
 import main.java.networktool.logic.scan.SubnetDetector;
 import org.junit.jupiter.api.Test;
@@ -37,7 +37,7 @@ class SubnetDetectorExtTest {
         List<String> subnets = SubnetDetector.getAllSubnets();
         for (String s : subnets) {
             assertEquals(3, s.split("\\.").length,
-                    "getAllSubnets() muss 3-Oktet-Präfixe liefern: " + s);
+                    "getAllSubnets() muss 3-Oktet-PrÃ¤fixe liefern: " + s);
         }
     }
 

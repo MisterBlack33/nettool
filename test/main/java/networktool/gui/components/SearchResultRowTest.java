@@ -1,7 +1,10 @@
-package networktool.gui.components;
+package main.java.networktool.gui.components;
 
 import main.java.networktool.model.HostResult;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SearchResultRowTest {
 
