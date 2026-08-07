@@ -1,6 +1,6 @@
 package main.java.networktool.logic.analysis;
 
-import networktool.logic.analysis.OsDetectionPipeline;
+import main.java.networktool.logic.analysis.OsDetectionPipeline;
 import org.junit.jupiter.api.Test;
 
 import java.net.InetAddress;

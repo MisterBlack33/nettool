@@ -6,7 +6,7 @@ import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests für PortScanner-Fix: COMMON_PORTS() entfernt, kein Changelog-Kommentar. */
+/** Tests fÃ¼r PortScanner-Fix: COMMON_PORTS() entfernt, kein Changelog-Kommentar. */
 class PortScannerFixTest {
 
     @Test

@@ -1,4 +1,4 @@
-package networktool.gui.map;
+package main.java.networktool.gui.map;
 
 import org.junit.jupiter.api.*;
 
@@ -9,7 +9,7 @@ class MapContextMenuTest {
     @BeforeAll static void headless() { System.setProperty("java.awt.headless","true"); }
 
     @Test void show_doesNotThrowHeadless() {
-        // MapContextMenu.show needs a real Component – skip in headless
+        // MapContextMenu.show needs a real Component â€“ skip in headless
         assertDoesNotThrow(() -> {});
     }
 }

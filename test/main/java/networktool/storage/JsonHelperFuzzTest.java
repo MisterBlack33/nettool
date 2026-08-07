@@ -1,7 +1,7 @@
 package main.java.networktool.storage;
 
 import main.java.networktool.model.HostResult;
-import networktool.storage.HostJsonBuilder;
+import main.java.networktool.storage.HostJsonBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -14,8 +14,8 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Fuzz-/Edge-Case-Tests für JsonHelper: Werte mit strukturellen Zeichen
- * ({, }, [, ], ,) innerhalb von JSON-Strings dürfen das Parsing nicht brechen.
+ * Fuzz-/Edge-Case-Tests fÃ¼r JsonHelper: Werte mit strukturellen Zeichen
+ * ({, }, [, ], ,) innerhalb von JSON-Strings dÃ¼rfen das Parsing nicht brechen.
  */
 class JsonHelperFuzzTest {
 
@@ -32,7 +32,7 @@ class JsonHelperFuzzTest {
         return (int) m.invoke(null, json, idx);
     }
 
-    // ── extractObjects ───────────────────────────────────────────────────
+    // â”€â”€ extractObjects â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test void extractObjects_braceInStringValue_notMiscounted() throws Exception {
         String json = "[{\"a\":\"val{ue}\"},{\"a\":\"val}2\"}]";
@@ -60,7 +60,7 @@ class JsonHelperFuzzTest {
         assertTrue(extractObjects("[]", 0).isEmpty());
     }
 
-    // ── matchBracket ──────────────────────────────────────────────────────
+    // â”€â”€ matchBracket â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test void matchBracket_skipsStringContent() throws Exception {
         String json = "{\"ports\":{\"80\":\"HTTP | Nginx}v2\"}}";
@@ -78,7 +78,7 @@ class JsonHelperFuzzTest {
         assertEquals(-1, matchBracket("{\"a\":1", 0));
     }
 
-    // ── HostJsonBuilder Integration ───────────────────────────────────────
+    // â”€â”€ HostJsonBuilder Integration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test void hostJsonBuilder_roundtrip_bannerWithBrace() {
         Map<Integer, String> ports = Map.of(80, "HTTP | {nginx}");
@@ -103,7 +103,7 @@ class JsonHelperFuzzTest {
         assertEquals("list [1,2], done", parsed.notes);
     }
 
-    // ── DataImporter Integration ─────────────────────────────────────────
+    // â”€â”€ DataImporter Integration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test void importJson_valueWithBraceComma_doesNotSplitIncorrectly(@TempDir Path tmp) throws Exception {
         Path f = tmp.resolve("data.json");

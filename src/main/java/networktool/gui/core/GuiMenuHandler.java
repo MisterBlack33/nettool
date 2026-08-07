@@ -48,9 +48,9 @@ public class GuiMenuHandler {
         AuditLogger.getInstance().log("MENU", num);
         switch (num) {
             case "01" -> input.ask("Netzwerkinfo starten? [Enter]",
-                    _ -> runAsync(() -> { AuditLogger.getInstance().log("SCAN_MINIMAL",""); NetworkInfo.showMinimalInfo(); }));
+                    v -> runAsync(() -> { AuditLogger.getInstance().log("SCAN_MINIMAL",""); NetworkInfo.showMinimalInfo(); }));
             case "02" -> input.ask("Vollständige Info starten? [Enter]",
-                    _ -> runAsync(() -> { AuditLogger.getInstance().log("SCAN_FULL",""); NetworkInfo.showFullInfo(); }));
+                    v -> runAsync(() -> { AuditLogger.getInstance().log("SCAN_FULL",""); NetworkInfo.showFullInfo(); }));
             case "03" -> GuiDiagnosticsActions.handleDiagnose(input, this);
             case "04" -> input.ask("Port:", p -> runAsync(() -> {
                 AuditLogger.getInstance().log("FILE_SERVER","port="+p);
@@ -67,7 +67,7 @@ public class GuiMenuHandler {
             case "08" -> handleSendMessage();
             case "09" -> { if (savedHostsPanel != null) savedHostsPanel.show(); }
             case "10" -> input.ask("Hop-Analyse starten? [Enter]",
-                    _ -> runAsync(() -> { AuditLogger.getInstance().log("HOP_ANALYSE",""); GuiScanActions.runNetworkInfoWithHops(tables); }));
+                    v -> runAsync(() -> { AuditLogger.getInstance().log("HOP_ANALYSE",""); GuiScanActions.runNetworkInfoWithHops(tables); }));
             case "11" -> GuiForeignNetActions.handleRemoteNetScan(input, output, status, this);
             case "12" -> GuiScanProfileActions.handleScanProfiles(input, output, tables, status, this);
             case "13" -> GuiScanCompareActions.handleScanDelta(input, this);

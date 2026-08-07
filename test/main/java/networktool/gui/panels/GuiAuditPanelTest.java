@@ -1,4 +1,4 @@
-package networktool.gui.panels;
+package main.java.networktool.gui.panels;
 
 import main.java.networktool.security.AuditLogger;
 import org.junit.jupiter.api.*;
@@ -15,7 +15,7 @@ class GuiAuditPanelTest {
         System.setProperty("java.awt.headless", "true");
     }
 
-    // actionColor ist package-private static in GuiAuditTable → direkt aufrufbar
+    // actionColor ist package-private static in GuiAuditTable â†’ direkt aufrufbar
     @Nested
     class GuiAuditTableTest {
 

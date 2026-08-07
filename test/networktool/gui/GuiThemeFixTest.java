@@ -1,4 +1,4 @@
-package networktool.gui;
+package main.java.networktool.gui;
 
 import main.java.networktool.theme.GuiTheme;
 import org.junit.jupiter.api.*;
@@ -8,7 +8,7 @@ import java.lang.reflect.Modifier;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests für GuiTheme-Fixes: volatile Aliase, keine BTN_ACT/FG_DEAD mehr. */
+/** Tests fÃ¼r GuiTheme-Fixes: volatile Aliase, keine BTN_ACT/FG_DEAD mehr. */
 class GuiThemeFixTest {
 
     @BeforeEach
@@ -75,10 +75,10 @@ class GuiThemeFixTest {
         }
         for (Thread t : threads) t.start();
         for (Thread t : threads) {
-            t.join(5000);  // Längeres Timeout
-            assertFalse(t.isAlive(), "Thread sollte beendet sein, möglicherweise Deadlock");
+            t.join(5000);  // LÃ¤ngeres Timeout
+            assertFalse(t.isAlive(), "Thread sollte beendet sein, mÃ¶glicherweise Deadlock");
         }
-        // Kein Fehler = volatile schützt korrekt
+        // Kein Fehler = volatile schÃ¼tzt korrekt
         assertNotNull(GuiTheme.BG);
     }
 

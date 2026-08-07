@@ -1,4 +1,4 @@
-package networktool.gui.panels;
+package main.java.networktool.gui.panels;
 
 import main.java.networktool.gui.panels.PrivacyNetworkActions;
 import org.junit.jupiter.api.*;
@@ -8,7 +8,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests für PrivacyNetworkActions: Read-only Systemabfragen ohne echte Netzwerkänderung. */
+/** Tests fÃ¼r PrivacyNetworkActions: Read-only Systemabfragen ohne echte NetzwerkÃ¤nderung. */
 class PrivacyNetworkActionsTest {
 
     @BeforeAll
@@ -16,7 +16,7 @@ class PrivacyNetworkActionsTest {
         System.setProperty("java.awt.headless", "true");
     }
 
-    // ── Read-only Systeminfo ─────────────────────────────────────────────
+    // â”€â”€ Read-only Systeminfo â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test void getCurrentIp_notNull() {
         assertNotNull(PrivacyNetworkActions.getCurrentIp());
@@ -39,19 +39,19 @@ class PrivacyNetworkActionsTest {
     }
 
     @Test void isVpnActive_returnsBoolean() {
-        // ruft nur zweimal auf, um Konsistenz ohne Netzwerkänderung zu prüfen
+        // ruft nur zweimal auf, um Konsistenz ohne NetzwerkÃ¤nderung zu prÃ¼fen
         boolean first  = PrivacyNetworkActions.isVpnActive();
         boolean second = PrivacyNetworkActions.isVpnActive();
         assertEquals(first, second);
     }
 
-    // ── runTask ───────────────────────────────────────────────────────────
+    // â”€â”€ runTask â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test void runTask_invokesConsumer() throws InterruptedException {
         JTextArea log = new JTextArea();
         boolean[] called = {false};
         PrivacyNetworkActions.runTask(log, "test", a -> called[0] = true);
-        // runTask startet einen Thread — kurz warten
+        // runTask startet einen Thread â€” kurz warten
         Thread.sleep(200);
         assertTrue(called[0]);
     }
@@ -66,7 +66,7 @@ class PrivacyNetworkActionsTest {
         assertDoesNotThrow(() -> PrivacyNetworkActions.runTask(log, "name", a -> {}));
     }
 
-    // ── checkEncryption (read-only, kein exec()) ──────────────────────────
+    // â”€â”€ checkEncryption (read-only, kein exec()) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test void checkEncryption_doesNotThrow() throws InterruptedException {
         JTextArea log = new JTextArea();
@@ -83,8 +83,8 @@ class PrivacyNetworkActionsTest {
         assertFalse(log.getText().isBlank());
     }
 
-    // ── randomizeMac / resetMac / startVpn / stopVpn: exec()-Pfade ────────
-    // Nur "does not throw" — echte Systemänderung wird hier bewusst NICHT ausgeführt/verifiziert.
+    // â”€â”€ randomizeMac / resetMac / startVpn / stopVpn: exec()-Pfade â”€â”€â”€â”€â”€â”€â”€â”€
+    // Nur "does not throw" â€” echte SystemÃ¤nderung wird hier bewusst NICHT ausgefÃ¼hrt/verifiziert.
 
     @Test void randomizeMac_doesNotThrow() {
         JTextArea log = new JTextArea();

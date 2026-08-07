@@ -1,7 +1,7 @@
 package main.java.networktool.logic.analysis;
 
-import networktool.logic.analysis.OsDetectionLogger;
-import networktool.logic.analysis.OsSignature;
+import main.java.networktool.logic.analysis.OsDetectionLogger;
+import main.java.networktool.logic.analysis.OsSignature;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;

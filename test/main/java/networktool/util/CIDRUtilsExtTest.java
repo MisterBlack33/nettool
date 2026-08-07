@@ -16,7 +16,7 @@ class CIDRUtilsExtTest {
     }
 
     @Test void getSubnet24Prefixes_slash19_32() {
-        // 10.32.0.0/19 → 32 /24-Blöcke (10.32.0 .. 10.32.31)
+        // 10.32.0.0/19 â†’ 32 /24-BlÃ¶cke (10.32.0 .. 10.32.31)
         List<String> p = CIDRUtils.getSubnet24Prefixes("10.32.0.0/19");
         assertEquals(32, p.size());
         assertEquals("10.32.0", p.get(0));

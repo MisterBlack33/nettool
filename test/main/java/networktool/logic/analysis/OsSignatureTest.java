@@ -1,7 +1,7 @@
 // test/main/java/networktool/logic/analysis/OsSignatureTest.java
 package main.java.networktool.logic.analysis;
 
-import networktool.logic.analysis.OsSignature;
+import main.java.networktool.logic.analysis.OsSignature;
 import org.junit.jupiter.api.*;
 import static org.junit.jupiter.api.Assertions.*;
 

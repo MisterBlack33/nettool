@@ -1,4 +1,4 @@
-package networktool.gui.map;
+package main.java.networktool.gui.map;
 
 import org.junit.jupiter.api.Test;
 
@@ -26,10 +26,10 @@ class MapDeviceSignaturesTest {
     }
 
     @Test void portSetsDoNotOverlap() {
-        // Endgeräte-Ports und Infra-Ports dürfen sich nicht widersprechen
+        // EndgerÃ¤te-Ports und Infra-Ports dÃ¼rfen sich nicht widersprechen
         for (Integer p : MapDeviceSignatures.ENDDEVICE_PORTS)
             assertFalse(MapDeviceSignatures.NETWORK_INFRA_PORTS.contains(p),
-                    "Port " + p + " ist sowohl Endgerät als auch Infra markiert");
+                    "Port " + p + " ist sowohl EndgerÃ¤t als auch Infra markiert");
     }
 
     @Test void dnsAndDhcpPortsArePresent() {

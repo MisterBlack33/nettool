@@ -21,7 +21,7 @@ class MapTrafficObserverTest {
     }
 
     @Test void clear_removesRoles() {
-        observer.probe("192.0.2.1"); // closed ports → UNKNOWN, still clears
+        observer.probe("192.0.2.1"); // closed ports â†’ UNKNOWN, still clears
         observer.clear();
         assertTrue(observer.getAllRoles().isEmpty());
     }

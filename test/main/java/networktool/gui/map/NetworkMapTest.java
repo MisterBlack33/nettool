@@ -1,4 +1,4 @@
-package networktool.gui.map;
+package main.java.networktool.gui.map;
 
 import main.java.networktool.gui.map.MapHopDiscovery;
 import main.java.networktool.gui.map.MapSwitchStore;
@@ -19,7 +19,7 @@ class NetworkMapTest {
         GuiNetworkMap.HOP_PARENT.clear();
     }
 
-    // ── MapTopology ───────────────────────────────────────────────────────
+    // â”€â”€ MapTopology â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class MapTopologyTest {
@@ -148,7 +148,7 @@ class NetworkMapTest {
         }
     }
 
-    // ── MapHopDiscovery ───────────────────────────────────────────────────
+    // â”€â”€ MapHopDiscovery â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class MapHopDiscoveryTest {
@@ -189,7 +189,7 @@ class NetworkMapTest {
         }
     }
 
-    // ── MapTrafficObserver ────────────────────────────────────────────────
+    // â”€â”€ MapTrafficObserver â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class MapTrafficObserverTest {
@@ -237,7 +237,7 @@ class NetworkMapTest {
         }
     }
 
-    // ── MapSwitchStore ────────────────────────────────────────────────────
+    // â”€â”€ MapSwitchStore â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class MapSwitchStoreTest {
@@ -260,7 +260,7 @@ class NetworkMapTest {
         }
     }
 
-    // ── HOP_PARENT ────────────────────────────────────────────────────────
+    // â”€â”€ HOP_PARENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class HopParentTest {

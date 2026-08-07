@@ -1,10 +1,10 @@
-package networktool.util;
+package main.java.networktool.util;
 
 import java.util.function.BooleanSupplier;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Hilfsklasse für zuverlässiges Polling in Tests.
+ * Hilfsklasse fÃ¼r zuverlÃ¤ssiges Polling in Tests.
  * Ersetzt Thread.sleep mit adaptivem Polling.
  */
 public final class PollHelper {

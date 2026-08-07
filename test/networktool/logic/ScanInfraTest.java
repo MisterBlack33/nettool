@@ -1,4 +1,4 @@
-package networktool.logic;
+package main.java.networktool.logic;
 
 import main.java.networktool.logic.scan.*;
 import main.java.networktool.model.HostResult;
@@ -30,7 +30,7 @@ class ScanInfraTest extends NetworkTimeoutTestBase{
         }
     }
 
-    // ── SubnetDetector ────────────────────────────────────────────────────
+    // â”€â”€ SubnetDetector â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class SubnetDetectorTest {
@@ -48,14 +48,14 @@ class ScanInfraTest extends NetworkTimeoutTestBase{
         @Test
         void getAllSubnets_noMoreThan256() throws Exception {
             assertTrue(SubnetDetector.getAllSubnets().size() <= 256,
-                    "Zu viele Subnetze — /8-Bug?");
+                    "Zu viele Subnetze â€” /8-Bug?");
         }
 
         @Test
         void getAllSubnets_formattedCorrectly() throws Exception {
             for (String subnet : SubnetDetector.getAllSubnets()) {
                 assertEquals(3, subnet.split("\\.").length,
-                        "Präfix muss 3 Oktette haben: " + subnet);
+                        "PrÃ¤fix muss 3 Oktette haben: " + subnet);
             }
         }
 
@@ -82,7 +82,7 @@ class ScanInfraTest extends NetworkTimeoutTestBase{
         }
     }
 
-    // ── PingSweep ─────────────────────────────────────────────────────────
+    // â”€â”€ PingSweep â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class PingSweepTest {
@@ -112,7 +112,7 @@ class ScanInfraTest extends NetworkTimeoutTestBase{
         }
     }
 
-    // ── LastScanCache ─────────────────────────────────────────────────────
+    // â”€â”€ LastScanCache â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class LastScanCacheTest {
@@ -150,7 +150,7 @@ class ScanInfraTest extends NetworkTimeoutTestBase{
         void getAll_notNull() { assertNotNull(LastScanCache.getAll()); }
     }
 
-    // ── ScanProgress ──────────────────────────────────────────────────────
+    // â”€â”€ ScanProgress â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class ScanProgressTest {
@@ -165,7 +165,7 @@ class ScanInfraTest extends NetworkTimeoutTestBase{
         }
     }
 
-    // ── NetworkInfo (testMode) ────────────────────────────────────────────
+    // â”€â”€ NetworkInfo (testMode) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class NetworkInfoTest {
@@ -189,7 +189,7 @@ class ScanInfraTest extends NetworkTimeoutTestBase{
         }
     }
 
-    // ── PortChangeMonitor ─────────────────────────────────────────────────
+    // â”€â”€ PortChangeMonitor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class PortChangeMonitorTest {
@@ -226,7 +226,7 @@ class ScanInfraTest extends NetworkTimeoutTestBase{
         }
     }
 
-    // ── ScanScheduler ─────────────────────────────────────────────────────
+    // â”€â”€ ScanScheduler â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class ScanSchedulerTest {

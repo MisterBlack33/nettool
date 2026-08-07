@@ -1,6 +1,6 @@
 package main.java.networktool.logic.analysis;
 
-import networktool.logic.analysis.OsDetectorHostname;
+import main.java.networktool.logic.analysis.OsDetectorHostname;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -1,4 +1,4 @@
-package networktool.filter;
+package main.java.networktool.filter;
 
 import main.java.networktool.filter.HostResultPrinter;
 import main.java.networktool.model.HostResult;

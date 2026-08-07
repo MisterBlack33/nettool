@@ -1,4 +1,4 @@
-package networktool.storage;
+package main.java.networktool.storage;
 
 import main.java.networktool.model.HostResult;
 import main.java.networktool.storage.SavedHostsStore;

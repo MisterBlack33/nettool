@@ -1,4 +1,4 @@
-package networktool.gui.panels;
+package main.java.networktool.gui.panels;
 
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +34,7 @@ class SavedHostsBulkActionsTest {
     }
 
     @Test void skipsPlaceholderDashRow() {
-        DefaultTableModel m = model(new Object[]{Boolean.TRUE, "–", "leer"});
+        DefaultTableModel m = model(new Object[]{Boolean.TRUE, "â€“", "leer"});
         assertTrue(SavedHostsBulkActions.checkedIps(m).isEmpty());
     }
 

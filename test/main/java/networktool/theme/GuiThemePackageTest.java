@@ -1,4 +1,4 @@
-package networktool.theme;
+package main.java.networktool.theme;
 
 import org.junit.jupiter.api.*;
 import main.java.networktool.theme.GuiTheme;
@@ -23,7 +23,7 @@ class GuiThemePackageTest {
         GuiTheme.applyToStatics();
     }
 
-    // ── Dynamic accessors both modes ──────────────────────────────
+    // â”€â”€ Dynamic accessors both modes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     void darkMode_allAccessors_nonNull() {
@@ -72,7 +72,7 @@ class GuiThemePackageTest {
         assertNotNull(GuiTheme.ROW_SEL);
     }
 
-    // ── osColor full coverage ─────────────────────────────────────
+    // â”€â”€ osColor full coverage â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     void osColor_ios() {
@@ -81,7 +81,7 @@ class GuiThemePackageTest {
 
     @Test
     void osColor_mobilesGeraet() {
-        assertEquals(GuiTheme.AND_COL, GuiTheme.osColor("Mobiles Gerät"));
+        assertEquals(GuiTheme.AND_COL, GuiTheme.osColor("Mobiles GerÃ¤t"));
     }
 
     @Test
@@ -91,7 +91,7 @@ class GuiThemePackageTest {
 
     @Test
     void osColor_iotMqtt() {
-        assertEquals(GuiTheme.IOT_COL, GuiTheme.osColor("IoT-Gerät (MQTT)"));
+        assertEquals(GuiTheme.IOT_COL, GuiTheme.osColor("IoT-GerÃ¤t (MQTT)"));
     }
 
     @Test
@@ -155,7 +155,7 @@ class GuiThemePackageTest {
         assertEquals(0, b.getRed());
     }
 
-    // ── Static color constants ────────────────────────────────────
+    // â”€â”€ Static color constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     void staticColors_allNonNull() {
@@ -177,10 +177,10 @@ class GuiThemePackageTest {
     @Test
     void themeName_light() {
         GuiTheme.toggleTheme();
-        assertTrue(GuiTheme.themeName().contains("Dunkel") || GuiTheme.themeName().contains("🌙"));
+        assertTrue(GuiTheme.themeName().contains("Dunkel") || GuiTheme.themeName().contains("ðŸŒ™"));
     }
 
-    // ── Volatile statics ──────────────────────────────────────────
+    // â”€â”€ Volatile statics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     void mutableStatics_areVolatile() throws Exception {
@@ -245,7 +245,7 @@ class GuiThemePackageTest {
         assertEquals(GuiTheme.FG, GuiTheme.osColor(null));
     }
 
-    // ── Dynamic color accessors ───────────────────────────────────
+    // â”€â”€ Dynamic color accessors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     void dynamicColors_darkMode() {
@@ -265,7 +265,7 @@ class GuiThemePackageTest {
     @Test
     void themeName_dark() {
         if (!GuiTheme.isDark()) GuiTheme.toggleTheme();
-        assertTrue(GuiTheme.themeName().contains("Hell") || GuiTheme.themeName().contains("☀"));
+        assertTrue(GuiTheme.themeName().contains("Hell") || GuiTheme.themeName().contains("â˜€"));
     }
 
     @Test

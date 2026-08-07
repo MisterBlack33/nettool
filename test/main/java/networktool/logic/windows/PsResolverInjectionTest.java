@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Regressionstests: PowerShell-Script-Injection über IP/Präfix muss abgewiesen werden. */
+/** Regressionstests: PowerShell-Script-Injection Ã¼ber IP/PrÃ¤fix muss abgewiesen werden. */
 class PsResolverInjectionTest {
 
     @Test void isOpen_quoteBreakout_rejected() {
@@ -28,7 +28,7 @@ class PsResolverInjectionTest {
     }
 
     @Test void sweep_extraOctet_rejected() {
-        // vier Oktette statt drei → kein gültiges 3-Oktett-Präfix
+        // vier Oktette statt drei â†’ kein gÃ¼ltiges 3-Oktett-PrÃ¤fix
         assertTrue(PsNetScanResolver.sweep("192.168.1.5").isEmpty());
     }
 

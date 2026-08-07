@@ -1,4 +1,4 @@
-package networktool.gui.notification;
+package main.java.networktool.gui.notification;
 
 import org.junit.jupiter.api.Test;
 

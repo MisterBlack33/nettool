@@ -15,7 +15,7 @@ class NetworkDiscoveryTest {
         catch (Exception e) { return false; }
     }
 
-    // ── IcmpAnalyzer ──────────────────────────────────────────────────────
+    // â”€â”€ IcmpAnalyzer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class IcmpAnalyzerTest {
@@ -107,7 +107,7 @@ class NetworkDiscoveryTest {
         }
     }
 
-    // ── DhcpOptionAnalyzer ────────────────────────────────────────────────
+    // â”€â”€ DhcpOptionAnalyzer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class DhcpOptionAnalyzerTest {
@@ -132,7 +132,7 @@ class NetworkDiscoveryTest {
 
         @Test
         void classify_windows_vendorClass() {
-            // Indirekt über Result-Record testen
+            // Indirekt Ã¼ber Result-Record testen
             DhcpOptionAnalyzer.Result r = new DhcpOptionAnalyzer.Result("MSFT 5.0", "Windows");
             assertTrue(r.detectedOs().contains("Windows"));
         }
@@ -144,7 +144,7 @@ class NetworkDiscoveryTest {
         }
     }
 
-    // ── UpnpDiscovery ─────────────────────────────────────────────────────
+    // â”€â”€ UpnpDiscovery â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class UpnpDiscoveryTest {
@@ -209,7 +209,7 @@ class NetworkDiscoveryTest {
         }
     }
 
-    // ── MdnsDiscovery ─────────────────────────────────────────────────────
+    // â”€â”€ MdnsDiscovery â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class MdnsDiscoveryTest {
@@ -246,7 +246,7 @@ class NetworkDiscoveryTest {
         void serviceRecord_guessOs_airplay() {
             MdnsDiscovery.ServiceRecord r = new MdnsDiscovery.ServiceRecord(
                     "1.1.1.1", "_airplay._tcp.local", "MyDevice", 7000);
-            assertEquals("Apple-Gerät", r.guessOs());
+            assertEquals("Apple-GerÃ¤t", r.guessOs());
         }
 
         @Test

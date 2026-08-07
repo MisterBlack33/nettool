@@ -1,6 +1,6 @@
 package main.java.networktool.logic.messaging;
 
-import networktool.logic.messaging.MessageDelivery;
+import main.java.networktool.logic.messaging.MessageDelivery;
 import org.junit.jupiter.api.*;
 
 import java.io.ByteArrayInputStream;
@@ -12,7 +12,7 @@ class MessagingPackageTest {
 
     @Test
     void tryListener_closedPort_returnsFalse() {
-        // Verwende eine non-routable Dokumentationsadresse, die üblicherweise nicht erreichbar ist
+        // Verwende eine non-routable Dokumentationsadresse, die Ã¼blicherweise nicht erreichbar ist
         assertFalse(MessageDelivery.tryListener("192.0.2.1", "hello"));
     }
 

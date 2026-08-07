@@ -1,11 +1,11 @@
 package main.java.networktool.logic.messaging;
 
-import networktool.logic.messaging.MessageDelivery;
+import main.java.networktool.logic.messaging.MessageDelivery;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Regressionstests: Command-/Script-Injection über Ziel-IP muss abgewiesen werden. */
+/** Regressionstests: Command-/Script-Injection Ã¼ber Ziel-IP muss abgewiesen werden. */
 class MessageDeliveryInjectionTest {
 
     @Test void tryWinRM_shellMetachars_rejected() {
@@ -34,7 +34,7 @@ class MessageDeliveryInjectionTest {
     }
 
     @Test void tryWinRM_validButUnreachable_returnsFalse() {
-        // gültige IP-Syntax, aber Port 5985 nicht offen → false, kein Exec-Versuch nötig
+        // gÃ¼ltige IP-Syntax, aber Port 5985 nicht offen â†’ false, kein Exec-Versuch nÃ¶tig
         assertFalse(MessageDelivery.tryWinRM("192.0.2.1", "hi"));
     }
 

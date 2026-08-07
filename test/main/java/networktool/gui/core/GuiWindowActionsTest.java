@@ -1,7 +1,7 @@
 package main.java.networktool.gui.core;
 
 import main.java.networktool.gui.panels.GuiInputPanel;
-import networktool.gui.core.GuiWindowActions;
+import main.java.networktool.gui.core.GuiWindowActions;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.parallel.Isolated;
 
@@ -10,7 +10,7 @@ import javax.swing.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests für GuiWindowActions.
+ * Tests fÃ¼r GuiWindowActions.
  * confirmQuit()/toggleTheme() rufen JOptionPane bzw. GuiOutputPanel/GuiStatusBar
  * auf und werden hier bewusst NICHT getestet (blockierender Dialog headless nicht
  * automatisierbar ohne UI-Test-Framework, siehe JaCoCo-Exclude in pom.xml).

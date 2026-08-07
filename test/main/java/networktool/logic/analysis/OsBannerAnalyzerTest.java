@@ -1,11 +1,11 @@
 package main.java.networktool.logic.analysis;
 
-import networktool.logic.analysis.OsBannerAnalyzer;
-import networktool.logic.analysis.OsSignature;
+import main.java.networktool.logic.analysis.OsBannerAnalyzer;
+import main.java.networktool.logic.analysis.OsSignature;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests für OsBannerAnalyzer inkl. HTTPS und FTP. */
+/** Tests fÃ¼r OsBannerAnalyzer inkl. HTTPS und FTP. */
 class OsBannerAnalyzerTest {
 
     @Test

@@ -1,9 +1,9 @@
-package networktool.transfer;
+package main.java.networktool.transfer;
 
 import main.java.networktool.transfer.BandwidthTester;
 import main.java.networktool.transfer.FileClient;
 import main.java.networktool.transfer.FileServer;
-import networktool.util.PollHelper;
+import main.java.networktool.util.PollHelper;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 

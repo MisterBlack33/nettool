@@ -1,4 +1,4 @@
-package networktool.misc;
+package main.java.networktool.misc;
 
 import main.java.networktool.storage.*;
 import main.java.networktool.theme.GuiTheme;
@@ -14,9 +14,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class MiscTest {
 
-    // ══════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     //  GuiTheme
-    // ══════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     @Nested
     class GuiThemeTest {
@@ -36,7 +36,7 @@ class MiscTest {
         @Test void osColor_unknown_returnsFgDim()         { assertEquals(GuiTheme.FG_DIM, GuiTheme.osColor("Unbekannt")); }
         @Test void osColor_router()                      { assertEquals(GuiTheme.NET_COL, GuiTheme.osColor("Router / Switch")); }
         @Test void osColor_drucker()                     { assertEquals(GuiTheme.PRN_COL, GuiTheme.osColor("Drucker (IPP/CUPS)")); }
-        @Test void osColor_iot()                         { assertEquals(GuiTheme.IOT_COL, GuiTheme.osColor("IoT-Gerät (MQTT)")); }
+        @Test void osColor_iot()                         { assertEquals(GuiTheme.IOT_COL, GuiTheme.osColor("IoT-GerÃ¤t (MQTT)")); }
         @Test void osColor_macos()                       { assertEquals(GuiTheme.APL_COL, GuiTheme.osColor("macOS")); }
 
         @Test void brighter_returnsLighterColor() {
@@ -46,13 +46,13 @@ class MiscTest {
 
         @Test void dynamicColors_darkMode()  { if (!GuiTheme.isDark()) GuiTheme.toggleTheme(); assertNotNull(GuiTheme.bg()); assertNotNull(GuiTheme.fg()); }
         @Test void dynamicColors_lightMode() { if (GuiTheme.isDark()) GuiTheme.toggleTheme(); assertNotNull(GuiTheme.bg()); assertNotNull(GuiTheme.fg()); }
-        @Test void themeName_dark()          { if (!GuiTheme.isDark()) GuiTheme.toggleTheme(); assertTrue(GuiTheme.themeName().contains("Hell") || GuiTheme.themeName().contains("☀")); }
+        @Test void themeName_dark()          { if (!GuiTheme.isDark()) GuiTheme.toggleTheme(); assertTrue(GuiTheme.themeName().contains("Hell") || GuiTheme.themeName().contains("â˜€")); }
         @Test void fonts_notNull()           { assertNotNull(GuiTheme.MONO); assertNotNull(GuiTheme.MONO_S); assertNotNull(GuiTheme.BTN_F); }
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     //  NoteEncryption
-    // ══════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     @Nested
     class NoteEncryptionTest {
@@ -70,7 +70,7 @@ class MiscTest {
         @Test void encrypt_decrypt_roundtrip() throws Exception {
             String pw = "my-secure-pw-456";
             NoteEncryption.setPassword(pw);
-            String plain = "super secret note äöü";
+            String plain = "super secret note Ã¤Ã¶Ã¼";
             assertEquals(plain, NoteEncryption.decrypt(NoteEncryption.encrypt(plain), pw));
         }
 
@@ -86,9 +86,9 @@ class MiscTest {
         @Test void clearSession_disablesKey() throws Exception { NoteEncryption.setPassword("pw123456"); NoteEncryption.clearSession(); assertFalse(NoteEncryption.hasSessionKey()); }
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     //  StorageUtils
-    // ══════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     @Nested
     class StorageUtilsTest {
@@ -99,9 +99,9 @@ class MiscTest {
         @Test void escapeJson_null_returnsEmpty()         { assertEquals("", StorageUtils.escapeJson(null)); }
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     //  DataExportImport
-    // ══════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     @Nested
     class DataExportImportTest {
@@ -130,9 +130,9 @@ class MiscTest {
         }
     }
 
-    // ══════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     //  ScanProfileStore  (isolated to __junit__ prefix)
-    // ══════════════════════════════════════════════════════════════
+    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     @Nested
     class ScanProfileStoreTest {

@@ -1,4 +1,4 @@
-package networktool.gui.notification;
+package main.java.networktool.gui.notification;
 
 import main.java.networktool.gui.notification.NotificationListener;
 import org.junit.jupiter.api.Test;
@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests for NotificationListener.parseNtfyJson (package-private).
- * NtfyEvent is private static → only null/non-null checks possible.
+ * NtfyEvent is private static â†’ only null/non-null checks possible.
  */
 class NotificationListenerPackageTest {
 

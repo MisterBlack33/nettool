@@ -1,4 +1,4 @@
-package networktool.logic.scan;
+package main.java.networktool.logic.scan;
 
 import main.java.networktool.logic.scan.HostAliveChecker;
 import org.junit.jupiter.api.*;
@@ -11,12 +11,12 @@ class HostAliveCheckerTest {
 
     @Test
     void isAlive_withOpenPort_true() throws Exception {
-        // Eigenen Server öffnen → garantiert ein offener Port auf loopback
+        // Eigenen Server Ã¶ffnen â†’ garantiert ein offener Port auf loopback
         try (ServerSocket ss = new ServerSocket(0)) {
             int port = ss.getLocalPort();
             // HostAliveChecker kennt diesen Port nicht, aber ICMP oder
-            // einer der PROBE_PORTS muss nicht offen sein –
-            // wir testen isAlive() direkt über einen bekannten offenen Port
+            // einer der PROBE_PORTS muss nicht offen sein â€“
+            // wir testen isAlive() direkt Ã¼ber einen bekannten offenen Port
             assertTrue(isReachableViaSocket("127.0.0.1", port),
                     "Loopback-Socket muss erreichbar sein");
         }
@@ -24,7 +24,7 @@ class HostAliveCheckerTest {
 
     @Test
     void isAlive_unreachableIp_false() {
-        // RFC 5737 Dokumentations-IP – nie geroutet
+        // RFC 5737 Dokumentations-IP â€“ nie geroutet
         assertFalse(HostAliveChecker.isAlive("192.0.2.1"));
     }
 
@@ -35,7 +35,7 @@ class HostAliveCheckerTest {
 
     @Test
     void isAlive_localhost_withProbePort() throws Exception {
-        // Server auf einem der PROBE_PORTS öffnen die HostAliveChecker nutzt
+        // Server auf einem der PROBE_PORTS Ã¶ffnen die HostAliveChecker nutzt
         int[] probePorts = {80, 443, 22, 445, 3389, 8080};
         ServerSocket ss = null;
         int usedPort = -1;
@@ -49,9 +49,9 @@ class HostAliveCheckerTest {
         }
 
         if (ss == null) {
-            // Kein PROBE_PORT verfügbar (z.B. CI ohne Rechte) → Test überspringen
+            // Kein PROBE_PORT verfÃ¼gbar (z.B. CI ohne Rechte) â†’ Test Ã¼berspringen
             org.junit.jupiter.api.Assumptions.assumeTrue(false,
-                    "Kein PROBE_PORT verfügbar – Test übersprungen");
+                    "Kein PROBE_PORT verfÃ¼gbar â€“ Test Ã¼bersprungen");
             return;
         }
 

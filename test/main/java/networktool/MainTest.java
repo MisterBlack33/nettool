@@ -14,7 +14,7 @@ import java.util.Scanner;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests for Main – isCliMode(), cliLogin(), security init.
+ * Tests for Main â€“ isCliMode(), cliLogin(), security init.
  * GUI-Start wird nicht getestet (headless).
  */
 
@@ -48,7 +48,7 @@ class MainTest {
         AuditLogger.getInstance().shutdown();
     }
 
-    // ── AuditLogger / UserAuth init via main() ────────────────────────────
+    // â”€â”€ AuditLogger / UserAuth init via main() â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     void auditLogger_init_doesNotThrow() {
@@ -65,7 +65,7 @@ class MainTest {
         assertNotNull(StorageUtils.resolveDataDir());
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────
+    // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private boolean invoke_isCliMode(String[] args) throws Exception {
         return (boolean) isCliMode.invoke(null, (Object) args);
