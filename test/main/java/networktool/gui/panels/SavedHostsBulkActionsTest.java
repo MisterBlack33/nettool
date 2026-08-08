@@ -34,7 +34,7 @@ class SavedHostsBulkActionsTest {
     }
 
     @Test void skipsPlaceholderDashRow() {
-        DefaultTableModel m = model(new Object[]{Boolean.TRUE, "ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“", "leer"});
+        DefaultTableModel m = model(new Object[]{Boolean.TRUE, "–", "leer"});
         assertTrue(SavedHostsBulkActions.checkedIps(m).isEmpty());
     }
 

@@ -21,7 +21,8 @@ class GuiWindowActionsTest {
 
     @BeforeAll
     static void headless() {
-        System.setProperty("java.awt.headless", "true");
+        Assumptions.assumeFalse(java.awt.GraphicsEnvironment.isHeadless(),
+                "Skipping JFrame-based tests in headless CI");
     }
 
     @Test void enterFullscreen_nullMonitor_doesNotThrow() {
