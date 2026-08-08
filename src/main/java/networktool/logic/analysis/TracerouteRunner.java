@@ -80,7 +80,7 @@ public final class TracerouteRunner {
         public HopInfo(int number) { this.number = number; }
 
         public String latencyFormatted() {
-            if (msValues.isEmpty()) return "–";
+            if (msValues.isEmpty()) return "\u2013";
             if (msValues.size() == 1) return msValues.get(0) + " ms";
             long min = java.util.Collections.min(msValues);
             long max = java.util.Collections.max(msValues);

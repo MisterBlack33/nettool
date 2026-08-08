@@ -74,7 +74,7 @@ class MapNodeStyleTest {
         String result = MapNodeStyle.cleanHostname("this-is-a-very-long-hostname-indeed", "10.0.0.5");
         assertNotNull(result);
         assertTrue(result.length() <= 18);
-        assertTrue(result.endsWith("â€¦"));
+        assertTrue(result.endsWith("\u2026"));
     }
 
     @Test void cleanHostnameStripsMacSuffix() {

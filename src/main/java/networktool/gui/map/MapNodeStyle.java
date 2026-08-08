@@ -79,7 +79,7 @@ final class MapNodeStyle {
         String h = hostname;
         int bracket = h.indexOf(" [");
         if (bracket > 0) h = h.substring(0, bracket).trim();
-        if (h.length() > 18) h = h.substring(0, 17) + "…";
+        if (h.length() > 18) h = h.substring(0, 17) + "\u2026";
         return h.equals(ip) ? null : h;
     }
 
