@@ -7,33 +7,19 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.Isolated;
 
-import java.lang.reflect.*;
 import java.nio.file.Path;
-import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests for Main â€“ isCliMode(), cliLogin(), security init.
- * GUI-Start wird nicht getestet (headless).
+ * Tests for Main – nur noch Security-Init (init(dataDir) für AuditLogger/UserAuth).
+ * isCliMode()/cliLogin() existieren nicht mehr (Main hat nur main()/runGui()).
+ * GUI-Start wird nicht getestet (headless, Login-Dialog blockiert).
  */
-
 @Isolated
 class MainTest {
 
     @TempDir Path tmp;
-
-    private static Method isCliMode;
-    private static Method cliLogin;
-
-    @BeforeAll
-    static void reflect() throws Exception {
-        isCliMode = Main.class.getDeclaredMethod("isCliMode", String[].class);
-        isCliMode.setAccessible(true);
-
-        cliLogin = Main.class.getDeclaredMethod("cliLogin", Scanner.class);
-        cliLogin.setAccessible(true);
-    }
 
     @BeforeEach
     void setup() {
@@ -47,8 +33,6 @@ class MainTest {
         UserAuth.getInstance().logout();
         AuditLogger.getInstance().shutdown();
     }
-
-    // â”€â”€ AuditLogger / UserAuth init via main() â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     void auditLogger_init_doesNotThrow() {
@@ -65,13 +49,26 @@ class MainTest {
         assertNotNull(StorageUtils.resolveDataDir());
     }
 
-    // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-    private boolean invoke_isCliMode(String[] args) throws Exception {
-        return (boolean) isCliMode.invoke(null, (Object) args);
+    @Test
+    void mainClass_hasMainMethod() throws Exception {
+        assertNotNull(Main.class.getDeclaredMethod("main", String[].class));
     }
 
-    private boolean invoke_cliLogin(Scanner scanner) throws Exception {
-        return (boolean) cliLogin.invoke(null, scanner);
+    @Test
+    void isCliMode_methodDoesNotExist() {
+        boolean found = false;
+        for (var m : Main.class.getDeclaredMethods()) {
+            if (m.getName().equals("isCliMode")) { found = true; break; }
+        }
+        assertFalse(found, "isCliMode() sollte entfernt sein");
+    }
+
+    @Test
+    void cliLogin_methodDoesNotExist() {
+        boolean found = false;
+        for (var m : Main.class.getDeclaredMethods()) {
+            if (m.getName().equals("cliLogin")) { found = true; break; }
+        }
+        assertFalse(found, "cliLogin() sollte entfernt sein");
     }
 }

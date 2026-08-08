@@ -6,8 +6,8 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>networktool</groupId>
-    <artifactId>nettool</artifactId>
-    <version>3.0.0</version>
+    <artifactId>jacoco-maven-plugin</artifactId>
+    <version>0.8.12</version>
     <packaging>jar</packaging>
 
     <properties>
