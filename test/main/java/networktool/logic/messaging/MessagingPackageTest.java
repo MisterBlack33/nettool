@@ -12,7 +12,7 @@ class MessagingPackageTest {
 
     @Test
     void tryListener_closedPort_returnsFalse() {
-        // Verwende eine non-routable Dokumentationsadresse, die Ã¼blicherweise nicht erreichbar ist
+        // Verwende eine non-routable Dokumentationsadresse, die ÃƒÆ’Ã‚Â¼blicherweise nicht erreichbar ist
         assertFalse(MessageDelivery.tryListener("192.0.2.1", "hello"));
     }
 

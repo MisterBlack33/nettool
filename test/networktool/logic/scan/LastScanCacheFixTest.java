@@ -9,7 +9,7 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests fÃ¼r LastScanCache â€” jetzt korrekt Ã¼ber GuiTableRenderer verdrahtet. */
+/** Tests fÃƒÆ’Ã‚Â¼r LastScanCache ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â jetzt korrekt ÃƒÆ’Ã‚Â¼ber GuiTableRenderer verdrahtet. */
 class LastScanCacheFixTest {
 
     @BeforeEach

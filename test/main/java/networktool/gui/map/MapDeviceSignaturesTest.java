@@ -26,10 +26,10 @@ class MapDeviceSignaturesTest {
     }
 
     @Test void portSetsDoNotOverlap() {
-        // EndgerÃ¤te-Ports und Infra-Ports dÃ¼rfen sich nicht widersprechen
+        // EndgerÃƒÆ’Ã‚Â¤te-Ports und Infra-Ports dÃƒÆ’Ã‚Â¼rfen sich nicht widersprechen
         for (Integer p : MapDeviceSignatures.ENDDEVICE_PORTS)
             assertFalse(MapDeviceSignatures.NETWORK_INFRA_PORTS.contains(p),
-                    "Port " + p + " ist sowohl EndgerÃ¤t als auch Infra markiert");
+                    "Port " + p + " ist sowohl EndgerÃƒÆ’Ã‚Â¤t als auch Infra markiert");
     }
 
     @Test void dnsAndDhcpPortsArePresent() {

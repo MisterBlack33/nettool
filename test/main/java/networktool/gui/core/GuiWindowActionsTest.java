@@ -10,7 +10,7 @@ import javax.swing.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Tests fÃ¼r GuiWindowActions.
+ * Tests fÃƒÆ’Ã‚Â¼r GuiWindowActions.
  * confirmQuit()/toggleTheme() rufen JOptionPane bzw. GuiOutputPanel/GuiStatusBar
  * auf und werden hier bewusst NICHT getestet (blockierender Dialog headless nicht
  * automatisierbar ohne UI-Test-Framework, siehe JaCoCo-Exclude in pom.xml).

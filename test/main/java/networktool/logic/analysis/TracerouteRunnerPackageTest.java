@@ -76,6 +76,6 @@ class TracerouteRunnerPackageTest {
     @Test
     void hopInfo_latencyFormatted_empty() {
         TracerouteRunner.HopInfo hop = new TracerouteRunner.HopInfo(1);
-        assertEquals("â€“", hop.latencyFormatted());
+        assertEquals("ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“", hop.latencyFormatted());
     }
 }

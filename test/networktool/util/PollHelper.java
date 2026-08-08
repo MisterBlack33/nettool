@@ -4,7 +4,7 @@ import java.util.function.BooleanSupplier;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Hilfsklasse fÃ¼r zuverlÃ¤ssiges Polling in Tests.
+ * Hilfsklasse fÃƒÆ’Ã‚Â¼r zuverlÃƒÆ’Ã‚Â¤ssiges Polling in Tests.
  * Ersetzt Thread.sleep mit adaptivem Polling.
  */
 public final class PollHelper {

@@ -6,7 +6,7 @@ import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests fÃ¼r TableConfig-Fix: totalWidth() entfernt. */
+/** Tests fÃƒÆ’Ã‚Â¼r TableConfig-Fix: totalWidth() entfernt. */
 class TableConfigFixTest {
 
     @Test

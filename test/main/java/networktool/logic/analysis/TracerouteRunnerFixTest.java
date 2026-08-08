@@ -4,7 +4,7 @@ import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests fÃ¼r TracerouteRunner (Fix: doppeltes Semikolon). */
+/** Tests fÃƒÆ’Ã‚Â¼r TracerouteRunner (Fix: doppeltes Semikolon). */
 class TracerouteRunnerFixTest {
 
     @Test
