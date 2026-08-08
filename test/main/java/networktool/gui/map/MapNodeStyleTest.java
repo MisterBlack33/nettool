@@ -70,7 +70,7 @@ class MapNodeStyleTest {
         assertNull(MapNodeStyle.cleanHostname("host-10", "10.0.0.5"));
     }
 
-    @Test void cleanHostnameTruncatesLongNames() {
+    @Test void cleanHofstnameTruncatesLongNames() {
         String result = MapNodeStyle.cleanHostname("this-is-a-very-long-hostname-indeed", "10.0.0.5");
         assertNotNull(result);
         assertTrue(result.length() <= 18);

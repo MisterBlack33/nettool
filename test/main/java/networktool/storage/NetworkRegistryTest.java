@@ -110,7 +110,8 @@ class NetworkRegistryTest {
 
         @Test void loadFile_parsesPrefix() throws Exception {
             Path file = tmp.resolve("hosts.txt");
-            Files.writeString(file, "IP-PRÃƒÆ’Ã¢â‚¬Å¾FIX:" + TestConstants.PREFIX_88 + "\n" + TestConstants.IP_1 + ";" + TestConstants.HOST_1 + ";Win\n", StandardCharsets.UTF_8);
+            Files.writeString(file, "IP-PRÄFIX:" + TestConstants.PREFIX_88 + "\n"
+                    + TestConstants.IP_1 + ";" + TestConstants.HOST_1 + ";Win\n", StandardCharsets.UTF_8);
             Map<String, List<HostResult>> nets = new LinkedHashMap<>();
             Map<String, String>           pfx  = new LinkedHashMap<>();
             NetworkStoreLegacy.loadFile(file, TestConstants.NET_STANDARD, nets, pfx);
