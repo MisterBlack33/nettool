@@ -1,4 +1,4 @@
-package main.java.networktool.logic;
+package networktool.logic;
 
 import main.java.networktool.logic.analysis.WakeOnLan;
 import main.java.networktool.logic.scan.ScanDelta;

@@ -1,4 +1,4 @@
-package main.java.networktool.model;
+package networktool.model;
 
 import main.java.networktool.model.HostResult;
 import main.java.networktool.model.ScanProfile;

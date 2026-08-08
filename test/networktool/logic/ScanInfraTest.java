@@ -1,4 +1,4 @@
-package main.java.networktool.logic;
+package networktool.logic;
 
 import main.java.networktool.logic.scan.*;
 import main.java.networktool.model.HostResult;

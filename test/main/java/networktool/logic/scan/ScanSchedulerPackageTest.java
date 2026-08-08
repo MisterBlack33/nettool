@@ -3,7 +3,7 @@ package main.java.networktool.logic.scan;
 import main.java.networktool.model.ScanProfile;
 import main.java.networktool.storage.ScanProfileStore;
 import main.java.networktool.storage.TestConstants;
-import main.java.networktool.util.PollHelper;
+import networktool.util.PollHelper;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Tag;
 

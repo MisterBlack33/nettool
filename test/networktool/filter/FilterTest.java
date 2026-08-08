@@ -1,4 +1,4 @@
-package main.java.networktool.filter;
+package networktool.filter;
 
 import main.java.networktool.filter.HostResultFilter;
 import main.java.networktool.filter.ScanFilter;
