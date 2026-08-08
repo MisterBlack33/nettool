@@ -2,11 +2,13 @@ package main.java.networktool.security;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.Isolated;
 
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Isolated
 class UserAuthPasswordPolicyTest {
 
     @TempDir Path tmp;
