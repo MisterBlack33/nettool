@@ -16,7 +16,7 @@ class OsFingerprintTest {
 
     @Test
     void noTcp_ttl32_returnsRouter() {
-        assertEquals("Router / NetzwerkgerÃƒÆ’Ã‚Â¤t",
+        assertEquals("Router / Netzwerkgerät",
                 OsFingerprint.resolveNoTcp("192.0.2.1", 32, null));
     }
 

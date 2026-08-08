@@ -58,7 +58,7 @@ class HostSchemaVersionTest {
     }
 
     @Test void extractStr_unicodeEscape_decoded() {
-        assertEquals("cafÃƒÆ’Ã‚Â©", JsonHelper.extractStr("{\"s\":\"caf\\u00e9\"}", "s"));
+        assertEquals("café", JsonHelper.extractStr("{\"s\":\"caf\\u00e9\"}", "s"));
     }
 
     @Test void extractStr_malformedUnicodeEscape_keptRaw() {

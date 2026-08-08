@@ -31,7 +31,8 @@ final class MapEdgeBuilder {
         if (self != null)
             edges.add(edge(self, gateway, GuiNetworkMap.EdgeType.SELF_LINK));
 
-        for (GuiNetworkMap.Node node : nodes) {
+        // snapshot to iterate safely — resolveParent()/findOrCreateSwitch() may append to `nodes`
+        for (GuiNetworkMap.Node node : new ArrayList<>(nodes)) {
             if (node.type != GuiNetworkMap.NodeType.HOST) continue;
             GuiNetworkMap.Node parent = resolveParent(node, switches, gateway, hopParent, nodes, edges);
             edges.add(edge(node, parent, GuiNetworkMap.EdgeType.NORMAL));
