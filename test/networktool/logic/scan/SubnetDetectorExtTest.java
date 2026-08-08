@@ -1,4 +1,4 @@
-package main.java.networktool.logic.scan;
+package networktool.logic.scan;
 
 import main.java.networktool.logic.scan.SubnetDetector;
 import org.junit.jupiter.api.Test;
@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class SubnetDetectorExtTest {
 
     @Test void getAllCidrs_doesNotThrow() {
-        assertDoesNotThrow(() -> SubnetDetector.getAllCidrs());
+        assertDoesNotThrow(SubnetDetector::getAllCidrs);
     }
 
     @Test void getAllCidrs_validFormat() throws Exception {

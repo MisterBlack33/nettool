@@ -1,4 +1,4 @@
-package main.java.networktool.security;
+package networktool.security;
 
 import main.java.networktool.security.AuditLogEntry;
 import main.java.networktool.security.AuditLogger;

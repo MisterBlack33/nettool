@@ -13,19 +13,19 @@ import java.util.logging.Logger;
  * WireGuard-Steuerung und einfacher Verschlüsselungs-Check.
  * Alle exec()-Aufrufe mit Interface/MAC über {@link PlatformUtils} abgesichert.
  */
-final class PrivacyNetworkActions {
+public final class PrivacyNetworkActions {
 
     private static final Logger LOG = Logger.getLogger(PrivacyNetworkActions.class.getName());
 
     private PrivacyNetworkActions() {}
 
-    static void runTask(JTextArea log, String name, java.util.function.Consumer<JTextArea> task) {
+    public static void runTask(JTextArea log, String name, java.util.function.Consumer<JTextArea> task) {
         log.setText("");
         log("── " + name + " ──", log);
         new Thread(() -> task.accept(log), "Privacy-" + name).start();
     }
 
-    static void randomizeMac(JTextArea log) {
+    public static void randomizeMac(JTextArea log) {
         if (PlatformUtils.isWindows()) {
             log("Hinweis: MAC-Spoofing unter Windows via Geräte-Manager.", log); return;
         }
@@ -43,7 +43,7 @@ final class PrivacyNetworkActions {
         } catch (Exception e) { log("Fehler: " + e.getMessage(), log); }
     }
 
-    static void resetMac(JTextArea log) {
+    public static void resetMac(JTextArea log) {
         if (PlatformUtils.isWindows()) { log("Windows: MAC über Geräte-Manager zurücksetzen.", log); return; }
         String iface = getActiveInterface();
         if (iface == null) { log("Kein aktives Interface.", log); return; }
@@ -56,7 +56,7 @@ final class PrivacyNetworkActions {
         } catch (Exception e) { log("Fehler (ethtool nötig): " + e.getMessage(), log); }
     }
 
-    static void startVpn(JTextArea log) {
+    public static void startVpn(JTextArea log) {
         try {
             File wgDir = PlatformUtils.isWindows()
                     ? new File("C:\\Program Files\\WireGuard")
@@ -77,7 +77,7 @@ final class PrivacyNetworkActions {
         } catch (Exception e) { log("Fehler: " + e.getMessage(), log); }
     }
 
-    static void stopVpn(JTextArea log) {
+    public static void stopVpn(JTextArea log) {
         try {
             exec(PlatformUtils.isWindows()
                     ? new String[]{"wireguard", "/uninstalltunnelservice", "wg0"}
@@ -86,7 +86,7 @@ final class PrivacyNetworkActions {
         } catch (Exception e) { log("Fehler: " + e.getMessage(), log); }
     }
 
-    static void checkEncryption(JTextArea log) {
+    public static void checkEncryption(JTextArea log) {
         log("── Verschlüsselungs-Check ──", log);
         log("VPN (WireGuard): " + (isVpnActive() ? "✔ aktiv" : "✕ inaktiv"), log);
         try {
@@ -121,7 +121,7 @@ final class PrivacyNetworkActions {
                 r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256), r.nextInt(256));
     }
 
-    static String getCurrentMac() {
+    public static String getCurrentMac() {
         try {
             String iface = getActiveInterface();
             if (iface == null) return "unbekannt";
@@ -138,12 +138,12 @@ final class PrivacyNetworkActions {
         } catch (Exception e) { return "unbekannt"; }
     }
 
-    static String getCurrentIp() {
+    public static String getCurrentIp() {
         try { return java.net.InetAddress.getLocalHost().getHostAddress(); }
         catch (Exception e) { return "unbekannt"; }
     }
 
-    static boolean isVpnActive() {
+    public static boolean isVpnActive() {
         try {
             Enumeration<java.net.NetworkInterface> ifaces = java.net.NetworkInterface.getNetworkInterfaces();
             while (ifaces.hasMoreElements()) {

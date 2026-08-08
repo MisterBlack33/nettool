@@ -1,4 +1,4 @@
-package main.java.networktool.gui;
+package networktool.gui;
 
 import main.java.networktool.theme.GuiTheme;
 import org.junit.jupiter.api.*;
@@ -8,7 +8,6 @@ import java.lang.reflect.Modifier;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests fÃ¼r GuiTheme-Fixes: volatile Aliase, keine BTN_ACT/FG_DEAD mehr. */
 class GuiThemeFixTest {
 
     @BeforeEach

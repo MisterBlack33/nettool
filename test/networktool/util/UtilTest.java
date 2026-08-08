@@ -1,4 +1,4 @@
-package main.java.networktool.util;
+package networktool.util;
 
 import main.java.networktool.gui.login.GuiLoginRateLimiter;
 import main.java.networktool.util.IpValidator;

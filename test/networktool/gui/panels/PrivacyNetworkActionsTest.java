@@ -1,4 +1,4 @@
-package main.java.networktool.gui.panels;
+package networktool.gui.panels;
 
 import main.java.networktool.gui.panels.PrivacyNetworkActions;
 import org.junit.jupiter.api.*;

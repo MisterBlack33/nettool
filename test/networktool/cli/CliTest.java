@@ -1,4 +1,4 @@
-package main.java.networktool.cli;
+package networktool.cli;
 
 import main.java.networktool.filter.ClipboardUtil;
 import main.java.networktool.filter.JsonExporter;
