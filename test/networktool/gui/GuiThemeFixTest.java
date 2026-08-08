@@ -74,10 +74,10 @@ class GuiThemeFixTest {
         }
         for (Thread t : threads) t.start();
         for (Thread t : threads) {
-            t.join(5000);  // LÃ¤ngeres Timeout
-            assertFalse(t.isAlive(), "Thread sollte beendet sein, mÃ¶glicherweise Deadlock");
+            t.join(5000);  // LÃƒÆ’Ã‚Â¤ngeres Timeout
+            assertFalse(t.isAlive(), "Thread sollte beendet sein, mÃƒÆ’Ã‚Â¶glicherweise Deadlock");
         }
-        // Kein Fehler = volatile schÃ¼tzt korrekt
+        // Kein Fehler = volatile schÃƒÆ’Ã‚Â¼tzt korrekt
         assertNotNull(GuiTheme.BG);
     }
 

@@ -25,7 +25,7 @@ class HostSchemaVersionTest {
     }
 
     @Test void legacyFile_stillParsesHosts() {
-        // Altbestand ohne schemaVersion darf weiterhin vollstÃ¤ndig geladen werden.
+        // Altbestand ohne schemaVersion darf weiterhin vollstÃƒÆ’Ã‚Â¤ndig geladen werden.
         String legacy = "{\n  \"network\": \"Old\",\n  \"prefix\": \"\",\n  \"hosts\": [\n"
                 + "    {\"ip\":\"1.2.3.4\",\"hostname\":\"h\",\"os\":\"Linux\",\"savedAt\":\"\",\"ports\":{},\"notes\":\"\"}\n"
                 + "  ]\n}";
@@ -58,7 +58,7 @@ class HostSchemaVersionTest {
     }
 
     @Test void extractStr_unicodeEscape_decoded() {
-        assertEquals("cafÃ©", JsonHelper.extractStr("{\"s\":\"caf\\u00e9\"}", "s"));
+        assertEquals("cafÃƒÆ’Ã‚Â©", JsonHelper.extractStr("{\"s\":\"caf\\u00e9\"}", "s"));
     }
 
     @Test void extractStr_malformedUnicodeEscape_keptRaw() {

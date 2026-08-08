@@ -37,7 +37,7 @@ class SubnetDetectorExtTest {
         List<String> subnets = SubnetDetector.getAllSubnets();
         for (String s : subnets) {
             assertEquals(3, s.split("\\.").length,
-                    "getAllSubnets() muss 3-Oktet-PrÃ¤fixe liefern: " + s);
+                    "getAllSubnets() muss 3-Oktet-PrÃƒÆ’Ã‚Â¤fixe liefern: " + s);
         }
     }
 

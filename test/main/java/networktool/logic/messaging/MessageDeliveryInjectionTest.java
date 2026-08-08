@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Regressionstests: Command-/Script-Injection Ã¼ber Ziel-IP muss abgewiesen werden. */
+/** Regressionstests: Command-/Script-Injection ÃƒÆ’Ã‚Â¼ber Ziel-IP muss abgewiesen werden. */
 class MessageDeliveryInjectionTest {
 
     @Test void tryWinRM_shellMetachars_rejected() {
@@ -34,7 +34,7 @@ class MessageDeliveryInjectionTest {
     }
 
     @Test void tryWinRM_validButUnreachable_returnsFalse() {
-        // gÃ¼ltige IP-Syntax, aber Port 5985 nicht offen â†’ false, kein Exec-Versuch nÃ¶tig
+        // gÃƒÆ’Ã‚Â¼ltige IP-Syntax, aber Port 5985 nicht offen ÃƒÂ¢Ã¢â‚¬Â Ã¢â‚¬â„¢ false, kein Exec-Versuch nÃƒÆ’Ã‚Â¶tig
         assertFalse(MessageDelivery.tryWinRM("192.0.2.1", "hi"));
     }
 

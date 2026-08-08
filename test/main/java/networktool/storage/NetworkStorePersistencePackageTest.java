@@ -85,7 +85,7 @@ class NetworkStorePersistencePackageTest {
     void loadLegacyFile_parsesCorrectly() throws IOException {
         Path file = tmp.resolve("legacy.txt");
         Files.writeString(file,
-                "IP-PRÃ„FIX:" + TestConstants.PREFIX_88 + "\n"
+                "IP-PRÃƒÆ’Ã¢â‚¬Å¾FIX:" + TestConstants.PREFIX_88 + "\n"
                         + TestConstants.IP_1 + ";" + TestConstants.HOST_1 + ";Linux;2024-01-01;22:SSH;note1\n",
                 StandardCharsets.UTF_8);
         Map<String, List<HostResult>> nets = new LinkedHashMap<>();

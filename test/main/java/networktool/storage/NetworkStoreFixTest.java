@@ -40,8 +40,8 @@ class NetworkStoreFixTest extends NetworkStoreTestBase {
         Thread reader = new Thread(() -> store.getAllHosts());
         saver.start(); reader.start();
         saver.join(3000); reader.join(3000);
-        assertFalse(saver.isAlive(),  "saver hÃ¤ngt (Deadlock?)");
-        assertFalse(reader.isAlive(), "reader hÃ¤ngt (Deadlock?)");
+        assertFalse(saver.isAlive(),  "saver hÃƒÆ’Ã‚Â¤ngt (Deadlock?)");
+        assertFalse(reader.isAlive(), "reader hÃƒÆ’Ã‚Â¤ngt (Deadlock?)");
     }
 
     @Test void save_returnsFalse_wrongPrefix() {
@@ -67,7 +67,7 @@ class NetworkStoreFixTest extends NetworkStoreTestBase {
         remover.start(); reader.start();
         remover.join(4000);
         reader.join(4000);
-        assertFalse(remover.isAlive(), "remover hÃ¤ngt noch - mÃ¶glicher Deadlock");
-        assertFalse(reader.isAlive(),  "reader hÃ¤ngt noch - mÃ¶glicher Deadlock");
+        assertFalse(remover.isAlive(), "remover hÃƒÆ’Ã‚Â¤ngt noch - mÃƒÆ’Ã‚Â¶glicher Deadlock");
+        assertFalse(reader.isAlive(),  "reader hÃƒÆ’Ã‚Â¤ngt noch - mÃƒÆ’Ã‚Â¶glicher Deadlock");
     }
 }

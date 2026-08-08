@@ -50,7 +50,7 @@ class ExtendedOsDetectorTest {
 
     @Test
     void detect_highConfidence_skipsExtendedSteps() {
-        // Loopback hat bekanntes OS â€“ Pipeline sollte frÃ¼h abbrechen
+        // Loopback hat bekanntes OS ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ Pipeline sollte frÃƒÆ’Ã‚Â¼h abbrechen
         assumeTrue(loopbackReachable());
         OsDetector.OsResult r = ExtendedOsDetector.detect("127.0.0.1");
         assertNotNull(r.method);

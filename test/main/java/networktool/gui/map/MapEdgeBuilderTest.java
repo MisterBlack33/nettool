@@ -107,6 +107,6 @@ class MapEdgeBuilderTest {
 
         GuiNetworkMap.Edge hostEdge = edges.stream()
                 .filter(e -> e.from == host).findFirst().orElseThrow();
-        assertSame(manual, hostEdge.to, "Manuell markierter Switch hat Vorrang vor Oktett-NÃ¤he");
+        assertSame(manual, hostEdge.to, "Manuell markierter Switch hat Vorrang vor Oktett-NÃƒÆ’Ã‚Â¤he");
     }
 }

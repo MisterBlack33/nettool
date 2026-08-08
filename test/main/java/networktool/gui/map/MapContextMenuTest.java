@@ -9,7 +9,7 @@ class MapContextMenuTest {
     @BeforeAll static void headless() { System.setProperty("java.awt.headless","true"); }
 
     @Test void show_doesNotThrowHeadless() {
-        // MapContextMenu.show needs a real Component â€“ skip in headless
+        // MapContextMenu.show needs a real Component ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ skip in headless
         assertDoesNotThrow(() -> {});
     }
 }
