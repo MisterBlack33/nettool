@@ -6,6 +6,7 @@ import main.java.networktool.gui.security.NoteEncryption;
 import main.java.networktool.model.ScanProfile;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.Isolated;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -14,9 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class MiscTest {
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     //  GuiTheme
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
     @Nested
     class GuiThemeTest {
@@ -50,10 +49,9 @@ class MiscTest {
         @Test void fonts_notNull()           { assertNotNull(GuiTheme.MONO); assertNotNull(GuiTheme.MONO_S); assertNotNull(GuiTheme.BTN_F); }
     }
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
     //  NoteEncryption
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
+    @Isolated
     @Nested
     class NoteEncryptionTest {
 
@@ -134,6 +132,7 @@ class MiscTest {
     //  ScanProfileStore  (isolated to __junit__ prefix)
     // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
+    @Isolated
     @Nested
     class ScanProfileStoreTest {
 

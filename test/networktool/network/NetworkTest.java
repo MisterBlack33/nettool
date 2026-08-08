@@ -1,4 +1,4 @@
-package main.java.networktool.network;
+package networktool.network;
 
 import main.java.networktool.logic.analysis.OuiDatabase;
 import main.java.networktool.logic.ports.PortScanner;
@@ -8,6 +8,7 @@ import main.java.networktool.storage.AutoBackup;
 import main.java.networktool.storage.NetworkStore;
 import main.java.networktool.storage.TestConstants;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.parallel.Isolated;
 
 import java.util.List;
 
@@ -38,6 +39,7 @@ class NetworkTest extends NetworkTimeoutTestBase {
     //  NetworkStore CRUD
     // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
+    @Isolated
     @Nested
     class NetworkStoreCrudTest {
 
