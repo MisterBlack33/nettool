@@ -11,6 +11,7 @@ public final class SubnetDetector {
     private SubnetDetector() {}
 
     private static final int MIN_PREFIX    = 16;
+    private static final int MAX_PREFIX = 30;
     private static final int MAX_SUBNETS   = 256;
     private static final int MAX_PER_IFACE = 256;
 
@@ -87,7 +88,7 @@ public final class SubnetDetector {
         if (!(addr instanceof Inet4Address)) return;
         if (isLinkLocal(addr)) return;
         int prefix = ia.getNetworkPrefixLength();
-        if (prefix < MIN_PREFIX) return;
+        if (prefix < MIN_PREFIX || prefix > MAX_PREFIX) return;
         String cidr = buildCidr(addr, prefix);
         if (!cidrs.contains(cidr)) {
             System.out.printf("[SubnetDetector] Interface %s → %s%n", addr.getHostAddress(), cidr);

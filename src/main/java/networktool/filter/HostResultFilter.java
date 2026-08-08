@@ -25,7 +25,7 @@ public final class HostResultFilter {
     }
 
     public static String buildLabel(String osFilter, String hostnameFilter) {
-        if (!isActive(osFilter) && !isActive(hostnameFilter)) return "Alle Geräte";
+        if (!isActive(osFilter) && !isActive(hostnameFilter)) return "Alle Ger\u00e4te";
         List<String> parts = new ArrayList<>();
         if (isActive(osFilter))       parts.add("OS: " + osFilter);
         if (isActive(hostnameFilter)) parts.add("Hostname: *" + hostnameFilter + "*");

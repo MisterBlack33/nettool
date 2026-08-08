@@ -81,7 +81,7 @@ class FilterTest {
 
         @Test
         void buildLabel_noFilters() {
-            assertEquals("Alle GerÃƒÆ’Ã‚Â¤te", HostResultFilter.buildLabel(null, null));
+            assertEquals("Alle Ger\u00e4te", HostResultFilter.buildLabel(null, null));
         }
 
         @Test
