@@ -5,6 +5,8 @@ import main.java.networktool.security.AuditLogger;
 import main.java.networktool.security.UserAuth;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -18,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Tests for UserAuth and AuditLogger.
  */
 @Isolated
+@Execution(ExecutionMode.SAME_THREAD)
 class SecurityTest {
 
     // ── UserAuth ──────────────────────────────────────────────────────────
