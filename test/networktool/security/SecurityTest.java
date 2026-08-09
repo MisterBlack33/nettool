@@ -20,9 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @Isolated
 class SecurityTest {
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    //  UserAuth
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ── UserAuth ──────────────────────────────────────────────────────────
 
     @Isolated
     @Nested
@@ -39,108 +37,106 @@ class SecurityTest {
         }
 
         @Test void hasUsers_empty()                        { assertFalse(auth.hasUsers()); }
-        @Test void createUser_success()                    { assertTrue(auth.createUser("alice", "secret1")); assertTrue(auth.hasUsers()); }
+        @Test void createUser_success()                    { assertTrue(auth.createUser("alice", "secret12")); assertTrue(auth.hasUsers()); }
         @Test void createUser_shortPassword_rejected()     { assertFalse(auth.createUser("bob", "ab")); }
         @Test void createUser_blankName_rejected()         { assertFalse(auth.createUser("  ", "password1")); }
 
         @Test void createUser_duplicate_caseInsensitive_rejected() {
-            auth.createUser("Alice", "pass12");
-            assertFalse(auth.createUser("alice", "other1"));
+            auth.createUser("Alice", "pass1234");
+            assertFalse(auth.createUser("alice", "other123"));
         }
 
         @Test void authenticate_correct() {
-            auth.createUser("carol", "mypass1");
-            assertTrue(auth.authenticate("carol", "mypass1"));
+            auth.createUser("carol", "mypass12");
+            assertTrue(auth.authenticate("carol", "mypass12"));
             assertEquals("carol", auth.getCurrentUser());
         }
 
-        @Test void authenticate_wrongPassword()            { auth.createUser("dave", "right12"); assertFalse(auth.authenticate("dave", "wrong1")); }
+        @Test void authenticate_wrongPassword()            { auth.createUser("dave", "right123"); assertFalse(auth.authenticate("dave", "wrong1")); }
         @Test void authenticate_unknownUser()              { assertFalse(auth.authenticate("nobody", "pass123")); }
 
         @Test void authenticate_caseInsensitiveUsername() {
-            auth.createUser("Eve", "pass123");
-            assertTrue(auth.authenticate("EVE", "pass123"));
+            auth.createUser("Eve", "pass1234");
+            assertTrue(auth.authenticate("EVE", "pass1234"));
         }
 
         @Test void firstUser_isAdmin() {
-            auth.createUser("admin1", "admin12");
-            auth.authenticate("admin1", "admin12");
+            auth.createUser("admin1", "admin123");
+            auth.authenticate("admin1", "admin123");
             assertTrue(auth.isAdmin());
         }
 
         @Test void secondUser_isNotAdmin() {
-            auth.createUser("admin1", "admin12");
-            auth.createUser("user1",  "user123");
-            auth.authenticate("user1", "user123");
+            auth.createUser("admin1", "admin123");
+            auth.createUser("user1",  "user1234");
+            auth.authenticate("user1", "user1234");
             assertFalse(auth.isAdmin());
         }
 
         @Test void logout_clearsCurrentUser() {
-            auth.createUser("frank", "frank12");
-            auth.authenticate("frank", "frank12");
+            auth.createUser("frank", "frank123");
+            auth.authenticate("frank", "frank123");
             auth.logout();
             assertNull(auth.getCurrentUser());
         }
 
         @Test void changePassword_success() {
-            auth.createUser("grace", "old1234");
-            auth.authenticate("grace", "old1234");
-            assertTrue(auth.changePassword("grace", "old1234", "new1234"));
+            auth.createUser("grace", "old12345");
+            auth.authenticate("grace", "old12345");
+            assertTrue(auth.changePassword("grace", "old12345", "new1234"));
             assertTrue(auth.authenticate("grace", "new1234"));
         }
 
         @Test void changePassword_wrongOld_fails() {
-            auth.createUser("hal", "pass123");
-            auth.authenticate("hal", "pass123");
+            auth.createUser("hal", "pass1234");
+            auth.authenticate("hal", "pass1234");
             assertFalse(auth.changePassword("hal", "wrong12", "new1234"));
         }
 
         @Test void deleteUser_success() {
-            auth.createUser("ira", "pass123");
-            auth.createUser("joe", "pass456");
-            auth.authenticate("joe", "pass456");
-            assertTrue(auth.deleteUser("joe", "pass456"));
+            auth.createUser("ira", "pass1234");
+            auth.createUser("joe", "pass4567");
+            auth.authenticate("joe", "pass4567");
+            assertTrue(auth.deleteUser("joe", "pass4567"));
         }
 
         @Test void deleteUser_lastUser_rejected() {
-            auth.createUser("solo", "pass123");
-            auth.authenticate("solo", "pass123");
-            assertFalse(auth.deleteUser("solo", "pass123"));
+            auth.createUser("solo", "pass1234");
+            auth.authenticate("solo", "pass1234");
+            assertFalse(auth.deleteUser("solo", "pass1234"));
         }
 
         @Test void listUsernames_returnsAll() {
-            auth.createUser("u1", "pass111");
-            auth.createUser("u2", "pass222");
+            auth.createUser("u1", "pass1111");
+            auth.createUser("u2", "pass2222");
             List<String> names = auth.listUsernames();
             assertTrue(names.contains("u1"));
             assertTrue(names.contains("u2"));
         }
 
         @Test void getCurrentRole_admin() {
-            auth.createUser("root", "root123");
-            auth.authenticate("root", "root123");
+            auth.createUser("root", "root1234");
+            auth.authenticate("root", "root1234");
             assertEquals("admin", auth.getCurrentRole());
         }
 
         @Test void getCurrentRole_user() {
-            auth.createUser("root",    "root123");
-            auth.createUser("regular", "reg1234");
-            auth.authenticate("regular", "reg1234");
+            auth.createUser("root",    "root1234");
+            auth.createUser("regular", "reg12345");
+            auth.authenticate("regular", "reg12345");
             assertEquals("user", auth.getCurrentRole());
         }
 
         @Test void isAdmin_notLoggedIn()             { assertFalse(auth.isAdmin()); }
 
         @Test void persistence_survivesReinit() {
-            auth.createUser("persistent", "pass123");
+            auth.createUser("persistent", "pass1234");
             auth.init(tmp);
-            assertTrue(auth.authenticate("persistent", "pass123"));
+            assertTrue(auth.authenticate("persistent", "pass1234"));
         }
     }
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    //  AuditLogger
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ── AuditLogger ───────────────────────────────────────────────────────
 
     @Nested
     class AuditLoggerTest {
@@ -204,8 +200,8 @@ class SecurityTest {
         }
 
         @Test void readByUser_filtersCorrectly() throws InterruptedException {
-            UserAuth.getInstance().createUser("loguser", "pass123");
-            UserAuth.getInstance().authenticate("loguser", "pass123");
+            UserAuth.getInstance().createUser("loguser", "pass1234");
+            UserAuth.getInstance().authenticate("loguser", "pass1234");
             logger.log("USER_ACTION", "by loguser");
             Thread.sleep(300);
             assertTrue(logger.readByUser("loguser").stream()
