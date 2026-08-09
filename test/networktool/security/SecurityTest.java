@@ -18,6 +18,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests for UserAuth and AuditLogger.
+ *
+ * Both nested classes below touch the UserAuth singleton (AuditLogger.currentUser()
+ * reads UserAuth.getInstance().getCurrentUser()). Nested test classes default to
+ * concurrent execution even under an @Isolated parent, so each one that shares the
+ * UserAuth/AuditLogger singletons must be @Isolated + SAME_THREAD itself — otherwise
+ * UserAuthTest and AuditLoggerTest race on the same static state (login/dataDir get
+ * clobbered mid-test), causing flaky failures in changePassword_success,
+ * readByUser_filtersCorrectly and clear_admin_succeeds.
  */
 @Isolated
 @Execution(ExecutionMode.SAME_THREAD)
@@ -26,6 +34,7 @@ class SecurityTest {
     // ── UserAuth ──────────────────────────────────────────────────────────
 
     @Isolated
+    @Execution(ExecutionMode.SAME_THREAD)
     @Nested
     class UserAuthTest {
 
@@ -140,7 +149,12 @@ class SecurityTest {
     }
 
     // ── AuditLogger ───────────────────────────────────────────────────────
+    // @Isolated: this class also drives UserAuth (login as "admin" so clear()
+    // is permitted). Without isolation it runs concurrently with the sibling
+    // UserAuthTest and both fight over the same UserAuth singleton state.
 
+    @Isolated
+    @Execution(ExecutionMode.SAME_THREAD)
     @Nested
     class AuditLoggerTest {
 
