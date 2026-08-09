@@ -88,15 +88,27 @@ public final class LoginDialog extends JDialog {
         AuditLogger.getInstance().log("LOGIN_FAILED", username);
     }
 
-    private void attemptCreate(UserAuth auth, String username, String pw1, String pw2) {
-        if (username.length() < 3 || username.contains(" ")) return;
-        if (pw1.length() < 6 || !pw1.equals(pw2)) return;
-        if (!auth.createUser(username, pw1)) return;
+    /**
+     * Legt ein neues Konto an.
+     *
+     * @return Fehlermeldung falls die Erstellung fehlschlägt, sonst {@code null}
+     *         (vorher wurde bei ungültigem Passwort/Namen still ohne Feedback abgebrochen).
+     */
+    private String attemptCreate(UserAuth auth, String username, String pw1, String pw2) {
+        if (username.length() < 3 || username.contains(" "))
+            return "Benutzername: mind. 3 Zeichen, keine Leerzeichen.";
+        if (!pw1.equals(pw2))
+            return "Passwörter stimmen nicht überein.";
+        if (!UserAuth.isStrongPassword(pw1))
+            return "Passwort: mind. 8 Zeichen, mit Buchstabe und Ziffer.";
+        if (!auth.createUser(username, pw1))
+            return "Benutzername bereits vergeben.";
 
         auth.authenticate(username, pw1);
         AuditLogger.getInstance().log("USER_CREATED", username);
         AuditLogger.getInstance().log("LOGIN", username);
         authenticated = true;
         dispose();
+        return null;
     }
 }

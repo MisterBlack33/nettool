@@ -19,7 +19,9 @@ public final class RegisterScreen {
 
     private RegisterScreen() {}
 
-    @FunctionalInterface public interface RegisterAttempt { void run(String username, String pw1, String pw2); }
+    /** @return Fehlermeldung bei fehlgeschlagener Erstellung, sonst {@code null}. */
+    @FunctionalInterface
+    public interface RegisterAttempt { String run(String username, String pw1, String pw2); }
 
     public static JPanel build(boolean isFirst, RegisterAttempt onCreate,
                                Runnable onBack, Runnable onQuit) {
@@ -47,10 +49,13 @@ public final class RegisterScreen {
         root.add(form, BorderLayout.CENTER);
 
         JButton createBtn = primaryButton("Konto erstellen");
-        Runnable doCreate = () -> onCreate.run(
-                userField.getText().trim(),
-                new String(pw1.getPassword()),
-                new String(pw2.getPassword()));
+        Runnable doCreate = () -> {
+            String error = onCreate.run(
+                    userField.getText().trim(),
+                    new String(pw1.getPassword()),
+                    new String(pw2.getPassword()));
+            if (error != null) LoginShakeEffect.shake(errLabel, error);
+        };
         createBtn.addActionListener(e -> doCreate.run());
         pw2.addActionListener(e -> doCreate.run());
 
