@@ -7,7 +7,9 @@ import main.java.networktool.theme.GuiTheme;
 import java.awt.Color;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.parallel.Isolated;
 
+@Isolated
 class GuiAuditPanelTest {
 
     @BeforeAll

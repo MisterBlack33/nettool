@@ -13,6 +13,7 @@ import java.nio.file.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Isolated
 class MiscTest {
 
     //  GuiTheme

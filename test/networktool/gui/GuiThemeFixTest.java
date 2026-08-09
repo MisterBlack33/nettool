@@ -7,7 +7,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.parallel.Isolated;
 
+@Isolated
 class GuiThemeFixTest {
 
     @BeforeEach
