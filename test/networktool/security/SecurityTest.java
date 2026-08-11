@@ -7,6 +7,7 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -19,22 +20,23 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Tests for UserAuth and AuditLogger.
  *
- * Both nested classes below touch the UserAuth singleton (AuditLogger.currentUser()
- * reads UserAuth.getInstance().getCurrentUser()). Nested test classes default to
- * concurrent execution even under an @Isolated parent, so each one that shares the
- * UserAuth/AuditLogger singletons must be @Isolated + SAME_THREAD itself — otherwise
- * UserAuthTest and AuditLoggerTest race on the same static state (login/dataDir get
- * clobbered mid-test), causing flaky failures in changePassword_success,
- * readByUser_filtersCorrectly and clear_admin_succeeds.
+ * UserAuth/AuditLogger are process-wide singletons, and AuditLogger.currentUser()
+ * reads UserAuth.getInstance().getCurrentUser(). @Isolated on a @Nested class does
+ * NOT reliably exclude other top-level test classes (MainTest,
+ * UserAuthPasswordPolicyTest, the standalone AuditLoggerTest) that also mutate these
+ * singletons — so every class touching them must additionally take the same named
+ * @ResourceLock to get real mutual exclusion across the whole suite.
  */
 @Isolated
 @Execution(ExecutionMode.SAME_THREAD)
+@ResourceLock("userAuthSingleton")
 class SecurityTest {
 
     // ── UserAuth ──────────────────────────────────────────────────────────
 
     @Isolated
     @Execution(ExecutionMode.SAME_THREAD)
+    @ResourceLock("userAuthSingleton")
     @Nested
     class UserAuthTest {
 
@@ -155,6 +157,7 @@ class SecurityTest {
 
     @Isolated
     @Execution(ExecutionMode.SAME_THREAD)
+    @ResourceLock("userAuthSingleton")
     @Nested
     class AuditLoggerTest {
 

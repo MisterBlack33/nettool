@@ -3,12 +3,15 @@ package main.java.networktool.security;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.Isolated;
+import org.junit.jupiter.api.parallel.ResourceLock;
 
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/** Shares "userAuthSingleton" lock with SecurityTest/MainTest — same process-wide UserAuth. */
 @Isolated
+@ResourceLock("userAuthSingleton")
 class UserAuthPasswordPolicyTest {
 
     @TempDir Path tmp;

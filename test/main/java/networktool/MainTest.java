@@ -6,6 +6,7 @@ import main.java.networktool.storage.StorageUtils;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.Isolated;
+import org.junit.jupiter.api.parallel.ResourceLock;
 
 import java.nio.file.Path;
 
@@ -15,8 +16,12 @@ import static org.junit.jupiter.api.Assertions.*;
  * Tests for Main – nur noch Security-Init (init(dataDir) für AuditLogger/UserAuth).
  * isCliMode()/cliLogin() existieren nicht mehr (Main hat nur main()/runGui()).
  * GUI-Start wird nicht getestet (headless, Login-Dialog blockiert).
+ *
+ * Shares the "userAuthSingleton" resource lock with SecurityTest since both mutate
+ * the process-wide UserAuth/AuditLogger singletons.
  */
 @Isolated
+@ResourceLock("userAuthSingleton")
 class MainTest {
 
     @TempDir Path tmp;
