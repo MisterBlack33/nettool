@@ -7,6 +7,7 @@ import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -18,14 +19,24 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests for UserAuth and AuditLogger.
+ *
+ * UserAuth/AuditLogger are process-wide singletons, and AuditLogger.currentUser()
+ * reads UserAuth.getInstance().getCurrentUser(). @Isolated on a @Nested class does
+ * NOT reliably exclude other top-level test classes (MainTest,
+ * UserAuthPasswordPolicyTest, the standalone AuditLoggerTest) that also mutate these
+ * singletons — so every class touching them must additionally take the same named
+ * @ResourceLock to get real mutual exclusion across the whole suite.
  */
 @Isolated
 @Execution(ExecutionMode.SAME_THREAD)
+@ResourceLock("userAuthSingleton")
 class SecurityTest {
 
     // ── UserAuth ──────────────────────────────────────────────────────────
 
     @Isolated
+    @Execution(ExecutionMode.SAME_THREAD)
+    @ResourceLock("userAuthSingleton")
     @Nested
     class UserAuthTest {
 
@@ -86,8 +97,8 @@ class SecurityTest {
         @Test void changePassword_success() {
             auth.createUser("grace", "old12345");
             auth.authenticate("grace", "old12345");
-            assertTrue(auth.changePassword("grace", "old12345", "new1234"));
-            assertTrue(auth.authenticate("grace", "new1234"));
+            assertTrue(auth.changePassword("grace", "old12345", "new12345"));
+            assertTrue(auth.authenticate("grace", "new12345"));
         }
 
         @Test void changePassword_wrongOld_fails() {
@@ -140,7 +151,13 @@ class SecurityTest {
     }
 
     // ── AuditLogger ───────────────────────────────────────────────────────
+    // @Isolated: this class also drives UserAuth (login as "admin" so clear()
+    // is permitted). Without isolation it runs concurrently with the sibling
+    // UserAuthTest and both fight over the same UserAuth singleton state.
 
+    @Isolated
+    @Execution(ExecutionMode.SAME_THREAD)
+    @ResourceLock("userAuthSingleton")
     @Nested
     class AuditLoggerTest {
 
