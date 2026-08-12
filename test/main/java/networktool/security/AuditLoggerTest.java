@@ -226,8 +226,8 @@ class AuditLoggerTest {
         }
 
         @Test void readByUser_filtersCorrectly() {
-            auth.createUser("loguser", "pass123");
-            auth.authenticate("loguser", "pass123");
+            auth.createUser("loguser", "pass1234");
+            auth.authenticate("loguser", "pass1234");
             logger.log("USER_LOG");
             assertTrue(logger.readByUser("loguser").stream()
                     .anyMatch(e -> "USER_LOG".equals(e.action())));
@@ -243,16 +243,16 @@ class AuditLoggerTest {
         }
 
         @Test void clear_admin_succeeds() {
-            auth.createUser("adminUser", "adminPass");
-            auth.authenticate("adminUser", "adminPass");
+            auth.createUser("adminUser", "adminPass1");
+            auth.authenticate("adminUser", "adminPass1");
             logger.log("BEFORE_CLEAR");
             assertDoesNotThrow(() -> logger.clear());
         }
 
         @Test void clear_secondUser_notAdmin_throws() {
             auth.createUser("admin2", "adminPass2");
-            auth.createUser("regular", "regularPass");
-            auth.authenticate("regular", "regularPass");
+            auth.createUser("regular", "regularPass1");
+            auth.authenticate("regular", "regularPass1");
             assertThrows(SecurityException.class, () -> logger.clear());
         }
 

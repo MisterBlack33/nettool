@@ -97,8 +97,8 @@ class SecurityTest {
         @Test void changePassword_success() {
             auth.createUser("grace", "old12345");
             auth.authenticate("grace", "old12345");
-            assertTrue(auth.changePassword("grace", "old12345", "new1234"));
-            assertTrue(auth.authenticate("grace", "new1234"));
+            assertTrue(auth.changePassword("grace", "old12345", "new12345"));
+            assertTrue(auth.authenticate("grace", "new12345"));
         }
 
         @Test void changePassword_wrongOld_fails() {
