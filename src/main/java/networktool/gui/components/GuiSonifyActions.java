@@ -8,11 +8,11 @@ import main.java.networktool.security.AuditLogger;
 import static main.java.networktool.theme.GuiTheme.*;
 
 /** Sidebar-Aktion für den Netzwerk-Sonifier (Menü-ID "24"). */
-final class GuiSonifyActions {
+public final class GuiSonifyActions {
 
     private GuiSonifyActions() {}
 
-    static void toggle(GuiInputPanel input, GuiOutputPanel output) {
+    public static void toggle(GuiInputPanel input, GuiOutputPanel output) {
         TrafficSonifier sonifier = TrafficSonifier.getInstance();
         if (sonifier.isActive()) {
             sonifier.stop();

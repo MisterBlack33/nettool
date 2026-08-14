@@ -80,6 +80,8 @@ public class GuiMenuHandler {
             case "20" -> { AuditLogger.getInstance().log("NETWORK_MAP",""); GuiNetworkMap.show(); }
             case "21" -> GuiDataIOActions.handlePortConfig(input, output, status);
             case "22" -> GuiScanCompareActions.handleScanHistoryDelta(output, this);
+            // Test-Suite: Data-to-Sound (Netzwerk-Traffic-Sonifizierung) Toggle
+            case "24" -> GuiSonifyActions.toggle(input, output);
         }
     }
 

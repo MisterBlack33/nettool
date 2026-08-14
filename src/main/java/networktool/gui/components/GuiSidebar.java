@@ -54,6 +54,8 @@ public final class GuiSidebar {
             {"22",  "Scan-Verlauf",  null, "false"},
             {null,  "PRIVATSPHÄRE",  "🔒", "false"},
             {"30",  "VPN / Tarnung", null, "false"},
+            {null,  "TEST-SUITE",    "🧪", "false"},
+            {"24",  "Data → Sound",  null, "false"},
     };
 
     private GuiSidebar() {}
