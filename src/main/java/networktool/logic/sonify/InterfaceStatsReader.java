@@ -1,13 +1,17 @@
 package main.java.networktool.logic.sonify;
 
+import main.java.networktool.logic.windows.PsInterfaceStatsResolver;
+import main.java.networktool.util.PlatformUtils;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Liest Byte-Zähler eines Netzwerk-Interfaces aus dem Linux-sysfs.
- * Auf anderen Plattformen oder bei unbekannten Interfaces: {@code null}.
+ * Liest Byte-Zähler eines Netzwerk-Interfaces.
+ * Linux/macOS: sysfs (/sys/class/net/.../statistics).
+ * Windows: PowerShell Get-NetAdapterStatistics (siehe PsInterfaceStatsResolver).
  */
 public final class InterfaceStatsReader {
 
@@ -17,6 +21,11 @@ public final class InterfaceStatsReader {
 
     /** @return [rxBytes, txBytes] oder {@code null} wenn nicht lesbar. */
     public static long[] read(String iface) {
+        if (PlatformUtils.isWindows()) return PsInterfaceStatsResolver.read(iface);
+        return readSysfs(iface);
+    }
+
+    private static long[] readSysfs(String iface) {
         try {
             Path rx = Path.of("/sys/class/net/" + iface + "/statistics/rx_bytes");
             Path tx = Path.of("/sys/class/net/" + iface + "/statistics/tx_bytes");
