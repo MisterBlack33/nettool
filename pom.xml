@@ -76,14 +76,11 @@
                 <version>3.2.5</version>
                 <configuration>
                     <useModulePath>false</useModulePath>
-                    <!-- 1 Fork pro CPU-Kern; JUnit5 parallelisiert Tests zusätzlich
-                         innerhalb jedes Forks via junit-platform.properties -->
                     <forkCount>1C</forkCount>
                     <reuseForks>true</reuseForks>
                     <forkedProcessTimeoutInSeconds>300</forkedProcessTimeoutInSeconds>
                     <argLine>@{argLine} -Dfile.encoding=UTF-8 -Xmx512m -Xms128m</argLine>
-                    <!-- Standard-Build (CI on push/PR): langsame/IO-lastige Tests ausschließen -->
-                    <excludedGroups>slow</excludedGroups>
+                    <!-- slow-Tests jetzt Teil des Standard-Builds -->
                 </configuration>
             </plugin>
 
