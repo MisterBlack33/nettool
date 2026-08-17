@@ -14,6 +14,7 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <junit.version>5.10.2</junit.version>
     </properties>
 
@@ -79,8 +80,8 @@
                     <forkCount>1C</forkCount>
                     <reuseForks>true</reuseForks>
                     <forkedProcessTimeoutInSeconds>300</forkedProcessTimeoutInSeconds>
-                    <argLine>@{argLine} -Dfile.encoding=UTF-8 -Xmx512m -Xms128m</argLine>
-                    <!-- slow-Tests jetzt Teil des Standard-Builds -->
+                    <argLine>@{argLine} -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -Xmx512m -Xms128m</argLine>
+                    <excludedGroups>slow</excludedGroups>
                 </configuration>
             </plugin>
 
