@@ -1,5 +1,6 @@
 package main.java.networktool.logic.ports;
 
+import main.java.networktool.logic.scan.ScanRateLimiter;
 import main.java.networktool.logic.windows.PsPortScanResolver;
 
 import java.net.*;
@@ -36,6 +37,13 @@ public final class PortScanner {
     private static volatile List<Integer> activePorts = DEFAULT_PORTS;
 
     private static final int MAX_SCAN_THREADS = Math.min(32, Runtime.getRuntime().availableProcessors() * 4);
+
+    private static volatile ScanRateLimiter rateLimiter = ScanRateLimiter.getInstance();
+
+    /** Ersetzt den Rate-Limiter (z.B. für Tests eine hohe Rate, um Timeouts nicht zu sprengen). */
+    public static void setRateLimit(double ratePerSecond, double burst) {
+        rateLimiter = new ScanRateLimiter(ratePerSecond, burst);
+    }
 
     public static void setActivePorts(List<Integer> ports) {
         activePorts = (ports == null || ports.isEmpty())
@@ -116,7 +124,9 @@ public final class PortScanner {
         return probePort(host, port, timeout);
     }
 
+    /** Jeder Connect-Versuch (neue Verbindung) wird vor dem Verbindungsaufbau gedrosselt. */
     static PortState probePort(String host, int port, int timeout) {
+        rateLimiter.acquire();
         try (Socket s = new Socket()) {
             s.connect(new InetSocketAddress(host, port), timeout);
             return PortState.OPEN;

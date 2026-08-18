@@ -15,6 +15,10 @@ import java.util.regex.*;
  *  1. ARP-Cache (einmal gecacht pro Scan-Lauf)
  *  2. ICMP isReachable
  *  3. TCP-Probe auf häufige Ports (bricht bei erstem Treffer ab)
+ *
+ * Jeder neue Verbindungsversuch (ICMP + jede TCP-Probe) wird vor dem Connect
+ * über {@link ScanRateLimiter} gedrosselt, um Ping-/Port-Sweep-Erkennung durch
+ * IDS/Firewalls zu vermeiden. Siehe {@link #setRateLimit} für Testkonfiguration.
  */
 public final class HostAliveChecker {
 
@@ -24,6 +28,14 @@ public final class HostAliveChecker {
         TimeoutConfig.ICMP_REACHABLE_MS = icmp;
         TimeoutConfig.TCP_PROBE_MS      = tcp;
     }
+
+    private static volatile ScanRateLimiter rateLimiter = ScanRateLimiter.getInstance();
+
+    /** Ersetzt den Rate-Limiter (z.B. für Tests eine hohe Rate, um Timeouts nicht zu sprengen). */
+    static void setRateLimit(double ratePerSecond, double burst) {
+        rateLimiter = new ScanRateLimiter(ratePerSecond, burst);
+    }
+
     private static final int MAX_THREADS  =
             Math.min(64, Runtime.getRuntime().availableProcessors() * 8);
 
@@ -56,6 +68,7 @@ public final class HostAliveChecker {
         List<Future<Boolean>> futures = new ArrayList<>();
 
         futures.add(cs.submit(() -> {
+            rateLimiter.acquire();
             try { return InetAddress.getByName(host).isReachable(TimeoutConfig.ICMP_REACHABLE_MS); }
             catch (Exception e) { return false; }
         }));
@@ -63,6 +76,7 @@ public final class HostAliveChecker {
         for (int port : PROBE_PORTS) {
             final int p = port;
             futures.add(cs.submit(() -> {
+                rateLimiter.acquire();
                 try (Socket s = new Socket()) {
                     s.connect(new InetSocketAddress(host, p), TimeoutConfig.TCP_PROBE_MS);
                     return true;
