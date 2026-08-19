@@ -5,26 +5,29 @@ import main.java.networktool.logic.TimeoutConfig;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 /**
  * Liest Banner von SSH, HTTP, HTTPS, FTP, SMB.
- * Timeout 700ms; FTP und HTTPS nun aktiv eingebunden.
+ * Timeout 700ms; alle Unterschritte laufen parallel (Modul E) — gleiche
+ * Anzahl Requests wie zuvor, nur ohne sequenzielle Latenz-Addition.
  */
 final class OsBannerAnalyzer {
 
     private OsBannerAnalyzer() {}
 
+    /** Zusätzliche Sammelfrist über TimeoutConfig.BANNER_GRAB_MS hinaus (Netzwerk-Jitter). */
+    private static final long COLLECT_BUFFER_MS = 300;
 
     static OsSignature analyze(String ip) {
-        OsSignature best = null;
-        best = OsSignature.best(best, analyzeSsh(ip));
-        if (best != null && best.score >= 85) return best;
-        best = OsSignature.best(best, analyzeSmb(ip));
-        if (best != null && best.score >= 85) return best;
-        best = OsSignature.best(best, analyzeHttp(ip));
-        best = OsSignature.best(best, analyzeHttps(ip));
-        best = OsSignature.best(best, analyzeFtp(ip));
-        return best;
+        List<OsParallelStepRunner.NamedStep> steps = List.of(
+                new OsParallelStepRunner.NamedStep("SSH-Banner",   () -> analyzeSsh(ip)),
+                new OsParallelStepRunner.NamedStep("SMB-Banner",   () -> analyzeSmb(ip)),
+                new OsParallelStepRunner.NamedStep("HTTP-Banner",  () -> analyzeHttp(ip)),
+                new OsParallelStepRunner.NamedStep("HTTPS-Banner", () -> analyzeHttps(ip)),
+                new OsParallelStepRunner.NamedStep("FTP-Banner",   () -> analyzeFtp(ip))
+        );
+        return OsParallelStepRunner.runParallel(steps, TimeoutConfig.BANNER_GRAB_MS + COLLECT_BUFFER_MS);
     }
 
     // ── SSH ───────────────────────────────────────────────────────────────

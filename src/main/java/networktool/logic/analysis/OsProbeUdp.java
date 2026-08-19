@@ -2,23 +2,29 @@ package main.java.networktool.logic.analysis;
 
 import main.java.networktool.logic.TimeoutConfig;
 import java.net.*;
+import java.util.List;
 
 /**
  * UDP-basierte OS-Erkennung: mDNS, NetBIOS, SNMP.
  * Funktioniert auch wenn TCP-Ports durch Firewalls blockiert sind.
+ * Unterschritte laufen parallel (Modul E) — gleiche Anzahl Requests wie
+ * zuvor, nur ohne sequenzielle Latenz-Addition.
  */
 final class OsProbeUdp {
 
     private OsProbeUdp() {}
 
+    /** Zusätzliche Sammelfrist über TimeoutConfig.UDP_PROBE_MS hinaus (Netzwerk-Jitter). */
+    private static final long COLLECT_BUFFER_MS = 300;
 
     /** Kombiniertes UDP-Probing. Gibt beste OsSignature oder null zurück. */
     static OsSignature probe(String ip) {
-        OsSignature best = null;
-        best = OsSignature.best(best, probeNetBios(ip));
-        best = OsSignature.best(best, probeMdns(ip));
-        best = OsSignature.best(best, probeSnmp(ip));
-        return best;
+        List<OsParallelStepRunner.NamedStep> steps = List.of(
+                new OsParallelStepRunner.NamedStep("NetBIOS", () -> probeNetBios(ip)),
+                new OsParallelStepRunner.NamedStep("mDNS",    () -> probeMdns(ip)),
+                new OsParallelStepRunner.NamedStep("SNMP",    () -> probeSnmp(ip))
+        );
+        return OsParallelStepRunner.runParallel(steps, TimeoutConfig.UDP_PROBE_MS + COLLECT_BUFFER_MS);
     }
 
     // ── NetBIOS Name Query (UDP 137) ──────────────────────────────────────
