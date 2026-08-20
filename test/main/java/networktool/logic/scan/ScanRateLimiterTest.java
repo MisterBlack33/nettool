@@ -79,7 +79,7 @@ class ScanRateLimiterTest {
     @Test
     void acquire_defaultTimeout_doesNotThrow() {
         ScanRateLimiter limiter = new ScanRateLimiter(1000, 1000);
-        assertDoesNotThrow(limiter::acquire);
+        assertDoesNotThrow(() -> limiter.acquire());
     }
 
     @Test
