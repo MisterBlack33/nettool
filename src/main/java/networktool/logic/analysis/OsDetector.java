@@ -2,7 +2,7 @@ package main.java.networktool.logic.analysis;
 
 /**
  * Öffentliche API für OS-Erkennung.
- * Alle Erkennungslogik liegt in {@link OsDetectionPipeline}.
+ * Alle Erkennungslogik liegt in {@link OsDetectionPipeline} bzw. {@link ExtendedOsDetector}.
  */
 public final class OsDetector {
 
@@ -24,9 +24,19 @@ public final class OsDetector {
 
     // ── Public API ────────────────────────────────────────────────────────
 
-    /** Erkennt OS mit Konfidenz-Angabe. Delegiert an {@link OsDetectionPipeline}. */
+    /** Erkennt OS mit Konfidenz-Angabe (STANDARD-Tiefe). Delegiert an {@link OsDetectionPipeline}. */
     public static OsResult detectWithConfidence(String ip) {
         return OsDetectionPipeline.run(ip);
+    }
+
+    /**
+     * Erkennt OS mit expliziter {@link ScanDepth}.
+     * GRUENDLICH nutzt zusätzlich DHCP/UPnP/ICMP-Timing über {@link ExtendedOsDetector}.
+     */
+    public static OsResult detectWithConfidence(String ip, ScanDepth depth) {
+        return depth == ScanDepth.GRUENDLICH
+                ? ExtendedOsDetector.detect(ip)
+                : OsDetectionPipeline.run(ip, depth);
     }
 
     /** Gibt nur den OS-String zurück. */

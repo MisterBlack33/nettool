@@ -3,8 +3,8 @@ package main.java.networktool.logic.analysis;
 import java.util.Objects;
 
 /**
- * Erweiterte OS-Erkennung für IpInspector (Vollanalyse).
- * Basis: {@link OsDetectionPipeline}, ergänzt durch DHCP/UPnP/ICMP-Timing.
+ * Erweiterte OS-Erkennung für IpInspector (Vollanalyse / {@link ScanDepth#GRUENDLICH}).
+ * Basis: {@link OsDetectionPipeline} mit GRUENDLICH-Schwellen, ergänzt durch DHCP/UPnP/ICMP-Timing.
  *
  * Nur für inspect() verwenden – zu langsam für Massen-Scans.
  */
@@ -16,12 +16,12 @@ public final class ExtendedOsDetector {
         try {
             return detectSafely(ip);
         } catch (Exception e) {
-            return OsDetectionPipeline.run(ip); // Basis-Pipeline als Fallback
+            return OsDetectionPipeline.run(ip, ScanDepth.GRUENDLICH); // Basis-Pipeline als Fallback
         }
     }
 
     private static OsDetector.OsResult detectSafely(String ip) {
-        OsDetector.OsResult base = OsDetectionPipeline.run(ip);
+        OsDetector.OsResult base = OsDetectionPipeline.run(ip, ScanDepth.GRUENDLICH);
         if (base.confidence == OsDetector.Confidence.HOCH) return base;
 
         OsSignature best = OsSignature.of(base.os, confidenceToScore(base.confidence), base.method);

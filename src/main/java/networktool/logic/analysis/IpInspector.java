@@ -8,8 +8,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * IP-Detailanalyse. inspect() nutzt ExtendedOsDetector für maximale Präzision.
- * quickScan() bleibt bei OsDetector für Geschwindigkeit.
+ * IP-Detailanalyse.
+ * quickScan() nutzt {@link ScanDepth#SCHNELL}, inspect() nutzt {@link ScanDepth#GRUENDLICH}
+ * über {@link OsDetector#detectWithConfidence(String, ScanDepth)}.
  */
 public final class IpInspector {
 
@@ -30,7 +31,7 @@ public final class IpInspector {
             if (!alive) { System.out.println("  Status   : NICHT erreichbar\n═══"); return; }
             System.out.println("  Status   : erreichbar (" + ms + " ms)");
             System.out.println("  Hostname : " + inet.getCanonicalHostName());
-            System.out.println("  OS       : " + OsDetector.detect(ip));
+            System.out.println("  OS       : " + OsDetector.detectWithConfidence(ip, ScanDepth.SCHNELL).os);
             printPorts(ip, timeoutMs);
             System.out.println("\n═══════════════════════════════════════════════");
         } catch (Exception e) { System.err.println("Fehler: " + e.getMessage()); }
@@ -101,10 +102,10 @@ public final class IpInspector {
         }
     }
 
-    /** Nutzt ExtendedOsDetector für maximale Erkennungstiefe. */
+    /** Nutzt ScanDepth.GRUENDLICH für maximale Erkennungstiefe. */
     private static void printExtendedOs(String ip) {
         System.out.println("\n[ OS-Erkennung (erweitert) ]");
-        OsDetector.OsResult r = ExtendedOsDetector.detect(ip);
+        OsDetector.OsResult r = OsDetector.detectWithConfidence(ip, ScanDepth.GRUENDLICH);
         System.out.println("  OS       : " + r.os);
         System.out.println("  Konfidenz: " + r.confidence);
         System.out.println("  Methode  : " + r.method);
