@@ -23,12 +23,35 @@ public final class UserAuth {
     private Path dataDir;
     private volatile String currentUser;
 
+    private static final String DEFAULT_ADMIN_USER = "admin";
+    private static final String DEFAULT_ADMIN_SALT = "KWAqGZxuojc/BUMavnzcUz3m6myyQ3Y3TsE07XsSI7Q=";
+    private static final String DEFAULT_ADMIN_HASH = "jr/jKB6ao6zs8pdRosM16F5dEzDzI5gFfjPzylPpAtc=";
+
+    private static final String DEFAULT_USER_USER  = "user1";
+    private static final String DEFAULT_USER_SALT  = "mKLOI8pnJfae7Qxo4fE1zdvOCJEZqB0gXTDfww45u8A=";
+    private static final String DEFAULT_USER_HASH  = "o2XP38SQgeVRri8nPPBftPlKIlKxyEFxmUWKnyUo1XM=";
+
+
     private UserAuth() {}
 
     public synchronized void init(Path dir) {
         // Wenn kein Verzeichnis übergeben wurde, verwende das zentrale Datenverzeichnis
         if (dir == null) this.dataDir = StorageUtils.resolveDataDir();
         else this.dataDir = dir;
+    }
+
+    public synchronized void seedDefaultUsers() {
+        if (hasUsers()) return;
+        List<Map<String, String>> users = new ArrayList<>();
+        users.add(seedEntry(DEFAULT_ADMIN_USER, DEFAULT_ADMIN_SALT, DEFAULT_ADMIN_HASH, "admin"));
+        users.add(seedEntry(DEFAULT_USER_USER,  DEFAULT_USER_SALT,  DEFAULT_USER_HASH,  "user"));
+        UserAuthPersistence.save(dataDir, users);
+    }
+
+    private static Map<String, String> seedEntry(String user, String salt, String hash, String role) {
+        Map<String, String> m = new LinkedHashMap<>();
+        m.put("username", user); m.put("salt", salt); m.put("hash", hash); m.put("role", role);
+        return m;
     }
 
     // ── Public API ────────────────────────────────────────────────────────
