@@ -75,8 +75,13 @@ public final class AuditLogger {
     }
 
     public void shutdown() {
-        flush();          // wait for pending writes first
-        flushAndShutdown();
+        flush();
+        ExecutorService w = writer;
+        if (w != null) {
+            w.shutdown();
+            try { w.awaitTermination(3, TimeUnit.SECONDS); }
+            catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        }
         writer = newWriter();
     }
 
