@@ -1,5 +1,6 @@
 package main.java.networktool.logic.windows;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -7,6 +8,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Tag("slow")
 class PsPortScanResolverTest {
 
     @Test void isOpen_unreachable_false() { assertFalse(PsPortScanResolver.isOpen("192.0.2.1", 80)); }

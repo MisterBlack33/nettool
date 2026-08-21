@@ -7,6 +7,7 @@ import java.net.InetAddress;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
 
+@Tag("slow")
 class IpInspectorExtTest {
 
     @BeforeEach

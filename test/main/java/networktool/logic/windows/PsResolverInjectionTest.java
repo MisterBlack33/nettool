@@ -1,10 +1,11 @@
 package main.java.networktool.logic.windows;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Regressionstests: PowerShell-Script-Injection ÃƒÆ’Ã‚Â¼ber IP/PrÃƒÆ’Ã‚Â¤fix muss abgewiesen werden. */
+@Tag("slow")
 class PsResolverInjectionTest {
 
     @Test void isOpen_quoteBreakout_rejected() {

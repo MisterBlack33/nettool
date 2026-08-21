@@ -1,6 +1,6 @@
 package main.java.networktool.logic.analysis;
 
-import main.java.networktool.logic.analysis.OsDetectionPipeline;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.net.InetAddress;
@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
 
+@Tag("slow")
 class OsDetectionPipelineTest {
 
     static boolean loopbackReachable() {

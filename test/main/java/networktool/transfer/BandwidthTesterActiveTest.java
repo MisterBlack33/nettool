@@ -1,11 +1,11 @@
 package main.java.networktool.transfer;
 
-import main.java.networktool.transfer.BandwidthHttpProbe;
-import main.java.networktool.transfer.LatencyProbe;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Tag("slow")
 class BandwidthTesterActiveTest {
 
     @Test void testDownload_unreachable_negative() {

@@ -6,7 +6,7 @@ import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests fÃƒÆ’Ã‚Â¼r OsDetector-Fixes: tote extractOui() entfernt, ExecutorService-Leak geschlossen. */
+@Tag("slow")
 class OsDetectorFixTest {
 
     @Test

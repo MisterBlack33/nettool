@@ -14,6 +14,7 @@ import java.nio.file.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
 
+@Tag("slow")
 class TransferTest {
 
     static boolean loopbackReachable() {
@@ -21,6 +22,7 @@ class TransferTest {
         catch (Exception e) { return false; }
     }
 
+    @Tag("slow")
     @Nested
     class BandwidthTesterTest {
 

@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
 
+@Tag("slow")
 class AnalysisTest {
 
     static boolean loopbackReachable() {
