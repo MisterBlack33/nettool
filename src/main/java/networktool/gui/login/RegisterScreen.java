@@ -68,7 +68,8 @@ public final class RegisterScreen {
         JProgressBar bar = new JProgressBar(0, 4);
         bar.setStringPainted(false);
         bar.setBorderPainted(false);
-        bar.setPreferredSize(new Dimension(260, 3));
+        // War 3px hoch -> praktisch unsichtbar. Fix: sichtbare Mindesthöhe.
+        bar.setPreferredSize(new Dimension(260, 8));
         bar.setForeground(WARN);
         return bar;
     }
