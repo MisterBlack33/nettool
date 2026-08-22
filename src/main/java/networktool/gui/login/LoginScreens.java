@@ -39,9 +39,9 @@ public final class LoginScreens {
         JTextField        userField = null;
 
         if (users.size() == 1) {
-            userField = inputField(users.get(0), 260);
-            userField.setEditable(false);
-            userField.setForeground(FG_DIM);
+            // Leeres, editierbares Feld statt vorausgefülltem/gesperrtem Namen –
+            // Nutzer tippt den Benutzernamen selbst ein.
+            userField = inputField("", 260);
             userComp = userField;
         } else {
             userBox  = comboBox(users, 260);
@@ -60,7 +60,7 @@ public final class LoginScreens {
         wireLoginActions(onLogin, userBox, userField, pwField, errLabel, loginBtn);
         root.add(buildFooter(onNewAccount, onQuit, loginBtn), BorderLayout.SOUTH);
 
-        Component focusTarget = users.size() == 1 ? pwField : userComp;
+        Component focusTarget = userComp;
         SwingUtilities.invokeLater(focusTarget::requestFocus);
         return root;
     }

@@ -23,14 +23,14 @@ public final class UserAuth {
     private Path dataDir;
     private volatile String currentUser;
 
-    private static final String DEFAULT_ADMIN_USER = "admin";
-    private static final String DEFAULT_ADMIN_SALT = "KWAqGZxuojc/BUMavnzcUz3m6myyQ3Y3TsE07XsSI7Q=";
-    private static final String DEFAULT_ADMIN_HASH = "jr/jKB6ao6zs8pdRosM16F5dEzDzI5gFfjPzylPpAtc=";
+    // Default-Konten: Hash wird beim Seeding zur Laufzeit aus dem Klartext-Passwort
+    // berechnet (siehe seedDefaultUsers()) statt stale vorberechneter Base64-Werte,
+    // damit die dokumentierten Zugangsdaten tatsächlich funktionieren.
+    private static final String DEFAULT_ADMIN_USER     = "admin";
+    private static final String DEFAULT_ADMIN_PASSWORD = "admin1234";
 
-    private static final String DEFAULT_USER_USER  = "user1";
-    private static final String DEFAULT_USER_SALT  = "mKLOI8pnJfae7Qxo4fE1zdvOCJEZqB0gXTDfww45u8A=";
-    private static final String DEFAULT_USER_HASH  = "o2XP38SQgeVRri8nPPBftPlKIlKxyEFxmUWKnyUo1XM=";
-
+    private static final String DEFAULT_USER_USER      = "user1";
+    private static final String DEFAULT_USER_PASSWORD  = "test1234";
 
     private UserAuth() {}
 
@@ -42,15 +42,23 @@ public final class UserAuth {
 
     public synchronized void seedDefaultUsers() {
         if (hasUsers()) return;
-        List<Map<String, String>> users = new ArrayList<>();
-        users.add(seedEntry(DEFAULT_ADMIN_USER, DEFAULT_ADMIN_SALT, DEFAULT_ADMIN_HASH, "admin"));
-        users.add(seedEntry(DEFAULT_USER_USER,  DEFAULT_USER_SALT,  DEFAULT_USER_HASH,  "user"));
-        UserAuthPersistence.save(dataDir, users);
+        try {
+            List<Map<String, String>> users = new ArrayList<>();
+            users.add(seedEntry(DEFAULT_ADMIN_USER, DEFAULT_ADMIN_PASSWORD, "admin"));
+            users.add(seedEntry(DEFAULT_USER_USER,  DEFAULT_USER_PASSWORD,  "user"));
+            UserAuthPersistence.save(dataDir, users);
+        } catch (Exception e) {
+            System.err.println("[UserAuth] seedDefaultUsers: " + e.getMessage());
+        }
     }
 
-    private static Map<String, String> seedEntry(String user, String salt, String hash, String role) {
+    private static Map<String, String> seedEntry(String user, String password, String role) throws Exception {
+        byte[] salt = generateSalt();
         Map<String, String> m = new LinkedHashMap<>();
-        m.put("username", user); m.put("salt", salt); m.put("hash", hash); m.put("role", role);
+        m.put("username", user);
+        m.put("salt", Base64.getEncoder().encodeToString(salt));
+        m.put("hash", hash(password, salt));
+        m.put("role", role);
         return m;
     }
 
