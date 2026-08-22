@@ -41,15 +41,27 @@ public final class UserAuth {
     }
 
     public synchronized void seedDefaultUsers() {
-        if (hasUsers()) return;
         try {
-            List<Map<String, String>> users = new ArrayList<>();
-            users.add(seedEntry(DEFAULT_ADMIN_USER, DEFAULT_ADMIN_PASSWORD, "admin"));
-            users.add(seedEntry(DEFAULT_USER_USER,  DEFAULT_USER_PASSWORD,  "user"));
-            UserAuthPersistence.save(dataDir, users);
+            List<Map<String, String>> users = UserAuthPersistence.load(dataDir);
+            boolean changed = false;
+            if (findByUsername(users, DEFAULT_ADMIN_USER) == null) {
+                users.add(seedEntry(DEFAULT_ADMIN_USER, DEFAULT_ADMIN_PASSWORD, "admin"));
+                changed = true;
+            }
+            if (findByUsername(users, DEFAULT_USER_USER) == null) {
+                users.add(seedEntry(DEFAULT_USER_USER, DEFAULT_USER_PASSWORD, "user"));
+                changed = true;
+            }
+            if (changed) UserAuthPersistence.save(dataDir, users);
         } catch (Exception e) {
             System.err.println("[UserAuth] seedDefaultUsers: " + e.getMessage());
         }
+    }
+
+    private static Map<String, String> findByUsername(List<Map<String, String>> users, String username) {
+        return users.stream()
+                .filter(u -> username.equals(u.get("username")))
+                .findFirst().orElse(null);
     }
 
     private static Map<String, String> seedEntry(String user, String password, String role) throws Exception {
