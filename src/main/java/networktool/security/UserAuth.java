@@ -27,7 +27,7 @@ public final class UserAuth {
     // berechnet (siehe seedDefaultUsers()) statt stale vorberechneter Base64-Werte,
     // damit die dokumentierten Zugangsdaten tatsächlich funktionieren.
     private static final String DEFAULT_ADMIN_USER     = "admin";
-    private static final String DEFAULT_ADMIN_PASSWORD = "admin1234";
+    private static final String DEFAULT_ADMIN_PASSWORD = "test1234";
 
     private static final String DEFAULT_USER_USER      = "user1";
     private static final String DEFAULT_USER_PASSWORD  = "test1234";
