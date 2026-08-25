@@ -1,6 +1,6 @@
 package main.java.networktool.gui.map;
 
-import main.java.networktool.gui.components.GuiNetworkMap;
+import main.java.networktool.gui.components.map.GuiNetworkMap;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;

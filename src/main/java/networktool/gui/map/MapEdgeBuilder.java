@@ -1,6 +1,6 @@
 package main.java.networktool.gui.map;
 
-import main.java.networktool.gui.components.GuiNetworkMap;
+import main.java.networktool.gui.components.map.GuiNetworkMap;
 
 import java.util.ArrayList;
 import java.util.Comparator;

@@ -1,6 +1,6 @@
 package main.java.networktool.gui.hostdetails;
 
-import main.java.networktool.storage.NetworkStore;
+import main.java.networktool.storage.network.NetworkStore;
 
 import javax.swing.*;
 import javax.swing.border.*;

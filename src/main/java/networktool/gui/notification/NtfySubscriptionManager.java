@@ -1,6 +1,6 @@
 package main.java.networktool.gui.notification;
 
-import main.java.networktool.storage.NetworkStore;
+import main.java.networktool.storage.network.NetworkStore;
 import main.java.networktool.storage.NotificationHistory;
 
 import java.io.BufferedReader;

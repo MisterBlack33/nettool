@@ -1,9 +1,9 @@
 package main.java.networktool.gui.map;
 
-import main.java.networktool.gui.components.GuiNetworkMap;
+import main.java.networktool.gui.components.map.GuiNetworkMap;
 import main.java.networktool.gui.hostdetails.HostDetailsPanel;
-import main.java.networktool.logic.scan.MapTrafficObserver;
-import main.java.networktool.storage.NetworkStore;
+import main.java.networktool.logic.scan.schedule.MapTrafficObserver;
+import main.java.networktool.storage.network.NetworkStore;
 
 import javax.swing.*;
 import java.awt.*;

@@ -1,6 +1,6 @@
 package main.java.networktool.logic.ports;
 
-import main.java.networktool.logic.scan.ScanRateLimiter;
+import main.java.networktool.logic.scan.schedule.ScanRateLimiter;
 import main.java.networktool.logic.windows.PsPortScanResolver;
 
 import java.net.*;

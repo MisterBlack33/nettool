@@ -1,11 +1,11 @@
 package main.java.networktool.gui.core;
 
 import main.java.networktool.gui.panels.GuiOutputPanel;
-import main.java.networktool.logic.analysis.OuiUpdater;
+import main.java.networktool.logic.analysis.probe.OuiUpdater;
 import main.java.networktool.logic.messaging.MessageSender;
 import main.java.networktool.security.SecurityMonitor;
 import main.java.networktool.security.UserAuth;
-import main.java.networktool.storage.NetworkStore;
+import main.java.networktool.storage.network.NetworkStore;
 
 import main.java.networktool.theme.GuiTheme;
 

@@ -1,12 +1,12 @@
 package main.java.networktool.util;
 
-import main.java.networktool.gui.components.NtfyTopicPrompt;
+import main.java.networktool.gui.components.actions.NtfyTopicPrompt;
 import main.java.networktool.gui.core.GuiMenuHandler;
 import main.java.networktool.gui.notification.NotificationListener;
 import main.java.networktool.gui.panels.GuiOutputPanel;
-import main.java.networktool.logic.analysis.WakeOnLan;
+import main.java.networktool.logic.analysis.probe.WakeOnLan;
 import main.java.networktool.logic.messaging.MessageSender;
-import main.java.networktool.storage.NetworkStore;
+import main.java.networktool.storage.network.NetworkStore;
 
 import javax.swing.*;
 

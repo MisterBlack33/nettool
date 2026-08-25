@@ -1,9 +1,9 @@
 package main.java.networktool.gui.map;
 
-import main.java.networktool.logic.analysis.TracerouteRunner;
-import main.java.networktool.logic.scan.RemoteNetScanner;
+import main.java.networktool.logic.analysis.probe.TracerouteRunner;
+import main.java.networktool.logic.scan.remote.RemoteNetScanner;
 import main.java.networktool.model.HostResult;
-import main.java.networktool.storage.NetworkStore;
+import main.java.networktool.storage.network.NetworkStore;
 
 import java.util.*;
 import java.util.concurrent.*;

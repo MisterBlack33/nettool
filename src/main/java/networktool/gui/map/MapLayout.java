@@ -1,6 +1,6 @@
 package main.java.networktool.gui.map;
 
-import main.java.networktool.gui.components.GuiNetworkMap;
+import main.java.networktool.gui.components.map.GuiNetworkMap;
 import main.java.networktool.util.*;
 import main.java.networktool.gui.login.*;
 import main.java.networktool.gui.hostdetails.*;

@@ -1,7 +1,7 @@
 package main.java.networktool.gui.components;
 
-import main.java.networktool.gui.panels.GuiSavedHostsPanel;
-import main.java.networktool.storage.NetworkStore;
+import main.java.networktool.gui.panels.saved.GuiSavedHostsPanel;
+import main.java.networktool.storage.network.NetworkStore;
 
 import javax.swing.*;
 import javax.swing.border.*;

@@ -1,13 +1,13 @@
 package main.java.networktool.gui.map;
 
-import main.java.networktool.gui.components.GuiNetworkMap;
+import main.java.networktool.gui.components.map.GuiNetworkMap;
 import main.java.networktool.gui.components.*;
-import main.java.networktool.logic.scan.MapTrafficObserver;
-import main.java.networktool.logic.scan.RemoteNetScanner;
-import main.java.networktool.logic.scan.ScanHistory;
+import main.java.networktool.logic.scan.schedule.MapTrafficObserver;
+import main.java.networktool.logic.scan.remote.RemoteNetScanner;
+import main.java.networktool.logic.scan.schedule.ScanHistory;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.model.ScanResult;
-import main.java.networktool.storage.NetworkStore;
+import main.java.networktool.storage.network.NetworkStore;
 
 import java.net.InetAddress;
 import java.util.LinkedHashSet;

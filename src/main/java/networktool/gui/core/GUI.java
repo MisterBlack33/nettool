@@ -11,7 +11,7 @@ import main.java.networktool.security.UserAuth;
 import main.java.networktool.util.AppIcon;
 import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.gui.panels.GuiInputPanel;
-import main.java.networktool.gui.panels.GuiSavedHostsPanel;
+import main.java.networktool.gui.panels.saved.GuiSavedHostsPanel;
 
 import javax.swing.*;
 import java.awt.*;

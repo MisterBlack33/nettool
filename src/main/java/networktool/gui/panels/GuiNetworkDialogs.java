@@ -1,6 +1,6 @@
 package main.java.networktool.gui.panels;
 
-import main.java.networktool.storage.NetworkStore;
+import main.java.networktool.storage.network.NetworkStore;
 
 import javax.swing.*;
 import java.util.List;

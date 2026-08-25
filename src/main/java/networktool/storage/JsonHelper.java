@@ -8,7 +8,7 @@ public final class JsonHelper {
 
     private JsonHelper() {}
 
-    static String extractStr(String json, String field) {
+    public static String extractStr(String json, String field) {
         String key = "\"" + field + "\"";
         int ki = json.indexOf(key);
         if (ki < 0) return null;
@@ -54,7 +54,7 @@ public final class JsonHelper {
     }
 
     /** Extrahiert ein Integer-Feld, z.B. für Schema-Versionen. Null wenn Feld fehlt oder ungültig ist. */
-    static Integer extractInt(String json, String field) {
+    public static Integer extractInt(String json, String field) {
         String key = "\"" + field + "\"";
         int ki = json.indexOf(key);
         if (ki < 0) return null;
@@ -78,7 +78,7 @@ public final class JsonHelper {
                 .replace("\t", "\\t");
     }
 
-    static String nvl(String s, String fallback) {
+    public static String nvl(String s, String fallback) {
         return (s == null || s.isBlank()) ? fallback : s;
     }
 
@@ -99,7 +99,7 @@ public final class JsonHelper {
     }
 
     /** Findet die schließende Klammer zu openIdx ('{' oder '['), ignoriert Klammern innerhalb von Strings. */
-    static int matchBracket(String json, int openIdx) {
+    public static int matchBracket(String json, int openIdx) {
         char open = json.charAt(openIdx);
         char close = open == '{' ? '}' : ']';
         int depth = 0;
@@ -112,7 +112,7 @@ public final class JsonHelper {
         return -1;
     }
 
-    static List<String> extractObjects(String json, int arrStart) {
+    public static List<String> extractObjects(String json, int arrStart) {
         List<String> objects = new ArrayList<>();
         int depth = 0, objStart = -1;
         for (int i = arrStart; i < json.length(); i++) {
@@ -129,13 +129,13 @@ public final class JsonHelper {
         return objects;
     }
 
-    static int findArrayStart(String json, String key) {
+    public static int findArrayStart(String json, String key) {
         int ki = json.indexOf("\"" + key + "\"");
         if (ki < 0) return -1;
         return json.indexOf('[', ki);
     }
 
-    static String buildStringArrayJson(String key, List<String> items) {
+    public static String buildStringArrayJson(String key, List<String> items) {
         StringBuilder sb = new StringBuilder("{\n  \"" + key + "\": [\n");
         for (int i = 0; i < items.size(); i++) {
             sb.append("    \"").append(esc(items.get(i))).append("\"");
@@ -145,7 +145,7 @@ public final class JsonHelper {
         return sb.append("  ]\n}").toString();
     }
 
-    static List<String> extractStringArray(String json, String key) {
+    public static List<String> extractStringArray(String json, String key) {
         List<String> result = new ArrayList<>();
         int start = json.indexOf("\"" + key + "\"");
         if (start < 0) return result;

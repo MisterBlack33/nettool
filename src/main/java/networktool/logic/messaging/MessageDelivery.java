@@ -1,6 +1,6 @@
 package main.java.networktool.logic.messaging;
 
-import main.java.networktool.logic.analysis.OsDetector;
+import main.java.networktool.logic.analysis.os.OsDetector;
 import main.java.networktool.util.PlatformUtils;
 
 import java.io.*;

@@ -2,7 +2,7 @@ package main.java.networktool.gui.hostdetails;
 
 import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.model.HostResult;
-import main.java.networktool.storage.NetworkStore;
+import main.java.networktool.storage.network.NetworkStore;
 
 import javax.swing.*;
 import java.util.List;

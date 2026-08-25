@@ -1,8 +1,8 @@
 package networktool.logic;
 
-import main.java.networktool.logic.analysis.WakeOnLan;
-import main.java.networktool.logic.scan.ScanDelta;
-import main.java.networktool.logic.scan.ScanHistory;
+import main.java.networktool.logic.analysis.probe.WakeOnLan;
+import main.java.networktool.logic.scan.schedule.ScanDelta;
+import main.java.networktool.logic.scan.schedule.ScanHistory;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.model.ScanResult;
 import main.java.networktool.util.CIDRUtils;

@@ -1,0 +1,44 @@
+package main.java.networktool.logic.analysis.os;
+
+import org.junit.jupiter.api.*;
+
+import java.lang.reflect.Method;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@Tag("slow")
+class OsDetectorFixTest {
+
+    @Test
+    void extractOui_methodDoesNotExist() throws Exception {
+        // extractOui() war @SuppressWarnings("unused") ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â soll gelÃƒÆ’Ã‚Â¶scht sein
+        boolean found = false;
+        for (Method m : OsDetector.class.getDeclaredMethods()) {
+            if (m.getName().equals("extractOui")) { found = true; break; }
+        }
+        assertFalse(found, "extractOui() sollte entfernt worden sein");
+    }
+
+    @Test
+    void detectWithConfidence_unreachable_returnsResult() {
+        // darf nicht hÃƒÆ’Ã‚Â¤ngen bleiben (ExecutorService wird korrekt beendet)
+        OsDetector.OsResult r = OsDetector.detectWithConfidence("192.0.2.1");
+        assertNotNull(r);
+        assertNotNull(r.confidence);
+    }
+
+    @Test
+    void detect_doesNotThrowOnUnreachable() {
+        assertDoesNotThrow(() -> OsDetector.detect("192.0.2.1"));
+    }
+
+    @Test
+    void classifyHostname_null_returnsNull() {
+        assertNull(OsDetector.classifyHostname(null));
+    }
+
+    @Test
+    void classifyHostname_raspberry_detected() {
+        assertEquals("Raspberry Pi (Linux)", OsDetector.classifyHostname("raspberrypi.local"));
+    }
+}

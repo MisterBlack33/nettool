@@ -1,7 +1,7 @@
 package main.java.networktool.storage;
 
 import main.java.networktool.model.HostResult;
-import main.java.networktool.storage.HostJsonBuilder;
+import main.java.networktool.storage.network.HostJsonBuilder;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 

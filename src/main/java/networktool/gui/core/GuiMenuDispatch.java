@@ -1,9 +1,9 @@
 package main.java.networktool.gui.core;
 
-import main.java.networktool.gui.components.GuiSearchBar;
+import main.java.networktool.gui.components.table.GuiSearchBar;
 import main.java.networktool.gui.panels.GuiOutputPanel;
-import main.java.networktool.gui.panels.GuiAuditPanel;
-import main.java.networktool.gui.panels.GuiPrivacyPanel;
+import main.java.networktool.gui.panels.audit.GuiAuditPanel;
+import main.java.networktool.gui.panels.privacy.GuiPrivacyPanel;
 import main.java.networktool.security.AuditLogger;
 import main.java.networktool.security.UserAuth;
 

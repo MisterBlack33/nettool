@@ -2,10 +2,10 @@ package main.java.networktool.gui.map;
 
 import main.java.networktool.gui.map.MapHopDiscovery;
 import main.java.networktool.gui.map.MapSwitchStore;
-import main.java.networktool.logic.analysis.TracerouteRunner;
-import main.java.networktool.logic.scan.MapTrafficObserver;
+import main.java.networktool.logic.analysis.probe.TracerouteRunner;
+import main.java.networktool.logic.scan.schedule.MapTrafficObserver;
 import org.junit.jupiter.api.*;
-import main.java.networktool.gui.components.GuiNetworkMap;
+import main.java.networktool.gui.components.map.GuiNetworkMap;
 
 import java.util.*;
 

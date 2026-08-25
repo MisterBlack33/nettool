@@ -1,9 +1,9 @@
 package main.java.networktool.gui.hostdetails;
 
-import main.java.networktool.logic.analysis.OsDetector;
-import main.java.networktool.logic.analysis.OuiDatabase;
+import main.java.networktool.logic.analysis.os.OsDetector;
+import main.java.networktool.logic.analysis.probe.OuiDatabase;
 import main.java.networktool.model.HostResult;
-import main.java.networktool.storage.NetworkStore;
+import main.java.networktool.storage.network.NetworkStore;
 
 import javax.swing.*;
 import javax.swing.border.*;
