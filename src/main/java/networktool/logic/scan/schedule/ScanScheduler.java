@@ -2,6 +2,9 @@ package main.java.networktool.logic.scan.schedule;
 
 import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.logic.messaging.MessageSender;
+import main.java.networktool.logic.scan.host.NetworkHostScanner;
+import main.java.networktool.logic.scan.host.NetworkScanner;
+import main.java.networktool.logic.scan.host.SubnetDetector;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.model.ScanProfile;
 import main.java.networktool.model.ScanResult;

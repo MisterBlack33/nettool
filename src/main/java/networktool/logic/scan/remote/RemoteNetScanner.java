@@ -1,6 +1,8 @@
 package main.java.networktool.logic.scan.remote;
 
 import main.java.networktool.logging.DebugLogger;
+import main.java.networktool.logic.scan.host.NetworkHostScanner;
+import main.java.networktool.logic.scan.host.NetworkScanner;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.model.ScanResult;
 import main.java.networktool.filter.TablePrinter;

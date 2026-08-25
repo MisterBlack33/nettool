@@ -1,5 +1,7 @@
 package main.java.networktool.logic.analysis.os;
 
+import main.java.networktool.logic.analysis.probe.OuiDatabase;
+
 /**
  * TTL- und MAC-basiertes OS-Fingerprinting. Package-private.
  *

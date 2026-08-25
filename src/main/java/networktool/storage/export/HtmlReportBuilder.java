@@ -1,6 +1,7 @@
 package main.java.networktool.storage.export;
 
 import main.java.networktool.model.HostResult;
+import main.java.networktool.storage.network.NetworkStore;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;

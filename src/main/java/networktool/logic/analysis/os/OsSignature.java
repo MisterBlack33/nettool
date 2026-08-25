@@ -15,7 +15,7 @@ public final class OsSignature {
         this.os = os; this.score = score; this.method = method;
     }
 
-    static OsSignature of(String os, int score, String method) {
+    public static OsSignature of(String os, int score, String method) {
         return new OsSignature(os, score, method);
     }
 

@@ -1,5 +1,7 @@
 package main.java.networktool.storage;
 
+import main.java.networktool.storage.network.NetworkStorePersistence;
+
 import java.nio.file.Path;
 
 public final class StorageUtils {

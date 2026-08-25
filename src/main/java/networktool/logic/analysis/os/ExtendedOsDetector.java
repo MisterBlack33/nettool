@@ -1,5 +1,9 @@
 package main.java.networktool.logic.analysis.os;
 
+import main.java.networktool.logic.analysis.discovery.DhcpOptionAnalyzer;
+import main.java.networktool.logic.analysis.discovery.UpnpDiscovery;
+import main.java.networktool.logic.analysis.probe.IcmpAnalyzer;
+
 import java.util.Objects;
 
 /**

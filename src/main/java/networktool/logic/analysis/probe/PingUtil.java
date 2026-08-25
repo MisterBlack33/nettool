@@ -1,5 +1,6 @@
 package main.java.networktool.logic.analysis.probe;
 
+import main.java.networktool.logic.analysis.os.OsDetector;
 import main.java.networktool.logic.ports.PortScanner;
 
 import java.net.InetAddress;

@@ -1,6 +1,7 @@
 package main.java.networktool.storage.network;
 
 import main.java.networktool.model.HostResult;
+import main.java.networktool.storage.JsonHelper;
 
 import java.util.*;
 

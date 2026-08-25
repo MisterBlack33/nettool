@@ -1,6 +1,11 @@
 package main.java.networktool.logic.analysis.probe;
 
 import main.java.networktool.gui.core.GUI;
+import main.java.networktool.logic.analysis.discovery.DhcpOptionAnalyzer;
+import main.java.networktool.logic.analysis.discovery.MdnsDiscovery;
+import main.java.networktool.logic.analysis.discovery.UpnpDiscovery;
+import main.java.networktool.logic.analysis.os.OsDetector;
+import main.java.networktool.logic.analysis.os.ScanDepth;
 import main.java.networktool.logic.ports.PortScanner;
 
 import java.net.InetAddress;

@@ -16,7 +16,7 @@ public final class GuiRemoteActions {
 
     private GuiRemoteActions() {}
 
-    static void openInBrowser(String ip, String osFromTable) {
+    public static void openInBrowser(String ip, String osFromTable) {
         new Thread(() -> {
             AuditLogger.getInstance().log("BROWSER_OPEN", ip);
             String os = (osFromTable != null && !osFromTable.isBlank())

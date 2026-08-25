@@ -3,6 +3,7 @@ package main.java.networktool.logic.scan.host;
 import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.logic.analysis.os.OsDetector;
 import main.java.networktool.logic.analysis.probe.OuiDatabase;
+import main.java.networktool.logic.scan.schedule.ScanHistory;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.model.ScanResult;
 import main.java.networktool.util.CIDRUtils;

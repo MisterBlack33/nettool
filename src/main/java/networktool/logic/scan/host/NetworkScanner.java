@@ -4,6 +4,7 @@ import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.logic.TimeoutConfig;
 import main.java.networktool.logic.analysis.os.OsDetector;
 import main.java.networktool.logic.ports.PortScanner;
+import main.java.networktool.logic.scan.schedule.ScanHistory;
 import main.java.networktool.model.ScanResult;
 import main.java.networktool.util.CIDRUtils;
 

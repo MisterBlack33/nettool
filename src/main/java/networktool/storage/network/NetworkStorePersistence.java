@@ -2,6 +2,9 @@ package main.java.networktool.storage.network;
 
 import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.model.HostResult;
+import main.java.networktool.storage.JsonHelper;
+import main.java.networktool.storage.SavedHostsStore;
+import main.java.networktool.storage.profile.ScanProfileStore;
 
 import java.io.IOException;
 import java.net.*;
@@ -24,7 +27,7 @@ public final class NetworkStorePersistence {
     // ── Path resolution ───────────────────────────────────────────────────
 
     // Neu: liefert das Verzeichnis 'data' (früher 'txt')
-    static Path resolveDataDir() {
+    public static Path resolveDataDir() {
         try {
             URL  url  = NetworkStorePersistence.class.getProtectionDomain()
                     .getCodeSource().getLocation();
@@ -40,7 +43,7 @@ public final class NetworkStorePersistence {
         return Paths.get(System.getProperty("user.dir"), "networktool", "data");
     }
 
-    static Path savedDir(Path dataDir) {
+    public static Path savedDir(Path dataDir) {
         return dataDir.resolve(SAVED_SUBDIR);
     }
 

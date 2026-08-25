@@ -1,6 +1,7 @@
 package main.java.networktool.storage.export;
 
 import main.java.networktool.model.HostResult;
+import main.java.networktool.storage.backup.DataExportBackup;
 
 import java.io.IOException;
 import java.nio.file.Path;

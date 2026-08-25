@@ -15,7 +15,7 @@ import java.security.spec.InvalidKeySpecException;
  * NoteEncryption, aber dateibasiert statt String-basiert).
  * Layout: salt(16) + iv(12) + ciphertext, roh in Datei geschrieben (kein Base64 nötig).
  */
-final class BackupCrypto {
+public final class BackupCrypto {
 
     private BackupCrypto() {}
 
@@ -42,7 +42,7 @@ final class BackupCrypto {
         Files.write(outEncrypted, out, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     }
 
-    static void decryptFile(Path encrypted, Path outPlainZip, String password) throws Exception {
+    public static void decryptFile(Path encrypted, Path outPlainZip, String password) throws Exception {
         byte[] data = Files.readAllBytes(encrypted);
         if (data.length < SALT_LEN + IV_LEN) throw new IOException("Datei zu kurz für gültiges Backup.");
         byte[] salt = java.util.Arrays.copyOfRange(data, 0, SALT_LEN);

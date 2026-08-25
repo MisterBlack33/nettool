@@ -1,6 +1,7 @@
 package main.java.networktool.storage.export;
 
 import main.java.networktool.model.HostResult;
+import main.java.networktool.storage.network.NetworkStore;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,14 +17,14 @@ import java.util.List;
  * Ausgelagert aus {@link DataExporter} (nur Split, keine Logik-Änderung).
  * Package-private — öffentliche Fassade bleibt DataExporter.
  */
-final class DataExportFormatters {
+public final class DataExportFormatters {
 
     private DataExportFormatters() {}
 
     private static final DateTimeFormatter FMT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
 
-    static String now() { return LocalDateTime.now().format(FMT); }
+    public static String now() { return LocalDateTime.now().format(FMT); }
 
     @FunctionalInterface
     interface HostConsumer { void accept(HostResult h, String category); }

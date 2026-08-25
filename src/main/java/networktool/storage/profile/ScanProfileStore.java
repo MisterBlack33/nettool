@@ -1,6 +1,7 @@
 package main.java.networktool.storage.profile;
 
 import main.java.networktool.model.ScanProfile;
+import main.java.networktool.storage.StorageUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
