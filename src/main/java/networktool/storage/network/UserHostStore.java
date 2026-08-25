@@ -42,7 +42,7 @@ public final class UserHostStore {
     public static List<HostResult> getAllHosts(String username) {
         if (username == null) return List.of();
         Map<String, HostResult> byIp = new LinkedHashMap<>();
-        for (String network : NetworkStore.getInstance().getNetworkNames()) {
+        for (String network : NetworkStore.getInstance().getAllNetworkNames()) {
             if (network.equals(NetworkStore.ALL_CATEGORY)) continue;
             for (HostResult h : getAll(network, username)) byIp.putIfAbsent(h.ip, h);
         }
