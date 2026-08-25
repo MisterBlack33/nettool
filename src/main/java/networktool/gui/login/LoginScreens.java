@@ -5,7 +5,6 @@ import main.java.networktool.security.UserAuth;
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
-import java.util.List;
 
 import main.java.networktool.theme.GuiTheme;
 import static main.java.networktool.theme.GuiTheme.*;
@@ -18,6 +17,9 @@ import static main.java.networktool.gui.login.LoginFormLayout.*;
  * Baut den Anmeldebildschirm. Reine UI-Assemblierung;
  * Authentifizierungslogik bleibt in {@code LoginDialog}.
  * Registrierungsbildschirm siehe {@link RegisterScreen}.
+ *
+ * Benutzername wird immer manuell eingegeben (kein Auswahl-Dropdown mehr),
+ * auch wenn mehrere Konten existieren.
  */
 public final class LoginScreens {
 
@@ -33,47 +35,31 @@ public final class LoginScreens {
         JPanel form = formPanel(GuiTheme.PANEL_BG);
         GridBagConstraints gc = defaultConstraints();
 
-        List<String> users = auth.listUsernames();
-        Component userComp;
-        JComboBox<String> userBox   = null;
-        JTextField        userField = null;
+        JTextField     userField = inputField("", 260);
+        JPasswordField pwField   = passwordField(260);
+        JLabel         errLabel  = errorLabel();
+        JButton        loginBtn  = primaryButton("Anmelden");
 
-        if (users.size() == 1) {
-            userField = inputField(users.get(0), 260);
-            userField.setEditable(false);
-            userField.setForeground(FG_DIM);
-            userComp = userField;
-        } else {
-            userBox  = comboBox(users, 260);
-            userComp = userBox;
-        }
-
-        JPasswordField pwField  = passwordField(260);
-        JLabel         errLabel = errorLabel();
-        JButton        loginBtn = primaryButton("Anmelden");
-
-        addFormRow(form, gc, 0, "Benutzername", userComp);
+        addFormRow(form, gc, 0, "Benutzername", userField);
         addFormRow(form, gc, 1, "Passwort",     pwField);
         addSpanRow(form, gc, 2, errLabel);
         root.add(form, BorderLayout.CENTER);
 
-        wireLoginActions(onLogin, userBox, userField, pwField, errLabel, loginBtn);
+        wireLoginActions(onLogin, userField, pwField, errLabel, loginBtn);
         root.add(buildFooter(onNewAccount, onQuit, loginBtn), BorderLayout.SOUTH);
 
-        Component focusTarget = users.size() == 1 ? pwField : userComp;
-        SwingUtilities.invokeLater(focusTarget::requestFocus);
+        SwingUtilities.invokeLater(userField::requestFocus);
         return root;
     }
 
-    private static void wireLoginActions(LoginAttempt onLogin, JComboBox<String> userBox,
-                                         JTextField userField, JPasswordField pwField,
-                                         JLabel errLabel, JButton loginBtn) {
+    private static void wireLoginActions(LoginAttempt onLogin, JTextField userField,
+                                         JPasswordField pwField, JLabel errLabel, JButton loginBtn) {
         LoginLockoutWatcher.attach(loginBtn, errLabel);
 
         Runnable doLogin = () -> {
-            String username = resolveUsername(userBox, userField);
+            String username = userField.getText().trim();
             String password = new String(pwField.getPassword());
-            if (username == null || username.isBlank()) {
+            if (username.isBlank()) {
                 LoginShakeEffect.shake(errLabel, "Benutzername fehlt.");
                 return;
             }
@@ -87,12 +73,6 @@ public final class LoginScreens {
         };
         loginBtn.addActionListener(e -> doLogin.run());
         pwField.addActionListener(e -> doLogin.run());
-    }
-
-    private static String resolveUsername(JComboBox<String> userBox, JTextField userField) {
-        if (userBox != null) return (String) userBox.getSelectedItem();
-        if (userField != null) return userField.getText().trim();
-        return "";
     }
 
     private static JPanel buildFooter(Runnable onNewAccount, Runnable onQuit, JButton loginBtn) {

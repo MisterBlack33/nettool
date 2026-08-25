@@ -11,8 +11,14 @@ import java.awt.event.*;
 
 /**
  * Anmelde-Dialog – erscheint beim Programmstart.
- * UI-Aufbau delegiert an {@link LoginScreens}; diese Klasse
- * verantwortet nur Authentifizierungs-Logik und Rate-Limiting.
+ *
+ * Ablauf:
+ *  - Keine Nutzer vorhanden  -> direkt Registrierung (logisch zwingend).
+ *  - Nutzer vorhanden        -> explizite Auswahl "Anmelden" / "Registrieren".
+ *
+ * UI-Aufbau delegiert an {@link LoginScreens}/{@link RegisterScreen}; diese
+ * Klasse verantwortet nur Bildschirm-Navigation, Authentifizierungs-Logik
+ * und Rate-Limiting.
  */
 public final class LoginDialog extends JDialog {
 
@@ -31,7 +37,7 @@ public final class LoginDialog extends JDialog {
         GuiLoginRateLimiter.reset();
         LoginDialog dlg = new LoginDialog();
         if (!auth.hasUsers()) dlg.showRegister(auth, true);
-        else                  dlg.showLogin(auth);
+        else                  dlg.showChoice(auth);
         dlg.pack();
         dlg.setMinimumSize(new Dimension(440, dlg.getHeight()));
         dlg.setLocationRelativeTo(null);
@@ -42,6 +48,17 @@ public final class LoginDialog extends JDialog {
     }
 
     // ── Bildschirm-Wechsel ────────────────────────────────────────────────
+
+    /** Startbildschirm wenn bereits Nutzer existieren: explizite Wahl statt Auto-Entscheidung. */
+    private void showChoice(UserAuth auth) {
+        setTitle("NetTool – Willkommen");
+        getContentPane().removeAll();
+        setContentPane(main.java.networktool.gui.login.LoginChoiceScreen.build(
+                () -> { showLogin(auth); repack(); },
+                () -> { showRegister(auth, false); repack(); },
+                () -> System.exit(0)));
+        repack();
+    }
 
     private void showLogin(UserAuth auth) {
         setTitle("NetTool – Anmelden");

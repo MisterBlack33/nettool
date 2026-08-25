@@ -23,12 +23,55 @@ public final class UserAuth {
     private Path dataDir;
     private volatile String currentUser;
 
+    // Default-Konten: Hash wird beim Seeding zur Laufzeit aus dem Klartext-Passwort
+    // berechnet (siehe seedDefaultUsers()) statt stale vorberechneter Base64-Werte,
+    // damit die dokumentierten Zugangsdaten tatsächlich funktionieren.
+    private static final String DEFAULT_ADMIN_USER     = "admin";
+    private static final String DEFAULT_ADMIN_PASSWORD = "test1234";
+
+    private static final String DEFAULT_USER_USER      = "user1";
+    private static final String DEFAULT_USER_PASSWORD  = "test1234";
+
     private UserAuth() {}
 
     public synchronized void init(Path dir) {
         // Wenn kein Verzeichnis übergeben wurde, verwende das zentrale Datenverzeichnis
         if (dir == null) this.dataDir = StorageUtils.resolveDataDir();
         else this.dataDir = dir;
+    }
+
+    public synchronized void seedDefaultUsers() {
+        try {
+            List<Map<String, String>> users = UserAuthPersistence.load(dataDir);
+            boolean changed = false;
+            if (findByUsername(users, DEFAULT_ADMIN_USER) == null) {
+                users.add(seedEntry(DEFAULT_ADMIN_USER, DEFAULT_ADMIN_PASSWORD, "admin"));
+                changed = true;
+            }
+            if (findByUsername(users, DEFAULT_USER_USER) == null) {
+                users.add(seedEntry(DEFAULT_USER_USER, DEFAULT_USER_PASSWORD, "user"));
+                changed = true;
+            }
+            if (changed) UserAuthPersistence.save(dataDir, users);
+        } catch (Exception e) {
+            System.err.println("[UserAuth] seedDefaultUsers: " + e.getMessage());
+        }
+    }
+
+    private static Map<String, String> findByUsername(List<Map<String, String>> users, String username) {
+        return users.stream()
+                .filter(u -> username.equals(u.get("username")))
+                .findFirst().orElse(null);
+    }
+
+    private static Map<String, String> seedEntry(String user, String password, String role) throws Exception {
+        byte[] salt = generateSalt();
+        Map<String, String> m = new LinkedHashMap<>();
+        m.put("username", user);
+        m.put("salt", Base64.getEncoder().encodeToString(salt));
+        m.put("hash", hash(password, salt));
+        m.put("role", role);
+        return m;
     }
 
     // ── Public API ────────────────────────────────────────────────────────

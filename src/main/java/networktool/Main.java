@@ -14,12 +14,14 @@ import java.nio.file.Path;
  *
  * Startmodi:
  *   - Standard (kein Argument): Swing-GUI
- *   - {@code --cli}:            Interaktives CLI-Menü
  *
  * Sicherheit:
- *   1. AuditLogger und UserAuth werden mit dem txt-Verzeichnis initialisiert.
- *   2. Login-Dialog erscheint vor dem GUI-Start.
- *   3. Alle Aktionen werden im AuditLogger protokolliert.
+ *   1. AuditLogger und UserAuth werden mit dem Datenverzeichnis initialisiert.
+ *   2. Standard-Konten (admin/user1) werden bei Bedarf angelegt, damit beim
+ *      ersten Start direkt die Wahl "Anmelden / Registrieren" erscheint statt
+ *      zwingend zur Registrierung zu springen.
+ *   3. Login-Dialog erscheint vor dem GUI-Start.
+ *   4. Alle Aktionen werden im AuditLogger protokolliert.
  */
 public final class Main {
 
@@ -30,6 +32,7 @@ public final class Main {
         Path dataDir = StorageUtils.resolveDataDir();
         AuditLogger.getInstance().init(dataDir);
         UserAuth.getInstance().init(dataDir);
+        UserAuth.getInstance().seedDefaultUsers();
         runGui(dataDir);
     }
 
