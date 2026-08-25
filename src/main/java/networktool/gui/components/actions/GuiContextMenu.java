@@ -1,5 +1,6 @@
 package main.java.networktool.gui.components.actions;
 
+import main.java.networktool.gui.components.terminal.GuiSshTerminal;
 import main.java.networktool.util.*;
 import main.java.networktool.gui.hostdetails.HostDetailsPanel;
 import main.java.networktool.gui.hostdetails.HostSaveDialog;

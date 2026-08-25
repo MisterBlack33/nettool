@@ -1,5 +1,6 @@
 package main.java.networktool.gui.components.scan;
 
+import main.java.networktool.gui.components.table.GuiTableRenderer;
 import main.java.networktool.gui.core.GUI;
 import main.java.networktool.logic.analysis.probe.TracerouteRunner;
 import main.java.networktool.logic.scan.host.NetworkHostScanner;

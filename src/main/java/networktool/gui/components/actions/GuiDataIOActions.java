@@ -1,5 +1,6 @@
 package main.java.networktool.gui.components.actions;
 
+import main.java.networktool.gui.components.GuiStatusBar;
 import main.java.networktool.gui.core.GUI;
 import main.java.networktool.gui.core.GuiMenuHandler;
 import main.java.networktool.gui.panels.GuiInputPanel;

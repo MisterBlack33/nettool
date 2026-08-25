@@ -2,6 +2,7 @@ package main.java.networktool.gui.components.scan;
 
 import main.java.networktool.filter.JsonExporter;
 import main.java.networktool.filter.ScanFilter;
+import main.java.networktool.gui.components.table.GuiTableRenderer;
 import main.java.networktool.gui.core.GuiMenuHandler;
 import main.java.networktool.gui.panels.GuiInputPanel;
 import main.java.networktool.gui.panels.GuiOutputPanel;

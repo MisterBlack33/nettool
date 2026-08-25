@@ -1,5 +1,6 @@
 package main.java.networktool.gui.components;
 
+import main.java.networktool.gui.components.map.GuiNetworkMap;
 import main.java.networktool.security.AuditLogger;
 import main.java.networktool.security.UserAuth;
 

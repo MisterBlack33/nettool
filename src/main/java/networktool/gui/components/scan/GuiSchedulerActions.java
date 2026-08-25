@@ -1,5 +1,7 @@
 package main.java.networktool.gui.components.scan;
 
+import main.java.networktool.gui.components.GuiStatusBar;
+import main.java.networktool.gui.components.actions.GuiContextMenu;
 import main.java.networktool.gui.panels.GuiInputPanel;
 import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.scan.schedule.ScanScheduler;

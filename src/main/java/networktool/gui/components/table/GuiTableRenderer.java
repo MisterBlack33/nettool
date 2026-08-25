@@ -1,6 +1,8 @@
 package main.java.networktool.gui.components.table;
 
 import main.java.networktool.filter.ClipboardUtil;
+import main.java.networktool.gui.components.actions.GuiContextMenu;
+import main.java.networktool.gui.components.actions.GuiRemoteActions;
 import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.scan.schedule.LastScanCache;
 import main.java.networktool.model.HostResult;
@@ -25,7 +27,7 @@ public class GuiTableRenderer {
     private static final Logger LOG = Logger.getLogger(GuiTableRenderer.class.getName());
 
     private final GuiOutputPanel outputPanel;
-    private GuiContextMenu       contextMenu;
+    private GuiContextMenu contextMenu;
 
     public GuiTableRenderer(GuiOutputPanel outputPanel) {
         this.outputPanel = outputPanel;

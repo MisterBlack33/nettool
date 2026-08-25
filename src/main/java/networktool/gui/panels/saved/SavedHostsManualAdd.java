@@ -1,5 +1,6 @@
 package main.java.networktool.gui.panels.saved;
 
+import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.storage.network.NetworkStore;
 

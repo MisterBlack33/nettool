@@ -1,5 +1,6 @@
 package main.java.networktool.gui.panels.saved;
 
+import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.storage.network.NetworkStore;
 
 import javax.swing.*;
@@ -23,7 +24,7 @@ final class SavedHostsMoveMenu {
     private SavedHostsMoveMenu() {}
 
     static void install(JTable table, Supplier<String> activeNetwork,
-                         GuiOutputPanel output, Runnable refreshTable) {
+                        GuiOutputPanel output, Runnable refreshTable) {
         MouseAdapter listener = new MouseAdapter() {
             @Override public void mouseReleased(MouseEvent e) { tryShow(e, table, activeNetwork, output, refreshTable); }
             @Override public void mousePressed(MouseEvent e)  { tryShow(e, table, activeNetwork, output, refreshTable); }

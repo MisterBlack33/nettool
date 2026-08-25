@@ -12,7 +12,7 @@ import java.net.*;
 import static main.java.networktool.theme.GuiTheme.*;
 
 /** Remote-Simulation-Dialoge und Browser-Öffnung. Paket-privat. */
-final class GuiRemoteActions {
+public final class GuiRemoteActions {
 
     private GuiRemoteActions() {}
 

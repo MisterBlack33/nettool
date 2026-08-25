@@ -1,5 +1,6 @@
 package main.java.networktool.gui.panels.audit;
 
+import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.security.AuditLogEntry;
 import main.java.networktool.security.AuditLogger;
 

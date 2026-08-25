@@ -1,17 +1,11 @@
 package main.java.networktool.gui.core;
 
-import main.java.networktool.gui.components.*;
-import main.java.networktool.gui.components.*;
-import main.java.networktool.security.LoginDialog;
-import main.java.networktool.model.HostResult;
-import main.java.networktool.model.ScanResult;
-import main.java.networktool.security.AuditLogger;
-import main.java.networktool.security.SecurityMonitor;
-import main.java.networktool.security.UserAuth;
-import main.java.networktool.util.AppIcon;
-import main.java.networktool.gui.panels.GuiOutputPanel;
-import main.java.networktool.gui.panels.GuiInputPanel;
-import main.java.networktool.gui.panels.saved.GuiSavedHostsPanel;
+import main.java.networktool.gui.components.GuiProgressBar;
+import main.java.networktool.gui.components.GuiSidebar;
+import main.java.networktool.gui.components.GuiStatusBar;
+import main.java.networktool.gui.components.table.GuiSearchBar;
+import main.java.networktool.gui.components.table.GuiTableRenderer;
+import main.java.networktool.gui.components.actions.GuiContextMenu;
 
 import javax.swing.*;
 import java.awt.*;
@@ -19,7 +13,17 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import main.java.networktool.gui.panels.GuiInputPanel;
+import main.java.networktool.gui.panels.GuiOutputPanel;
+import main.java.networktool.gui.panels.saved.GuiSavedHostsPanel;
+import main.java.networktool.model.HostResult;
+import main.java.networktool.model.ScanResult;
+import main.java.networktool.security.AuditLogger;
+import main.java.networktool.security.LoginDialog;
+import main.java.networktool.security.SecurityMonitor;
+import main.java.networktool.security.UserAuth;
 import main.java.networktool.theme.GuiTheme;
+import main.java.networktool.util.AppIcon;
 
 /**
  * Haupt-Fenster der Anwendung.
@@ -51,10 +55,10 @@ public class GUI extends JFrame {
     // !! Reihenfolge der Deklaration = Reihenfolge der Initialisierung !!
     // searchBar MUSS vor savedHostsPanel stehen – wird als Parameter übergeben.
     private final GuiSearchBar       searchBar;
-    private final GuiOutputPanel     outputPanel;
-    private final GuiProgressBar     progressBar;
-    private final GuiStatusBar       statusBar;
-    private final GuiInputPanel      inputPanel;
+    private final GuiOutputPanel outputPanel;
+    private final GuiProgressBar progressBar;
+    private final GuiStatusBar statusBar;
+    private final GuiInputPanel inputPanel;
     private final GuiTableRenderer   tableRenderer;
     private final GuiMenuHandler     menuHandler;
     private final GuiContextMenu     contextMenu;

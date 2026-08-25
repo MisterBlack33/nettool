@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 
-final class NetworkStorePersistence {
+public final class NetworkStorePersistence {
 
     private NetworkStorePersistence() {}
 

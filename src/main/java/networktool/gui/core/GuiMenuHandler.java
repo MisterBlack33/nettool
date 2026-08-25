@@ -1,6 +1,17 @@
 package main.java.networktool.gui.core;
 
-import main.java.networktool.gui.components.*;
+import main.java.networktool.gui.components.GuiStatusBar;
+import main.java.networktool.gui.components.table.GuiTableRenderer;
+import main.java.networktool.gui.components.actions.GuiContextMenu;
+import main.java.networktool.gui.components.actions.GuiDiagnosticsActions;
+import main.java.networktool.gui.components.actions.GuiDataIOActions;
+import main.java.networktool.gui.components.scan.GuiScanActions;
+import main.java.networktool.gui.components.scan.GuiForeignNetActions;
+import main.java.networktool.gui.components.scan.GuiScanProfileActions;
+import main.java.networktool.gui.components.scan.GuiScanCompareActions;
+import main.java.networktool.gui.components.scan.GuiSchedulerActions;
+import main.java.networktool.gui.components.scan.GuiSonifyActions;
+import main.java.networktool.gui.components.map.GuiNetworkMap;
 import main.java.networktool.gui.notification.NotificationListener;
 import main.java.networktool.gui.panels.GuiInputPanel;
 import main.java.networktool.gui.panels.GuiOutputPanel;
@@ -11,7 +22,6 @@ import main.java.networktool.security.AuditLogger;
 import main.java.networktool.storage.network.NetworkStore;
 import main.java.networktool.transfer.FileClient;
 import main.java.networktool.transfer.FileServer;
-import main.java.networktool.gui.components.*;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -29,7 +39,7 @@ public class GuiMenuHandler {
     private final GuiInputPanel input;
     private final GuiOutputPanel output;
     private final GuiTableRenderer tables;
-    private final GuiStatusBar     status;
+    private final GuiStatusBar status;
     private GuiSavedHostsPanel savedHostsPanel;
 
     private final AtomicReference<Thread> runningThread = new AtomicReference<>();

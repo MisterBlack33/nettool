@@ -5,6 +5,8 @@ import main.java.networktool.gui.components.GuiNetworkBar;
 import main.java.networktool.gui.components.table.GuiSearchBar;
 import main.java.networktool.gui.components.table.GuiTableRenderer;
 import main.java.networktool.gui.core.GuiMenuHandler;
+import main.java.networktool.gui.panels.GuiNetworkDialogs;
+import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.storage.network.NetworkStore;
 import main.java.networktool.util.TableConfig;

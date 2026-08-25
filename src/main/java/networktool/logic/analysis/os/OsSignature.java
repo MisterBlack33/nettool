@@ -5,7 +5,7 @@ package main.java.networktool.logic.analysis.os;
  * Gewichtetes OS-Erkennungsergebnis.
  * Mehrere Methoden können Hinweise liefern; der höchste Score gewinnt.
  */
-final class OsSignature {
+public final class OsSignature {
 
     final String os;
     final int    score;  // höher = zuverlässiger

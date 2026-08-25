@@ -4,6 +4,7 @@ import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 
+import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.theme.GuiTheme;
 import static main.java.networktool.theme.GuiTheme.*;
 

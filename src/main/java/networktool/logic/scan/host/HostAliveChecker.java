@@ -2,6 +2,7 @@ package main.java.networktool.logic.scan.host;
 
 import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.logic.TimeoutConfig;
+import main.java.networktool.logic.scan.schedule.ScanRateLimiter;
 
 import java.net.*;
 import java.util.*;

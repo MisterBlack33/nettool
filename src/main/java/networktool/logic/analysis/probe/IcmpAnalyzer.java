@@ -1,6 +1,8 @@
 package main.java.networktool.logic.analysis.probe;
 
 import main.java.networktool.logic.TimeoutConfig;
+import main.java.networktool.logic.analysis.os.OsSignature;
+
 import java.net.InetAddress;
 import java.util.*;
 
