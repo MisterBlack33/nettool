@@ -1,6 +1,8 @@
 package main.java.networktool.storage.network;
 
 import main.java.networktool.model.HostResult;
+import main.java.networktool.storage.TestConstants;
+import main.java.networktool.storage.network.NetworkStoreTestBase;
 import org.junit.jupiter.api.*;
 
 import java.util.List;

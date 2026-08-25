@@ -1,6 +1,8 @@
 package main.java.networktool.storage.backup;
 
 import main.java.networktool.storage.backup.BackupCrypto;
+import main.java.networktool.storage.export.DataExporter;
+import main.java.networktool.storage.export.DataImporter;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 

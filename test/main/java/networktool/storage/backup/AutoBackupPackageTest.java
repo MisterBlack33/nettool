@@ -1,5 +1,7 @@
 package main.java.networktool.storage.backup;
 
+import main.java.networktool.storage.export.DataExporter;
+import main.java.networktool.storage.network.NetworkStorePersistence;
 import networktool.util.PollHelper;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Tag;

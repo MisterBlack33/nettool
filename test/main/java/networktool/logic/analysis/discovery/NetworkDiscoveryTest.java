@@ -1,5 +1,6 @@
 package main.java.networktool.logic.analysis.discovery;
 
+import main.java.networktool.logic.analysis.probe.IcmpAnalyzer;
 import org.junit.jupiter.api.*;
 
 import java.net.InetAddress;

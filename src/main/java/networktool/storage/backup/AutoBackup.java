@@ -32,7 +32,7 @@ public final class AutoBackup {
     private final AtomicBoolean backupScheduled = new AtomicBoolean(false);
     private volatile LocalDate  lastBackupDate  = null;
 
-    static volatile boolean testMode = false;
+    public static volatile boolean testMode = false;
 
     private AutoBackup() {}
 

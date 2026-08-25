@@ -6,14 +6,14 @@ import main.java.networktool.storage.JsonHelper;
 import java.util.*;
 
 /** Builds and parses the JSON representation of a single host entry. Package-private. */
-final class HostJsonBuilder {
+public final class HostJsonBuilder {
 
     private HostJsonBuilder() {}
 
     /** Aktuelle Schema-Version der Netzwerk-Datei. Erhöhen bei künftigen Layout-Änderungen. */
     static final int CURRENT_SCHEMA_VERSION = 1;
 
-    static String buildNetworkJson(String name, String prefix, List<HostResult> hosts) {
+    public static String buildNetworkJson(String name, String prefix, List<HostResult> hosts) {
         StringBuilder sb = new StringBuilder();
         sb.append("{\n")
                 .append("  \"schemaVersion\": ").append(CURRENT_SCHEMA_VERSION).append(",\n")
@@ -43,7 +43,7 @@ final class HostJsonBuilder {
         return v != null ? v : 0;
     }
 
-    static HostResult parseHost(String obj) {
+    public static HostResult parseHost(String obj) {
         String ip = JsonHelper.extractStr(obj, "ip");
         if (ip == null || ip.isBlank()) return null;
         return new HostResult(

@@ -1,8 +1,8 @@
 package networktool.logic;
 
-import main.java.networktool.logic.scan.*;
 import main.java.networktool.logic.scan.host.NetworkHostScanner;
 import main.java.networktool.logic.scan.host.NetworkScanner;
+import main.java.networktool.logic.scan.host.NetworkTimeoutTestBase;
 import main.java.networktool.logic.scan.remote.RemoteNetScanner;
 import main.java.networktool.logic.scan.schedule.ScanHistory;
 import main.java.networktool.model.HostResult;

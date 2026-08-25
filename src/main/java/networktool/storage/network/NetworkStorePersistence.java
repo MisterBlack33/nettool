@@ -150,7 +150,7 @@ public final class NetworkStorePersistence {
         NetworkStoreLegacy.loadFile(file, name, networks, prefixes);
     }
 
-    static Map<Integer, String> parsePorts(String s) {
+    public static Map<Integer, String> parsePorts(String s) {
         return NetworkStoreLegacy.parsePorts(s);
     }
 
@@ -190,8 +190,8 @@ public final class NetworkStorePersistence {
     }
 
     // Backward compat
-    static String extractStr(String json, String field) { return JsonHelper.extractStr(json, field); }
-    static String esc(String s)                          { return JsonHelper.esc(s); }
+    public static String extractStr(String json, String field) { return JsonHelper.extractStr(json, field); }
+    public static String esc(String s)                          { return JsonHelper.esc(s); }
 
     private static String stripExt(String filename) {
         int dot = filename.lastIndexOf('.');

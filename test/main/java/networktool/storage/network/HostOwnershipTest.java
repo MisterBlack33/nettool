@@ -1,5 +1,6 @@
 package main.java.networktool.storage.network;
 
+import main.java.networktool.storage.TestConstants;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;

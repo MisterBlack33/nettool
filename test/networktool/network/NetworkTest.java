@@ -2,7 +2,7 @@ package networktool.network;
 
 import main.java.networktool.logic.analysis.probe.OuiDatabase;
 import main.java.networktool.logic.ports.PortScanner;
-import main.java.networktool.logic.scan.NetworkTimeoutTestBase;
+import main.java.networktool.logic.scan.host.NetworkTimeoutTestBase;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.storage.backup.AutoBackup;
 import main.java.networktool.storage.network.NetworkStore;
