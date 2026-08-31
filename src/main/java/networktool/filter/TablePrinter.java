@@ -1,13 +1,12 @@
 package main.java.networktool.filter;
 
-import main.java.networktool.gui.core.GUI;
 import main.java.networktool.model.ScanResult;
 
 import java.util.List;
 
 /**
  * Gibt {@link ScanResult}-Listen aus –
- * im GUI-Modus als Tabelle, im CLI-Modus als formatierte Konsolenausgabe.
+ * im GUI-Modus als Tabelle (via {@link OutputRenderer}), im CLI-Modus als Konsolenausgabe.
  */
 public final class TablePrinter {
 
@@ -17,8 +16,9 @@ public final class TablePrinter {
     private static final String CLI_SEPARATOR  = "-".repeat(75);
 
     public static void print(List<ScanResult> results) {
-        if (GUI.isGuiActive()) {
-            GUI.instance().showScanTable(results);
+        OutputRenderer renderer = OutputRendererRegistry.get();
+        if (renderer != null && renderer.isActive()) {
+            renderer.showScanTable(results);
             return;
         }
         printCli(results);

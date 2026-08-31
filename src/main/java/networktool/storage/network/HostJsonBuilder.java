@@ -43,7 +43,13 @@ public final class HostJsonBuilder {
         return v != null ? v : 0;
     }
 
+    /**
+     * Parst ein einzelnes Host-JSON-Objekt. Wendet vorab additive Schema-Migrationen
+     * an (siehe {@link HostSchemaMigration}), sodass Altbestand ohne separaten
+     * Migrationslauf mit dem aktuellen Feldsatz weiterverwendet wird.
+     */
     public static HostResult parseHost(String obj) {
+        obj = HostSchemaMigration.migrateHostV1ToV2(obj);
         String ip = JsonHelper.extractStr(obj, "ip");
         if (ip == null || ip.isBlank()) return null;
         return new HostResult(

@@ -238,20 +238,10 @@ public final class SavedHostsStore {
         for (String entry : s.split(",")) {
             String[] kv = entry.split(":", 2);
             try { map.put(Integer.parseInt(kv[0].trim()),
-                          kv.length > 1 ? kv[1].trim() : "offen"); }
+                    kv.length > 1 ? kv[1].trim() : "offen"); }
             catch (NumberFormatException ignored) {}
         }
         return map;
-    }
-
-    private static String serializePorts(Map<Integer, String> ports) {
-        if (ports == null || ports.isEmpty()) return "";
-        StringBuilder sb = new StringBuilder();
-        ports.forEach((port, banner) -> {
-            if (sb.length() > 0) sb.append(",");
-            sb.append(port).append(":").append(banner.replace(",", "|").replace(";", "|"));
-        });
-        return sb.toString();
     }
 
     // ── Hilfsmethoden ─────────────────────────────────────────────────────
@@ -260,16 +250,6 @@ public final class SavedHostsStore {
 
     private void notifyListeners() {
         for (Runnable l : listeners) l.run();  // direkt statt invokeLater
-    }
-
-    private static String sanitize(String s) {
-        if (s == null) return "";
-        return s.replace(";", ",").replace("\n", " ").replace("\r", " ").trim();
-    }
-
-    private static String sanitizeNotes(String s) {
-        if (s == null) return "";
-        return s.replace(";", ",").replace("\n", " ").replace("\r", " ").trim();
     }
 
     private static boolean isBlank(String s) { return s == null || s.isBlank(); }

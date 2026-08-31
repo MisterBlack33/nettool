@@ -50,6 +50,11 @@ public final class NoteEncryption {
         } catch (Exception e) { return plaintext; }
     }
 
+    /**
+     * Entschlüsselt eine Notiz. Nicht verschlüsselter Text wird unverändert
+     * zurückgegeben. Bei falschem Passwort oder korrupten Daten wird eine
+     * {@link NoteDecryptionException} geworfen (statt eines String-Sentinels).
+     */
     public static String decrypt(String encrypted, String password) {
         if (encrypted == null || !encrypted.startsWith(PREFIX)) return encrypted;
         try {
@@ -62,9 +67,9 @@ public final class NoteEncryption {
             c.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(128, iv));
             return new String(c.doFinal(ct), StandardCharsets.UTF_8);
         } catch (AEADBadTagException e) {
-            return "[Falsches Passwort]";
+            throw new NoteDecryptionException("Falsches Passwort", e);
         } catch (Exception e) {
-            return "[Entschlusselung fehlgeschlagen]";
+            throw new NoteDecryptionException("Entschlüsselung fehlgeschlagen", e);
         }
     }
 

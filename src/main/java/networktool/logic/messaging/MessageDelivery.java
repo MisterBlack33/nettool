@@ -1,7 +1,6 @@
 package main.java.networktool.logic.messaging;
 
 import main.java.networktool.logic.analysis.os.OsDetector;
-import main.java.networktool.util.PlatformUtils;
 
 import java.io.*;
 import java.net.*;
@@ -11,8 +10,11 @@ import java.nio.charset.StandardCharsets;
  * Enthält die einzelnen Übertragungsmethoden für Nachrichten.
  * Wird ausschließlich von {@link MessageSender} aufgerufen.
  *
+ * WinRM/SSH-Übertragung ausgelagert in {@link MessageDeliveryWinRm} und
+ * {@link MessageDeliverySsh} — diese Klasse bleibt Fassade mit stabiler API.
+ *
  * Sicherheit: jede IP, die in einen exec()-Aufruf oder PowerShell-Skript-
- * String eingebettet wird, wird zuvor über {@link PlatformUtils#isSafeIp}
+ * String eingebettet wird, wird zuvor über {@link main.java.networktool.util.PlatformUtils#isSafeIp}
  * validiert (Command-/Script-Injection-Schutz).
  */
 final class MessageDelivery {
@@ -62,72 +64,14 @@ final class MessageDelivery {
         }
     }
 
-    // ── WinRM ─────────────────────────────────────────────────────────────
+    // ── WinRM / SSH (delegiert) ───────────────────────────────────────────
 
     static boolean tryWinRM(String ip, String message) {
-        // Ziel-IP wird direkt in ein PowerShell-Skript eingebettet → Pflichtvalidierung
-        if (!PlatformUtils.isSafeIp(ip)) {
-            System.out.println("  ✕ WinRM: ungültige Ziel-IP");
-            return false;
-        }
-        if (!OsDetector.isOpen(ip, 5985)) {
-            System.out.println("  WinRM (5985) nicht offen → Enable-PSRemoting -Force auf Ziel");
-            return false;
-        }
-        System.out.println("  Methode : WinRM / PowerShell-Remoting");
-        String m = PlatformUtils.escapePowerShell(message);
-        String script =
-                "Add-Type -AssemblyName System.Windows.Forms; " +
-                        "Add-Type -AssemblyName System.Drawing; " +
-                        "$n = New-Object System.Windows.Forms.NotifyIcon; " +
-                        "$n.Icon = [System.Drawing.SystemIcons]::Information; " +
-                        "$n.Visible = $true; $n.BalloonTipTitle = 'NetTool'; " +
-                        "$n.BalloonTipText = '" + m + "'; " +
-                        "$n.BalloonTipIcon = [System.Windows.Forms.ToolTipIcon]::Info; " +
-                        "$n.ShowBalloonTip(8000); Start-Sleep 9; $n.Dispose()";
-        try {
-            Process p = Runtime.getRuntime().exec(new String[]{"powershell",
-                    "-NonInteractive", "-WindowStyle", "Hidden", "-Command",
-                    "Invoke-Command -ComputerName " + ip + " -ScriptBlock { " + script + " }"});
-            String err = readStream(p.getErrorStream());
-            p.waitFor();
-            if (p.exitValue() == 0) { System.out.println("  ✔ WinRM: BalloonTip gesendet."); return true; }
-            System.out.println("  ✕ WinRM: " + (err.isBlank() ? "fehlgeschlagen"
-                    : err.lines().findFirst().orElse("").trim()));
-        } catch (Exception e) { System.out.println("  ✕ PowerShell: " + e.getMessage()); }
-        return false;
+        return MessageDeliveryWinRm.tryWinRM(ip, message);
     }
 
-    // ── SSH ───────────────────────────────────────────────────────────────
-
     static boolean trySsh(String ip, String message, boolean mac) {
-        // Ziel-IP wird als ssh-Argument verwendet → Pflichtvalidierung
-        if (!PlatformUtils.isSafeIp(ip)) {
-            System.out.println("  ✕ SSH: ungültige Ziel-IP");
-            return false;
-        }
-        if (!OsDetector.isOpen(ip, 22)) {
-            System.out.println("  SSH (22) nicht offen.");
-            return false;
-        }
-        System.out.println("  Methode : SSH → " + (mac ? "osascript" : "notify-send"));
-        String safe = PlatformUtils.escapeSshArg(message);
-        String cmd  = mac
-                ? "osascript -e 'display notification \"" + safe + "\" with title \"NetTool\"'"
-                : "DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus "
-                + "notify-send 'NetTool' '" + safe + "'";
-        try {
-            Process p = Runtime.getRuntime().exec(new String[]{
-                    "ssh", "-o", "ConnectTimeout=3", "-o", "StrictHostKeyChecking=no",
-                    "-o", "BatchMode=yes", ip, cmd});
-            String err = readStream(p.getErrorStream());
-            p.waitFor();
-            if (p.exitValue() == 0) { System.out.println("  ✔ SSH: gesendet."); return true; }
-            System.out.println(err.contains("publickey")
-                    ? "  ✕ SSH-Key fehlt → ssh-copy-id user@" + ip
-                    : "  ✕ SSH: " + err.lines().findFirst().orElse("").trim());
-        } catch (Exception e) { System.out.println("  ✕ SSH: " + e.getMessage()); }
-        return false;
+        return MessageDeliverySsh.trySsh(ip, message, mac);
     }
 
     // ── Hilfsmethoden ─────────────────────────────────────────────────────

@@ -76,9 +76,10 @@ class MiscTest {
             assertEquals(plain, NoteEncryption.decrypt(NoteEncryption.encrypt(plain), pw));
         }
 
-        @Test void decrypt_wrongPassword_returnsError() throws Exception {
+        @Test void decrypt_wrongPassword_throwsNoteDecryptionException() throws Exception {
             NoteEncryption.setPassword("correct-pw-789");
-            assertEquals("[Falsches Passwort]", NoteEncryption.decrypt(NoteEncryption.encrypt("secret"), "wrong-pw-000"));
+            String enc = NoteEncryption.encrypt("secret");
+            assertThrows(NoteDecryptionException.class, () -> NoteEncryption.decrypt(enc, "wrong-pw-000"));
         }
 
         @Test void decrypt_notEncrypted_returnsInput()  { assertEquals("plain text", NoteEncryption.decrypt("plain text", "any-pw")); }

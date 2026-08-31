@@ -1,6 +1,7 @@
 package main.java.networktool.gui.panels.privacy;
 
 import main.java.networktool.util.PlatformUtils;
+import main.java.networktool.util.SafeCommand;
 
 import javax.swing.*;
 import java.io.*;
@@ -11,7 +12,7 @@ import java.util.logging.Logger;
 /**
  * System-nahe Aktionen für das Privatsphäre-Panel: MAC-Randomisierung,
  * WireGuard-Steuerung und einfacher Verschlüsselungs-Check.
- * Alle exec()-Aufrufe mit Interface/MAC über {@link PlatformUtils} abgesichert.
+ * Interface-/MAC-Argumente laufen zwingend über {@link SafeCommand}.
  */
 public final class PrivacyNetworkActions {
 
@@ -31,15 +32,16 @@ public final class PrivacyNetworkActions {
         }
         String iface = getActiveInterface();
         if (iface == null) { log("Kein aktives Interface gefunden.", log); return; }
-        if (!PlatformUtils.isSafeInterface(iface)) { log("Ungültiger Interface-Name: " + iface, log); return; }
         String newMac = randomMac();
         log("Interface: " + iface, log);
         log("Neue MAC:  " + newMac, log);
         try {
-            exec(new String[]{"ip", "link", "set", iface, "down"}, log);
-            exec(new String[]{"ip", "link", "set", iface, "address", newMac}, log);
-            exec(new String[]{"ip", "link", "set", iface, "up"}, log);
+            exec(SafeCommand.of("ip").raw("link", "set").iface(iface).raw("down").build(), log);
+            exec(SafeCommand.of("ip").raw("link", "set").iface(iface).raw("address").mac(newMac).build(), log);
+            exec(SafeCommand.of("ip").raw("link", "set").iface(iface).raw("up").build(), log);
             log("✔ MAC gesetzt: " + newMac, log);
+        } catch (IllegalArgumentException e) {
+            log("Ungültige Eingabe: " + e.getMessage(), log);
         } catch (Exception e) { log("Fehler: " + e.getMessage(), log); }
     }
 
@@ -47,12 +49,13 @@ public final class PrivacyNetworkActions {
         if (PlatformUtils.isWindows()) { log("Windows: MAC über Geräte-Manager zurücksetzen.", log); return; }
         String iface = getActiveInterface();
         if (iface == null) { log("Kein aktives Interface.", log); return; }
-        if (!PlatformUtils.isSafeInterface(iface)) { log("Ungültiger Interface-Name: " + iface, log); return; }
         try {
-            exec(new String[]{"ip", "link", "set", iface, "down"}, log);
-            exec(new String[]{"ethtool", "-E", iface}, log);
-            exec(new String[]{"ip", "link", "set", iface, "up"}, log);
+            exec(SafeCommand.of("ip").raw("link", "set").iface(iface).raw("down").build(), log);
+            exec(SafeCommand.of("ethtool").raw("-E").iface(iface).build(), log);
+            exec(SafeCommand.of("ip").raw("link", "set").iface(iface).raw("up").build(), log);
             log("✔ MAC zurückgesetzt.", log);
+        } catch (IllegalArgumentException e) {
+            log("Ungültige Eingabe: " + e.getMessage(), log);
         } catch (Exception e) { log("Fehler (ethtool nötig): " + e.getMessage(), log); }
     }
 

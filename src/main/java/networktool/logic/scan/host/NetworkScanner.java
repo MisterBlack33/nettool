@@ -1,17 +1,13 @@
 package main.java.networktool.logic.scan.host;
 
-import main.java.networktool.logging.DebugLogger;
-import main.java.networktool.logic.TimeoutConfig;
-import main.java.networktool.logic.analysis.os.OsDetector;
-import main.java.networktool.logic.ports.PortScanner;
 import main.java.networktool.logic.scan.schedule.ScanHistory;
 import main.java.networktool.model.ScanResult;
 import main.java.networktool.util.CIDRUtils;
 
-import java.net.InetAddress;
 import java.util.*;
 import java.util.concurrent.*;
 
+/** Orchestriert CIDR-Scans. Einzel-IP-Logik siehe {@link NetworkScannerIpScan}. */
 public final class NetworkScanner {
 
     private NetworkScanner() {}
@@ -37,7 +33,7 @@ public final class NetworkScanner {
 
         for (String ip : ips) {
             executor.submit(() -> {
-                try   { scanIp(ip, results); }
+                try   { NetworkScannerIpScan.scanIp(ip, results); }
                 finally { progress.step(); }
             });
         }
@@ -55,35 +51,5 @@ public final class NetworkScanner {
         System.out.println("  [PingSweep] " + alive.size() + "/" + allIps.size()
                 + " Hosts erreichbar → voll scannen");
         return alive;
-    }
-
-    private static void scanIp(String ip, List<ScanResult> results) {
-        try {
-            if (!InetAddress.getByName(ip).isReachable(TimeoutConfig.NETWORK_SCANNER_REACH_MS)) return;
-            String hostname          = resolveHostname(ip);
-            Map<Integer, String> ports = PortScanner.scanSimple(ip, 0);
-            String os                = OsDetector.detect(ip);
-            results.add(new ScanResult(ip, hostname, ports, os));
-        } catch (Exception e) {
-            DebugLogger.getInstance().log("FINE", "[NetworkScanner] Scan von " + ip + " fehlgeschlagen: " + e);
-        }
-    }
-
-    private static String resolveHostname(String ip) {
-        String[] result = {ip};
-        Thread t = new Thread(() -> {
-            try {
-                String name = InetAddress.getByName(ip).getCanonicalHostName();
-                if (name != null && !name.equals(ip)) result[0] = name;
-            } catch (Exception e) {
-                DebugLogger.getInstance().log("FINE", "[NetworkScanner] Hostname-Lookup fehlgeschlagen (" + ip + "): " + e);
-            }
-        });
-        t.setDaemon(true);
-        t.start();
-        try { t.join(800); } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        return result[0];
     }
 }

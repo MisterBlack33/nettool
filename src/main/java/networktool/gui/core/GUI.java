@@ -1,5 +1,6 @@
 package main.java.networktool.gui.core;
 
+import main.java.networktool.filter.OutputRenderer;
 import main.java.networktool.gui.components.GuiProgressBar;
 import main.java.networktool.gui.components.GuiSidebar;
 import main.java.networktool.gui.components.GuiStatusBar;
@@ -24,6 +25,7 @@ import main.java.networktool.security.SecurityMonitor;
 import main.java.networktool.security.UserAuth;
 import main.java.networktool.theme.GuiTheme;
 import main.java.networktool.util.AppIcon;
+import main.java.networktool.filter.OutputRendererRegistry;
 
 /**
  * Haupt-Fenster der Anwendung.
@@ -34,11 +36,15 @@ import main.java.networktool.util.AppIcon;
  *  - GuiSearchBar wird ausschließlich über savedHostsPanel.show() aktiviert
  *    und bei jedem anderen Menüklick über searchBar.hide() deaktiviert
  *
+ * Implementiert {@link OutputRenderer}, damit {@code filter.*} keine
+ * Compile-Abhängigkeit auf diese Klasse braucht (Registrierung via
+ * {@link OutputRendererRegistry}).
+ *
  * Fenster-Chrome (Shortcuts/Fullscreen/Theme) siehe {@link GuiWindowActions},
  * Start-Hintergrundaufgaben siehe {@link GuiStartupTasks},
  * Menü-Dispatch siehe {@link GuiMenuDispatch}.
  */
-public class GUI extends JFrame {
+public class GUI extends JFrame implements OutputRenderer {
 
     private static final Logger LOG = Logger.getLogger(GUI.class.getName());
 
@@ -67,6 +73,7 @@ public class GUI extends JFrame {
     public GUI() {
         super("NetTool //");
         INSTANCE = this;
+        OutputRendererRegistry.register(this);
 
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
         setMinimumSize(new Dimension(860, 520));
@@ -150,17 +157,22 @@ public class GUI extends JFrame {
         GuiWindowActions.toggleTheme(this, outputPanel, statusBar);
     }
 
+    // ── OutputRenderer ────────────────────────────────────────────────────
+
+    @Override public boolean isActive() { return isDisplayable(); }
+
+    @Override public void showHostTable(List<HostResult> rows, String title) {
+        tableRenderer.showHostTable(rows, title);
+    }
+
+    @Override public void showScanTable(List<ScanResult> rows) {
+        tableRenderer.showScanTable(rows);
+    }
+
     // ── Öffentliche API ───────────────────────────────────────────────────
 
     public void showProgress(int total)  { progressBar.showProgress(total); }
     public void updateProgress(int done) { progressBar.updateProgress(done); }
-
-    public void showHostTable(List<HostResult> rows, String title) {
-        tableRenderer.showHostTable(rows, title);
-    }
-    public void showScanTable(List<ScanResult> rows) {
-        tableRenderer.showScanTable(rows);
-    }
 
     public void appendText(String text, Color color) { outputPanel.appendText(text, color); }
     public void setStatus(String msg, Color color)   { statusBar.set(msg, color); }
@@ -172,6 +184,7 @@ public class GUI extends JFrame {
         AuditLogger.getInstance().log("APP_RESTART", UserAuth.getInstance().getCurrentUser());
         SecurityMonitor.getInstance().stop();
         loginMonitor = getGraphicsConfiguration().getDevice();
+        OutputRendererRegistry.unregister(this);
         dispose();
         INSTANCE = null;
         SwingUtilities.invokeLater(() -> {

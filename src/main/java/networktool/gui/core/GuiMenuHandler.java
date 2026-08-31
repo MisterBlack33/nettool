@@ -29,8 +29,9 @@ import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Verarbeitet Sidebar-Klicks und startet Aktionen asynchron.
- * Die eigentliche Dialog-/Ausführungslogik pro Menüpunkt lebt in den
- * thematischen {@code Gui*Actions}-Klassen unter {@code networktool.gui.components}.
+ * Menü-ID → Handler-Zuordnung liegt in {@link GuiMenuRegistry}; die eigentliche
+ * Dialog-/Ausführungslogik pro Menüpunkt lebt in den thematischen
+ * {@code Gui*Actions}-Klassen unter {@code networktool.gui.components}.
  */
 public class GuiMenuHandler {
 
@@ -40,6 +41,7 @@ public class GuiMenuHandler {
     private final GuiOutputPanel output;
     private final GuiTableRenderer tables;
     private final GuiStatusBar status;
+    private final GuiMenuRegistry registry = new GuiMenuRegistry();
     private GuiSavedHostsPanel savedHostsPanel;
 
     private final AtomicReference<Thread> runningThread = new AtomicReference<>();
@@ -48,51 +50,56 @@ public class GuiMenuHandler {
                           GuiTableRenderer tables, GuiStatusBar status) {
         this.input = input; this.output = output;
         this.tables = tables; this.status = status;
+        registerHandlers();
     }
 
     public void setSavedHostsPanel(GuiSavedHostsPanel p) { this.savedHostsPanel = p; }
+
+    // ── Registrierung ─────────────────────────────────────────────────────
+
+    private void registerHandlers() {
+        registry.register("01", () -> input.ask("Netzwerkinfo starten? [Enter]",
+                v -> runAsync(() -> { AuditLogger.getInstance().log("SCAN_MINIMAL",""); NetworkInfo.showMinimalInfo(); })));
+        registry.register("02", () -> input.ask("Vollständige Info starten? [Enter]",
+                v -> runAsync(() -> { AuditLogger.getInstance().log("SCAN_FULL",""); NetworkInfo.showFullInfo(); })));
+        registry.register("03", () -> GuiDiagnosticsActions.handleDiagnose(input, this));
+        registry.register("04", () -> input.ask("Port:", p -> runAsync(() -> {
+            AuditLogger.getInstance().log("FILE_SERVER","port="+p);
+            new FileServer(Integer.parseInt(p)).start();
+            output.appendText("  ✔ Server auf Port " + p + "\n", ACCENT2);
+        })));
+        registry.register("05", () -> input.ask("Ziel-IP:", ip -> input.ask("Port:", p ->
+                input.ask("Dateipfad:", path -> runAsync(() -> {
+                    AuditLogger.getInstance().log("FILE_SEND", ip+":"+p);
+                    new FileClient(ip, Integer.parseInt(p)).sendFile(path);
+                })))));
+        registry.register("06", () -> GuiScanActions.handleCidrScan(input, output, tables, this));
+        registry.register("07", () -> GuiScanActions.handleFilterScan(input, this));
+        registry.register("08", this::handleSendMessage);
+        registry.register("09", () -> { if (savedHostsPanel != null) savedHostsPanel.show(); });
+        registry.register("10", () -> input.ask("Hop-Analyse starten? [Enter]",
+                v -> runAsync(() -> { AuditLogger.getInstance().log("HOP_ANALYSE",""); GuiScanActions.runNetworkInfoWithHops(tables); })));
+        registry.register("11", () -> GuiForeignNetActions.handleRemoteNetScan(input, output, status, this));
+        registry.register("12", () -> GuiScanProfileActions.handleScanProfiles(input, output, tables, status, this));
+        registry.register("13", () -> GuiScanCompareActions.handleScanDelta(input, this));
+        registry.register("14", () -> GuiSchedulerActions.handleScheduler(input, output, status));
+        registry.register("15", () -> GuiDiagnosticsActions.handleBandwidthTest(input, this));
+        registry.register("16", () -> GuiDiagnosticsActions.handleDauerping(input, this));
+        registry.register("17", () -> GuiDiagnosticsActions.handleSecurityMonitor(input, output));
+        registry.register("18", () -> GuiDataIOActions.handleExportImport(input, output, this));
+        registry.register("19", () -> GuiDataIOActions.handleNotificationHistory(input, output));
+        registry.register("20", () -> { AuditLogger.getInstance().log("NETWORK_MAP",""); GuiNetworkMap.show(); });
+        registry.register("21", () -> GuiDataIOActions.handlePortConfig(input, output, status));
+        registry.register("22", () -> GuiScanCompareActions.handleScanHistoryDelta(output, this));
+        // Test-Suite: Data-to-Sound (Netzwerk-Traffic-Sonifizierung) Toggle
+        registry.register("24", () -> GuiSonifyActions.toggle(input, output));
+    }
 
     // ── Dispatch ──────────────────────────────────────────────────────────
 
     public void handle(String num) {
         AuditLogger.getInstance().log("MENU", num);
-        switch (num) {
-            case "01" -> input.ask("Netzwerkinfo starten? [Enter]",
-                    v -> runAsync(() -> { AuditLogger.getInstance().log("SCAN_MINIMAL",""); NetworkInfo.showMinimalInfo(); }));
-            case "02" -> input.ask("Vollständige Info starten? [Enter]",
-                    v -> runAsync(() -> { AuditLogger.getInstance().log("SCAN_FULL",""); NetworkInfo.showFullInfo(); }));
-            case "03" -> GuiDiagnosticsActions.handleDiagnose(input, this);
-            case "04" -> input.ask("Port:", p -> runAsync(() -> {
-                AuditLogger.getInstance().log("FILE_SERVER","port="+p);
-                new FileServer(Integer.parseInt(p)).start();
-                output.appendText("  ✔ Server auf Port " + p + "\n", ACCENT2);
-            }));
-            case "05" -> input.ask("Ziel-IP:", ip -> input.ask("Port:", p ->
-                    input.ask("Dateipfad:", path -> runAsync(() -> {
-                        AuditLogger.getInstance().log("FILE_SEND", ip+":"+p);
-                        new FileClient(ip, Integer.parseInt(p)).sendFile(path);
-                    }))));
-            case "06" -> GuiScanActions.handleCidrScan(input, output, tables, this);
-            case "07" -> GuiScanActions.handleFilterScan(input, this);
-            case "08" -> handleSendMessage();
-            case "09" -> { if (savedHostsPanel != null) savedHostsPanel.show(); }
-            case "10" -> input.ask("Hop-Analyse starten? [Enter]",
-                    v -> runAsync(() -> { AuditLogger.getInstance().log("HOP_ANALYSE",""); GuiScanActions.runNetworkInfoWithHops(tables); }));
-            case "11" -> GuiForeignNetActions.handleRemoteNetScan(input, output, status, this);
-            case "12" -> GuiScanProfileActions.handleScanProfiles(input, output, tables, status, this);
-            case "13" -> GuiScanCompareActions.handleScanDelta(input, this);
-            case "14" -> GuiSchedulerActions.handleScheduler(input, output, status);
-            case "15" -> GuiDiagnosticsActions.handleBandwidthTest(input, this);
-            case "16" -> GuiDiagnosticsActions.handleDauerping(input, this);
-            case "17" -> GuiDiagnosticsActions.handleSecurityMonitor(input, output);
-            case "18" -> GuiDataIOActions.handleExportImport(input, output, this);
-            case "19" -> GuiDataIOActions.handleNotificationHistory(input, output);
-            case "20" -> { AuditLogger.getInstance().log("NETWORK_MAP",""); GuiNetworkMap.show(); }
-            case "21" -> GuiDataIOActions.handlePortConfig(input, output, status);
-            case "22" -> GuiScanCompareActions.handleScanHistoryDelta(output, this);
-            // Test-Suite: Data-to-Sound (Netzwerk-Traffic-Sonifizierung) Toggle
-            case "24" -> GuiSonifyActions.toggle(input, output);
-        }
+        registry.dispatch(num);
     }
 
     public void cancel() {
@@ -116,7 +123,7 @@ public class GuiMenuHandler {
     private void handleSendMessage() {
         input.ask("Ziel-IP:", ip ->
                 input.ask("Nachricht:", msg -> {
-                    String topic = GuiContextMenu.promptNtfyTopic();
+                    String topic = main.java.networktool.gui.components.actions.GuiContextMenu.promptNtfyTopic();
                     if (topic == null) return;
                     final String ft = topic.trim();
                     if (!ft.isEmpty()) {

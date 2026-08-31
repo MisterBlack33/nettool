@@ -42,8 +42,6 @@ public final class TestConstants {
     public static final String HOST_5 = "test.eintrag.5";
     public static final String HOST_6 = "test.eintrag.6";
     public static final String HOST_7 = "test.eintrag.7";
-    public static final String HOST_8 = "test.eintrag.8";
-    public static final String HOST_9 = "test.eintrag.9";
 
     // ── Test IP ranges (RFC 5737 documentation range — never routable) ────
 

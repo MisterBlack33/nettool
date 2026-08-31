@@ -1,5 +1,6 @@
 package main.java.networktool.security;
 
+import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.storage.StorageUtils;
 
 import javax.crypto.SecretKeyFactory;
@@ -53,8 +54,31 @@ public final class UserAuth {
                 changed = true;
             }
             if (changed) UserAuthPersistence.save(dataDir, users);
+            warnIfDefaultCredentialsActive(users);
         } catch (Exception e) {
             System.err.println("[UserAuth] seedDefaultUsers: " + e.getMessage());
+        }
+    }
+
+    /** Warnt (Debug-Log), falls Standard-Zugangsdaten noch unverändert aktiv sind. */
+    private static void warnIfDefaultCredentialsActive(List<Map<String, String>> users) {
+        if (usesDefaultPassword(users, DEFAULT_ADMIN_USER, DEFAULT_ADMIN_PASSWORD)) {
+            DebugLogger.getInstance().log("WARN",
+                    "[UserAuth] Standard-Zugangsdaten für \"" + DEFAULT_ADMIN_USER
+                            + "\" noch aktiv – Passwort ändern!");
+        }
+    }
+
+    private static boolean usesDefaultPassword(List<Map<String, String>> users, String username, String defaultPassword) {
+        Map<String, String> u = findByUsername(users, username);
+        if (u == null || u.get("salt") == null || u.get("hash") == null) return false;
+        try {
+            byte[] salt = Base64.getDecoder().decode(u.get("salt"));
+            return MessageDigest.isEqual(
+                    Base64.getDecoder().decode(u.get("hash")),
+                    Base64.getDecoder().decode(hash(defaultPassword, salt)));
+        } catch (Exception e) {
+            return false;
         }
     }
 
