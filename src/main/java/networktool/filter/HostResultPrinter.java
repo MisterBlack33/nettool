@@ -1,6 +1,5 @@
 package main.java.networktool.filter;
 
-import main.java.networktool.gui.core.GUI;
 import main.java.networktool.model.HostResult;
 
 import java.util.ArrayList;
@@ -10,6 +9,9 @@ import java.util.List;
 /**
  * Gibt eine Liste von {@link HostResult}s aus –
  * im GUI-Modus als Tabelle, im CLI-Modus als formatierte Konsolenausgabe.
+ *
+ * Entkoppelt von gui.core.GUI: die aktive Ausgabe läuft über
+ * {@link OutputRenderer} / {@link OutputRendererRegistry} (siehe TablePrinter).
  */
 public final class HostResultPrinter {
 
@@ -19,8 +21,9 @@ public final class HostResultPrinter {
     private static final String CLI_SEPARATOR     = "-".repeat(80);
 
     public static void print(List<HostResult> list, String label) {
-        if (GUI.isGuiActive()) {
-            GUI.instance().showHostTable(list, label);
+        OutputRenderer renderer = OutputRendererRegistry.get();
+        if (renderer != null && renderer.isActive()) {
+            renderer.showHostTable(list, label);
             return;
         }
         printCli(list, label);

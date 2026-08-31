@@ -1,5 +1,6 @@
 package networktool.misc;
 
+import main.java.networktool.gui.security.NoteDecryptionException;
 import main.java.networktool.storage.*;
 import main.java.networktool.storage.export.DataExportImport;
 import main.java.networktool.storage.export.DataExporter;
