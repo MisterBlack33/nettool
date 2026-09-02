@@ -4,10 +4,10 @@ import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.storage.JsonHelper;
 import main.java.networktool.storage.SavedHostsStore;
+import main.java.networktool.storage.StorageLocations;
 import main.java.networktool.storage.profile.ScanProfileStore;
 
 import java.io.IOException;
-import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
@@ -26,21 +26,9 @@ public final class NetworkStorePersistence {
 
     // ── Path resolution ───────────────────────────────────────────────────
 
-    // Neu: liefert das Verzeichnis 'data' (früher 'txt')
+    /** Netzwerk-Datenverzeichnis: saves/networkdata (siehe {@link StorageLocations}). */
     public static Path resolveDataDir() {
-        try {
-            URL  url  = NetworkStorePersistence.class.getProtectionDomain()
-                    .getCodeSource().getLocation();
-            Path base = Paths.get(url.toURI()).toAbsolutePath().normalize();
-            if (base.toString().endsWith(".jar"))
-                return base.getParent().resolve("data");
-            String pkg     = NetworkStorePersistence.class.getPackageName().replace('.', '/');
-            String rootPkg = pkg.contains("/") ? pkg.substring(0, pkg.indexOf('/')) : pkg;
-            Path candidate = base.resolve(rootPkg).resolve("data");
-            try { Files.createDirectories(candidate); return candidate; }
-            catch (IOException ignored) {}
-        } catch (URISyntaxException | SecurityException ignored) {}
-        return Paths.get(System.getProperty("user.dir"), "networktool", "data");
+        return StorageLocations.networkData();
     }
 
     public static Path savedDir(Path dataDir) {
@@ -156,29 +144,22 @@ public final class NetworkStorePersistence {
 
     /**
      * Führt einmalige Legacy-Migrationen von alten ".txt"-Speichern in das
-     * neue Datenverzeichnis durch. Ziel ist es, vorhandene Legacy-Dateien
-     * automatisch in die neuen Formate zu überführen (binär/json), ohne dass
-     * Nutzer- oder Testcode manuell eingreifen muss.
+     * neue Datenverzeichnis durch.
      */
     static void migrateLegacyTxtFiles(Path dataDir) {
         if (dataDir == null) return;
         try {
-            // 1) Trigger SavedHostsStore migration: setFilePath() lädt und migriert
             try {
                 SavedHostsStore.getInstance()
                         .setFilePath(dataDir.resolve("saved_hosts.bin"));
             } catch (Throwable t) {
                 System.err.println("[NetworkStorePersistence] SavedHostsStore migration failed: " + t.getMessage());
             }
-
-            // 2) Trigger ScanProfileStore constructor/migration
             try {
                 ScanProfileStore.getInstance();
             } catch (Throwable t) {
                 System.err.println("[NetworkStorePersistence] ScanProfileStore migration failed: " + t.getMessage());
             }
-
-            // 3) Delegate network .txt -> .json conversion via NetworkStoreLegacy
             try {
                 NetworkStoreLegacy.needsImport(dataDir);
             } catch (Throwable t) {

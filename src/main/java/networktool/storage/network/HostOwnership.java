@@ -1,6 +1,6 @@
 package main.java.networktool.storage.network;
 
-import main.java.networktool.storage.StorageUtils;
+import main.java.networktool.storage.StorageLocations;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Trackt welche Nutzer welchen Host (Netzwerk+IP) referenzieren.
+ * Speicherort: saves/networkdata (siehe {@link StorageLocations}).
  *
  * Ermöglicht Host-Deduplizierung: derselbe Host im selben Netz wird nur
  * einmal in {@link NetworkStore} gespeichert, aber pro Nutzer über diese
@@ -24,7 +25,7 @@ public final class HostOwnership {
     private final Path dataDir;
 
     private HostOwnership() {
-        dataDir = StorageUtils.resolveDataDir();
+        dataDir = StorageLocations.networkData();
         HostOwnershipPersistence.load(dataDir).forEach((k, v) -> {
             Set<String> set = ConcurrentHashMap.newKeySet();
             set.addAll(v);

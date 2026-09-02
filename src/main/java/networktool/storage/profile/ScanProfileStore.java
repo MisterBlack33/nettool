@@ -1,7 +1,7 @@
 package main.java.networktool.storage.profile;
 
 import main.java.networktool.model.ScanProfile;
-import main.java.networktool.storage.StorageUtils;
+import main.java.networktool.storage.StorageLocations;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -10,10 +10,8 @@ import java.util.*;
 
 /**
  * Speichert und lädt Scan-Profile als JSON.
- *
- * Datei: data/scanProfiles.json (früher: txt/scanProfiles.json)
+ * Datei: saves/profiles/scanProfiles.json (siehe {@link StorageLocations}).
  * Legacy-Migration: scanProfiles.txt → JSON wird automatisch einmalig durchgeführt.
- *
  * Singleton, thread-sicher.
  */
 public final class ScanProfileStore {
@@ -30,7 +28,7 @@ public final class ScanProfileStore {
     private Path filePath;
 
     private ScanProfileStore() {
-        filePath = StorageUtils.resolveDataDir().resolve(JSON_FILE);
+        filePath = StorageLocations.profiles().resolve(JSON_FILE);
         load();
     }
 
@@ -85,15 +83,15 @@ public final class ScanProfileStore {
         int start = json.indexOf('[', arrStart);
         if (start < 0) return;
         for (String obj : extractObjects(json, start)) {
-            String name = StorageUtils.extractJsonStr(obj, "name");
+            String name = main.java.networktool.storage.StorageUtils.extractJsonStr(obj, "name");
             if (name == null || name.isBlank()) continue;
             ScanProfile p = new ScanProfile(name);
-            p.osFilter = nvl(StorageUtils.extractJsonStr(obj, "osFilter"), "");
-            p.hnFilter = nvl(StorageUtils.extractJsonStr(obj, "hnFilter"), "");
-            p.category = nvl(StorageUtils.extractJsonStr(obj, "category"), "");
-            p.lastRun  = nvl(StorageUtils.extractJsonStr(obj, "lastRun"),  "");
+            p.osFilter = nvl(main.java.networktool.storage.StorageUtils.extractJsonStr(obj, "osFilter"), "");
+            p.hnFilter = nvl(main.java.networktool.storage.StorageUtils.extractJsonStr(obj, "hnFilter"), "");
+            p.category = nvl(main.java.networktool.storage.StorageUtils.extractJsonStr(obj, "category"), "");
+            p.lastRun  = nvl(main.java.networktool.storage.StorageUtils.extractJsonStr(obj, "lastRun"),  "");
             p.autoSave = "true".equalsIgnoreCase(
-                    StorageUtils.extractJsonStr(obj, "autoSave"));
+                    main.java.networktool.storage.StorageUtils.extractJsonStr(obj, "autoSave"));
             p.cidrs.addAll(extractStringArray(obj, "cidrs"));
             for (String s : extractStringArray(obj, "ports")) {
                 try { p.ports.add(Integer.parseInt(s.trim())); }

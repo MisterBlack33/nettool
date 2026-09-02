@@ -1,6 +1,6 @@
 package main.java.networktool.gui.map;
 
-import main.java.networktool.storage.StorageUtils;
+import main.java.networktool.storage.StorageLocations;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
@@ -9,7 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Persistiert manuell markierte Switch-IPs in data/mapSwitches.json.
+ * Persistiert manuell markierte Switch-IPs in saves/networkdata/mapSwitches.json.
  * Lädt beim Start automatisch.
  */
 public final class MapSwitchStore {
@@ -49,7 +49,7 @@ public final class MapSwitchStore {
 
     private static void load() {
         try {
-            Path file = StorageUtils.resolveDataDir().resolve(FILE);
+            Path file = StorageLocations.networkData().resolve(FILE);
             if (!Files.exists(file)) return;
             String raw = Files.readString(file, StandardCharsets.UTF_8)
                     .trim().replaceAll("^\\[|]$", "");
@@ -65,7 +65,7 @@ public final class MapSwitchStore {
     private static void persist() {
         if (testMode) return;
         try {
-            Path dir = StorageUtils.resolveDataDir();
+            Path dir = StorageLocations.networkData();
             Files.createDirectories(dir);
             List<String> sorted = new ArrayList<>(SWITCHES);
             Collections.sort(sorted);

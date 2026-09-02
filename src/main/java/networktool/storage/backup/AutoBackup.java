@@ -1,5 +1,6 @@
 package main.java.networktool.storage.backup;
 
+import main.java.networktool.storage.StorageLocations;
 import main.java.networktool.storage.export.DataExporter;
 import main.java.networktool.storage.network.NetworkStorePersistence;
 
@@ -14,7 +15,7 @@ import java.util.stream.Stream;
 /**
  * Erstellt automatisch ZIP-Backups – maximal einmal pro Tag.
  * MAX_BACKUPS=1: ältere Produktiv-Backups werden gelöscht.
- * Sichert nur den savedHostsTags-Unterordner.
+ * Ziel: saves/backups. Sichert nur den savedHostsTags-Unterordner.
  */
 public final class AutoBackup {
 
@@ -150,6 +151,6 @@ public final class AutoBackup {
     }
 
     private Path backupDir() {
-        return NetworkStorePersistence.resolveDataDir().resolve("backups");
+        return StorageLocations.backups();
     }
 }

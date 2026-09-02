@@ -4,6 +4,10 @@ target/
 !**/src/test/**/target/
 .kotlin
 
+### NetTool Laufzeitdaten ###
+# Nutzerkonten, Netzwerke, Logs, Caches, Backups – gehören nicht ins Repo
+saves/
+
 ### IntelliJ IDEA ###
 .idea/modules.xml
 .idea/jarRepositories.xml

@@ -3,21 +3,14 @@ package main.java.networktool.storage;
 import main.java.networktool.model.HostResult;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
- * Thread-sicherer Speicher für gespeicherte Hosts mit Datei-Persistenz.
- *
- * Früher wurde ein CSV-/TXT-Format verwendet. Das wurde auf ein kompaktes
- * Binärformat umgestellt (DataOutputStream/DataInputStream) für geringe
- * Speichergröße und schnelle Lese-/Schreibvorgänge.
- *
- * Speicherort: src/data/saved_hosts.bin (bzw. ./data/saved_hosts.bin neben JAR)
+ * Thread-sicherer Speicher für gespeicherte Hosts mit Datei-Persistenz (Binärformat).
+ * Speicherort: saves/networkdata/saved_hosts.bin (siehe {@link StorageLocations}).
  * Legacy: saved_hosts.txt wird bei Bedarf automatisch migriert.
  */
 public final class SavedHostsStore {
@@ -32,9 +25,7 @@ public final class SavedHostsStore {
     private final List<Runnable>   listeners = new ArrayList<>();
     private Path filePath;
 
-    // Neuer, effizienter Binär-Store
     private static final String            FILE_NAME   = "saved_hosts.bin";
-    private static final String            DATA_SUBDIR  = "data"; // früher: "txt" (wird migriert)
     private static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
@@ -50,35 +41,8 @@ public final class SavedHostsStore {
         loadFromFile();
     }
 
-    /**
-     * Pfad-Auflösung bleibt kompatibel zu früheren Layouts, liefert aber jetzt
-     * den Ordnername "data" statt früher "txt".
-     */
     private static Path resolveDefaultPath() {
-        try {
-            URL classUrl  = SavedHostsStore.class.getProtectionDomain()
-                    .getCodeSource().getLocation();
-            Path codeBase = Paths.get(classUrl.toURI());
-
-            if (codeBase.toString().endsWith(".jar")) {
-                // Neben der JAR → ./data/
-                return codeBase.getParent().resolve(DATA_SUBDIR).resolve(FILE_NAME);
-            }
-
-            // IDE/Klassen-Ausgabe-Ordner
-            String pkg    = SavedHostsStore.class.getPackageName().replace('.', '/');
-            Path classDir = codeBase.resolve(pkg);
-
-            // Hoch zu codeBase (Klassen-Root), dann Geschwister-Verzeichnis "data"
-            Path dataDir   = Files.isDirectory(classDir)
-                    ? codeBase.resolve(DATA_SUBDIR)
-                    : codeBase.getParent().resolve(DATA_SUBDIR);
-
-            return dataDir.resolve(FILE_NAME);
-
-        } catch (URISyntaxException | SecurityException ignored) {}
-
-        return Paths.get(System.getProperty("user.dir"), DATA_SUBDIR, FILE_NAME);
+        return StorageLocations.networkData().resolve(FILE_NAME);
     }
 
     // ── Öffentliche API ───────────────────────────────────────────────────
@@ -123,13 +87,11 @@ public final class SavedHostsStore {
         if (listener != null) listeners.add(listener);
     }
 
-    // ── Persistenz (binär, speichere kompakt) ─────────────────────────────────────
+    // ── Persistenz (binär) ────────────────────────────────────────────────
 
     private void loadFromFile() {
-        // Wenn Binärdatei vorhanden → binär laden
         if (Files.exists(filePath)) {
-            try (var in = new java.io.DataInputStream(
-                    java.nio.file.Files.newInputStream(filePath))) {
+            try (var in = new java.io.DataInputStream(Files.newInputStream(filePath))) {
                 int count = in.readInt();
                 for (int i = 0; i < count; i++) {
                     String ip = in.readUTF();
@@ -151,11 +113,9 @@ public final class SavedHostsStore {
                 return;
             } catch (IOException e) {
                 System.err.println("SavedHostsStore: Binär-Laden fehlgeschlagen: " + e.getMessage());
-                // fallthrough → versuche Legacy-Textmigration
             }
         }
 
-        // Keine Binärdatei → prüfen, ob noch Legacy-Textdatei existiert und migrieren
         Path legacy = filePath.getParent().resolve("saved_hosts.txt");
         if (Files.exists(legacy)) {
             try {
@@ -180,7 +140,6 @@ public final class SavedHostsStore {
             }
         }
 
-        // Keine Datei gefunden → leere Binärdatei anlegen
         createEmptyFile();
     }
 
@@ -188,9 +147,9 @@ public final class SavedHostsStore {
         try {
             Files.createDirectories(filePath.getParent());
             try (var out = new java.io.DataOutputStream(
-                    java.nio.file.Files.newOutputStream(filePath,
-                            java.nio.file.StandardOpenOption.CREATE,
-                            java.nio.file.StandardOpenOption.TRUNCATE_EXISTING))) {
+                    Files.newOutputStream(filePath,
+                            StandardOpenOption.CREATE,
+                            StandardOpenOption.TRUNCATE_EXISTING))) {
                 out.writeInt(entries.size());
                 for (HostResult e : entries) {
                     out.writeUTF(e.ip != null ? e.ip : "");
@@ -217,11 +176,10 @@ public final class SavedHostsStore {
     private void createEmptyFile() {
         try {
             Files.createDirectories(filePath.getParent());
-            // lege leere Binärdatei mit 0 Einträgen an
             try (var out = new java.io.DataOutputStream(
-                    java.nio.file.Files.newOutputStream(filePath,
-                            java.nio.file.StandardOpenOption.CREATE,
-                            java.nio.file.StandardOpenOption.TRUNCATE_EXISTING))) {
+                    Files.newOutputStream(filePath,
+                            StandardOpenOption.CREATE,
+                            StandardOpenOption.TRUNCATE_EXISTING))) {
                 out.writeInt(0);
             }
             System.out.println("[SavedHostsStore] Neue Datei (bin): " + filePath.toAbsolutePath());
@@ -230,7 +188,7 @@ public final class SavedHostsStore {
         }
     }
 
-    // ── Port-Serialisierung (nur noch für Legacy-Parsen) ─────────────────────────
+    // ── Port-Serialisierung (nur noch für Legacy-Parsen) ───────────────────
 
     private static Map<Integer, String> parsePorts(String s) {
         Map<Integer, String> map = new TreeMap<>();
@@ -249,7 +207,7 @@ public final class SavedHostsStore {
     private void persistAndNotify() { saveToFile(); notifyListeners(); }
 
     private void notifyListeners() {
-        for (Runnable l : listeners) l.run();  // direkt statt invokeLater
+        for (Runnable l : listeners) l.run();
     }
 
     private static boolean isBlank(String s) { return s == null || s.isBlank(); }

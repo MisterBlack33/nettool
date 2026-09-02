@@ -1,7 +1,7 @@
 package main.java.networktool.logic.scan.schedule;
 
 import main.java.networktool.storage.backup.CacheCrypto;
-import main.java.networktool.storage.StorageUtils;
+import main.java.networktool.storage.StorageLocations;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -11,6 +11,7 @@ import java.util.Map;
 
 /**
  * Optionale, verschlüsselte Persistenz für den ARP-Cache (IP↔MAC).
+ * Speicherort: saves/cache/arp_cache.enc.
  *
  * Default: nur In-Memory (siehe {@link HostAliveChecker}) – Persistenz muss
  * explizit über {@link #enable(String)} aktiviert werden.
@@ -18,9 +19,7 @@ import java.util.Map;
  * Sicherheitsregeln:
  *  - Nie Klartext auf Platte. Bei jedem Crypto-/IO-Fehler wird der Eintrag
  *    verworfen statt unverschlüsselt geschrieben zu werden.
- *  - Eine harte TTL-Obergrenze (24h) gilt unabhängig vom Opt-in-Zustand und
- *    übersteht Prozess-Neustarts (Filterung erfolgt beim Laden, nicht nur
- *    durch Löschen der Datei).
+ *  - Eine harte TTL-Obergrenze (24h) gilt unabhängig vom Opt-in-Zustand.
  */
 public final class ArpCachePersistence {
 
@@ -66,7 +65,6 @@ public final class ArpCachePersistence {
             Files.writeString(file, encrypted, StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (Exception e) {
-            // Crypto-/IO-Fehler: Eintrag verwerfen, NIEMALS unverschlüsselt schreiben.
             deleteQuietly();
         }
     }
@@ -82,7 +80,6 @@ public final class ArpCachePersistence {
             String decrypted = CacheCrypto.decrypt(raw, pw);
             return parseValid(decrypted);
         } catch (Exception e) {
-            // Falsches Passwort oder korrupte Datei: kein Klartext-Zugriff, leerer Cache.
             return Map.of();
         }
     }
@@ -103,9 +100,6 @@ public final class ArpCachePersistence {
             }
             result.put(parts[0], parts[1]);
         }
-        // Stale Daten nie erneut ausliefern. Selbst wenn das Löschen fehlschlägt,
-        // filtert parseValid() beim nächsten load() erneut nach TTL – kein
-        // "vergessenes" Sicherheits-relevantes Datum.
         if (anyExpired) deleteQuietly();
         return result;
     }
@@ -113,11 +107,11 @@ public final class ArpCachePersistence {
     // ── Hilfsmethoden ─────────────────────────────────────────────────────
 
     private static Path file() {
-        Path dir = testDataDir != null ? testDataDir : StorageUtils.resolveDataDir();
+        Path dir = testDataDir != null ? testDataDir : StorageLocations.cache();
         return dir.resolve(FILE_NAME);
     }
 
     private static void deleteQuietly() {
-        try { Files.deleteIfExists(file()); } catch (IOException ignored) { /* siehe Klassendoku */ }
+        try { Files.deleteIfExists(file()); } catch (IOException ignored) {}
     }
 }

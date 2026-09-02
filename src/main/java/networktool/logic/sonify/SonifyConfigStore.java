@@ -1,6 +1,6 @@
 package main.java.networktool.logic.sonify;
 
-import main.java.networktool.storage.StorageUtils;
+import main.java.networktool.storage.StorageLocations;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -8,7 +8,7 @@ import java.nio.file.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Persistiert {@link SonifyConfig} über App-Neustarts hinweg (data/sonifyConfig.json). */
+/** Persistiert {@link SonifyConfig} über App-Neustarts hinweg (saves/cache/sonifyConfig.json). */
 public final class SonifyConfigStore {
 
     private static final String FILE_NAME = "sonifyConfig.json";
@@ -18,7 +18,7 @@ public final class SonifyConfigStore {
 
     public static synchronized SonifyConfig load() {
         if (cached != null) return cached.copy();
-        Path file = StorageUtils.resolveDataDir().resolve(FILE_NAME);
+        Path file = StorageLocations.cache().resolve(FILE_NAME);
         SonifyConfig cfg = new SonifyConfig();
         if (Files.exists(file)) {
             try {
@@ -34,7 +34,7 @@ public final class SonifyConfigStore {
 
     public static synchronized void save(SonifyConfig cfg) {
         cached = cfg.copy();
-        Path file = StorageUtils.resolveDataDir().resolve(FILE_NAME);
+        Path file = StorageLocations.cache().resolve(FILE_NAME);
         String json = "{\n  \"highHz\": " + cfg.highHz + ",\n  \"lowHz\": " + cfg.lowHz
                 + ",\n  \"toneMs\": " + cfg.toneMs + "\n}";
         try {
