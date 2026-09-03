@@ -31,7 +31,7 @@ public final class GuiDataIOActions {
     private GuiDataIOActions() {}
 
     public static void handleExportImport(GuiInputPanel input, GuiOutputPanel output, GuiMenuHandler handler) {
-        String[] options = {"CSV", "JSON", "HTML", "ZIP-Backup", "CSV imp.", "JSON imp.", "ZIP restore"};
+        String[] options = {"CSV", "JSON", "HTML", "CSV imp.", "JSON imp."};
         int choice = JOptionPane.showOptionDialog(null, "Export / Import:", "Daten",
                 JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
         if (choice < 0) return;
@@ -57,25 +57,15 @@ public final class GuiDataIOActions {
                     LOG.log(Level.FINE, "Export-Datei konnte nicht automatisch geöffnet werden", e);
                 }
             });
-            case 3 -> handler.runAsync(() -> {
-                java.nio.file.Path f = DataExporter.exportBackup(outDir);
-                AuditLogger.getInstance().log("EXPORT_ZIP", f.toString());
-                output.appendText("  ✔ " + f.getFileName() + "\n", ACCENT2);
-            });
-            case 4 -> input.ask("CSV-Pfad:", path -> handler.runAsync(() -> {
+            case 3 -> input.ask("CSV-Pfad:", path -> handler.runAsync(() -> {
                 int n = DataImporter.importCsv(java.nio.file.Paths.get(path.trim()));
                 AuditLogger.getInstance().log("IMPORT_CSV", "n=" + n);
                 output.appendText("  ✔ " + n + " importiert\n", ACCENT2);
             }));
-            case 5 -> input.ask("JSON-Pfad:", path -> handler.runAsync(() -> {
+            case 4 -> input.ask("JSON-Pfad:", path -> handler.runAsync(() -> {
                 int n = DataImporter.importJson(java.nio.file.Paths.get(path.trim()));
                 AuditLogger.getInstance().log("IMPORT_JSON", "n=" + n);
                 output.appendText("  ✔ " + n + " importiert\n", ACCENT2);
-            }));
-            case 6 -> input.ask("ZIP-Pfad:", path -> handler.runAsync(() -> {
-                int n = DataImporter.restoreBackup(java.nio.file.Paths.get(path.trim()));
-                AuditLogger.getInstance().log("RESTORE_ZIP", "n=" + n);
-                output.appendText("  ✔ " + n + " Dateien wiederhergestellt\n", ACCENT2);
             }));
         }
     }

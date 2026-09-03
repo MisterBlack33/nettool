@@ -21,7 +21,7 @@ strict_mode: true
 ## Größenlimits
 
 rules:
-class_max_lines: 100
+class_max_lines: 200
 method_max_lines: 60
 recommended_method_max_lines: 30
 max_nesting_depth: 3

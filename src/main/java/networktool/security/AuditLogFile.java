@@ -9,14 +9,8 @@ import java.util.*;
 
 /**
  * Datei-I/O für das Audit-Log.
- *
  * Format: NDJSON, eine Zeile pro Eintrag, Version 1.
  *   {"v":1,"ts":"2024-01-01 10:00:00","user":"alice","action":"LOGIN","detail":""}
- *
- * Rückwärtskompatibilität:
- *   - Altes Tab-Format (ts\tuser\taction\tdetail) wird beim Lesen erkannt.
- *   - Legacy-JSON-Einzeiler ({"timestamp":...}) wird ebenfalls geparst.
- *   Strukturänderungen am Projekt brechen alte Logs NICHT.
  *
  * Rotation: ab MAX_LINES wird die aktuelle Datei archiviert.
  */
@@ -75,36 +69,16 @@ public final class AuditLogFile {
         }
     }
 
-    // ── Parsen (alle Formate) ─────────────────────────────────────────────
+    // ── Parsen (NDJSON v1) ────────────────────────────────────────────────
 
     public static AuditLogEntry parse(String line) {
-        if (line == null || line.isBlank()) return null;
-        if (line.startsWith("{")) return parseJson(line);
-        return parseTabFormat(line);
-    }
-
-    /** NDJSON v1 + Legacy-JSON ({"timestamp":...}) */
-    private static AuditLogEntry parseJson(String json) {
-        // v1: "ts"-Feld; Legacy: "timestamp"-Feld
-        String ts = extractStr(json, "ts");
-        if (ts == null) ts = extractStr(json, "timestamp");
-        String user   = extractStr(json, "user");
-        String action = extractStr(json, "action");
-        String detail = extractStr(json, "detail");
+        if (line == null || line.isBlank() || !line.startsWith("{")) return null;
+        String ts     = extractStr(line, "ts");
+        String user   = extractStr(line, "user");
+        String action = extractStr(line, "action");
+        String detail = extractStr(line, "detail");
         if (ts == null || action == null) return null;
         return new AuditLogEntry(ts, user, action, detail);
-    }
-
-    /** Altes Tab-Format: ts\tuser\taction\tdetail */
-    private static AuditLogEntry parseTabFormat(String line) {
-        String[] p = line.split("\t", 4);
-        if (p.length < 3) return null;
-        return new AuditLogEntry(
-                p[0],
-                p[1],
-                p[2],
-                p.length >= 4 ? p[3] : ""
-        );
     }
 
     static String extractStr(String json, String field) {

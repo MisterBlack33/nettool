@@ -11,7 +11,6 @@ import java.util.*;
 /**
  * Thread-sicherer Speicher für gespeicherte Hosts mit Datei-Persistenz (Binärformat).
  * Speicherort: saves/networkdata/saved_hosts.bin (siehe {@link StorageLocations}).
- * Legacy: saved_hosts.txt wird bei Bedarf automatisch migriert.
  */
 public final class SavedHostsStore {
 
@@ -54,7 +53,8 @@ public final class SavedHostsStore {
             entries.stream().filter(e -> e.ip.equals(host.ip)).findFirst().ifPresent(e -> {
                 if (host.ports != null && !host.ports.isEmpty()) {
                     e.ports.putAll(host.ports);
-                    persistAndNotify();
+                    saveToFile();
+                    notifyListeners();
                 }
             });
             return;
@@ -62,7 +62,8 @@ public final class SavedHostsStore {
         host.savedAt = LocalDateTime.now().format(DATE_FORMAT);
         if (host.notes == null) host.notes = "";
         entries.add(host);
-        persistAndNotify();
+        saveToFile();
+        notifyListeners();
     }
 
     /** Aktualisiert nur die Notiz eines Eintrags und persistiert sofort. */
@@ -70,13 +71,13 @@ public final class SavedHostsStore {
         if (isBlank(ip)) return;
         entries.stream().filter(e -> e.ip.equals(ip)).findFirst().ifPresent(e -> {
             e.notes = notes != null ? notes : "";
-            saveToFile(); // kein notifyListeners() → kein Store-Changed-Banner
+            saveToFile();
         });
     }
 
     public synchronized void remove(String ip) {
         if (isBlank(ip)) return;
-        if (entries.removeIf(e -> e.ip.equals(ip))) persistAndNotify();
+        if (entries.removeIf(e -> e.ip.equals(ip))) { saveToFile(); notifyListeners(); }
     }
 
     public synchronized List<HostResult> getAll() {
@@ -90,57 +91,29 @@ public final class SavedHostsStore {
     // ── Persistenz (binär) ────────────────────────────────────────────────
 
     private void loadFromFile() {
-        if (Files.exists(filePath)) {
-            try (var in = new java.io.DataInputStream(Files.newInputStream(filePath))) {
-                int count = in.readInt();
-                for (int i = 0; i < count; i++) {
-                    String ip = in.readUTF();
-                    if (isBlank(ip)) continue;
-                    String hostname = in.readUTF();
-                    String os = in.readUTF();
-                    String savedAt = in.readUTF();
-                    int portCount = in.readInt();
-                    Map<Integer, String> ports = new TreeMap<>();
-                    for (int p = 0; p < portCount; p++) {
-                        int port = in.readInt();
-                        String banner = in.readUTF();
-                        ports.put(port, banner);
-                    }
-                    String notes = in.readUTF();
-                    entries.add(new HostResult(ip, hostname, os, savedAt, ports, notes));
+        if (!Files.exists(filePath)) { createEmptyFile(); return; }
+        try (var in = new java.io.DataInputStream(Files.newInputStream(filePath))) {
+            int count = in.readInt();
+            for (int i = 0; i < count; i++) {
+                String ip = in.readUTF();
+                if (isBlank(ip)) continue;
+                String hostname = in.readUTF();
+                String os = in.readUTF();
+                String savedAt = in.readUTF();
+                int portCount = in.readInt();
+                Map<Integer, String> ports = new TreeMap<>();
+                for (int p = 0; p < portCount; p++) {
+                    int port = in.readInt();
+                    String banner = in.readUTF();
+                    ports.put(port, banner);
                 }
-                System.out.println("[SavedHostsStore] " + entries.size() + " Host(s) geladen (bin).");
-                return;
-            } catch (IOException e) {
-                System.err.println("SavedHostsStore: Binär-Laden fehlgeschlagen: " + e.getMessage());
+                String notes = in.readUTF();
+                entries.add(new HostResult(ip, hostname, os, savedAt, ports, notes));
             }
+            System.out.println("[SavedHostsStore] " + entries.size() + " Host(s) geladen.");
+        } catch (IOException e) {
+            System.err.println("SavedHostsStore: Laden fehlgeschlagen: " + e.getMessage());
         }
-
-        Path legacy = filePath.getParent().resolve("saved_hosts.txt");
-        if (Files.exists(legacy)) {
-            try {
-                for (String line : Files.readAllLines(legacy)) {
-                    if (isBlank(line)) continue;
-                    String[] parts = line.split(";", 6);
-                    if (parts.length < 4) continue;
-                    String ip = parts[0].trim();
-                    if (isBlank(ip)) continue;
-                    Map<Integer, String> ports = parts.length >= 5
-                            ? parsePorts(parts[4].trim()) : new TreeMap<>();
-                    String notes = parts.length >= 6 ? parts[5].trim() : "";
-                    entries.add(new HostResult(
-                            ip, parts[1].trim(), parts[2].trim(),
-                            parts[3].trim(), ports, notes));
-                }
-                System.out.println("[SavedHostsStore] " + entries.size() + " Host(s) geladen (legacy txt) - migriere zu bin.");
-                saveToFile();
-                return;
-            } catch (IOException e) {
-                System.err.println("SavedHostsStore: Fehler beim Laden der Legacy-Datei: " + e.getMessage());
-            }
-        }
-
-        createEmptyFile();
     }
 
     private synchronized void saveToFile() {
@@ -182,29 +155,13 @@ public final class SavedHostsStore {
                             StandardOpenOption.TRUNCATE_EXISTING))) {
                 out.writeInt(0);
             }
-            System.out.println("[SavedHostsStore] Neue Datei (bin): " + filePath.toAbsolutePath());
+            System.out.println("[SavedHostsStore] Neue Datei: " + filePath.toAbsolutePath());
         } catch (IOException e) {
             System.err.println("SavedHostsStore: Konnte Datei nicht anlegen: " + e.getMessage());
         }
     }
 
-    // ── Port-Serialisierung (nur noch für Legacy-Parsen) ───────────────────
-
-    private static Map<Integer, String> parsePorts(String s) {
-        Map<Integer, String> map = new TreeMap<>();
-        if (isBlank(s)) return map;
-        for (String entry : s.split(",")) {
-            String[] kv = entry.split(":", 2);
-            try { map.put(Integer.parseInt(kv[0].trim()),
-                    kv.length > 1 ? kv[1].trim() : "offen"); }
-            catch (NumberFormatException ignored) {}
-        }
-        return map;
-    }
-
     // ── Hilfsmethoden ─────────────────────────────────────────────────────
-
-    private void persistAndNotify() { saveToFile(); notifyListeners(); }
 
     private void notifyListeners() {
         for (Runnable l : listeners) l.run();

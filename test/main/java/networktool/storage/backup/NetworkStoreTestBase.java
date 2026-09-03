@@ -1,6 +1,5 @@
 package main.java.networktool.storage.network;
 
-import main.java.networktool.storage.backup.AutoBackup;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 

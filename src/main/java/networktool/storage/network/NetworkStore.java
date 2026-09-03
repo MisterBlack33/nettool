@@ -1,7 +1,6 @@
 package main.java.networktool.storage.network;
 
 import main.java.networktool.model.HostResult;
-import main.java.networktool.storage.backup.AutoBackup;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -31,9 +30,6 @@ public final class NetworkStore {
         System.out.println("[NetworkStore] " + dataDir.toAbsolutePath());
         try { Files.createDirectories(NetworkStorePersistence.savedDir(dataDir)); }
         catch (IOException ignored) {}
-        // Führe zentrale Legacy-Migrationen durch (falls alte .txt Dateien vorhanden)
-        NetworkStorePersistence.migrateLegacyTxtFiles(dataDir);
-        importLegacyIfNeeded();
         loadAll();
         registry.ensureDefault();
     }
@@ -81,17 +77,13 @@ public final class NetworkStore {
 
     // ── Host management ───────────────────────────────────────────────────
 
-    public boolean save(HostResult host, String cat) {
-        boolean isNew;
-        synchronized (this) {
-            if (host == null || host.ip == null || host.ip.isBlank() || cat.equals(ALL_CATEGORY)) return false;
-            if (!registry.contains(cat)) registry.create(cat, "");
-            if (!registry.ipMatches(host.ip, cat)) return false;
-            isNew = NetworkStoreHostOps.addOrMerge(host.ip, registry.networks(), cat, host);
-            persist(cat);
-            if (isNew) notifyListeners();
-        }
-        if (isNew) AutoBackup.getInstance().triggerNow();
+    public synchronized boolean save(HostResult host, String cat) {
+        if (host == null || host.ip == null || host.ip.isBlank() || cat.equals(ALL_CATEGORY)) return false;
+        if (!registry.contains(cat)) registry.create(cat, "");
+        if (!registry.ipMatches(host.ip, cat)) return false;
+        boolean isNew = NetworkStoreHostOps.addOrMerge(host.ip, registry.networks(), cat, host);
+        persist(cat);
+        if (isNew) notifyListeners();
         return true;
     }
 
@@ -108,23 +100,15 @@ public final class NetworkStore {
                 });
     }
 
-    public void remove(String ip, String cat) {
-        boolean changed;
-        synchronized (this) {
-            if (cat.equals(ALL_CATEGORY)) { removeFromAll(ip); return; }
-            changed = NetworkStoreHostOps.removeFrom(ip, registry.networks(), cat);
-            if (changed) { persist(cat); notifyListeners(); }
-        }
-        if (changed) AutoBackup.getInstance().triggerNow();
+    public synchronized void remove(String ip, String cat) {
+        if (cat.equals(ALL_CATEGORY)) { removeFromAll(ip); return; }
+        boolean changed = NetworkStoreHostOps.removeFrom(ip, registry.networks(), cat);
+        if (changed) { persist(cat); notifyListeners(); }
     }
 
-    public void removeFromAll(String ip) {
-        boolean changed;
-        synchronized (this) {
-            changed = NetworkStoreHostOps.removeFromAll(ip, registry.networks());
-            if (changed) { registry.networks().keySet().forEach(this::persist); notifyListeners(); }
-        }
-        if (changed) AutoBackup.getInstance().triggerNow();
+    public synchronized void removeFromAll(String ip) {
+        boolean changed = NetworkStoreHostOps.removeFromAll(ip, registry.networks());
+        if (changed) { registry.networks().keySet().forEach(this::persist); notifyListeners(); }
     }
 
     public synchronized void updateOs(String ip, String cat, String os) {
@@ -200,15 +184,6 @@ public final class NetworkStore {
 
     private void regenerateAllFile() {
         NetworkStorePersistence.saveAllFile(dataDir, registry.networks());
-    }
-
-    private void importLegacyIfNeeded() {
-        if (!NetworkStorePersistence.needsLegacyImport(dataDir)) return;
-        Path legacy = dataDir.resolve(NetworkStorePersistence.LEGACY_FILE);
-        if (!Files.exists(legacy)) return;
-        registry.networks().put(NetworkRegistry.DEFAULT_CAT, new ArrayList<>());
-        NetworkStorePersistence.loadFile(legacy, NetworkRegistry.DEFAULT_CAT, registry.networks());
-        persist(NetworkRegistry.DEFAULT_CAT);
     }
 
     private void notifyListeners() {

@@ -10,11 +10,6 @@ import java.nio.file.Paths;
 /**
  * Zentrale Auflösung aller persistenten Speicherorte.
  *
- * Alle vom Code aktiv ausgegebenen/gespeicherten Daten (Nutzer, Netzwerke,
- * Logs, Profile, Caches, Backups) liegen unter einem einzigen Wurzelverzeichnis
- * "saves", parallel zu .idea/, src/, target/ und test/ im nettool-Projektordner —
- * nicht darunter, damit "mvn clean" oder ein IDE-Rebuild sie nie berührt.
- *
  * Struktur:
  *   saves/
  *     userdata/       – UserAuth (users.json, gehashte Passwörter, kein Klartext)
@@ -22,7 +17,6 @@ import java.nio.file.Paths;
  *     profiles/        – Scan-Profile
  *     logs/            – Audit-/Debug-Log
  *     cache/           – ARP-Cache, Sonify-Konfiguration, OUI-Cache
- *     backups/         – ZIP-Backups
  */
 public final class StorageLocations {
 
@@ -36,13 +30,7 @@ public final class StorageLocations {
     public static Path profiles()    { return ensure(root().resolve("profiles")); }
     public static Path logs()        { return ensure(root().resolve("logs")); }
     public static Path cache()       { return ensure(root().resolve("cache")); }
-    public static Path backups()     { return ensure(root().resolve("backups")); }
 
-    /**
-     * Projekt-Wurzel: der "nettool"-Ordner, der src/, test/, target/, .idea/
-     * und pom.xml enthält. Fällt auf das JVM-Arbeitsverzeichnis zurück, wenn
-     * die Klassenquelle (z.B. aus einer JAR heraus) nicht eindeutig auflösbar ist.
-     */
     private static Path projectRoot() {
         try {
             URL url = StorageLocations.class.getProtectionDomain().getCodeSource().getLocation();

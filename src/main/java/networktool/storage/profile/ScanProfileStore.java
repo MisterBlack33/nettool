@@ -11,7 +11,6 @@ import java.util.*;
 /**
  * Speichert und lädt Scan-Profile als JSON.
  * Datei: saves/profiles/scanProfiles.json (siehe {@link StorageLocations}).
- * Legacy-Migration: scanProfiles.txt → JSON wird automatisch einmalig durchgeführt.
  * Singleton, thread-sicher.
  */
 public final class ScanProfileStore {
@@ -21,11 +20,10 @@ public final class ScanProfileStore {
     }
     public static ScanProfileStore getInstance() { return Holder.INSTANCE; }
 
-    private static final String JSON_FILE   = "scanProfiles.json";
-    private static final String LEGACY_FILE = "scanProfiles.txt";
+    private static final String JSON_FILE = "scanProfiles.json";
 
     private final List<ScanProfile> profiles = new ArrayList<>();
-    private Path filePath;
+    private final Path filePath;
 
     private ScanProfileStore() {
         filePath = StorageLocations.profiles().resolve(JSON_FILE);
@@ -60,14 +58,6 @@ public final class ScanProfileStore {
     // ── Persistenz ────────────────────────────────────────────────────────
 
     private void load() {
-        Path legacy = filePath.resolveSibling(LEGACY_FILE);
-        if (!Files.exists(filePath) && Files.exists(legacy)) {
-            loadLegacy(legacy);
-            persist();
-            try { Files.delete(legacy); } catch (IOException ignored) {}
-            System.out.println("[ScanProfileStore] Migriert: .txt → .json");
-            return;
-        }
         if (!Files.exists(filePath)) return;
         try {
             loadFromJson(Files.readString(filePath, StandardCharsets.UTF_8));
@@ -127,37 +117,6 @@ public final class ScanProfileStore {
                     .append("    }").append(i < profiles.size() - 1 ? "," : "").append("\n");
         }
         return sb.append("  ]\n}").toString();
-    }
-
-    private void loadLegacy(Path file) {
-        try {
-            List<String> lines = Files.readAllLines(file);
-            ScanProfile[] holder = {null};
-            for (String line : lines) {
-                if (line.isBlank() || line.startsWith("#")) { holder[0] = null; continue; }
-                ScanProfile cur = holder[0];
-                if (line.startsWith("NAME:")) {
-                    holder[0] = new ScanProfile(line.substring(5).trim());
-                    profiles.add(holder[0]);
-                } else if (cur == null) {
-                    // no current profile; skip
-                } else if (line.startsWith("CIDRS:")) {
-                    Arrays.stream(line.substring(6).split(",")).map(String::trim)
-                            .filter(s -> !s.isBlank()).forEach(cur.cidrs::add);
-                } else if (line.startsWith("OS:"))       { cur.osFilter = line.substring(3).trim(); }
-                else if (line.startsWith("HN:"))       { cur.hnFilter = line.substring(3).trim(); }
-                else if (line.startsWith("PORTS:")) {
-                    Arrays.stream(line.substring(6).split(",")).map(String::trim)
-                            .filter(s -> !s.isBlank())
-                            .forEach(s -> { try { cur.ports.add(Integer.parseInt(s)); }
-                            catch (NumberFormatException ignored) {} });
-                } else if (line.startsWith("AUTOSAVE:")) { cur.autoSave = "true".equalsIgnoreCase(line.substring(9).trim()); }
-                else if (line.startsWith("CATEGORY:")) { cur.category = line.substring(9).trim(); }
-                else if (line.startsWith("LASTRUN:"))  { cur.lastRun  = line.substring(8).trim(); }
-            }
-        } catch (IOException e) {
-            System.err.println("[ScanProfileStore] Legacy: " + e.getMessage());
-        }
     }
 
     // ── JSON-Hilfsmethoden ────────────────────────────────────────────────

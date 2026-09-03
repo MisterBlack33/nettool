@@ -2,13 +2,11 @@ package main.java.networktool.storage.export;
 
 import main.java.networktool.model.HostResult;
 import main.java.networktool.storage.JsonHelper;
-import main.java.networktool.storage.backup.BackupCrypto;
 import main.java.networktool.storage.network.NetworkStore;
-import main.java.networktool.storage.network.NetworkStorePersistence;
 
-import java.io.*;
-import java.nio.file.*;
-import java.util.zip.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public final class DataImporter {
 
@@ -34,8 +32,8 @@ public final class DataImporter {
 
     /**
      * Parst das JSON-Array string-sicher über {@link JsonHelper#extractObjects}
-     * statt eines naiven Regex-Splits ("},\\s*{"). Werte, die selbst "},"-artige
-     * Zeichenfolgen enthalten (z.B. in Notizen), zerreißen die Objektgrenzen sonst.
+     * statt eines naiven Regex-Splits, damit Werte mit "},"-artigen Zeichenfolgen
+     * (z.B. in Notizen) die Objektgrenzen nicht zerreißen.
      */
     public static int importJson(Path file) throws IOException {
         String content = Files.readString(file);
@@ -53,33 +51,6 @@ public final class DataImporter {
             if (saveHost(ip, nvl(hn, ip), nvl(os, ""), date, nvl(notes, ""), nvl(cat, "Import"))) count++;
         }
         return count;
-    }
-
-    public static int restoreBackup(Path zipFile) throws IOException {
-        Path dataDir = NetworkStorePersistence.resolveDataDir();
-        int[] count = {0};
-        try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zipFile.toFile()))) {
-            ZipEntry entry;
-            while ((entry = zis.getNextEntry()) != null) {
-                Path dest = dataDir.resolve(entry.getName()).normalize();
-                if (!dest.startsWith(dataDir)) continue; // Zip-Slip-Schutz
-                Files.createDirectories(dest.getParent());
-                Files.copy(zis, dest, StandardCopyOption.REPLACE_EXISTING);
-                count[0]++;
-            }
-        }
-        return count[0];
-    }
-
-    /** Stellt ein mit {@link DataExporter#exportEncryptedBackup} erzeugtes Backup wieder her. */
-    public static int restoreEncryptedBackup(Path encryptedFile, String password) throws Exception {
-        Path tmpZip = Files.createTempFile("nettool_restore_", ".zip");
-        try {
-            BackupCrypto.decryptFile(encryptedFile, tmpZip, password);
-            return restoreBackup(tmpZip);
-        } finally {
-            Files.deleteIfExists(tmpZip);
-        }
     }
 
     private static boolean saveHost(String ip, String hn, String os,

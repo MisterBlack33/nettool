@@ -1,17 +1,15 @@
 package main.java.networktool.storage.network;
 
-import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.storage.JsonHelper;
-import main.java.networktool.storage.SavedHostsStore;
 import main.java.networktool.storage.StorageLocations;
-import main.java.networktool.storage.profile.ScanProfileStore;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 
+/** Lädt/speichert Netzwerk-Host-Daten als JSON. Kein Legacy-Format mehr. */
 public final class NetworkStorePersistence {
 
     private NetworkStorePersistence() {}
@@ -20,13 +18,9 @@ public final class NetworkStorePersistence {
     static final String FILE_EXT     = ".json";
     static final String ALL_FILE     = "all.json";
     static final String NTFY_FILE    = "ntfyTopics.json";
-    // Legacy: ältere saved_hosts.txt
-    static final String LEGACY_FILE  = "saved_hosts.txt";
-    static final String LEGACY_EXT   = ".txt";
 
     // ── Path resolution ───────────────────────────────────────────────────
 
-    /** Netzwerk-Datenverzeichnis: saves/networkdata (siehe {@link StorageLocations}). */
     public static Path resolveDataDir() {
         return StorageLocations.networkData();
     }
@@ -58,7 +52,6 @@ public final class NetworkStorePersistence {
                                      Map<String, String> prefixes) {
         try {
             String json   = Files.readString(file, StandardCharsets.UTF_8);
-            HostSchemaMigration.logIfLegacy(name, HostJsonBuilder.readSchemaVersion(json));
             String prefix = JsonHelper.extractStr(json, "prefix");
             if (prefixes != null && prefix != null) prefixes.put(name, prefix);
             List<HostResult> list = networks.computeIfAbsent(name, k -> new ArrayList<>());
@@ -112,7 +105,7 @@ public final class NetworkStorePersistence {
         } catch (IOException ignored) {}
     }
 
-    // ── ntfy topics — delegated ───────────────────────────────────────────
+    // ── ntfy topics ───────────────────────────────────────────────────────
 
     static List<String> loadNtfyTopics(Path dataDir) {
         return NetworkStoreNtfy.loadTopics(dataDir);
@@ -122,55 +115,6 @@ public final class NetworkStorePersistence {
         NetworkStoreNtfy.saveTopic(dataDir, topic);
     }
 
-    // ── Legacy migration — delegated ──────────────────────────────────────
-
-    static boolean needsLegacyImport(Path dataDir) {
-        return NetworkStoreLegacy.needsImport(dataDir);
-    }
-
-    static void loadFile(Path file, String name, Map<String, List<HostResult>> networks) {
-        NetworkStoreLegacy.loadFile(file, name, networks, null);
-    }
-
-    static void loadLegacyFile(Path file, String name,
-                               Map<String, List<HostResult>> networks,
-                               Map<String, String> prefixes) {
-        NetworkStoreLegacy.loadFile(file, name, networks, prefixes);
-    }
-
-    public static Map<Integer, String> parsePorts(String s) {
-        return NetworkStoreLegacy.parsePorts(s);
-    }
-
-    /**
-     * Führt einmalige Legacy-Migrationen von alten ".txt"-Speichern in das
-     * neue Datenverzeichnis durch.
-     */
-    static void migrateLegacyTxtFiles(Path dataDir) {
-        if (dataDir == null) return;
-        try {
-            try {
-                SavedHostsStore.getInstance()
-                        .setFilePath(dataDir.resolve("saved_hosts.bin"));
-            } catch (Throwable t) {
-                System.err.println("[NetworkStorePersistence] SavedHostsStore migration failed: " + t.getMessage());
-            }
-            try {
-                ScanProfileStore.getInstance();
-            } catch (Throwable t) {
-                System.err.println("[NetworkStorePersistence] ScanProfileStore migration failed: " + t.getMessage());
-            }
-            try {
-                NetworkStoreLegacy.needsImport(dataDir);
-            } catch (Throwable t) {
-                System.err.println("[NetworkStorePersistence] NetworkStoreLegacy migration failed: " + t.getMessage());
-            }
-        } catch (Exception e) {
-            DebugLogger.getInstance().log("FINE", "[NetworkStorePersistence] Migrations-Check fehlgeschlagen: " + e);
-        }
-    }
-
-    // Backward compat
     public static String extractStr(String json, String field) { return JsonHelper.extractStr(json, field); }
     public static String esc(String s)                          { return JsonHelper.esc(s); }
 
