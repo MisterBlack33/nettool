@@ -2,7 +2,6 @@ package main.java.networktool.storage.network;
 
 import main.java.networktool.model.HostResult;
 import main.java.networktool.storage.TestConstants;
-import main.java.networktool.storage.network.NetworkStoreTestBase;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Timeout;
 
@@ -10,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class NetworkStoreFixTest extends NetworkStoreTestBase {
+class NetworkStoreFixTest {
 
     static final String NET = TestConstants.NET_FIX;
     static final String PFX = TestConstants.PREFIX_88;

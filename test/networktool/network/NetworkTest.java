@@ -43,14 +43,12 @@ class NetworkTest extends NetworkTimeoutTestBase {
         final String PFX = TestConstants.PREFIX_99;
 
         @BeforeEach void setup() {
-            AutoBackup.getInstance().cleanupBackups();
             if (!store.getAllNetworkNames().contains(NET))
                 store.createNetwork(NET, PFX);
         }
 
         @AfterEach void teardown() {
             store.deleteNetwork(NET);
-            AutoBackup.getInstance().cleanupBackups();
         }
 
         @Test void createNetwork_appears_in_allNames()             { assertTrue(store.getAllNetworkNames().contains(NET)); }

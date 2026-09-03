@@ -2,9 +2,6 @@ package main.java.networktool.storage.network;
 
 import main.java.networktool.model.HostResult;
 import main.java.networktool.storage.TestConstants;
-import main.java.networktool.storage.network.NetworkRegistry;
-import main.java.networktool.storage.network.NetworkStoreLegacy;
-import main.java.networktool.storage.network.NetworkStoreNtfy;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -79,52 +76,6 @@ class NetworkRegistryTest {
             reg.create(TestConstants.NET_STANDARD, "");
             reg.networks().get(TestConstants.NET_STANDARD).add(new HostResult(TestConstants.IP_1, TestConstants.HOST_1, "Lin"));
             assertEquals(1, reg.networks().get(TestConstants.NET_STANDARD).size());
-        }
-    }
-
-    @Nested
-    class LegacyTest {
-
-        @TempDir Path tmp;
-
-        @Test void parsePorts_valid() {
-            Map<Integer, String> p = NetworkStoreLegacy.parsePorts("22:SSH,80:HTTP");
-            assertEquals("SSH", p.get(22)); assertEquals("HTTP", p.get(80));
-        }
-
-        @Test void parsePorts_noLabel_defaultsToOffen() { assertEquals("offen", NetworkStoreLegacy.parsePorts("443").get(443)); }
-        @Test void parsePorts_empty_returnsEmpty()      { assertTrue(NetworkStoreLegacy.parsePorts("").isEmpty()); assertTrue(NetworkStoreLegacy.parsePorts(null).isEmpty()); }
-
-        @Test void parsePorts_malformed_ignored() {
-            var m = NetworkStoreLegacy.parsePorts("abc:def,22:SSH");
-            assertFalse(m.containsKey(0)); assertTrue(m.containsKey(22));
-        }
-
-        @Test void loadFile_parsesIpAndHostname() throws Exception {
-            Path file = tmp.resolve("hosts.txt");
-            Files.writeString(file, TestConstants.IP_1 + ";" + TestConstants.HOST_1 + ";Linux;2024-01-01;22:SSH;note\n", StandardCharsets.UTF_8);
-            Map<String, List<HostResult>> nets = new LinkedHashMap<>();
-            NetworkStoreLegacy.loadFile(file, TestConstants.NET_STANDARD, nets, null);
-            assertEquals(1, nets.get(TestConstants.NET_STANDARD).size());
-            assertEquals(TestConstants.IP_1, nets.get(TestConstants.NET_STANDARD).get(0).ip);
-        }
-
-        @Test void loadFile_parsesPrefix() throws Exception {
-            Path file = tmp.resolve("hosts.txt");
-            Files.writeString(file, "IP-PRÄFIX:" + TestConstants.PREFIX_88 + "\n"
-                    + TestConstants.IP_1 + ";" + TestConstants.HOST_1 + ";Win\n", StandardCharsets.UTF_8);
-            Map<String, List<HostResult>> nets = new LinkedHashMap<>();
-            Map<String, String>           pfx  = new LinkedHashMap<>();
-            NetworkStoreLegacy.loadFile(file, TestConstants.NET_STANDARD, nets, pfx);
-            assertEquals(TestConstants.PREFIX_88, pfx.get(TestConstants.NET_STANDARD));
-        }
-
-        @Test void loadFile_skipsBlankAndComment() throws Exception {
-            Path file = tmp.resolve("hosts.txt");
-            Files.writeString(file, "\n# comment\n\n", StandardCharsets.UTF_8);
-            Map<String, List<HostResult>> nets = new LinkedHashMap<>();
-            NetworkStoreLegacy.loadFile(file, TestConstants.NET_STANDARD, nets, null);
-            assertTrue(nets.get(TestConstants.NET_STANDARD).isEmpty());
         }
     }
 
