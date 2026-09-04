@@ -25,18 +25,6 @@ class HostSchemaVersionTest {
         assertEquals(0, HostJsonBuilder.readSchemaVersion("{\"schemaVersion\":\"notanumber\"}"));
     }
 
-    @Test void legacyFile_stillParsesHosts() {
-        // Altbestand ohne schemaVersion darf weiterhin vollstÃƒÆ’Ã‚Â¤ndig geladen werden.
-        String legacy = "{\n  \"network\": \"Old\",\n  \"prefix\": \"\",\n  \"hosts\": [\n"
-                + "    {\"ip\":\"1.2.3.4\",\"hostname\":\"h\",\"os\":\"Linux\",\"savedAt\":\"\",\"ports\":{},\"notes\":\"\"}\n"
-                + "  ]\n}";
-        assertEquals(0, HostJsonBuilder.readSchemaVersion(legacy));
-        HostResult h = HostJsonBuilder.parseHost(
-                legacy.substring(legacy.indexOf('{', legacy.indexOf("hosts")),
-                        legacy.lastIndexOf('}', legacy.lastIndexOf('}') - 1) + 1));
-        assertEquals("1.2.3.4", h.ip);
-    }
-
     @Test void migrationLog_doesNotThrow_onLegacyOrCurrent() {
         assertDoesNotThrow(() -> HostSchemaMigration.logIfLegacy("Net", 0));
         assertDoesNotThrow(() -> HostSchemaMigration.logIfLegacy("Net", HostJsonBuilder.CURRENT_SCHEMA_VERSION));

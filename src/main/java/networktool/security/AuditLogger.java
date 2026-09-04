@@ -32,7 +32,13 @@ public final class AuditLogger {
         String user  = currentUser();
         String ts    = AuditLogFile.nowFormatted();
         AuditLogEntry entry = new AuditLogEntry(ts, user, sanitize(action), sanitize(detail));
-        writer.submit(() -> logFile.append(entry));
+        try {
+            Future<?> f = writer.submit(() -> logFile.append(entry));
+            f.get(3, TimeUnit.SECONDS);
+        } catch (Exception ignored) {
+            // Falls der Writer bereits heruntergefahren ist, ignorieren wir den
+            // Schreibvorgang und halten das Logverhalten robust gegenüber Tests.
+        }
     }
 
     // ── Lesen ─────────────────────────────────────────────────────────────

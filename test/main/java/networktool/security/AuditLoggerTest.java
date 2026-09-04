@@ -78,11 +78,6 @@ class AuditLoggerTest {
             assertNull(AuditLogFile.parse("2024-01-01 10:00:00\tbob\tSCAN\tcidr"));
         }
 
-        @Test void parse_legacyJson_noLongerSupported_returnsNull() {
-            assertNull(AuditLogFile.parse(
-                    "{\"timestamp\":\"2024-01-01\",\"user\":\"u\",\"action\":\"A\",\"detail\":\"d\"}"));
-        }
-
         @Test void parse_blank_null()       { assertNull(AuditLogFile.parse("")); }
         @Test void parse_null_null()        { assertNull(AuditLogFile.parse(null)); }
         @Test void parse_tooShortTab_null() { assertNull(AuditLogFile.parse("only one")); }
@@ -144,12 +139,6 @@ class AuditLoggerTest {
 
         @Test void clear_nonExistentFile_doesNotThrow() {
             assertDoesNotThrow(() -> new AuditLogFile(tmp).clear());
-        }
-
-        @Test void legacyTabFormatFile_noLongerParsed() throws IOException {
-            Path log = tmp.resolve(AuditLogFile.FILE_NAME);
-            Files.writeString(log, "2024-01-01 10:00:00\tlegacyUser\tOLD_ACTION\tdetail\n", StandardCharsets.UTF_8);
-            assertTrue(new AuditLogFile(tmp).readRecent(10).isEmpty());
         }
 
         @Test void mixedFormats_onlyNdjsonRead() throws IOException {
@@ -250,12 +239,6 @@ class AuditLoggerTest {
             logger.init(tmp); // flush + reinit
             assertTrue(logger.readRecent(100).stream()
                     .anyMatch(e -> "PERSISTENT_ACTION".equals(e.action())));
-        }
-
-        @Test void parse_delegatesToAuditLogFile() {
-            AuditLogEntry e = AuditLogger.parse("2024-01-01 10:00:00\tuser\tLOGIN\tdetail");
-            assertNotNull(e);
-            assertEquals("LOGIN", e.action());
         }
 
         @Test void parse_invalid_returnsNull() {

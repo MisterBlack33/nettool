@@ -126,7 +126,7 @@
                 <!-- Strand A: 0.8.11 -> 0.8.12. 0.8.11 wirft
                      IllegalClassFormatException (class file major version 69)
                      beim Instrumentieren unter JDK 25; 0.8.12 unterstützt das. -->
-                <version>0.8.12</version>
+                <version>0.8.14</version>
                 <executions>
                     <execution>
                         <goals>
