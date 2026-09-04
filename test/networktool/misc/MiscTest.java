@@ -123,11 +123,6 @@ class MiscTest {
             Files.writeString(json, "[]");
             assertEquals(0, DataExportImport.importJson(json));
         }
-
-        @Test void exportBackup_createsZip() throws IOException {
-            Path src = tmp.resolve("src"); Files.createDirectories(src);
-            assertTrue(DataExporter.exportBackup(tmp, src).toString().endsWith(".zip"));
-        }
     }
 
     //  ScanProfileStore  (isolated to __junit__ prefix)

@@ -228,20 +228,13 @@ class SecurityTest {
                     .anyMatch(e -> "USER_ACTION".equals(e.action())));
         }
 
-        @Test void parse_tabFormat() {
-            String line = "2024-01-01 10:00:00\tuser1\tLOGIN\tdetail";
+        @Test void parse_ndjsonFormat() {
+            String line = "{\"v\":1,\"ts\":\"2024-01-01 10:00:00\",\"user\":\"user1\",\"action\":\"LOGIN\",\"detail\":\"detail\"}";
             AuditLogEntry e = AuditLogger.parse(line);
             assertNotNull(e);
-            assertEquals("user1",  e.user());
-            assertEquals("LOGIN",  e.action());
+            assertEquals("user1", e.user());
+            assertEquals("LOGIN", e.action());
             assertEquals("detail", e.detail());
-        }
-
-        @Test void parse_legacyJson() {
-            String json = "{\"timestamp\":\"2024-01-01\",\"user\":\"u\",\"action\":\"A\",\"detail\":\"d\"}";
-            AuditLogEntry e = AuditLogger.parse(json);
-            assertNotNull(e);
-            assertEquals("A", e.action());
         }
 
         @Test void parse_invalidLine_returnsNull() {

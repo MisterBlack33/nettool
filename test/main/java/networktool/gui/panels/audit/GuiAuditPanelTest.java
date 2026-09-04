@@ -40,7 +40,10 @@ class GuiAuditPanelTest {
 
     @Nested
     class AuditLoggerParseTest {
-        @Test void parse_validTabLine_notNull() { assertNotNull(AuditLogger.parse("2024-01-01 10:00:00\tuser\tLOGIN\tdetail")); }
+        @Test void parse_validNdjsonLine_notNull() {
+            assertNotNull(AuditLogger.parse(
+                    "{\"v\":1,\"ts\":\"2024-01-01 10:00:00\",\"user\":\"user\",\"action\":\"LOGIN\",\"detail\":\"detail\"}"));
+        }
         @Test void parse_null_returnsNull()     { assertNull(AuditLogger.parse(null)); }
         @Test void parse_empty_returnsNull()    { assertNull(AuditLogger.parse("")); }
     }

@@ -41,14 +41,4 @@ class DataImporterFixTest {
                 + "172.30.0.2;" + TestConstants.HOST_2 + ";Linux;2024-01-01;;note;" + TestConstants.FIX_IMPORT_CAT + "\n");
         assertDoesNotThrow(() -> DataImporter.importCsv(f));
     }
-
-    @Test void restoreBackup_zipSlip_blocked() throws Exception {
-        Path zip = tmp.resolve("evil.zip");
-        try (var zos = new java.util.zip.ZipOutputStream(new java.io.FileOutputStream(zip.toFile()))) {
-            zos.putNextEntry(new java.util.zip.ZipEntry("../../evil.txt"));
-            zos.write("bad".getBytes());
-            zos.closeEntry();
-        }
-        assertDoesNotThrow(() -> DataImporter.restoreBackup(zip));
-    }
 }

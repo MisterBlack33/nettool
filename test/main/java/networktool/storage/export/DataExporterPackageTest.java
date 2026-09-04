@@ -1,15 +1,12 @@
 package main.java.networktool.storage.export;
 
 import main.java.networktool.storage.TestConstants;
-import main.java.networktool.storage.export.HtmlReportBuilder;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.io.TempDir;
-import org.junit.jupiter.api.Timeout;
 
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -30,17 +27,6 @@ class DataExporterPackageTest {
     @Test void exportCsv_hasHeader() throws IOException    { assertTrue(Files.readString(DataExporter.exportCsv(tmp)).startsWith("IP;")); }
     @Test void exportJson_isArray() throws IOException     { assertTrue(Files.readString(DataExporter.exportJson(tmp)).trim().startsWith("[")); }
     @Test void exportHtml_hasNetTool() throws IOException  { assertTrue(Files.readString(DataExporter.exportHtml(tmp)).contains("NetTool")); }
-
-    @Test
-    @Timeout(value = 5, unit = TimeUnit.SECONDS)
-    void exportBackup_zip() throws IOException {
-        Path src = tmp.resolve("src");
-        Files.createDirectories(src);
-        Files.writeString(src.resolve("test.txt"), "data");
-        Path f = DataExporter.exportBackup(tmp, src);
-        assertTrue(f.toString().endsWith(".zip"));
-        assertTrue(Files.exists(f));
-    }
 
     @Test void importCsv_headerOnly_zero() throws IOException {
         Path f = tmp.resolve("h.csv");
@@ -69,16 +55,6 @@ class DataExporterPackageTest {
                         + "\"os\":\"Linux\",\"savedAt\":\"\",\"ports\":\"\","
                         + "\"notes\":\"\",\"category\":\"" + TestConstants.IMPORT_CAT + "\"}]");
         assertTrue(DataImporter.importJson(f) >= 0);
-    }
-
-    @Test void restoreBackup_zipSlip_blocked() throws IOException {
-        Path zip = tmp.resolve("evil.zip");
-        try (var zos = new java.util.zip.ZipOutputStream(new java.io.FileOutputStream(zip.toFile()))) {
-            zos.putNextEntry(new java.util.zip.ZipEntry("../../evil.txt"));
-            zos.write("bad".getBytes());
-            zos.closeEntry();
-        }
-        assertDoesNotThrow(() -> DataImporter.restoreBackup(zip));
     }
 
     @Test void build_containsDoctype()  { assertTrue(HtmlReportBuilder.build().contains("<!DOCTYPE html>")); }

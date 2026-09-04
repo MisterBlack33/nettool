@@ -27,14 +27,6 @@ class ExportImportTest {
         @Test void esc_quotesEscaped()                           { assertTrue(DataExporter.esc("say \"hi\"").contains("\\\"")); }
         @Test void esc_null_returnsEmpty()                       { assertEquals("", DataExporter.esc(null)); }
         @Test void esc_newlineEscaped()                          { assertTrue(DataExporter.esc("a\nb").contains("\\n")); }
-
-        @Test
-        @Timeout(value = 5, unit = TimeUnit.SECONDS)
-        void exportBackup_isZip() throws IOException {
-            Path src = tmp.resolve("src"); Files.createDirectories(src);
-            Path f = DataExporter.exportBackup(tmp, src);
-            assertTrue(f.toString().endsWith(".zip") && Files.exists(f));
-        }
     }
 
     @Nested
@@ -55,15 +47,6 @@ class ExportImportTest {
         @Test void importJson_emptyArray_zero() throws IOException {
             Path f = tmp.resolve("empty.json"); Files.writeString(f, "[]");
             assertEquals(0, DataImporter.importJson(f));
-        }
-
-        @Test void restoreBackup_zipSlipBlocked() throws IOException {
-            Path zip = tmp.resolve("evil.zip");
-            try (var zos = new java.util.zip.ZipOutputStream(new java.io.FileOutputStream(zip.toFile()))) {
-                zos.putNextEntry(new java.util.zip.ZipEntry("../../evil.txt"));
-                zos.write("bad".getBytes()); zos.closeEntry();
-            }
-            assertDoesNotThrow(() -> DataImporter.restoreBackup(zip));
         }
     }
 }

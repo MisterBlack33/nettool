@@ -67,36 +67,20 @@ class AuditLoggerTest {
     @Nested
     class AuditLogFileParseTest {
 
-        @Test void parse_ndjsonV1() {
-            String line = "{\"v\":1,\"ts\":\"2024-01-01 10:00:00\",\"user\":\"alice\",\"action\":\"LOGIN\",\"detail\":\"ok\"}";
-            AuditLogEntry e = AuditLogFile.parse(line);
-            assertNotNull(e);
-            assertEquals("alice", e.user());
-            assertEquals("LOGIN", e.action());
-            assertEquals("ok",    e.detail());
-        }
-
-        @Test void parse_tabFormat() {
-            AuditLogEntry e = AuditLogFile.parse("2024-01-01 10:00:00\tbob\tSCAN\tcidr");
-            assertNotNull(e);
-            assertEquals("bob",  e.user());
-            assertEquals("SCAN", e.action());
-            assertEquals("cidr", e.detail());
-        }
-
-        @Test void parse_tabFormat_noDetail() {
-            AuditLogEntry e = AuditLogFile.parse("2024-01-01\tuser1\tLOGIN");
+        @Test void parse_delegatesToAuditLogFile() {
+            String ndjson = new AuditLogEntry("2024-01-01 10:00:00", "user", "LOGIN", "detail").toNdjson();
+            AuditLogEntry e = AuditLogger.parse(ndjson);
             assertNotNull(e);
             assertEquals("LOGIN", e.action());
-            assertEquals("",      e.detail());
         }
 
-        @Test void parse_legacyJson() {
-            AuditLogEntry e = AuditLogFile.parse(
-                    "{\"timestamp\":\"2024-01-01\",\"user\":\"u\",\"action\":\"A\",\"detail\":\"d\"}");
-            assertNotNull(e);
-            assertEquals("A", e.action());
-            assertEquals("d", e.detail());
+        @Test void parse_tabFormat_noLongerSupported_returnsNull() {
+            assertNull(AuditLogFile.parse("2024-01-01 10:00:00\tbob\tSCAN\tcidr"));
+        }
+
+        @Test void parse_legacyJson_noLongerSupported_returnsNull() {
+            assertNull(AuditLogFile.parse(
+                    "{\"timestamp\":\"2024-01-01\",\"user\":\"u\",\"action\":\"A\",\"detail\":\"d\"}"));
         }
 
         @Test void parse_blank_null()       { assertNull(AuditLogFile.parse("")); }
@@ -162,17 +146,13 @@ class AuditLoggerTest {
             assertDoesNotThrow(() -> new AuditLogFile(tmp).clear());
         }
 
-        @Test void persistsLegacyTabFormat() throws IOException {
+        @Test void legacyTabFormatFile_noLongerParsed() throws IOException {
             Path log = tmp.resolve(AuditLogFile.FILE_NAME);
-            Files.writeString(log, "2024-01-01 10:00:00\tlegacyUser\tOLD_ACTION\tdetail\n",
-                    StandardCharsets.UTF_8);
-            List<AuditLogEntry> entries = new AuditLogFile(tmp).readRecent(10);
-            assertEquals(1, entries.size());
-            assertEquals("legacyUser", entries.get(0).user());
-            assertEquals("OLD_ACTION", entries.get(0).action());
+            Files.writeString(log, "2024-01-01 10:00:00\tlegacyUser\tOLD_ACTION\tdetail\n", StandardCharsets.UTF_8);
+            assertTrue(new AuditLogFile(tmp).readRecent(10).isEmpty());
         }
 
-        @Test void mixedFormats_allRead() throws IOException {
+        @Test void mixedFormats_onlyNdjsonRead() throws IOException {
             Path log = tmp.resolve(AuditLogFile.FILE_NAME);
             Files.writeString(log,
                     "2024-01-01 10:00:00\ttabUser\tTAB_ACTION\t\n"
@@ -180,9 +160,8 @@ class AuditLoggerTest {
                             + "\"action\":\"JSON_ACTION\",\"detail\":\"\"}\n",
                     StandardCharsets.UTF_8);
             List<AuditLogEntry> entries = new AuditLogFile(tmp).readRecent(10);
-            assertEquals(2, entries.size());
-            assertTrue(entries.stream().anyMatch(e -> "TAB_ACTION".equals(e.action())));
-            assertTrue(entries.stream().anyMatch(e -> "JSON_ACTION".equals(e.action())));
+            assertEquals(1, entries.size());
+            assertEquals("JSON_ACTION", entries.get(0).action());
         }
     }
 

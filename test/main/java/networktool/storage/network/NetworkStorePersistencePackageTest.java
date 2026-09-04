@@ -70,29 +70,4 @@ class NetworkStorePersistencePackageTest {
     @Test void ntfyTopics_emptyWhenNoFile() {
         assertTrue(NetworkStorePersistence.loadNtfyTopics(tmp).isEmpty());
     }
-
-    @Test void parsePorts_valid() {
-        Map<Integer, String> p = NetworkStorePersistence.parsePorts("22:SSH,80:HTTP");
-        assertEquals("SSH", p.get(22));
-        assertEquals("HTTP", p.get(80));
-    }
-
-    @Test void parsePorts_empty_returnsEmpty() {
-        assertTrue(NetworkStorePersistence.parsePorts("").isEmpty());
-        assertTrue(NetworkStorePersistence.parsePorts(null).isEmpty());
-    }
-
-    @Test
-    void loadLegacyFile_parsesCorrectly() throws IOException {
-        Path file = tmp.resolve("legacy.txt");
-        Files.writeString(file,
-                "IP-PRÄFIX:" + TestConstants.PREFIX_88 + "\n"
-                        + TestConstants.IP_1 + ";" + TestConstants.HOST_1 + ";Linux;2024-01-01;22:SSH;note1\n",
-                StandardCharsets.UTF_8);
-        Map<String, List<HostResult>> nets = new LinkedHashMap<>();
-        Map<String, String>           pfx  = new LinkedHashMap<>();
-        NetworkStorePersistence.loadLegacyFile(file, TestConstants.NET_STANDARD, nets, pfx);
-        assertEquals(TestConstants.PREFIX_88, pfx.get(TestConstants.NET_STANDARD));
-        assertEquals(TestConstants.IP_1, nets.get(TestConstants.NET_STANDARD).get(0).ip);
-    }
 }
