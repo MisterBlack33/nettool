@@ -55,7 +55,7 @@ final class NtfySubscriptionManager {
                     subscriptions.put(t, f);
                 }
             }
-            // Stille Aktivierung – kein "Abonniert: [...]"-Spam
+            // Stille Aktivierung – kein Startup-Spam
         }, 4, TimeUnit.SECONDS);
     }
 
@@ -125,7 +125,7 @@ final class NtfySubscriptionManager {
                         ? ev.title : "ntfy [" + topic + "]";
 
                 if (!msg.isEmpty()) {
-                    System.out.println("  📱 ntfy [" + topic + "]  " + title + ":  " + msg);
+                    System.out.println("  ntfy [" + topic + "]  " + title + ":  " + msg);
                     LocalToast.show(title, msg);
                     NotificationHistory.getInstance()
                             .add("ntfy [" + topic + "]", title, msg);

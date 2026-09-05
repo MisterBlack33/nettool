@@ -66,7 +66,7 @@ final class NotificationTcpServer {
                 String from = client.getInetAddress().getHostAddress();
                 String msg  = br.readLine();
                 if (msg != null && !msg.isBlank()) {
-                    System.out.println("  ✉ Nachricht von " + from + ": " + msg);
+                    System.out.println("  Nachricht von " + from + ": " + msg);
                     LocalToast.show("NetTool – von " + from, msg);
                     NotificationHistory.getInstance()
                             .add("TCP [" + from + "]", "NetTool – von " + from, msg);

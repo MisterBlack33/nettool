@@ -6,6 +6,7 @@ import main.java.networktool.gui.panels.GuiInputPanel;
 import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.scan.remote.RemoteNetScanner;
 import main.java.networktool.security.AuditLogger;
+import main.java.networktool.util.StatusTags;
 
 import javax.swing.*;
 import java.util.Arrays;
@@ -44,8 +45,8 @@ public final class GuiForeignNetActions {
                 String cidr = RemoteNetScanner.normalizeCidr(raw.trim());
                 RemoteNetScanner.ReachResult r = RemoteNetScanner.parallelProbe(cidr);
                 output.appendText(r.reachable
-                                ? "  ✔ " + cidr + " erreichbar (~" + r.avgMs + " ms)\n"
-                                : "  ✕ " + cidr + " nicht erreichbar\n",
+                                ? "  " + StatusTags.OK + " " + cidr + " erreichbar (~" + r.avgMs + " ms)\n"
+                                : "  " + StatusTags.FEHLER + " " + cidr + " nicht erreichbar\n",
                         r.reachable ? ACCENT2 : WARN);
             }));
             case 3 -> input.ask("CIDR:", raw ->

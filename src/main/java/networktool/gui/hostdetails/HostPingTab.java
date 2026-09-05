@@ -36,7 +36,7 @@ final class HostPingTab extends JPanel {
         statsLbl.setFont(MONO_S);
         statsLbl.setForeground(FG_DIM);
 
-        JButton stopBtn = detailButton("■ Stop", WARN);
+        JButton stopBtn = detailButton("Stop", WARN);
         stopBtn.addActionListener(e -> stopPinging());
 
         JPanel top = new JPanel(new BorderLayout(8, 0));

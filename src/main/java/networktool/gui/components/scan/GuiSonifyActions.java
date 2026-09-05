@@ -6,6 +6,7 @@ import main.java.networktool.logic.sonify.SonifyConfig;
 import main.java.networktool.logic.sonify.SonifyConfigStore;
 import main.java.networktool.logic.sonify.TrafficSonifier;
 import main.java.networktool.security.AuditLogger;
+import main.java.networktool.util.StatusTags;
 
 import static main.java.networktool.theme.GuiTheme.*;
 
@@ -19,7 +20,7 @@ public final class GuiSonifyActions {
         if (sonifier.isActive()) {
             sonifier.stop();
             AuditLogger.getInstance().log("SONIFY_STOP", "");
-            output.appendText("  ⏹ Sonify gestoppt\n", WARN);
+            output.appendText("  " + StatusTags.OK + " Sonify gestoppt\n", WARN);
             return;
         }
         input.ask("Interface (z.B. eth0, leer = eth0):", iface ->
@@ -45,7 +46,7 @@ public final class GuiSonifyActions {
         sonifier.setConfig(cfg);
         sonifier.start(iface);
         AuditLogger.getInstance().log("SONIFY_START", iface + " " + cfg.highHz + "/" + cfg.lowHz + "Hz");
-        output.appendText("  🎵 Sonify aktiv auf \"" + iface + "\"  ("
+        output.appendText("  " + StatusTags.OK + " Sonify aktiv auf \"" + iface + "\"  ("
                 + cfg.highHz + "Hz / " + cfg.lowHz + "Hz)\n", ACCENT2);
     }
 

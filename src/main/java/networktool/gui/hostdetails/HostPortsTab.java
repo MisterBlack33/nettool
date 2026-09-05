@@ -29,7 +29,7 @@ final class HostPortsTab extends JPanel {
         statusLbl.setFont(MONO_S);
         statusLbl.setForeground(FG_DIM);
 
-        JButton scanBtn = detailButton("⊕ Scan starten", ACCENT2);
+        JButton scanBtn = detailButton("Scan starten", ACCENT2);
         scanBtn.addActionListener(e -> refresh());
 
         JPanel top = new JPanel(new BorderLayout(8, 0));

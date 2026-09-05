@@ -12,6 +12,7 @@ import main.java.networktool.model.ScanProfile;
 import main.java.networktool.model.ScanResult;
 import main.java.networktool.security.AuditLogger;
 import main.java.networktool.storage.profile.ScanProfileStore;
+import main.java.networktool.util.StatusTags;
 
 import javax.swing.*;
 import java.util.ArrayList;
@@ -38,32 +39,37 @@ public final class GuiScanProfileActions {
                 null, actions, actions[0]);
         if (action < 0) return;
         switch (action) {
-            case 0 -> {
-                if (profiles.isEmpty()) {
-                    output.appendText("  ✕ Keine Profile.\n", WARN);
-                    return;
-                }
-                String[] names = profiles.stream().map(p -> p.name).toArray(String[]::new);
-                Object chosen = JOptionPane.showInputDialog(null, "Profil:", "Ausführen",
-                        JOptionPane.QUESTION_MESSAGE, null, names, names[0]);
-                if (chosen == null) return;
-                AuditLogger.getInstance().log("PROFILE_RUN", chosen.toString());
-                ScanProfileStore.getInstance().get(chosen.toString())
-                        .ifPresent(p -> handler.runAsync(() -> runProfile(p, status, tables)));
-            }
+            case 0 -> runExistingProfile(profiles, status, tables, handler, output);
             case 1 -> buildNewProfile(input, output);
-            case 2 -> {
-                if (profiles.isEmpty()) return;
-                String[] names = profiles.stream().map(p -> p.name).toArray(String[]::new);
-                Object chosen = JOptionPane.showInputDialog(null, "Löschen:", "Profil löschen",
-                        JOptionPane.QUESTION_MESSAGE, null, names, names[0]);
-                if (chosen != null) {
-                    AuditLogger.getInstance().log("PROFILE_DELETE", chosen.toString());
-                    ScanProfileStore.getInstance().delete(chosen.toString());
-                    output.appendText("  ✔ Gelöscht: " + chosen + "\n", ACCENT2);
-                }
-            }
+            case 2 -> deleteProfile(profiles, output);
         }
+    }
+
+    private static void runExistingProfile(List<ScanProfile> profiles, GuiStatusBar status,
+                                           GuiTableRenderer tables, GuiMenuHandler handler,
+                                           GuiOutputPanel output) {
+        if (profiles.isEmpty()) {
+            output.appendText("  " + StatusTags.FEHLER + " Keine Profile.\n", WARN);
+            return;
+        }
+        String[] names = profiles.stream().map(p -> p.name).toArray(String[]::new);
+        Object chosen = JOptionPane.showInputDialog(null, "Profil:", "Ausführen",
+                JOptionPane.QUESTION_MESSAGE, null, names, names[0]);
+        if (chosen == null) return;
+        AuditLogger.getInstance().log("PROFILE_RUN", chosen.toString());
+        ScanProfileStore.getInstance().get(chosen.toString())
+                .ifPresent(p -> handler.runAsync(() -> runProfile(p, status, tables)));
+    }
+
+    private static void deleteProfile(List<ScanProfile> profiles, GuiOutputPanel output) {
+        if (profiles.isEmpty()) return;
+        String[] names = profiles.stream().map(p -> p.name).toArray(String[]::new);
+        Object chosen = JOptionPane.showInputDialog(null, "Löschen:", "Profil löschen",
+                JOptionPane.QUESTION_MESSAGE, null, names, names[0]);
+        if (chosen == null) return;
+        AuditLogger.getInstance().log("PROFILE_DELETE", chosen.toString());
+        ScanProfileStore.getInstance().delete(chosen.toString());
+        output.appendText("  " + StatusTags.OK + " Gelöscht: " + chosen + "\n", ACCENT2);
     }
 
     private static void buildNewProfile(GuiInputPanel input, GuiOutputPanel output) {
@@ -82,7 +88,7 @@ public final class GuiScanProfileActions {
                             if (!cat.isBlank()) { p.autoSave = true; p.category = cat.trim(); }
                             ScanProfileStore.getInstance().save(p);
                             AuditLogger.getInstance().log("PROFILE_CREATE", p.summary());
-                            output.appendText("  ✔ Profil gespeichert: " + p.name + "\n", ACCENT2);
+                            output.appendText("  " + StatusTags.OK + " Profil gespeichert: " + p.name + "\n", ACCENT2);
                         });
                     });
                 });
@@ -91,7 +97,7 @@ public final class GuiScanProfileActions {
     }
 
     private static void runProfile(ScanProfile profile, GuiStatusBar status,
-                                    GuiTableRenderer tables) throws Exception {
+                                   GuiTableRenderer tables) throws Exception {
         status.set("Profil: " + profile.name, ACCENT);
         if (!profile.ports.isEmpty()) PortScanner.setActivePorts(profile.ports);
         if (profile.cidrs.isEmpty()) {
@@ -106,5 +112,4 @@ public final class GuiScanProfileActions {
         }
         if (!profile.ports.isEmpty()) PortScanner.setActivePorts(null);
     }
-
 }

@@ -21,7 +21,7 @@ public final class GuiPrivacyPanel {
     }
 
     private static void embedPanel(GuiOutputPanel output) {
-        output.appendText("\n🔒 Privatsphäre & Tarnung\n\n", ACCENT);
+        output.appendText("\nPrivatsphäre & Tarnung\n\n", ACCENT);
 
         Color bg    = GuiTheme.isDark() ? new Color(0x08, 0x0B, 0x09) : new Color(0xF4, 0xF2, 0xEE);
         Color panBg = GuiTheme.isDark() ? new Color(0x0F, 0x13, 0x10) : new Color(0xE8, 0xE6, 0xE0);
@@ -40,11 +40,11 @@ public final class GuiPrivacyPanel {
         outer.add(statusSection, BorderLayout.NORTH);
 
         JPanel actSection = PrivacyPanelStyle.buildSection("Aktionen", panBg);
-        JButton macRandBtn  = PrivacyPanelStyle.actionBtn("🎲 MAC randomisieren",    ACCENT);
-        JButton macResetBtn = PrivacyPanelStyle.actionBtn("↩ MAC zurücksetzen",      FG_DIM);
-        JButton vpnStartBtn = PrivacyPanelStyle.actionBtn("▶ WireGuard starten",     ACCENT2);
-        JButton vpnStopBtn  = PrivacyPanelStyle.actionBtn("■ WireGuard stoppen",     WARN);
-        JButton checkEncBtn = PrivacyPanelStyle.actionBtn("🔍 Verschlüsselung prüfen", INFO);
+        JButton macRandBtn  = PrivacyPanelStyle.actionBtn("MAC randomisieren",    ACCENT);
+        JButton macResetBtn = PrivacyPanelStyle.actionBtn("MAC zurücksetzen",     FG_DIM);
+        JButton vpnStartBtn = PrivacyPanelStyle.actionBtn("WireGuard starten",    ACCENT2);
+        JButton vpnStopBtn  = PrivacyPanelStyle.actionBtn("WireGuard stoppen",    WARN);
+        JButton checkEncBtn = PrivacyPanelStyle.actionBtn("Verschlüsselung prüfen", INFO);
         JTextArea logArea   = PrivacyPanelStyle.buildLogArea(bg);
 
         actSection.add(PrivacyPanelStyle.wrapRow(macRandBtn, macResetBtn));
@@ -57,7 +57,7 @@ public final class GuiPrivacyPanel {
         }});
 
         JLabel info = new JLabel(
-                "<html><small>⚠ MAC-Randomisierung und VPN-Kontrolle können Root-Rechte benötigen.</small></html>");
+                "<html><small>Hinweis: MAC-Randomisierung und VPN-Kontrolle können Root-Rechte benötigen.</small></html>");
         info.setFont(new Font("JetBrains Mono", Font.PLAIN, 10));
         info.setForeground(FG_DIM);
         info.setBorder(new EmptyBorder(4, 8, 4, 8));
@@ -78,7 +78,7 @@ public final class GuiPrivacyPanel {
         new Thread(() -> {
             String mac = PrivacyNetworkActions.getCurrentMac();
             String ip  = PrivacyNetworkActions.getCurrentIp();
-            String vpn = PrivacyNetworkActions.isVpnActive() ? "✔ aktiv" : "✕ inaktiv";
+            String vpn = PrivacyNetworkActions.isVpnActive() ? "aktiv" : "inaktiv";
             SwingUtilities.invokeLater(() -> {
                 macLabel.setText("MAC: " + mac); macLabel.setForeground(FG);
                 ipLabel.setText("IP:  " + ip);   ipLabel.setForeground(FG);

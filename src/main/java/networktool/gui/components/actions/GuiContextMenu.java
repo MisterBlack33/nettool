@@ -35,7 +35,7 @@ public class GuiContextMenu {
 
     public GuiContextMenu(GuiMenuHandler menuHandler, GuiOutputPanel output) {
         this.menuHandler = menuHandler;
-        this.output      = output;
+        this.output = output;
     }
 
     public void attach(JTable table) {
@@ -80,25 +80,25 @@ public class GuiContextMenu {
     }
 
     private void addAnalysisItems(JPopupMenu popup, String ip, String hn, String os) {
-        popup.add(menuItem("🔍  Details anzeigen", ACCENT, () ->
+        popup.add(menuItem("Details anzeigen", ACCENT, () ->
                 HostDetailsPanel.show(ip, hn, os, NetworkStore.getInstance().findNetwork(ip))));
-        popup.add(menuItem("▶  Schnelldiagnose", new Color(0x80, 0xC8, 0xFF), () ->
+        popup.add(menuItem("Schnelldiagnose", new Color(0x80, 0xC8, 0xFF), () ->
                 menuHandler.runAsync(() -> IpInspector.quickScan(ip, 5000))));
-        popup.add(menuItem("⛐  Vollanalyse", FG, () ->
+        popup.add(menuItem("Vollanalyse", FG, () ->
                 menuHandler.runAsync(() -> IpInspector.inspect(ip))));
-        popup.add(menuItem("⌨  SSH-Terminal", new Color(0x00, 0xFF, 0x80), () ->
+        popup.add(menuItem("SSH-Terminal", new Color(0x00, 0xFF, 0x80), () ->
                 GuiSshTerminal.open(ip)));
-        popup.add(menuItem("✉  Nachricht senden", new Color(0xFF, 0xD5, 0x4F), () ->
+        popup.add(menuItem("Nachricht senden", new Color(0xFF, 0xD5, 0x4F), () ->
                 ContextMenuActions.promptAndSendMessage(ip, menuHandler)));
     }
 
     private void addSaveOrRemoveItem(JPopupMenu popup, String ip, String hn, String os, String col3) {
         String inNetwork = NetworkStore.getInstance().findNetwork(ip);
         if (inNetwork != null) {
-            popup.add(menuItem("✕  Aus \"" + inNetwork + "\" entfernen", WARN, () ->
+            popup.add(menuItem("Aus \"" + inNetwork + "\" entfernen", WARN, () ->
                     NetworkStore.getInstance().removeFromAll(ip)));
         } else {
-            popup.add(menuItem("★  IP speichern", ACCENT2, () ->
+            popup.add(menuItem("IP speichern", ACCENT2, () ->
                     HostSaveDialog.save(ip, hn, os, col3, output)));
         }
     }
@@ -107,7 +107,7 @@ public class GuiContextMenu {
         String mac = WakeOnLan.extractMacFromHostname(hn);
         if (mac == null) return;
         popup.addSeparator();
-        popup.add(menuItem("⚡  Wake-on-LAN", new Color(0xFF, 0xD5, 0x4F), () ->
+        popup.add(menuItem("Wake-on-LAN", new Color(0xFF, 0xD5, 0x4F), () ->
                 ContextMenuActions.sendWakeOnLan(ip, mac, menuHandler, output)));
     }
 

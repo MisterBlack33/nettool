@@ -32,8 +32,8 @@ public final class ContextMenuActions {
         menuHandler.runAsync(() -> {
             boolean ok = WakeOnLan.send(mac, target);
             output.appendText(ok
-                            ? "  ⚡ WoL-Paket gesendet an " + mac + " via " + target + "\n"
-                            : "  ✕ WoL fehlgeschlagen\n",
+                            ? "  " + StatusTags.OK + " WoL-Paket gesendet an " + mac + " via " + target + "\n"
+                            : "  " + StatusTags.FEHLER + " WoL fehlgeschlagen\n",
                     ok ? ACCENT2 : WARN);
         });
     }
@@ -54,4 +54,3 @@ public final class ContextMenuActions {
         menuHandler.runAsync(() -> MessageSender.send(ip, msg, finalTopic));
     }
 }
-

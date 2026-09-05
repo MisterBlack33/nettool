@@ -1,18 +1,14 @@
 package main.java.networktool.theme;
 
-import main.java.networktool.util.*;
-import main.java.networktool.gui.login.*;
-import main.java.networktool.gui.hostdetails.*;
-import main.java.networktool.gui.map.*;
-import main.java.networktool.gui.core.*;
-import main.java.networktool.gui.components.*;
-import main.java.networktool.gui.panels.*;
-import java.awt.*;
+import java.awt.Color;
+import java.awt.Font;
 
 /**
- * Zentrale Farb- und Font-Definitionen mit Dark/Light Theme Toggle.
+ * Zentrale Farb-/Font-Definitionen mit Dark/Light Theme Toggle.
+ * Die eigentlichen Palettenwerte liegen in {@link GuiThemePalette};
+ * diese Klasse bleibt die stabile öffentliche API (unverändert ggü. Vorversion),
+ * damit keine andere Klasse angepasst werden muss.
  *
- * Alle mutable statischen Aliase sind volatile für Thread-Sichtbarkeit.
  * Nach toggleTheme() muss applyToStatics() aufgerufen werden.
  */
 public final class GuiTheme {
@@ -23,84 +19,40 @@ public final class GuiTheme {
 
     public static boolean isDark()    { return darkMode; }
     public static String  themeName() { return darkMode ? "☀  Hell" : "🌙  Dunkel"; }
-
     public static boolean toggleTheme() { darkMode = !darkMode; return darkMode; }
+
+    private static GuiThemePalette palette() { return darkMode ? GuiThemePalette.DARK : GuiThemePalette.LIGHT; }
 
     // ────────────────────────────────────── Dynamische Accessoren ──────────────────────────────────────
 
-    public static Color bg()         { return darkMode ? D_BG        : L_BG; }
-    public static Color panelBg()    { return darkMode ? D_PANEL_BG  : L_PANEL_BG; }
-    public static Color sidebarBg()  { return darkMode ? D_SIDEBAR_BG: L_SIDEBAR_BG; }
-    public static Color btnBg()      { return darkMode ? D_BTN_BG    : L_BTN_BG; }
-    public static Color btnHov()     { return darkMode ? D_BTN_HOV   : L_BTN_HOV; }
-    public static Color border()     { return darkMode ? D_BORDER     : L_BORDER; }
-    public static Color borderLt()   { return darkMode ? D_BORDER_LT  : L_BORDER_LT; }
-    public static Color fg()         { return darkMode ? D_FG         : L_FG; }
-    public static Color fgDim()      { return darkMode ? D_FG_DIM     : L_FG_DIM; }
-    public static Color rowEven()    { return darkMode ? D_ROW_EVEN   : L_ROW_EVEN; }
-    public static Color rowOdd()     { return darkMode ? D_ROW_ODD    : L_ROW_ODD; }
+    public static Color bg()         { return palette().bg(); }
+    public static Color panelBg()    { return palette().panelBg(); }
+    public static Color sidebarBg()  { return palette().sidebarBg(); }
+    public static Color btnBg()      { return palette().btnBg(); }
+    public static Color btnHov()     { return palette().btnHov(); }
+    public static Color border()     { return palette().border(); }
+    public static Color borderLt()   { return palette().borderLt(); }
+    public static Color fg()         { return palette().fg(); }
+    public static Color fgDim()      { return palette().fgDim(); }
+    public static Color rowEven()    { return palette().rowEven(); }
+    public static Color rowOdd()     { return palette().rowOdd(); }
 
-    // ────────────────────────────────────── DARK THEME ──────────────────────────────────────
-
-    private static final Color D_BG          = new Color(0x08, 0x0A, 0x09);
-    private static final Color D_PANEL_BG    = new Color(0x0F, 0x12, 0x10);
-    private static final Color D_SIDEBAR_BG  = new Color(0x0B, 0x0E, 0x0C);
-    private static final Color D_BTN_BG      = new Color(0x18, 0x1C, 0x1A);
-    private static final Color D_BTN_HOV     = new Color(0x24, 0x2C, 0x26);
-    private static final Color D_BORDER      = new Color(0x22, 0x28, 0x24);
-    private static final Color D_BORDER_LT   = new Color(0x32, 0x3C, 0x34);
-    private static final Color D_FG          = new Color(0xEC, 0xE8, 0xDC);
-    private static final Color D_FG_DIM      = new Color(0x62, 0x68, 0x62);
-    private static final Color D_ROW_EVEN    = new Color(0x08, 0x0A, 0x09);
-    private static final Color D_ROW_ODD     = new Color(0x0E, 0x12, 0x10);
-
-    // ────────────────────────────────────── LIGHT THEME ──────────────────────────────────────
-
-    private static final Color L_BG          = new Color(0xF4, 0xF2, 0xEE);
-    private static final Color L_PANEL_BG    = new Color(0xE8, 0xE6, 0xE0);
-    private static final Color L_SIDEBAR_BG  = new Color(0xEE, 0xEC, 0xE6);
-    private static final Color L_BTN_BG      = new Color(0xDC, 0xDA, 0xD4);
-    private static final Color L_BTN_HOV     = new Color(0xCE, 0xCC, 0xC4);
-    private static final Color L_BORDER      = new Color(0xC0, 0xBE, 0xB4);
-    private static final Color L_BORDER_LT   = new Color(0xA8, 0xA4, 0x98);
-    private static final Color L_FG          = new Color(0x1C, 0x1E, 0x1A);
-    private static final Color L_FG_DIM      = new Color(0x52, 0x54, 0x4E);
-    private static final Color L_ROW_EVEN    = new Color(0xF4, 0xF2, 0xEE);
-    private static final Color L_ROW_ODD     = new Color(0xE4, 0xE2, 0xDA);
-
-    // ────────────────────────────────────── Unveränderliche Farben ──────────────────────────────────────
+    // ────────────────────────────────────── Unveränderliche Akzentfarben ──────────────────────────────────────
 
     public static final Color ACCENT  = new Color(0xD4, 0xA0, 0x20);
     public static final Color ACCENT2 = new Color(0x4C, 0xC2, 0x60);
     public static final Color WARN    = new Color(0xFF, 0x45, 0x35);
     public static final Color INFO    = new Color(0x72, 0xA8, 0xD8);
 
-    // OS-Farben
-    public static final Color WIN_COL = new Color(0x60, 0xA8, 0xF0);
-    public static final Color LIN_COL = new Color(0x7E, 0xE8, 0x7E);
-    public static final Color APL_COL = new Color(0xD0, 0xD0, 0xD8);
-    public static final Color IOS_COL = new Color(0xA8, 0xC8, 0xF0);
-    public static final Color AND_COL = new Color(0x78, 0xD8, 0x78);
-    public static final Color NET_COL = new Color(0xFF, 0xA0, 0x30);
-    public static final Color PRN_COL = new Color(0xE8, 0xC8, 0x40);
-    public static final Color IOT_COL = new Color(0xF0, 0xE0, 0x60);
-    public static final Color RPI_COL = new Color(0xFF, 0x70, 0xA0);
+    // ────────────────────────────────────── OS-/Kategorie-Farben (modusabhängig) ──────────────────────────────────────
+    // Werden, wie die übrigen Legacy-Aliase, über applyToStatics() je Modus neu gesetzt.
+
+    public static volatile Color WIN_COL, LIN_COL, APL_COL, IOS_COL, AND_COL, NET_COL, PRN_COL, IOT_COL, RPI_COL;
 
     // ────────────────────────────────────── Volatile statische Aliase (für Legacy-Code) ──────────────────────────────────────
-    // Werden via applyToStatics() nach jedem Theme-Wechsel aktualisiert.
 
-    public static volatile Color BG         = D_BG;
-    public static volatile Color PANEL_BG   = D_PANEL_BG;
-    public static volatile Color SIDEBAR_BG = D_SIDEBAR_BG;
-    public static volatile Color BTN_BG     = D_BTN_BG;
-    public static volatile Color BTN_HOV    = D_BTN_HOV;
-    public static volatile Color BORDER     = D_BORDER;
-    public static volatile Color BORDER_LT  = D_BORDER_LT;
-    public static volatile Color FG         = D_FG;
-    public static volatile Color FG_DIM     = D_FG_DIM;
-    public static volatile Color ROW_EVEN   = D_ROW_EVEN;
-    public static volatile Color ROW_ODD    = D_ROW_ODD;
-    public static volatile Color ROW_SEL    = new Color(0x2A, 0x32, 0x20);
+    public static volatile Color BG, PANEL_BG, SIDEBAR_BG, BTN_BG, BTN_HOV, BORDER, BORDER_LT,
+            FG, FG_DIM, ROW_EVEN, ROW_ODD, ROW_SEL;
 
     // Fonts
     public static final Font MONO    = new Font("JetBrains Mono", Font.PLAIN, 13);
@@ -109,19 +61,27 @@ public final class GuiTheme {
     public static final Font BTN_F   = new Font("JetBrains Mono", Font.BOLD,  12);
     public static final Font BTN_F_S = new Font("JetBrains Mono", Font.BOLD,  11);
 
+    static { applyToStatics(); }
+
     public static void applyToStatics() {
-        BG        = bg();
-        PANEL_BG  = panelBg();
-        SIDEBAR_BG = sidebarBg();
-        BTN_BG    = btnBg();
-        BTN_HOV   = btnHov();
-        BORDER    = border();
-        BORDER_LT = borderLt();
-        FG        = fg();
-        FG_DIM    = fgDim();
-        ROW_EVEN  = rowEven();
-        ROW_ODD   = rowOdd();
-        ROW_SEL   = darkMode ? new Color(0x2A, 0x32, 0x20) : new Color(0x90, 0xBC, 0xF0);
+        GuiThemePalette p = palette();
+
+        BG         = p.bg();
+        PANEL_BG   = p.panelBg();
+        SIDEBAR_BG = p.sidebarBg();
+        BTN_BG     = p.btnBg();
+        BTN_HOV    = p.btnHov();
+        BORDER     = p.border();
+        BORDER_LT  = p.borderLt();
+        FG         = p.fg();
+        FG_DIM     = p.fgDim();
+        ROW_EVEN   = p.rowEven();
+        ROW_ODD    = p.rowOdd();
+        ROW_SEL    = p.rowSel();
+
+        WIN_COL = p.winCol(); LIN_COL = p.linCol(); APL_COL = p.aplCol();
+        IOS_COL = p.iosCol(); AND_COL = p.andCol(); NET_COL = p.netCol();
+        PRN_COL = p.prnCol(); IOT_COL = p.iotCol(); RPI_COL = p.rpiCol();
     }
 
     public static Color osColor(String os) {

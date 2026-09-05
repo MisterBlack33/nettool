@@ -3,6 +3,7 @@ package main.java.networktool.gui.panels.saved;
 import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.storage.network.NetworkStore;
+import main.java.networktool.util.StatusTags;
 
 import javax.swing.*;
 import java.util.List;
@@ -34,12 +35,12 @@ final class SavedHostsManualAdd {
         if (notes == null) notes = "";
         List<String> networks = NetworkStore.getInstance().getNetworkNames()
                 .stream().filter(n -> !n.equals(NetworkStore.ALL_CATEGORY)).toList();
-        if (networks.isEmpty()) { output.appendText("  ✕ Kein Netzwerk vorhanden.\n", WARN); return; }
+        if (networks.isEmpty()) { output.appendText("  " + StatusTags.FEHLER + " Kein Netzwerk vorhanden.\n", WARN); return; }
         String targetNet = networks.size() == 1 ? networks.get(0) : pickNetwork(ip, networks);
         if (targetNet == null) return;
         boolean saved = NetworkStore.getInstance().save(new HostResult(ip, hn, os, null, null, notes), targetNet);
-        output.appendText(saved ? "  ★ " + ip + " gespeichert in \"" + targetNet + "\"\n"
-                : "  ✕ Speichern fehlgeschlagen\n", saved ? ACCENT2 : WARN);
+        output.appendText(saved ? "  " + StatusTags.OK + " " + ip + " gespeichert in \"" + targetNet + "\"\n"
+                : "  " + StatusTags.FEHLER + " Speichern fehlgeschlagen\n", saved ? ACCENT2 : WARN);
         refreshTable.run();
     }
 

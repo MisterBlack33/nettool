@@ -10,6 +10,7 @@ import main.java.networktool.logic.scan.schedule.PortChangeMonitor;
 import main.java.networktool.security.AuditLogger;
 import main.java.networktool.security.SecurityMonitor;
 import main.java.networktool.transfer.BandwidthTester;
+import main.java.networktool.util.StatusTags;
 
 import javax.swing.*;
 import java.util.logging.Level;
@@ -70,56 +71,62 @@ public final class GuiDiagnosticsActions {
         ArpMonitor arpMon = ArpMonitor.getInstance();
         PortChangeMonitor portMon = PortChangeMonitor.getInstance();
 
-        String state = "SecMon: " + (secMon.isActive() ? "✔" : "✕")
-                + "  ARP: " + (arpMon.isActive() ? "✔" : "✕")
-                + "  Port: " + (portMon.isActive() ? "✔ (" + portMon.getInterval() + "min)" : "✕");
+        String state = "SecMon: " + (secMon.isActive() ? "an" : "aus")
+                + "  ARP: " + (arpMon.isActive() ? "an" : "aus")
+                + "  Port: " + (portMon.isActive() ? "an (" + portMon.getInterval() + "min)" : "aus");
         String[] options = {"SecurityMonitor", "ARP-Monitor", "Port-Monitor"};
         int choice = JOptionPane.showOptionDialog(null, state, "Sicherheits-Monitor",
                 JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
         if (choice < 0) return;
         switch (choice) {
-            case 0 -> {
-                if (secMon.isActive()) {
-                    secMon.stop();
-                    output.appendText("  ✕ SecurityMonitor gestoppt\n", WARN);
-                } else {
-                    String topic = GuiContextMenu.promptNtfyTopic();
-                    secMon.start(topic != null ? topic : "");
-                    output.appendText("  ✔ SecurityMonitor aktiv\n", ACCENT2);
-                }
-            }
-            case 1 -> {
-                if (arpMon.isActive()) {
-                    AuditLogger.getInstance().log("ARP_MONITOR_STOP", "");
-                    arpMon.stop();
-                    output.appendText("  ✕ ARP-Monitor gestoppt\n", WARN);
-                } else {
-                    String topic = GuiContextMenu.promptNtfyTopic();
-                    AuditLogger.getInstance().log("ARP_MONITOR_START", "");
-                    arpMon.start(topic != null ? topic : "");
-                    output.appendText("  ✔ ARP-Monitor aktiv\n", ACCENT2);
-                }
-            }
-            case 2 -> {
-                if (portMon.isActive()) {
-                    AuditLogger.getInstance().log("PORT_MONITOR_STOP", "");
-                    portMon.stop();
-                    output.appendText("  ✕ Port-Monitor gestoppt\n", WARN);
-                } else {
-                    input.ask("Intervall (min):", minStr -> {
-                        try {
-                            int min = Integer.parseInt(minStr.trim());
-                            String topic = GuiContextMenu.promptNtfyTopic();
-                            AuditLogger.getInstance().log("PORT_MONITOR_START", min + "min");
-                            portMon.start(min, topic != null ? topic : "");
-                            output.appendText("  ✔ Port-Monitor aktiv (" + min + " min)\n", ACCENT2);
-                        } catch (NumberFormatException e) {
-                            LOG.log(Level.FINE, "Ungültiges Port-Monitor-Intervall \"" + minStr + "\"", e);
-                            output.appendText("  ✕ Ungültige Zahl\n", WARN);
-                        }
-                    });
-                }
-            }
+            case 0 -> toggleSecurityMonitor(input, output, secMon);
+            case 1 -> toggleArpMonitor(input, output, arpMon);
+            case 2 -> togglePortMonitor(input, output, portMon);
         }
+    }
+
+    private static void toggleSecurityMonitor(GuiInputPanel input, GuiOutputPanel output, SecurityMonitor secMon) {
+        if (secMon.isActive()) {
+            secMon.stop();
+            output.appendText("  " + StatusTags.FEHLER + " SecurityMonitor gestoppt\n", WARN);
+        } else {
+            String topic = GuiContextMenu.promptNtfyTopic();
+            secMon.start(topic != null ? topic : "");
+            output.appendText("  " + StatusTags.OK + " SecurityMonitor aktiv\n", ACCENT2);
+        }
+    }
+
+    private static void toggleArpMonitor(GuiInputPanel input, GuiOutputPanel output, ArpMonitor arpMon) {
+        if (arpMon.isActive()) {
+            AuditLogger.getInstance().log("ARP_MONITOR_STOP", "");
+            arpMon.stop();
+            output.appendText("  " + StatusTags.FEHLER + " ARP-Monitor gestoppt\n", WARN);
+        } else {
+            String topic = GuiContextMenu.promptNtfyTopic();
+            AuditLogger.getInstance().log("ARP_MONITOR_START", "");
+            arpMon.start(topic != null ? topic : "");
+            output.appendText("  " + StatusTags.OK + " ARP-Monitor aktiv\n", ACCENT2);
+        }
+    }
+
+    private static void togglePortMonitor(GuiInputPanel input, GuiOutputPanel output, PortChangeMonitor portMon) {
+        if (portMon.isActive()) {
+            AuditLogger.getInstance().log("PORT_MONITOR_STOP", "");
+            portMon.stop();
+            output.appendText("  " + StatusTags.FEHLER + " Port-Monitor gestoppt\n", WARN);
+            return;
+        }
+        input.ask("Intervall (min):", minStr -> {
+            try {
+                int min = Integer.parseInt(minStr.trim());
+                String topic = GuiContextMenu.promptNtfyTopic();
+                AuditLogger.getInstance().log("PORT_MONITOR_START", min + "min");
+                portMon.start(min, topic != null ? topic : "");
+                output.appendText("  " + StatusTags.OK + " Port-Monitor aktiv (" + min + " min)\n", ACCENT2);
+            } catch (NumberFormatException e) {
+                LOG.log(Level.FINE, "Ungültiges Port-Monitor-Intervall \"" + minStr + "\"", e);
+                output.appendText("  " + StatusTags.FEHLER + " Ungültige Zahl\n", WARN);
+            }
+        });
     }
 }

@@ -1,6 +1,7 @@
 package main.java.networktool.gui.hostdetails;
 
 import main.java.networktool.storage.network.NetworkStore;
+import main.java.networktool.util.StatusTags;
 
 import javax.swing.*;
 import javax.swing.border.*;
@@ -57,11 +58,11 @@ final class HostNotesTab {
         savedLbl.setFont(MONO_XS);
         savedLbl.setForeground(ACCENT2);
 
-        JButton saveBtn = detailButton("💾 Speichern", ACCENT2);
+        JButton saveBtn = detailButton("Speichern", ACCENT2);
         saveBtn.addActionListener(e -> {
             String cat = category != null ? category : NetworkStore.ALL_CATEGORY;
             NetworkStore.getInstance().updateNotes(ip, cat, area.getText());
-            savedLbl.setText("✔ gespeichert  "
+            savedLbl.setText(StatusTags.OK + " gespeichert  "
                     + LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss")));
         });
 

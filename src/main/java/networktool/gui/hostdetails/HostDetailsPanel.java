@@ -11,7 +11,8 @@ import static main.java.networktool.gui.hostdetails.HostDetailRows.detailButton;
 /**
  * Vollständiges Host-Details-Fenster.
  * Tabs: ① Info  ② Ping  ③ Ports  ④ Notiz (siehe HostXTab-Klassen).
- * Öffnen: GuiContextMenu → "🔍 Details".
+ * Öffnen: GuiContextMenu → "Details".
+ * Icon-Präfixe in Buttons/Labels wurden entfernt (Workstream D).
  */
 public final class HostDetailsPanel {
 
@@ -67,7 +68,7 @@ public final class HostDetailsPanel {
         left.add(catLbl);
         header.add(left, BorderLayout.WEST);
 
-        JButton refreshBtn = detailButton("↻ Refresh", ACCENT);
+        JButton refreshBtn = detailButton("Refresh", ACCENT);
         refreshBtn.addActionListener(e -> {
             pingTab.restart();
             portsTab.refresh();

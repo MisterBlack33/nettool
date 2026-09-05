@@ -10,6 +10,7 @@ import main.java.networktool.security.AuditLogger;
 import main.java.networktool.storage.export.DataExporter;
 import main.java.networktool.storage.export.DataImporter;
 import main.java.networktool.storage.NotificationHistory;
+import main.java.networktool.util.StatusTags;
 import main.java.networktool.util.TableConfig;
 
 import javax.swing.*;
@@ -37,37 +38,36 @@ public final class GuiDataIOActions {
         if (choice < 0) return;
         java.nio.file.Path outDir = java.nio.file.Paths.get(System.getProperty("user.home"), "NetTool-Export");
         switch (choice) {
-            case 0 -> handler.runAsync(() -> {
-                java.nio.file.Path f = DataExporter.exportCsv(outDir);
-                AuditLogger.getInstance().log("EXPORT_CSV", f.toString());
-                output.appendText("  ✔ " + f.getFileName() + "\n", ACCENT2);
-            });
-            case 1 -> handler.runAsync(() -> {
-                java.nio.file.Path f = DataExporter.exportJson(outDir);
-                AuditLogger.getInstance().log("EXPORT_JSON", f.toString());
-                output.appendText("  ✔ " + f.getFileName() + "\n", ACCENT2);
-            });
-            case 2 -> handler.runAsync(() -> {
-                java.nio.file.Path f = DataExporter.exportHtml(outDir);
-                AuditLogger.getInstance().log("EXPORT_HTML", f.toString());
-                output.appendText("  ✔ " + f.getFileName() + "\n", ACCENT2);
-                try {
-                    java.awt.Desktop.getDesktop().browse(f.toUri());
-                } catch (Exception e) {
-                    LOG.log(Level.FINE, "Export-Datei konnte nicht automatisch geöffnet werden", e);
-                }
-            });
-            case 3 -> input.ask("CSV-Pfad:", path -> handler.runAsync(() -> {
-                int n = DataImporter.importCsv(java.nio.file.Paths.get(path.trim()));
-                AuditLogger.getInstance().log("IMPORT_CSV", "n=" + n);
-                output.appendText("  ✔ " + n + " importiert\n", ACCENT2);
-            }));
-            case 4 -> input.ask("JSON-Pfad:", path -> handler.runAsync(() -> {
-                int n = DataImporter.importJson(java.nio.file.Paths.get(path.trim()));
-                AuditLogger.getInstance().log("IMPORT_JSON", "n=" + n);
-                output.appendText("  ✔ " + n + " importiert\n", ACCENT2);
-            }));
+            case 0 -> handler.runAsync(() -> exportAndReport(output, "EXPORT_CSV", DataExporter.exportCsv(outDir)));
+            case 1 -> handler.runAsync(() -> exportAndReport(output, "EXPORT_JSON", DataExporter.exportJson(outDir)));
+            case 2 -> handler.runAsync(() -> exportHtmlAndOpen(output, outDir));
+            case 3 -> input.ask("CSV-Pfad:", path -> handler.runAsync(() -> importAndReport(
+                    output, "IMPORT_CSV", DataImporter.importCsv(java.nio.file.Paths.get(path.trim())))));
+            case 4 -> input.ask("JSON-Pfad:", path -> handler.runAsync(() -> importAndReport(
+                    output, "IMPORT_JSON", DataImporter.importJson(java.nio.file.Paths.get(path.trim())))));
         }
+    }
+
+    private static void exportAndReport(GuiOutputPanel output, String auditAction,
+                                        java.nio.file.Path f) {
+        AuditLogger.getInstance().log(auditAction, f.toString());
+        output.appendText("  " + StatusTags.OK + " " + f.getFileName() + "\n", ACCENT2);
+    }
+
+    private static void exportHtmlAndOpen(GuiOutputPanel output, java.nio.file.Path outDir) throws java.io.IOException {
+        java.nio.file.Path f = DataExporter.exportHtml(outDir);
+        AuditLogger.getInstance().log("EXPORT_HTML", f.toString());
+        output.appendText("  " + StatusTags.OK + " " + f.getFileName() + "\n", ACCENT2);
+        try {
+            java.awt.Desktop.getDesktop().browse(f.toUri());
+        } catch (Exception e) {
+            LOG.log(Level.FINE, "Export-Datei konnte nicht automatisch geöffnet werden", e);
+        }
+    }
+
+    private static void importAndReport(GuiOutputPanel output, String auditAction, int count) {
+        AuditLogger.getInstance().log(auditAction, "n=" + count);
+        output.appendText("  " + StatusTags.OK + " " + count + " importiert\n", ACCENT2);
     }
 
     public static void handleNotificationHistory(GuiInputPanel input, GuiOutputPanel output) {
@@ -104,7 +104,7 @@ public final class GuiDataIOActions {
             if ("clear".equalsIgnoreCase(v.trim())) {
                 AuditLogger.getInstance().log("NOTIFICATION_HISTORY_CLEAR", "");
                 hist.clear();
-                output.appendText("  ✔ Verlauf geleert\n", ACCENT2);
+                output.appendText("  " + StatusTags.OK + " Verlauf geleert\n", ACCENT2);
             }
         });
     }
@@ -116,7 +116,7 @@ public final class GuiDataIOActions {
             if ("reset".equalsIgnoreCase(value.trim())) {
                 PortScanner.setActivePorts(null);
                 AuditLogger.getInstance().log("PORT_CONFIG_RESET", "");
-                output.appendText("  ✔ Standard-Ports (" + PortScanner.getActivePorts().size() + ")\n", ACCENT2);
+                output.appendText("  " + StatusTags.OK + " Standard-Ports (" + PortScanner.getActivePorts().size() + ")\n", ACCENT2);
                 return;
             }
             List<Integer> ports = new ArrayList<>();
@@ -128,12 +128,12 @@ public final class GuiDataIOActions {
                 }
             }
             if (ports.isEmpty()) {
-                output.appendText("  ✕ Keine gültigen Ports\n", WARN);
+                output.appendText("  " + StatusTags.FEHLER + " Keine gültigen Ports\n", WARN);
                 return;
             }
             PortScanner.setActivePorts(ports);
             AuditLogger.getInstance().log("PORT_CONFIG_SET", ports.toString());
-            output.appendText("  ✔ " + ports.size() + " Ports konfiguriert\n", ACCENT2);
+            output.appendText("  " + StatusTags.OK + " " + ports.size() + " Ports konfiguriert\n", ACCENT2);
         });
     }
 }

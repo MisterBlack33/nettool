@@ -3,6 +3,7 @@ package main.java.networktool.gui.hostdetails;
 import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.storage.network.NetworkStore;
+import main.java.networktool.util.StatusTags;
 
 import javax.swing.*;
 import java.util.List;
@@ -68,8 +69,8 @@ public final class HostSaveDialog {
                 javax.swing.text.StyleConstants.setFontFamily(a, "JetBrains Mono");
                 javax.swing.text.StyleConstants.setFontSize(a, 13);
                 String msg = saved
-                        ? "  ★ " + ip + " gespeichert in \"" + targetNetwork + "\"\n"
-                        : "  ✕ Speichern fehlgeschlagen\n";
+                        ? "  " + StatusTags.OK + " " + ip + " gespeichert in \"" + targetNetwork + "\"\n"
+                        : "  " + StatusTags.FEHLER + " Speichern fehlgeschlagen\n";
                 output.doc.insertString(output.doc.getLength(), msg, a);
                 JTextPane pane = output.getOutputPane();
                 pane.setCaretPosition(Math.min(caret, output.doc.getLength()));

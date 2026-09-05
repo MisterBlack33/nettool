@@ -28,7 +28,7 @@ public final class GuiAuditPanel {
 
     public static void show(GuiOutputPanel output) {
         SwingUtilities.invokeLater(() -> {
-            output.appendText("\n★ Audit-Log\n\n", ACCENT);
+            output.appendText("\nAudit-Log\n\n", ACCENT);
             embedPanel(output);
         });
     }
@@ -135,8 +135,8 @@ public final class GuiAuditPanel {
         left.add(filterField, BorderLayout.CENTER);
         left.add(countLbl,    BorderLayout.EAST);
 
-        JButton refreshBtn = toolBtn("↻", ACCENT);
-        JButton clearBtn   = toolBtn("🗑", WARN);
+        JButton refreshBtn = toolBtn("Aktualisieren", ACCENT);
+        JButton clearBtn   = toolBtn("Leeren", WARN);
 
         JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 4, 0));
         right.setOpaque(false);
@@ -150,7 +150,7 @@ public final class GuiAuditPanel {
 
     static JButton toolBtn(String text, Color fg) {
         JButton b = new JButton(text);
-        b.setFont(new Font("Segoe UI Emoji", Font.BOLD, 12));
+        b.setFont(new Font("JetBrains Mono", Font.BOLD, 10));
         b.setForeground(fg);
         b.setBackground(BTN_BG);
         b.setBorder(new CompoundBorder(new LineBorder(fg.darker(), 1), new EmptyBorder(2, 7, 2, 7)));
