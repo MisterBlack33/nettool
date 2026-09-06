@@ -5,9 +5,9 @@ import java.awt.Font;
 
 /**
  * Zentrale Farb-/Font-Definitionen mit Dark/Light Theme Toggle.
- * Die eigentlichen Palettenwerte liegen in {@link GuiThemePalette};
- * diese Klasse bleibt die stabile öffentliche API (unverändert ggü. Vorversion),
- * damit keine andere Klasse angepasst werden muss.
+ * Die Palettenwerte liegen in {@link GuiThemeDark} / {@link GuiThemeLight}
+ * (Vertrag: {@link GuiColorPalette}); diese Klasse bleibt die stabile
+ * öffentliche API, damit keine andere Klasse angepasst werden muss.
  *
  * Nach toggleTheme() muss applyToStatics() aufgerufen werden.
  */
@@ -21,7 +21,9 @@ public final class GuiTheme {
     public static String  themeName() { return darkMode ? "☀  Hell" : "🌙  Dunkel"; }
     public static boolean toggleTheme() { darkMode = !darkMode; return darkMode; }
 
-    private static GuiThemePalette palette() { return darkMode ? GuiThemePalette.DARK : GuiThemePalette.LIGHT; }
+    private static GuiColorPalette palette() {
+        return darkMode ? GuiThemeDark.INSTANCE : GuiThemeLight.INSTANCE;
+    }
 
     // ────────────────────────────────────── Dynamische Accessoren ──────────────────────────────────────
 
@@ -45,7 +47,6 @@ public final class GuiTheme {
     public static final Color INFO    = new Color(0x72, 0xA8, 0xD8);
 
     // ────────────────────────────────────── OS-/Kategorie-Farben (modusabhängig) ──────────────────────────────────────
-    // Werden, wie die übrigen Legacy-Aliase, über applyToStatics() je Modus neu gesetzt.
 
     public static volatile Color WIN_COL, LIN_COL, APL_COL, IOS_COL, AND_COL, NET_COL, PRN_COL, IOT_COL, RPI_COL;
 
@@ -64,7 +65,7 @@ public final class GuiTheme {
     static { applyToStatics(); }
 
     public static void applyToStatics() {
-        GuiThemePalette p = palette();
+        GuiColorPalette p = palette();
 
         BG         = p.bg();
         PANEL_BG   = p.panelBg();

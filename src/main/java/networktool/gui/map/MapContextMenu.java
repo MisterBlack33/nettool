@@ -37,7 +37,7 @@ final class MapContextMenu {
         menu.add(header);
         menu.addSeparator();
 
-        String switchLabel = isSwitch ? "✕  Kein Switch" : "S  Als Switch markieren";
+        String switchLabel = isSwitch ? "Kein Switch" : "Als Switch markieren";
         Color  switchColor = isSwitch ? WARN : new Color(0xFF, 0xA0, 0x30);
         JMenuItem switchItem = item(switchLabel, switchColor);
         switchItem.addActionListener(e -> {
@@ -46,7 +46,7 @@ final class MapContextMenu {
         });
         menu.add(switchItem);
 
-        JMenuItem details = item("🔍  Details", ACCENT);
+        JMenuItem details = item("Details", ACCENT);
         details.addActionListener(e -> HostDetailsPanel.show(node.ip, node.hostname, node.os,
                 NetworkStore.getInstance().findNetwork(node.ip)));
         menu.add(details);

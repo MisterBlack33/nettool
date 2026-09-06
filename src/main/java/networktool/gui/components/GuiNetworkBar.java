@@ -44,9 +44,9 @@ public final class GuiNetworkBar {
         }
 
         bar.add(Box.createHorizontalStrut(8));
-        bar.add(iconBtn("+ Neu",  ACCENT2, onNew));
-        bar.add(iconBtn("✎",      FG_DIM,  onRename));
-        bar.add(iconBtn("✕",      WARN,    onDelete));
+        bar.add(iconBtn("+ Neu",     ACCENT2, onNew));
+        bar.add(iconBtn("Umbenennen",FG_DIM,  onRename));
+        bar.add(iconBtn("Löschen",   WARN,    onDelete));
         return bar;
     }
 

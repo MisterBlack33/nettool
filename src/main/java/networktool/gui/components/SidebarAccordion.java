@@ -115,8 +115,8 @@ final class SidebarAccordion {
             this.open = open;
             content.setVisible(open);
             for (Component c : header.getComponents()) {
-                if (c instanceof JLabel lbl && (lbl.getText().equals("▶") || lbl.getText().equals("▼")))
-                    lbl.setText(open ? "▼" : "▶");
+                if (c instanceof JLabel lbl && (lbl.getText().equals("[+]") || lbl.getText().equals("[-]")))
+                    lbl.setText(open ? "[-]" : "[+]");
             }
         }
     }
@@ -139,8 +139,8 @@ final class SidebarAccordion {
         lbl.setForeground(isTestSuite ? new Color(0xD0, 0x80, 0x80)
                 : (GuiTheme.isDark() ? new Color(0x80, 0x78, 0x50) : new Color(0x72, 0x58, 0x18)));
 
-        JLabel arrow = new JLabel("▶");
-        arrow.setFont(new Font("JetBrains Mono", Font.PLAIN, 8));
+        JLabel arrow = new JLabel("[+]");
+        arrow.setFont(new Font("JetBrains Mono", Font.PLAIN, 9));
         arrow.setForeground(FG_DIM);
 
         p.add(lbl,   BorderLayout.CENTER);

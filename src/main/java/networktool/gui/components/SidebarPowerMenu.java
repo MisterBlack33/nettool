@@ -34,8 +34,8 @@ final class SidebarPowerMenu {
         dot.setPreferredSize(new Dimension(50, 34));
         dot.start();
 
-        JButton pb = new JButton("⏻");
-        pb.setFont(new Font("JetBrains Mono", Font.BOLD, 14));
+        JButton pb = new JButton("POWER");
+        pb.setFont(new Font("JetBrains Mono", Font.BOLD, 10));
         pb.setForeground(WARN);
         pb.setBackground(BTN_BG);
         pb.setBorder(new CompoundBorder(new LineBorder(BORDER, 1), new EmptyBorder(4, 9, 4, 9)));
@@ -66,20 +66,19 @@ final class SidebarPowerMenu {
         JPopupMenu m = new JPopupMenu();
         m.setBackground(PANEL_BG);
         m.setBorder(new CompoundBorder(new LineBorder(BORDER_LT, 1), new EmptyBorder(4, 0, 4, 0)));
-        m.add(pItem("☀/🌙  Theme",            new Color(0xB8, 0xD0, 0xFF), onTheme));
+        m.add(pItem("Theme wechseln",        new Color(0xB8, 0xD0, 0xFF), onTheme));
         m.addSeparator();
-        m.add(pItem("✕  Abbrechen  Ctrl+A",   WARN,                        onCancel));
+        m.add(pItem("Abbrechen  Ctrl+A",     WARN,                        onCancel));
         m.addSeparator();
-        m.add(pItem("↺  Neustart    Ctrl+R",  new Color(0xFF, 0xD0, 0x50), onRestart));
+        m.add(pItem("Neustart   Ctrl+R",     new Color(0xFF, 0xD0, 0x50), onRestart));
         m.addSeparator();
-        m.add(pItem("🚪  Abmelden", new Color(0x80, 0xC8, 0xFF), () -> {
+        m.add(pItem("Abmelden", new Color(0x80, 0xC8, 0xFF), () -> {
             AuditLogger.getInstance().log("LOGOUT", UserAuth.getInstance().getCurrentUser());
             UserAuth.getInstance().logout();
             onRestart.run();
         }));
         m.addSeparator();
-        m.add(pItem("⏻  Beenden     Ctrl+Q", new Color(0xFF, 0x40, 0x40),
-                () -> confirmQuit(isRunning)));
+        m.add(pItem("Beenden    Ctrl+Q", new Color(0xFF, 0x40, 0x40), () -> confirmQuit(isRunning)));
         m.pack();
         m.show(anchor, 0, -(m.getPreferredSize().height + 2));
     }

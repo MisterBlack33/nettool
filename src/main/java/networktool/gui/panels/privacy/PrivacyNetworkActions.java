@@ -2,6 +2,7 @@ package main.java.networktool.gui.panels.privacy;
 
 import main.java.networktool.util.PlatformUtils;
 import main.java.networktool.util.SafeCommand;
+import main.java.networktool.util.StatusTags;
 
 import javax.swing.*;
 import java.io.*;
@@ -39,7 +40,7 @@ public final class PrivacyNetworkActions {
             exec(SafeCommand.of("ip").raw("link", "set").iface(iface).raw("down").build(), log);
             exec(SafeCommand.of("ip").raw("link", "set").iface(iface).raw("address").mac(newMac).build(), log);
             exec(SafeCommand.of("ip").raw("link", "set").iface(iface).raw("up").build(), log);
-            log("✔ MAC gesetzt: " + newMac, log);
+            log(StatusTags.OK + " MAC gesetzt: " + newMac, log);
         } catch (IllegalArgumentException e) {
             log("Ungültige Eingabe: " + e.getMessage(), log);
         } catch (Exception e) { log("Fehler: " + e.getMessage(), log); }
@@ -53,7 +54,7 @@ public final class PrivacyNetworkActions {
             exec(SafeCommand.of("ip").raw("link", "set").iface(iface).raw("down").build(), log);
             exec(SafeCommand.of("ethtool").raw("-E").iface(iface).build(), log);
             exec(SafeCommand.of("ip").raw("link", "set").iface(iface).raw("up").build(), log);
-            log("✔ MAC zurückgesetzt.", log);
+            log(StatusTags.OK + " MAC zurückgesetzt.", log);
         } catch (IllegalArgumentException e) {
             log("Ungültige Eingabe: " + e.getMessage(), log);
         } catch (Exception e) { log("Fehler (ethtool nötig): " + e.getMessage(), log); }
@@ -76,7 +77,7 @@ public final class PrivacyNetworkActions {
             exec(PlatformUtils.isWindows()
                     ? new String[]{"wireguard", "/installtunnelservice", wgDir + "\\" + conf + ".conf"}
                     : new String[]{"wg-quick", "up", conf}, log);
-            log("✔ WireGuard gestartet.", log);
+            log(StatusTags.OK + " WireGuard gestartet.", log);
         } catch (Exception e) { log("Fehler: " + e.getMessage(), log); }
     }
 
@@ -85,7 +86,7 @@ public final class PrivacyNetworkActions {
             exec(PlatformUtils.isWindows()
                     ? new String[]{"wireguard", "/uninstalltunnelservice", "wg0"}
                     : new String[]{"wg-quick", "down", "wg0"}, log);
-            log("✔ WireGuard gestoppt.", log);
+            log(StatusTags.OK + " WireGuard gestoppt.", log);
         } catch (Exception e) { log("Fehler: " + e.getMessage(), log); }
     }
 

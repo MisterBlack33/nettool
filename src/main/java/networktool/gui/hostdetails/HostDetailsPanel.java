@@ -86,10 +86,10 @@ public final class HostDetailsPanel {
         tabs.setForeground(FG);
         tabs.setFont(MONO_S);
 
-        tabs.addTab("  ① Info  ",  HostInfoTab.build(ip, hostname, os, panBg));
-        tabs.addTab("  ② Ping  ",  pingTab);
-        tabs.addTab("  ③ Ports  ", portsTab);
-        tabs.addTab("  ④ Notiz  ", HostNotesTab.build(ip, category, panBg));
+        tabs.addTab("  1 Info  ",  HostInfoTab.build(ip, hostname, os, panBg));
+        tabs.addTab("  2 Ping  ",  pingTab);
+        tabs.addTab("  3 Ports  ", portsTab);
+        tabs.addTab("  4 Notiz  ", HostNotesTab.build(ip, category, panBg));
         return tabs;
     }
 }

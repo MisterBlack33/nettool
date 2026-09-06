@@ -35,8 +35,8 @@ public final class GuiSearchBar extends JPanel {
                 new MatteBorder(0, 0, 1, 0, BORDER),
                 new EmptyBorder(6, 10, 6, 10)));
 
-        JLabel icon = new JLabel("🔍  ");
-        icon.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 13));
+        JLabel icon = new JLabel("SUCHE  ");
+        icon.setFont(MONO_XS);
         icon.setForeground(FG_DIM);
 
         field = new JTextField();

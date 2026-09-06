@@ -19,7 +19,7 @@ public final class ClipboardUtil {
         try {
             StringSelection sel = new StringSelection(text);
             Toolkit.getDefaultToolkit().getSystemClipboard().setContents(sel, sel);
-            System.out.println("  ✔ In Zwischenablage kopiert: " + text);
+            System.out.println("  " + main.java.networktool.util.StatusTags.OK + " In Zwischenablage kopiert: " + text);
         } catch (Exception e) {
             System.err.println("Zwischenablage: " + e.getMessage());
         }
