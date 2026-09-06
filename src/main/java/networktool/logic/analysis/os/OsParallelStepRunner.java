@@ -18,18 +18,18 @@ final class OsParallelStepRunner {
 
     record NamedStep(String name, Supplier<OsSignature> supplier) {}
 
-    /**
-     * @param steps     parallel auszuführende Schritte
-     * @param timeoutMs Sammelfrist für alle Schritte zusammen
-     * @return beste gefundene Signatur, oder {@code null}
-     */
+    /** Geteilter Cached-Pool statt Neuanlage pro Aufruf – spart Thread-Start-Overhead. */
+    private static final ExecutorService SHARED_POOL = Executors.newCachedThreadPool(r -> {
+        Thread t = new Thread(r, "OsParallelStep");
+        t.setDaemon(true);
+        return t;
+    });
+
     static OsSignature runParallel(List<NamedStep> steps, long timeoutMs) {
         if (steps.isEmpty()) return null;
 
-        try (ExecutorService exec = Executors.newFixedThreadPool(steps.size())) {
-            List<Future<OsSignature>> futures = submitAll(exec, steps);
-            return collectBest(futures, timeoutMs);
-        }
+        List<Future<OsSignature>> futures = submitAll(SHARED_POOL, steps);
+        return collectBest(futures, timeoutMs);
     }
 
     private static List<Future<OsSignature>> submitAll(ExecutorService exec, List<NamedStep> steps) {
