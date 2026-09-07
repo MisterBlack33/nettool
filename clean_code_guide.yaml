@@ -1,4 +1,4 @@
-version: 1.0
+version: 1.1
 target: humans-and-ai
 strict_mode: true
 
@@ -17,6 +17,23 @@ rules:
   hidden_side_effects: false
   dependency_injection_required: true
   cyclic_dependencies_allowed: false
+  test_coverage_min: 0.90
+  persistent_data_immutable_unless_layout_change: true
+  logs_persist_across_instances: true
+  comments_only_where_meaningful: true
+
+feature_workflow:
+  # Neue, vom Nutzer aktiv aufrufbare Features (Menüpunkte, Buttons, Kommandos,
+  # neue Sidebar-Einträge etc.) werden zuerst ausschließlich in der Testsuite
+  # angesiedelt (z.B. hinter einem Test-Suite-Flag/Menüpunkt, siehe
+  # GuiSidebar "TEST-SUITE (nur Entwicklung)").
+  # Erst mit Erreichen von Feature-Version 1.0 wird der Code in den
+  # produktiven Teil übernommen.
+  # Änderungen an bereits bestehenden, produktiven Features fallen NICHT
+  # unter diese Regel und werden direkt im Produktivcode bearbeitet.
+  new_user_invoked_features_start_in_test_suite: true
+  migration_to_production_requires: "feature_version_1.0"
+  exempt: existing_feature_modifications
 
 forbidden_patterns:
   - god_classes
@@ -33,6 +50,7 @@ testing:
   deterministic: true
   independent: true
   arrange_act_assert: true
+  min_line_coverage: 0.90
 
 priorities:
   - correctness

@@ -1,7 +1,7 @@
 # Clean-Code-Guide für KI-gestützte Softwareentwicklung
 
 metadata:
-version: 1.0
+version: 1.1
 format: deterministic-rule-set
 target: humans-and-ai
 language: de
@@ -15,19 +15,60 @@ strict_mode: true
 - hidden_side_effects: forbidden
 - one_responsibility_per_unit: required
 - deterministic_behavior: required
+- comments: nur wo sinnvoll und passend (kein Kommentar-Rauschen, keine reinen "Was"-Kommentare)
 
 ---
 
 ## Größenlimits
 
 rules:
-class_max_lines: 200
+class_max_lines: 200 (hart, keine Ausnahme)
 method_max_lines: 60
 recommended_method_max_lines: 30
 max_nesting_depth: 3
 max_method_parameters: 4
 max_line_length: 120
 max_direct_dependencies: 5
+
+---
+
+## Feature-Workflow (neu)
+
+Jedes neue Feature, das aktiv vom Nutzer aufgerufen werden muss (neuer
+Menüpunkt, Button, Sidebar-Eintrag, Kommando, Shortcut usw.), wird zuerst
+ausschließlich in der Testsuite angesiedelt — analog zur bestehenden
+"TEST-SUITE (nur Entwicklung)"-Sektion. Erst wenn das Feature Version 1.0
+erreicht, wird der Code in den produktiven Teil der Anwendung übernommen.
+
+Ausnahme: Änderungen an bereits bestehenden, produktiven Features fallen
+NICHT unter diese Regel und werden direkt im Produktivcode bearbeitet.
+
+```
+feature_workflow:
+  new_user_invoked_features_start_in_test_suite: true
+  migration_to_production_requires: feature_version_1.0
+  exempt: existing_feature_modifications
+```
+
+---
+
+## Datenpersistenz
+
+- Gespeicherte Informationen (Logs, Host-Tabellen, gespeicherte Netzwerke
+  usw.) dürfen inhaltlich/strukturell nicht verändert werden — Ausnahme:
+  reine Layout-/Format-Änderungen (z.B. Schema-Migration additiv, siehe
+  HostSchemaMigration).
+- Logs müssen über Anwendungsinstanzen/Neustarts hinweg persistiert werden
+  (siehe LogFileBase / AuditLogFile / DebugLogFile).
+
+---
+
+## Testabdeckung
+
+- min_line_coverage: 90% (siehe JaCoCo coverage-check in pom.xml)
+- deterministic_tests: required
+- independent_tests: required
+- arrange_act_assert: required
 
 ---
 
@@ -120,7 +161,7 @@ required:
 
 comments:
 explain_what: forbidden
-explain_why: required
+explain_why: required (nur wenn nötig)
 outdated_comments: forbidden
 
 todo_format:
@@ -152,6 +193,7 @@ testing:
 deterministic_tests: required
 independent_tests: required
 arrange_act_assert: required
+min_line_coverage: 90%
 
 forbidden_test_dependencies:
 - ui
@@ -181,6 +223,7 @@ forbidden_patterns:
 
 logging:
 structured_logging: required
+persist_across_instances: required
 sensitive_data_logging: forbidden
 
 forbidden_logged_data:
@@ -199,6 +242,7 @@ implicit_framework_magic: forbidden
 naming_consistency: required
 formatting_consistency: required
 deterministic_structure: required
+new_user_invoked_features_start_in_test_suite: required
 
 goal:
 - machine_readability
@@ -211,19 +255,23 @@ goal:
 ## Review-Checkliste
 
 review_checklist:
-- class_max_100_lines
+- class_max_200_lines
 - method_max_60_lines
 - nesting_max_3
 - no_magic_numbers
 - no_unused_imports
 - semantic_names
 - tests_exist
+- coverage_min_90_percent
 - exceptions_handled
 - no_empty_catch
 - architecture_valid
 - structured_logging
+- logs_persist_across_instances
 - no_sensitive_logging
 - no_dead_entry_points
+- new_feature_started_in_test_suite_if_user_invoked
+- persisted_data_unchanged_unless_layout_change
 
 ---
 
