@@ -12,6 +12,7 @@ import main.java.networktool.gui.components.scan.GuiScanCompareActions;
 import main.java.networktool.gui.components.scan.GuiSchedulerActions;
 import main.java.networktool.gui.components.scan.GuiSonifyActions;
 import main.java.networktool.gui.components.scan.GuiTrafficVisualizerActions;
+import main.java.networktool.gui.components.scan.GuiTrafficSpectrogramActions;
 import main.java.networktool.gui.components.map.GuiNetworkMap;
 import main.java.networktool.gui.notification.NotificationListener;
 import main.java.networktool.gui.panels.GuiInputPanel;
@@ -94,8 +95,10 @@ public class GuiMenuHandler {
         registry.register("22", () -> GuiScanCompareActions.handleScanHistoryDelta(output, this));
         // Test-Suite: Data-to-Sound (Netzwerk-Traffic-Sonifizierung) Toggle
         registry.register("24", () -> GuiSonifyActions.toggle(input, output));
-        // Test-Suite: Data-to-Visual (Netzwerk-Traffic-Visualisierung) Toggle
+        // Test-Suite: Data-to-Visual, Funktion 1 (Balken-Wellenform) Toggle
         registry.register("25", () -> GuiTrafficVisualizerActions.toggle(input, output));
+        // Test-Suite: Data-to-Visual, Funktion 2 (Spektrogramm) Toggle
+        registry.register("26", () -> GuiTrafficSpectrogramActions.toggle(input, output));
     }
 
     // ── Dispatch ──────────────────────────────────────────────────────────

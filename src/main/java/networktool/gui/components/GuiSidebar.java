@@ -60,7 +60,8 @@ public final class GuiSidebar {
             {"30",  "VPN / Tarnung", null, "false"},
             {null,  "TEST-SUITE (nur Entwicklung)", "true", "true"},
             {"24",  "Data → Sound",  null, "false"},
-            {"25",  "Data → Visual", null, "false"},
+            {"25",  "Data → Visual (Balken)",       null, "false"},
+            {"26",  "Data → Visual (Spektrogramm)", null, "false"},
     };
 
     private GuiSidebar() {}
