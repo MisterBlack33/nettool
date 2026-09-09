@@ -126,7 +126,4 @@ public class GUI extends JFrame implements OutputRenderer {
     public JTextPane getOutputPane()                 { return outputPanel.getOutputPane(); }
 
     private void restart() { GuiRestartFlow.restart(this); }
-
-    @SuppressWarnings("unused")
-    public static void launch() { GuiRestartFlow.launch(); }
 }

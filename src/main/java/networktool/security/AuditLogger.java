@@ -67,10 +67,6 @@ public final class AuditLogger {
         log("AUDIT_LOG_CLEARED");
     }
 
-    public void clearInternal(Path dataDir) {
-        new AuditLogFile(dataDir).clear();
-    }
-
     public void flush() {
         ExecutorService w = writer;
         if (w == null || w.isShutdown()) return;
@@ -129,15 +125,4 @@ public final class AuditLogger {
         return s.replace("\t", " ").replace("\n", " ").replace("\r", "");
     }
 
-    @Deprecated
-    public static final class LogEntry {
-        public final String timestamp, user, action, detail;
-        public LogEntry(String timestamp, String user, String action, String detail) {
-            this.timestamp = timestamp; this.user = user;
-            this.action = action; this.detail = detail != null ? detail : "";
-        }
-        public static LogEntry from(AuditLogEntry e) {
-            return new LogEntry(e.timestamp(), e.user(), e.action(), e.detail());
-        }
-    }
 }
