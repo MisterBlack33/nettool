@@ -114,6 +114,7 @@ public final class GuiSidebar {
 
     private static JScrollPane buildAccordion(Consumer<String> onMenuClick) {
         boolean isAdmin = UserAuth.getInstance().isAdmin();
-        return SidebarAccordion.build(ITEMS, isAdmin, onMenuClick);
+        SidebarAccordion.AccessLevel accessLevel = isAdmin ? SidebarAccordion.AccessLevel.ADMIN : SidebarAccordion.AccessLevel.USER;
+        return SidebarAccordion.build(ITEMS, accessLevel, onMenuClick);
     }
 }

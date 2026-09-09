@@ -1,7 +1,7 @@
 package main.java.networktool.logic.sonify;
 
 import main.java.networktool.logic.windows.PsInterfaceStatsResolver;
-import main.java.networktool.util.PlatformUtils;
+import main.java.networktool.util.PlatformSupport;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,7 +21,7 @@ public final class InterfaceStatsReader {
 
     /** @return [rxBytes, txBytes] oder {@code null} wenn nicht lesbar. */
     public static long[] read(String iface) {
-        if (PlatformUtils.isWindows()) return PsInterfaceStatsResolver.read(iface);
+        if (PlatformSupport.isWindows()) return PsInterfaceStatsResolver.read(iface);
         return readSysfs(iface);
     }
 

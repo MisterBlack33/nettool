@@ -1,7 +1,7 @@
 package main.java.networktool.security;
 
 import main.java.networktool.logging.DebugLogger;
-import main.java.networktool.storage.StorageUtils;
+import main.java.networktool.storage.StorageLocationsResolver;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -37,7 +37,7 @@ public final class UserAuth {
 
     public synchronized void init(Path dir) {
         // Wenn kein Verzeichnis übergeben wurde, verwende das zentrale Datenverzeichnis
-        if (dir == null) this.dataDir = StorageUtils.resolveDataDir();
+        if (dir == null) this.dataDir = StorageLocationsResolver.resolveDataDir();
         else this.dataDir = dir;
     }
 
@@ -62,21 +62,21 @@ public final class UserAuth {
 
     /** Warnt (Debug-Log), falls Standard-Zugangsdaten noch unverändert aktiv sind. */
     private static void warnIfDefaultCredentialsActive(List<Map<String, String>> users) {
-        if (usesDefaultPassword(users, DEFAULT_ADMIN_USER, DEFAULT_ADMIN_PASSWORD)) {
+        if (usesDefaultAdminPassword(users)) {
             DebugLogger.getInstance().log("WARN",
                     "[UserAuth] Standard-Zugangsdaten für \"" + DEFAULT_ADMIN_USER
                             + "\" noch aktiv – Passwort ändern!");
         }
     }
 
-    private static boolean usesDefaultPassword(List<Map<String, String>> users, String username, String defaultPassword) {
-        Map<String, String> u = findByUsername(users, username);
+    private static boolean usesDefaultAdminPassword(List<Map<String, String>> users) {
+        Map<String, String> u = findByUsername(users, DEFAULT_ADMIN_USER);
         if (u == null || u.get("salt") == null || u.get("hash") == null) return false;
         try {
             byte[] salt = Base64.getDecoder().decode(u.get("salt"));
             return MessageDigest.isEqual(
                     Base64.getDecoder().decode(u.get("hash")),
-                    Base64.getDecoder().decode(hash(defaultPassword, salt)));
+                    Base64.getDecoder().decode(hash(DEFAULT_ADMIN_PASSWORD, salt)));
         } catch (Exception e) {
             return false;
         }

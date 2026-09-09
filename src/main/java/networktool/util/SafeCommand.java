@@ -2,11 +2,12 @@ package main.java.networktool.util;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * Baut exec()-Argumentlisten, bei denen Interface-/IP-/MAC-Werte zwingend
- * über {@link PlatformUtils#requireSafeInterface} etc. validiert werden,
+ * über {@link PlatformSupport#requireSafeInterface} etc. validiert werden,
  * bevor sie in einen Prozessaufruf gelangen.
  */
 public final class SafeCommand {
@@ -23,22 +24,23 @@ public final class SafeCommand {
 
     /** Fügt Argumente ohne Validierung hinzu (z.B. feste Flags wie "-E", "up"). */
     public SafeCommand raw(String... args) {
-        for (String a : args) parts.add(a);
+        if (args == null) return this;
+        Collections.addAll(parts, args);
         return this;
     }
 
     public SafeCommand iface(String value) {
-        parts.add(PlatformUtils.requireSafeInterface(value));
+        parts.add(PlatformSupport.requireSafeInterface(value));
         return this;
     }
 
     public SafeCommand ip(String value) {
-        parts.add(PlatformUtils.requireSafeIp(value));
+        parts.add(PlatformSupport.requireSafeIp(value));
         return this;
     }
 
     public SafeCommand mac(String value) {
-        parts.add(PlatformUtils.requireSafeMac(value));
+        parts.add(PlatformSupport.requireSafeMac(value));
         return this;
     }
 

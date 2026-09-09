@@ -1,7 +1,7 @@
 package main.java.networktool.logic.messaging;
 
 import main.java.networktool.logic.analysis.os.OsDetector;
-import main.java.networktool.util.PlatformUtils;
+import main.java.networktool.util.PlatformSupport;
 
 /** Überträgt Nachrichten per WinRM/PowerShell-Remoting an Windows-Ziele. Package-private. */
 final class MessageDeliveryWinRm {
@@ -10,7 +10,7 @@ final class MessageDeliveryWinRm {
 
     static boolean tryWinRM(String ip, String message) {
         // Ziel-IP wird direkt in ein PowerShell-Skript eingebettet → Pflichtvalidierung
-        if (!PlatformUtils.isSafeIp(ip)) {
+        if (!PlatformSupport.isSafeIp(ip)) {
             System.out.println("  ✕ WinRM: ungültige Ziel-IP");
             return false;
         }
@@ -19,7 +19,7 @@ final class MessageDeliveryWinRm {
             return false;
         }
         System.out.println("  Methode : WinRM / PowerShell-Remoting");
-        String m = PlatformUtils.escapePowerShell(message);
+        String m = PlatformSupport.escapePowerShell(message);
         String script =
                 "Add-Type -AssemblyName System.Windows.Forms; " +
                         "Add-Type -AssemblyName System.Drawing; " +

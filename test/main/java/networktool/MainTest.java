@@ -2,7 +2,7 @@ package main.java.networktool;
 
 import main.java.networktool.security.AuditLogger;
 import main.java.networktool.security.UserAuth;
-import main.java.networktool.storage.StorageUtils;
+import main.java.networktool.storage.StorageLocationsResolver;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.api.parallel.Isolated;
@@ -50,8 +50,8 @@ class MainTest {
     }
 
     @Test
-    void storageUtils_resolveDataDir_notNull() {
-        assertNotNull(StorageUtils.resolveDataDir());
+    void storageLocationsResolver_resolveDataDir_notNull() {
+        assertNotNull(StorageLocationsResolver.resolveDataDir());
     }
 
     @Test

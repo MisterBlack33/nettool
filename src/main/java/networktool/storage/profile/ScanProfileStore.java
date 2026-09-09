@@ -73,15 +73,15 @@ public final class ScanProfileStore {
         int start = json.indexOf('[', arrStart);
         if (start < 0) return;
         for (String obj : extractObjects(json, start)) {
-            String name = main.java.networktool.storage.StorageUtils.extractJsonStr(obj, "name");
+            String name = main.java.networktool.storage.StorageLocationsResolver.extractJsonStr(obj, "name");
             if (name == null || name.isBlank()) continue;
             ScanProfile p = new ScanProfile(name);
-            p.osFilter = nvl(main.java.networktool.storage.StorageUtils.extractJsonStr(obj, "osFilter"), "");
-            p.hnFilter = nvl(main.java.networktool.storage.StorageUtils.extractJsonStr(obj, "hnFilter"), "");
-            p.category = nvl(main.java.networktool.storage.StorageUtils.extractJsonStr(obj, "category"), "");
-            p.lastRun  = nvl(main.java.networktool.storage.StorageUtils.extractJsonStr(obj, "lastRun"),  "");
+            p.osFilter = nvl(main.java.networktool.storage.StorageLocationsResolver.extractJsonStr(obj, "osFilter"), "");
+            p.hnFilter = nvl(main.java.networktool.storage.StorageLocationsResolver.extractJsonStr(obj, "hnFilter"), "");
+            p.category = nvl(main.java.networktool.storage.StorageLocationsResolver.extractJsonStr(obj, "category"), "");
+            p.lastRun  = nvl(main.java.networktool.storage.StorageLocationsResolver.extractJsonStr(obj, "lastRun"),  "");
             p.autoSave = "true".equalsIgnoreCase(
-                    main.java.networktool.storage.StorageUtils.extractJsonStr(obj, "autoSave"));
+                    main.java.networktool.storage.StorageLocationsResolver.extractJsonStr(obj, "autoSave"));
             p.cidrs.addAll(extractStringArray(obj, "cidrs"));
             for (String s : extractStringArray(obj, "ports")) {
                 try { p.ports.add(Integer.parseInt(s.trim())); }

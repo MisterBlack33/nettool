@@ -11,7 +11,7 @@ public final class IpValidator {
     private IpValidator() {}
 
     public static boolean isValidIpv4(String ip) {
-        if (!PlatformUtils.isSafeIp(ip)) return false;
+        if (!PlatformSupport.isSafeIp(ip)) return false;
         String[] parts = ip.split("\\.");
         if (parts.length != 4) return false;
         for (String p : parts) {
@@ -24,7 +24,7 @@ public final class IpValidator {
     }
 
     public static boolean isValidCidr(String cidr) {
-        if (!PlatformUtils.isSafeCidr(cidr)) return false;
+        if (!PlatformSupport.isSafeCidr(cidr)) return false;
         String[] parts = cidr.split("/");
         if (!isValidIpv4(parts[0])) return false;
         try {
@@ -35,7 +35,7 @@ public final class IpValidator {
 
     public static boolean isValidHostname(String host) {
         if (isValidIpv4(host)) return true;
-        return PlatformUtils.isSafeHostname(host);
+        return PlatformSupport.isSafeHostname(host);
     }
 
     /** Versucht DNS-Auflösung – gibt false zurück wenn nicht auflösbar. */

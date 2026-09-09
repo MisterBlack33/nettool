@@ -1,13 +1,14 @@
 package main.java.networktool.storage.network;
 
 import main.java.networktool.model.HostResult;
-import main.java.networktool.storage.JsonHelper;
+import main.java.networktool.storage.JsonCodec;
 import main.java.networktool.storage.StorageLocations;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
+import java.util.stream.Stream;
 
 /** Lädt/speichert Netzwerk-Host-Daten als JSON. Kein Legacy-Format mehr. */
 public final class NetworkStorePersistence {
@@ -35,9 +36,8 @@ public final class NetworkStorePersistence {
                         Map<String, String> prefixes) {
         Path saved = savedDir(dataDir);
         if (!Files.isDirectory(saved)) return;
-        try {
-            Files.list(saved)
-                    .filter(p -> p.getFileName().toString().endsWith(FILE_EXT)
+        try (Stream<Path> stream = Files.list(saved)) {
+            stream.filter(p -> p.getFileName().toString().endsWith(FILE_EXT)
                             && !p.getFileName().toString().equals(ALL_FILE))
                     .sorted()
                     .forEach(f -> loadJsonFile(f, stripExt(f.getFileName().toString()),
@@ -52,12 +52,12 @@ public final class NetworkStorePersistence {
                                      Map<String, String> prefixes) {
         try {
             String json   = Files.readString(file, StandardCharsets.UTF_8);
-            String prefix = JsonHelper.extractStr(json, "prefix");
+            String prefix = JsonCodec.extractStr(json, "prefix");
             if (prefixes != null && prefix != null) prefixes.put(name, prefix);
             List<HostResult> list = networks.computeIfAbsent(name, k -> new ArrayList<>());
-            int arrStart = JsonHelper.findArrayStart(json, "hosts");
+            int arrStart = JsonCodec.findArrayStart(json, "hosts");
             if (arrStart < 0) return;
-            for (String obj : JsonHelper.extractObjects(json, arrStart)) {
+            for (String obj : JsonCodec.extractObjects(json, arrStart)) {
                 HostResult h = HostJsonBuilder.parseHost(obj);
                 if (h != null) list.add(h);
             }
@@ -93,8 +93,8 @@ public final class NetworkStorePersistence {
                 for (HostResult h : e.getValue()) {
                     if (!seen.add(h.ip)) continue;
                     if (!first) sb.append(",\n");
-                    sb.append("    {\"ip\":\"").append(JsonHelper.esc(h.ip))
-                            .append("\",\"category\":\"").append(JsonHelper.esc(e.getKey())).append("\"}");
+                    sb.append("    {\"ip\":\"").append(JsonCodec.esc(h.ip))
+                            .append("\",\"category\":\"").append(JsonCodec.esc(e.getKey())).append("\"}");
                     first = false;
                 }
             }
@@ -115,8 +115,8 @@ public final class NetworkStorePersistence {
         NetworkStoreNtfy.saveTopic(dataDir, topic);
     }
 
-    public static String extractStr(String json, String field) { return JsonHelper.extractStr(json, field); }
-    public static String esc(String s)                          { return JsonHelper.esc(s); }
+    public static String extractStr(String json, String field) { return JsonCodec.extractStr(json, field); }
+    public static String esc(String s)                          { return JsonCodec.esc(s); }
 
     private static String stripExt(String filename) {
         int dot = filename.lastIndexOf('.');

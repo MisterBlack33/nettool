@@ -1,8 +1,8 @@
 package main.java.networktool.gui.core;
 
 import main.java.networktool.filter.OutputRenderer;
+import main.java.networktool.filter.OutputRendererRegistry;
 import main.java.networktool.gui.components.GuiProgressBar;
-import main.java.networktool.gui.components.GuiSidebar;
 import main.java.networktool.gui.components.GuiStatusBar;
 import main.java.networktool.gui.components.table.GuiSearchBar;
 import main.java.networktool.gui.components.table.GuiTableRenderer;
@@ -11,60 +11,43 @@ import main.java.networktool.gui.components.actions.GuiContextMenu;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import main.java.networktool.gui.panels.GuiInputPanel;
 import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.gui.panels.saved.GuiSavedHostsPanel;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.model.ScanResult;
-import main.java.networktool.security.AuditLogger;
-import main.java.networktool.security.LoginDialog;
-import main.java.networktool.security.SecurityMonitor;
-import main.java.networktool.security.UserAuth;
 import main.java.networktool.theme.GuiTheme;
 import main.java.networktool.util.AppIcon;
-import main.java.networktool.filter.OutputRendererRegistry;
 
 /**
  * Haupt-Fenster der Anwendung.
  *
- * Besonderheiten:
- *  - searchBar-Feld MUSS vor savedHostsPanel deklariert/initialisiert werden
- *  - Fenster öffnet sich auf dem Monitor des Login-Dialogs
- *  - GuiSearchBar wird ausschließlich über savedHostsPanel.show() aktiviert
- *    und bei jedem anderen Menüklick über searchBar.hide() deaktiviert
- *
- * Implementiert {@link OutputRenderer}, damit {@code filter.*} keine
- * Compile-Abhängigkeit auf diese Klasse braucht (Registrierung via
- * {@link OutputRendererRegistry}).
- *
  * Fenster-Chrome (Shortcuts/Fullscreen/Theme) siehe {@link GuiWindowActions},
  * Start-Hintergrundaufgaben siehe {@link GuiStartupTasks},
- * Menü-Dispatch siehe {@link GuiMenuDispatch}.
+ * Menü-Dispatch siehe {@link GuiMenuDispatch},
+ * Layout-/Shortcut-Aufbau siehe {@link GuiFrameLayout},
+ * Neustart-/Launch-Ablauf siehe {@link GuiRestartFlow}.
+ *
+ * Implementiert {@link OutputRenderer}, damit {@code filter.*} keine
+ * Compile-Abhängigkeit auf diese Klasse braucht.
  */
 public class GUI extends JFrame implements OutputRenderer {
 
-    private static final Logger LOG = Logger.getLogger(GUI.class.getName());
-
     private static GUI INSTANCE;
-    public static boolean isGuiActive() {
-        return INSTANCE != null && INSTANCE.isDisplayable();
-    }
+    public static boolean isGuiActive() { return INSTANCE != null && INSTANCE.isDisplayable(); }
     public static GUI     instance()    { return INSTANCE; }
+    static void clearInstance()         { INSTANCE = null; }
 
     /** Monitor auf dem der Login-Dialog angezeigt wurde. */
     private static GraphicsDevice loginMonitor = null;
     public static void setLoginMonitor(GraphicsDevice device) { loginMonitor = device; }
 
-    // !! Reihenfolge der Deklaration = Reihenfolge der Initialisierung !!
-    // searchBar MUSS vor savedHostsPanel stehen – wird als Parameter übergeben.
     private final GuiSearchBar       searchBar;
-    private final GuiOutputPanel outputPanel;
-    private final GuiProgressBar progressBar;
-    private final GuiStatusBar statusBar;
-    private final GuiInputPanel inputPanel;
+    private final GuiOutputPanel     outputPanel;
+    private final GuiProgressBar     progressBar;
+    private final GuiStatusBar       statusBar;
+    private final GuiInputPanel      inputPanel;
     private final GuiTableRenderer   tableRenderer;
     private final GuiMenuHandler     menuHandler;
     private final GuiContextMenu     contextMenu;
@@ -80,7 +63,7 @@ public class GUI extends JFrame implements OutputRenderer {
         getContentPane().setBackground(GuiTheme.BG);
         setLayout(new BorderLayout());
 
-        // Initialisierungsreihenfolge beachten!
+        // Reihenfolge beachten: searchBar muss vor savedHostsPanel initialisiert sein.
         searchBar       = new GuiSearchBar();
         outputPanel     = new GuiOutputPanel();
         progressBar     = new GuiProgressBar();
@@ -95,10 +78,8 @@ public class GUI extends JFrame implements OutputRenderer {
         menuHandler.setSavedHostsPanel(savedHostsPanel);
 
         outputPanel.redirectStreams();
-        buildLayout();
-        GuiWindowActions.installKeyboardShortcuts(this, menuHandler,
-                () -> GuiWindowActions.confirmQuit(this, menuHandler), this::restart, this::toggleSearchBar);
-        GuiWindowActions.installWindowClose(this, () -> GuiWindowActions.confirmQuit(this, menuHandler));
+        GuiFrameLayout.assemble(this, searchBar, outputPanel, progressBar, statusBar, inputPanel,
+                menuHandler, this::handleMenuClick, this::restart, this::toggleTheme, this::toggleSearchBar);
 
         GuiWindowActions.enterFullscreen(this, loginMonitor);
         AppIcon.apply(this);
@@ -106,20 +87,6 @@ public class GUI extends JFrame implements OutputRenderer {
         outputPanel.printBanner();
 
         GuiStartupTasks.run(outputPanel);
-    }
-
-    // ── Layout ────────────────────────────────────────────────────────────
-
-    private void buildLayout() {
-        add(GuiSidebar.build(
-                this::handleMenuClick,
-                menuHandler::cancel,
-                this::restart,
-                this::toggleTheme,
-                menuHandler::isRunning
-        ), BorderLayout.WEST);
-        add(buildMainPanel(),       BorderLayout.CENTER);
-        add(statusBar.buildPanel(), BorderLayout.SOUTH);
     }
 
     private void handleMenuClick(String id) {
@@ -131,26 +98,6 @@ public class GUI extends JFrame implements OutputRenderer {
             if (searchBar.isSearchVisible()) searchBar.hide();
             else searchBar.show();
         }
-    }
-
-    private JPanel buildMainPanel() {
-        JPanel bottom = new JPanel(new BorderLayout());
-        bottom.setBackground(GuiTheme.PANEL_BG);
-        bottom.add(progressBar.getPanel(),  BorderLayout.NORTH);
-        bottom.add(inputPanel.buildPanel(), BorderLayout.SOUTH);
-
-        JPanel centerArea = new JPanel(new BorderLayout());
-        centerArea.setBackground(GuiTheme.BG);
-        // searchBar ist standardmäßig unsichtbar; liegt trotzdem im Layout
-        centerArea.add(searchBar,                     BorderLayout.NORTH);
-        centerArea.add(outputPanel.buildScrollPane(), BorderLayout.CENTER);
-
-        JPanel main = new JPanel(new BorderLayout());
-        main.setBackground(GuiTheme.BG);
-        main.add(outputPanel.buildTopBar(), BorderLayout.NORTH);
-        main.add(centerArea,                BorderLayout.CENTER);
-        main.add(bottom,                    BorderLayout.SOUTH);
-        return main;
     }
 
     private void toggleTheme() {
@@ -178,31 +125,8 @@ public class GUI extends JFrame implements OutputRenderer {
     public void setStatus(String msg, Color color)   { statusBar.set(msg, color); }
     public JTextPane getOutputPane()                 { return outputPanel.getOutputPane(); }
 
-    // ── Neustart ─────────────────────────────────────────────────────────
+    private void restart() { GuiRestartFlow.restart(this); }
 
-    private void restart() {
-        AuditLogger.getInstance().log("APP_RESTART", UserAuth.getInstance().getCurrentUser());
-        SecurityMonitor.getInstance().stop();
-        loginMonitor = getGraphicsConfiguration().getDevice();
-        OutputRendererRegistry.unregister(this);
-        dispose();
-        INSTANCE = null;
-        SwingUtilities.invokeLater(() -> {
-            try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); }
-            catch (Exception e) { LOG.log(Level.FINE, "System-Look-and-Feel konnte nicht gesetzt werden", e); }
-            boolean ok = LoginDialog.show(UserAuth.getInstance());
-            if (!ok) System.exit(0);
-            AuditLogger.getInstance().log("LOGIN_AFTER_RESTART",
-                    UserAuth.getInstance().getCurrentUser());
-            new GUI();
-        });
-    }
-
-    public static void launch() {
-        SwingUtilities.invokeLater(() -> {
-            try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); }
-            catch (Exception e) { LOG.log(Level.FINE, "System-Look-and-Feel konnte nicht gesetzt werden", e); }
-            new GUI();
-        });
-    }
+    @SuppressWarnings("unused")
+    public static void launch() { GuiRestartFlow.launch(); }
 }

@@ -2,51 +2,47 @@ package networktool.util;
 
 import main.java.networktool.gui.login.GuiLoginRateLimiter;
 import main.java.networktool.util.IpValidator;
-import main.java.networktool.util.PlatformUtils;
+import main.java.networktool.util.PlatformSupport;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class UtilTest {
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    //  PlatformUtils
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ── PlatformSupport ─────────────────────────────────────────────────
 
     @Nested
-    class PlatformUtilsTest {
+    class PlatformSupportTest {
 
-        @Test void isSafeIp_valid()        { assertTrue(PlatformUtils.isSafeIp("192.168.1.1")); }
-        @Test void isSafeIp_invalid()      { assertFalse(PlatformUtils.isSafeIp("192.168.1.1; rm -rf")); }
-        @Test void isSafeIp_null()         { assertFalse(PlatformUtils.isSafeIp(null)); }
-        @Test void isSafeIp_empty()        { assertFalse(PlatformUtils.isSafeIp("")); }
-        @Test void isSafeIp_ipv6()         { assertFalse(PlatformUtils.isSafeIp("::1")); }
+        @Test void isSafeIp_valid()        { assertTrue(PlatformSupport.isSafeIp("192.168.1.1")); }
+        @Test void isSafeIp_invalid()      { assertFalse(PlatformSupport.isSafeIp("192.168.1.1; rm -rf")); }
+        @Test void isSafeIp_null()         { assertFalse(PlatformSupport.isSafeIp(null)); }
+        @Test void isSafeIp_empty()        { assertFalse(PlatformSupport.isSafeIp("")); }
+        @Test void isSafeIp_ipv6()         { assertFalse(PlatformSupport.isSafeIp("::1")); }
 
-        @Test void isSafeMac_valid()       { assertTrue(PlatformUtils.isSafeMac("AA:BB:CC:DD:EE:FF")); }
-        @Test void isSafeMac_dashFormat()  { assertTrue(PlatformUtils.isSafeMac("AA-BB-CC-DD-EE-FF")); }
-        @Test void isSafeMac_invalid()     { assertFalse(PlatformUtils.isSafeMac("AA:BB:CC")); }
+        @Test void isSafeMac_valid()       { assertTrue(PlatformSupport.isSafeMac("AA:BB:CC:DD:EE:FF")); }
+        @Test void isSafeMac_dashFormat()  { assertTrue(PlatformSupport.isSafeMac("AA-BB-CC-DD-EE-FF")); }
+        @Test void isSafeMac_invalid()     { assertFalse(PlatformSupport.isSafeMac("AA:BB:CC")); }
 
-        @Test void isSafeCidr_valid()      { assertTrue(PlatformUtils.isSafeCidr("10.0.0.0/24")); }
-        @Test void isSafeCidr_invalid()    { assertFalse(PlatformUtils.isSafeCidr("10.0.0.0/24; evil")); }
+        @Test void isSafeCidr_valid()      { assertTrue(PlatformSupport.isSafeCidr("10.0.0.0/24")); }
+        @Test void isSafeCidr_invalid()    { assertFalse(PlatformSupport.isSafeCidr("10.0.0.0/24; evil")); }
 
-        @Test void isSafeHostname_valid()  { assertTrue(PlatformUtils.isSafeHostname("my-host.local")); }
-        @Test void isSafeHostname_inject() { assertFalse(PlatformUtils.isSafeHostname("host; rm -rf /")); }
+        @Test void isSafeHostname_valid()  { assertTrue(PlatformSupport.isSafeHostname("my-host.local")); }
+        @Test void isSafeHostname_inject() { assertFalse(PlatformSupport.isSafeHostname("host; rm -rf /")); }
 
-        @Test void requireSafeIp_valid()   { assertEquals("1.2.3.4", PlatformUtils.requireSafeIp("1.2.3.4")); }
+        @Test void requireSafeIp_valid()   { assertEquals("1.2.3.4", PlatformSupport.requireSafeIp("1.2.3.4")); }
         @Test void requireSafeIp_invalid() { assertThrows(IllegalArgumentException.class,
-                () -> PlatformUtils.requireSafeIp("1.2.3.4; bad")); }
+                () -> PlatformSupport.requireSafeIp("1.2.3.4; bad")); }
 
-        @Test void escapePowerShell_quote()   { assertTrue(PlatformUtils.escapePowerShell("it's").contains("''")); }
-        @Test void escapePowerShell_null()    { assertEquals("", PlatformUtils.escapePowerShell(null)); }
-        @Test void escapeSshArg_quote()       { assertTrue(PlatformUtils.escapeSshArg("it's").contains("\\'")); }
-        @Test void escapeSshArg_backslash()   { assertTrue(PlatformUtils.escapeSshArg("a\\b").contains("\\\\")); }
+        @Test void escapePowerShell_quote()   { assertTrue(PlatformSupport.escapePowerShell("it's").contains("''")); }
+        @Test void escapePowerShell_null()    { assertEquals("", PlatformSupport.escapePowerShell(null)); }
+        @Test void escapeSshArg_quote()       { assertTrue(PlatformSupport.escapeSshArg("it's").contains("\\'")); }
+        @Test void escapeSshArg_backslash()   { assertTrue(PlatformSupport.escapeSshArg("a\\b").contains("\\\\")); }
 
-        @Test void isWindows_returnsBoolean() { assertNotNull(PlatformUtils.isWindows()); }
+        @Test void isWindows_returnsBoolean() { assertNotNull(PlatformSupport.isWindows()); }
     }
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    //  IpValidator
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ── IpValidator ───────────────────────────────────────────────────────
 
     @Nested
     class IpValidatorTest {
@@ -63,9 +59,7 @@ class UtilTest {
         @Test void sanitize_null()       { assertNull(IpValidator.sanitize(null)); }
     }
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    //  GuiLoginRateLimiter
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ── GuiLoginRateLimiter ───────────────────────────────────────────────
 
     @Nested
     class GuiLoginRateLimiterTest {

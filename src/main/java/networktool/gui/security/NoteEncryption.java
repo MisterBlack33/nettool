@@ -1,5 +1,7 @@
 package main.java.networktool.gui.security;
 
+import main.java.networktool.logging.DebugLogger;
+
 import javax.crypto.*;
 import javax.crypto.spec.*;
 import java.nio.charset.StandardCharsets;
@@ -26,7 +28,7 @@ public final class NoteEncryption {
 
     public static boolean hasSessionKey() { return sessionKey != null; }
 
-    public static void setPassword(String password) throws Exception {
+    public static void setPassword(String password) throws GeneralSecurityException {
         sessionSalt = new byte[SALT_LEN];
         new SecureRandom().nextBytes(sessionSalt);
         sessionKey = deriveKey(password, sessionSalt);
@@ -34,6 +36,10 @@ public final class NoteEncryption {
 
     public static void clearSession() { sessionKey = null; sessionSalt = null; }
 
+    /**
+     * Verschlüsselt eine Notiz. Bei Crypto-Fehlern wird geloggt und der Klartext
+     * als Fallback zurückgegeben (Verhalten unverändert, nur nicht mehr "silent").
+     */
     public static String encrypt(String plaintext) {
         if (sessionKey == null || plaintext == null || plaintext.isBlank()) return plaintext;
         try {
@@ -47,7 +53,11 @@ public final class NoteEncryption {
             System.arraycopy(iv,          0, out, SALT_LEN,           IV_LEN);
             System.arraycopy(ct,          0, out, SALT_LEN + IV_LEN,  ct.length);
             return PREFIX + Base64.getEncoder().encodeToString(out);
-        } catch (Exception e) { return plaintext; }
+        } catch (GeneralSecurityException e) {
+            DebugLogger.getInstance().log("WARN",
+                    "[NoteEncryption] Verschlüsselung fehlgeschlagen, Klartext-Fallback: " + e);
+            return plaintext;
+        }
     }
 
     /**
@@ -68,14 +78,14 @@ public final class NoteEncryption {
             return new String(c.doFinal(ct), StandardCharsets.UTF_8);
         } catch (AEADBadTagException e) {
             throw new NoteDecryptionException("Falsches Passwort", e);
-        } catch (Exception e) {
+        } catch (GeneralSecurityException | IllegalArgumentException | ArrayIndexOutOfBoundsException e) {
             throw new NoteDecryptionException("Entschlüsselung fehlgeschlagen", e);
         }
     }
 
     public static boolean isEncrypted(String s) { return s != null && s.startsWith(PREFIX); }
 
-    private static SecretKey deriveKey(String pw, byte[] salt) throws Exception {
+    private static SecretKey deriveKey(String pw, byte[] salt) throws GeneralSecurityException {
         SecretKeyFactory f = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
         return new SecretKeySpec(
                 f.generateSecret(new PBEKeySpec(pw.toCharArray(), salt, ITERATIONS, KEY_LEN))

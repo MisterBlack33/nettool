@@ -1,7 +1,7 @@
 package main.java.networktool.logic.sonify;
 
 import main.java.networktool.logic.windows.PsInterfaceStatsResolver;
-import main.java.networktool.util.PlatformUtils;
+import main.java.networktool.util.PlatformSupport;
 
 import java.net.NetworkInterface;
 import java.util.Collections;
@@ -16,7 +16,7 @@ public final class ActiveInterfaceDetector {
     private ActiveInterfaceDetector() {}
 
     public static String detect() {
-        if (PlatformUtils.isWindows()) return detectWindows();
+        if (PlatformSupport.isWindows()) return detectWindows();
         return detectUnix();
     }
 

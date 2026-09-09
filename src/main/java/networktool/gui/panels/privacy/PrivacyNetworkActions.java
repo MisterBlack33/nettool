@@ -1,6 +1,6 @@
 package main.java.networktool.gui.panels.privacy;
 
-import main.java.networktool.util.PlatformUtils;
+import main.java.networktool.util.PlatformSupport;
 import main.java.networktool.util.SafeCommand;
 import main.java.networktool.util.StatusTags;
 
@@ -28,7 +28,7 @@ public final class PrivacyNetworkActions {
     }
 
     public static void randomizeMac(JTextArea log) {
-        if (PlatformUtils.isWindows()) {
+        if (PlatformSupport.isWindows()) {
             log("Hinweis: MAC-Spoofing unter Windows via Geräte-Manager.", log); return;
         }
         String iface = getActiveInterface();
@@ -47,7 +47,7 @@ public final class PrivacyNetworkActions {
     }
 
     public static void resetMac(JTextArea log) {
-        if (PlatformUtils.isWindows()) { log("Windows: MAC über Geräte-Manager zurücksetzen.", log); return; }
+        if (PlatformSupport.isWindows()) { log("Windows: MAC über Geräte-Manager zurücksetzen.", log); return; }
         String iface = getActiveInterface();
         if (iface == null) { log("Kein aktives Interface.", log); return; }
         try {
@@ -62,7 +62,7 @@ public final class PrivacyNetworkActions {
 
     public static void startVpn(JTextArea log) {
         try {
-            File wgDir = PlatformUtils.isWindows()
+            File wgDir = PlatformSupport.isWindows()
                     ? new File("C:\\Program Files\\WireGuard")
                     : new File("/etc/wireguard");
             if (!wgDir.exists()) {
@@ -74,7 +74,7 @@ public final class PrivacyNetworkActions {
             }
             String conf = configs[0].replace(".conf", "");
             log("Konfiguration: " + conf, log);
-            exec(PlatformUtils.isWindows()
+            exec(PlatformSupport.isWindows()
                     ? new String[]{"wireguard", "/installtunnelservice", wgDir + "\\" + conf + ".conf"}
                     : new String[]{"wg-quick", "up", conf}, log);
             log(StatusTags.OK + " WireGuard gestartet.", log);
@@ -83,7 +83,7 @@ public final class PrivacyNetworkActions {
 
     public static void stopVpn(JTextArea log) {
         try {
-            exec(PlatformUtils.isWindows()
+            exec(PlatformSupport.isWindows()
                     ? new String[]{"wireguard", "/uninstalltunnelservice", "wg0"}
                     : new String[]{"wg-quick", "down", "wg0"}, log);
             log(StatusTags.OK + " WireGuard gestoppt.", log);

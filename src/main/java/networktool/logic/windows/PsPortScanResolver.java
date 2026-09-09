@@ -1,6 +1,6 @@
 package main.java.networktool.logic.windows;
 
-import main.java.networktool.util.PlatformUtils;
+import main.java.networktool.util.PlatformSupport;
 
 import java.util.*;
 
@@ -10,7 +10,7 @@ public final class PsPortScanResolver {
     private PsPortScanResolver() {}
 
     public static boolean isOpen(String ip, int port) {
-        if (!PowerShellRunner.isAvailable() || !PlatformUtils.isSafeIp(ip)) return false;
+        if (!PowerShellRunner.isAvailable() || !PlatformSupport.isSafeIp(ip)) return false;
         String script = "(Test-NetConnection -ComputerName '" + ip
                 + "' -Port " + port + " -WarningAction SilentlyContinue).TcpTestSucceeded";
         return PowerShellRunner.run(script, 3_000).stream()

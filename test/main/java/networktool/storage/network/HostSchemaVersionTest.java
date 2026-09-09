@@ -1,7 +1,7 @@
 package main.java.networktool.storage.network;
 
 import main.java.networktool.model.HostResult;
-import main.java.networktool.storage.JsonHelper;
+import main.java.networktool.storage.JsonCodec;
 import main.java.networktool.storage.network.HostJsonBuilder;
 import main.java.networktool.storage.network.HostSchemaMigration;
 import org.junit.jupiter.api.Test;
@@ -31,35 +31,35 @@ class HostSchemaVersionTest {
     }
 
     @Test void extractInt_valid() {
-        assertEquals(42, JsonHelper.extractInt("{\"n\":42}", "n"));
+        assertEquals(42, JsonCodec.extractInt("{\"n\":42}", "n"));
     }
 
     @Test void extractInt_negative() {
-        assertEquals(-5, JsonHelper.extractInt("{\"n\":-5}", "n"));
+        assertEquals(-5, JsonCodec.extractInt("{\"n\":-5}", "n"));
     }
 
     @Test void extractInt_missing_null() {
-        assertNull(JsonHelper.extractInt("{\"a\":1}", "n"));
+        assertNull(JsonCodec.extractInt("{\"a\":1}", "n"));
     }
 
     @Test void extractInt_nonNumeric_null() {
-        assertNull(JsonHelper.extractInt("{\"n\":\"x\"}", "n"));
+        assertNull(JsonCodec.extractInt("{\"n\":\"x\"}", "n"));
     }
 
     @Test void extractStr_unicodeEscape_decoded() {
-        assertEquals("café", JsonHelper.extractStr("{\"s\":\"caf\\u00e9\"}", "s"));
+        assertEquals("café", JsonCodec.extractStr("{\"s\":\"caf\\u00e9\"}", "s"));
     }
 
     @Test void extractStr_malformedUnicodeEscape_keptRaw() {
-        String result = JsonHelper.extractStr("{\"s\":\"a\\uZZZZb\"}", "s");
+        String result = JsonCodec.extractStr("{\"s\":\"a\\uZZZZb\"}", "s");
         assertTrue(result.contains("\\u"));
     }
 
     @Test void extractStr_slashEscape() {
-        assertEquals("a/b", JsonHelper.extractStr("{\"s\":\"a\\/b\"}", "s"));
+        assertEquals("a/b", JsonCodec.extractStr("{\"s\":\"a\\/b\"}", "s"));
     }
 
     @Test void extractStr_carriageReturnEscape() {
-        assertEquals("a\rb", JsonHelper.extractStr("{\"s\":\"a\\rb\"}", "s"));
+        assertEquals("a\rb", JsonCodec.extractStr("{\"s\":\"a\\rb\"}", "s"));
     }
 }

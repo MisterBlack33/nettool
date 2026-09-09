@@ -1,69 +1,62 @@
 package main.java.networktool.gui.components;
 
-import main.java.networktool.gui.panels.saved.GuiSavedHostsPanel;
 import main.java.networktool.storage.network.NetworkStore;
 
 import javax.swing.*;
 import javax.swing.border.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.List;
+import java.util.function.Consumer;
 
 import static main.java.networktool.theme.GuiTheme.*;
 
-/**
- * Tab-Leiste für die Netzwerk-Auswahl im {@link GuiSavedHostsPanel}.
- *
- * Enthält:
- *  - Einen Tab-Button je Netzwerk (mit Host-Anzahl)
- *  - [+ Neu]  [✎ Umbenennen]  [✕ Löschen]
- */
+/** Tab-Leiste für die Netzwerk-Auswahl. Aktiv/inaktiv sind getrennte Builder statt eines Boolean-Flags. */
 public final class GuiNetworkBar {
 
     private GuiNetworkBar() {}
 
-    /**
-     * @param active         aktuell aktives Netzwerk
-     * @param onSelect       Callback wenn Tab geklickt wird
-     * @param onNew          Callback für "+ Neu"
-     * @param onRename       Callback für "✎"
-     * @param onDelete       Callback für "✕"
-     */
     public static JPanel build(String active,
                                 Runnable onNew, Runnable onRename, Runnable onDelete,
-                                java.util.function.Consumer<String> onSelect) {
+                                Consumer<String> onSelect) {
         JPanel bar = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
         bar.setBackground(PANEL_BG);
         bar.setBorder(new CompoundBorder(
                 new MatteBorder(1, 1, 0, 1, BORDER),
                 new EmptyBorder(6, 8, 6, 8)));
 
-        List<String> names = NetworkStore.getInstance().getNetworkNames();
-        for (String name : names) {
-            bar.add(buildTab(name, name.equals(active), onSelect));
+        for (String name : NetworkStore.getInstance().getNetworkNames()) {
+            bar.add(name.equals(active) ? buildActiveTab(name, onSelect) : buildInactiveTab(name, onSelect));
         }
 
         bar.add(Box.createHorizontalStrut(8));
-        bar.add(iconBtn("+ Neu",     ACCENT2, onNew));
-        bar.add(iconBtn("Umbenennen",FG_DIM,  onRename));
-        bar.add(iconBtn("Löschen",   WARN,    onDelete));
+        bar.add(iconBtn("+ Neu",      ACCENT2, onNew));
+        bar.add(iconBtn("Umbenennen", FG_DIM,  onRename));
+        bar.add(iconBtn("Löschen",    WARN,    onDelete));
         return bar;
     }
 
-    private static JButton buildTab(String name, boolean active,
-                                    java.util.function.Consumer<String> onSelect) {
+    private static JButton buildActiveTab(String name, Consumer<String> onSelect) {
+        JButton btn = baseTab(name, onSelect);
+        btn.setFont(new Font("JetBrains Mono", Font.BOLD, 12));
+        btn.setForeground(ACCENT);
+        btn.setBackground(new Color(0x0A, 0x20, 0x30));
+        btn.setBorder(new CompoundBorder(new LineBorder(ACCENT, 1), new EmptyBorder(4, 12, 4, 12)));
+        return btn;
+    }
+
+    private static JButton buildInactiveTab(String name, Consumer<String> onSelect) {
+        JButton btn = baseTab(name, onSelect);
+        btn.setFont(new Font("JetBrains Mono", Font.PLAIN, 12));
+        btn.setForeground(FG_DIM);
+        btn.setBackground(BTN_BG);
+        btn.setBorder(new CompoundBorder(new LineBorder(BORDER, 1), new EmptyBorder(4, 12, 4, 12)));
+        return btn;
+    }
+
+    private static JButton baseTab(String name, Consumer<String> onSelect) {
         int count = NetworkStore.getInstance().getAll(name).size();
         String label = count > 0 ? name + " (" + count + ")" : name;
-
         JButton btn = new JButton(label);
-        btn.setFont(active
-                ? new Font("JetBrains Mono", Font.BOLD,  12)
-                : new Font("JetBrains Mono", Font.PLAIN, 12));
-        btn.setForeground(active ? ACCENT : FG_DIM);
-        btn.setBackground(active ? new Color(0x0A, 0x20, 0x30) : BTN_BG);
-        btn.setBorder(new CompoundBorder(
-                new LineBorder(active ? ACCENT : BORDER, 1),
-                new EmptyBorder(4, 12, 4, 12)));
         btn.setFocusPainted(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         btn.addActionListener(e -> onSelect.accept(name));

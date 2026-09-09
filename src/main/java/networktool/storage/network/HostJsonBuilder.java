@@ -1,7 +1,7 @@
 package main.java.networktool.storage.network;
 
 import main.java.networktool.model.HostResult;
-import main.java.networktool.storage.JsonHelper;
+import main.java.networktool.storage.JsonCodec;
 
 import java.util.*;
 
@@ -17,8 +17,8 @@ public final class HostJsonBuilder {
         StringBuilder sb = new StringBuilder();
         sb.append("{\n")
                 .append("  \"schemaVersion\": ").append(CURRENT_SCHEMA_VERSION).append(",\n")
-                .append("  \"network\": \"").append(JsonHelper.esc(name)).append("\",\n")
-                .append("  \"prefix\": \"").append(JsonHelper.esc(prefix)).append("\",\n")
+                .append("  \"network\": \"").append(JsonCodec.esc(name)).append("\",\n")
+                .append("  \"prefix\": \"").append(JsonCodec.esc(prefix)).append("\",\n")
                 .append("  \"hosts\": [\n");
         for (int i = 0; i < hosts.size(); i++) {
             appendHost(sb, hosts.get(i), i < hosts.size() - 1);
@@ -28,18 +28,18 @@ public final class HostJsonBuilder {
 
     private static void appendHost(StringBuilder sb, HostResult h, boolean comma) {
         sb.append("    {\n")
-                .append("      \"ip\": \"")       .append(JsonHelper.esc(h.ip))       .append("\",\n")
-                .append("      \"hostname\": \"") .append(JsonHelper.esc(h.hostname)) .append("\",\n")
-                .append("      \"os\": \"")       .append(JsonHelper.esc(h.os))       .append("\",\n")
-                .append("      \"savedAt\": \"")  .append(JsonHelper.esc(h.savedAt))  .append("\",\n")
+                .append("      \"ip\": \"")       .append(JsonCodec.esc(h.ip))       .append("\",\n")
+                .append("      \"hostname\": \"") .append(JsonCodec.esc(h.hostname)) .append("\",\n")
+                .append("      \"os\": \"")       .append(JsonCodec.esc(h.os))       .append("\",\n")
+                .append("      \"savedAt\": \"")  .append(JsonCodec.esc(h.savedAt))  .append("\",\n")
                 .append("      \"ports\": ")      .append(serPortsJson(h.ports))      .append(",\n")
-                .append("      \"notes\": \"")    .append(JsonHelper.esc(h.notes))    .append("\"\n")
+                .append("      \"notes\": \"")    .append(JsonCodec.esc(h.notes))    .append("\"\n")
                 .append("    }").append(comma ? "," : "").append("\n");
     }
 
     /** Liest schemaVersion aus einer Netzwerk-Datei. Fehlt es (Altbestand), gilt Version 0. */
     static int readSchemaVersion(String networkJson) {
-        Integer v = JsonHelper.extractInt(networkJson, "schemaVersion");
+        Integer v = JsonCodec.extractInt(networkJson, "schemaVersion");
         return v != null ? v : 0;
     }
 
@@ -50,15 +50,15 @@ public final class HostJsonBuilder {
      */
     public static HostResult parseHost(String obj) {
         obj = HostSchemaMigration.migrateHostV1ToV2(obj);
-        String ip = JsonHelper.extractStr(obj, "ip");
+        String ip = JsonCodec.extractStr(obj, "ip");
         if (ip == null || ip.isBlank()) return null;
         return new HostResult(
                 ip,
-                JsonHelper.nvl(JsonHelper.extractStr(obj, "hostname"), ip),
-                JsonHelper.nvl(JsonHelper.extractStr(obj, "os"),       ""),
-                JsonHelper.nvl(JsonHelper.extractStr(obj, "savedAt"),  ""),
+                JsonCodec.nvl(JsonCodec.extractStr(obj, "hostname"), ip),
+                JsonCodec.nvl(JsonCodec.extractStr(obj, "os"),       ""),
+                JsonCodec.nvl(JsonCodec.extractStr(obj, "savedAt"),  ""),
                 parsePortsObj(extractRawPorts(obj)),
-                JsonHelper.nvl(JsonHelper.extractStr(obj, "notes"),    "")
+                JsonCodec.nvl(JsonCodec.extractStr(obj, "notes"),    "")
         );
     }
 
@@ -69,7 +69,7 @@ public final class HostJsonBuilder {
         for (Map.Entry<Integer, String> e : ports.entrySet()) {
             if (!first) sb.append(",");
             sb.append("\"").append(e.getKey()).append("\":\"")
-                    .append(JsonHelper.esc(e.getValue())).append("\"");
+                    .append(JsonCodec.esc(e.getValue())).append("\"");
             first = false;
         }
         return sb.append("}").toString();
@@ -91,7 +91,7 @@ public final class HostJsonBuilder {
     }
 
     /**
-     * Extrahiert den rohen "ports"-Objektstring. Nutzt {@link JsonHelper#matchBracket}
+     * Extrahiert den rohen "ports"-Objektstring. Nutzt {@link JsonCodec#matchBracket}
      * statt eines naiven Zählers, damit Klammerzeichen innerhalb von Banner-/Notiz-Werten
      * (z.B. "HTTP | {nginx}") das Parsing nicht zerstören.
      */
@@ -104,7 +104,7 @@ public final class HostJsonBuilder {
         int s = colon + 1;
         while (s < obj.length() && obj.charAt(s) == ' ') s++;
         if (s >= obj.length() || obj.charAt(s) != '{') return null;
-        int end = JsonHelper.matchBracket(obj, s);
+        int end = JsonCodec.matchBracket(obj, s);
         return end < 0 ? null : obj.substring(s, end + 1);
     }
 

@@ -9,9 +9,11 @@ import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Zeichnet eine Traffic-Wellenform (rx/tx) auf ein {@link Graphics2D}.
- * Kein State, keine Swing-Komponente — analog {@link PingGraphRenderer}.
+ * Kein State, keine Swing-Komponente — analog {@code PingGraphRenderer}.
  */
 public final class TrafficWaveformRenderer {
+
+    private enum BarDirection { RX_UP, TX_DOWN }
 
     private static final long MIN_SCALE = 50L;
 
@@ -31,8 +33,8 @@ public final class TrafficWaveformRenderer {
         for (int i = 0; i < samples.size(); i++) {
             TrafficSample s = samples.get(i);
             int cx = i * barW + barW / 2;
-            drawBar(g2, cx, barW, h, s.rxDelta(), max, ACCENT2, true);
-            drawBar(g2, cx, barW, h, s.txDelta(), max, ACCENT, false);
+            drawBar(g2, cx, barW, h, s.rxDelta(), max, ACCENT2, BarDirection.RX_UP);
+            drawBar(g2, cx, barW, h, s.txDelta(), max, ACCENT, BarDirection.TX_DOWN);
         }
     }
 
@@ -46,13 +48,13 @@ public final class TrafficWaveformRenderer {
     }
 
     private static void drawBar(Graphics2D g2, int cx, int barW, int h,
-                                long value, long max, Color col, boolean upward) {
+                                long value, long max, Color col, BarDirection direction) {
         if (value <= 0) return;
         int barH = (int) Math.min(h / 2.0, value * (h / 2.0) / max);
         int half = barW / 2;
         g2.setColor(col);
-        if (upward) g2.fillRect(cx - half, h / 2 - barH, barW, barH);
-        else        g2.fillRect(cx - half, h / 2, barW, barH);
+        if (direction == BarDirection.RX_UP) g2.fillRect(cx - half, h / 2 - barH, barW, barH);
+        else                                 g2.fillRect(cx - half, h / 2, barW, barH);
     }
 
     private static void drawGrid(Graphics2D g2, int w, int h) {

@@ -1,6 +1,6 @@
 package main.java.networktool.storage.network;
 
-import main.java.networktool.storage.JsonHelper;
+import main.java.networktool.storage.JsonCodec;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -16,7 +16,7 @@ final class NetworkStoreNtfy {
         Path file = dataDir.resolve(NetworkStorePersistence.NTFY_FILE);
         if (!Files.exists(file)) return new ArrayList<>();
         try {
-            return JsonHelper.extractStringArray(
+            return JsonCodec.extractStringArray(
                     Files.readString(file, StandardCharsets.UTF_8), "topics");
         } catch (IOException e) {
             return new ArrayList<>();
@@ -32,7 +32,7 @@ final class NetworkStoreNtfy {
             existing.add(topic);
             Collections.sort(existing);
             Files.writeString(dataDir.resolve(NetworkStorePersistence.NTFY_FILE),
-                    JsonHelper.buildStringArrayJson("topics", existing),
+                    JsonCodec.buildStringArrayJson("topics", existing),
                     StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
         } catch (IOException ignored) {}

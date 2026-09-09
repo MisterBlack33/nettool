@@ -1,7 +1,7 @@
 package main.java.networktool.logic.messaging;
 
 import main.java.networktool.logic.analysis.os.OsDetector;
-import main.java.networktool.util.PlatformUtils;
+import main.java.networktool.util.PlatformSupport;
 
 /** Überträgt Nachrichten per SSH (notify-send/osascript) an Linux/macOS-Ziele. Package-private. */
 final class MessageDeliverySsh {
@@ -10,7 +10,7 @@ final class MessageDeliverySsh {
 
     static boolean trySsh(String ip, String message, boolean mac) {
         // Ziel-IP wird als ssh-Argument verwendet → Pflichtvalidierung
-        if (!PlatformUtils.isSafeIp(ip)) {
+        if (!PlatformSupport.isSafeIp(ip)) {
             System.out.println("  ✕ SSH: ungültige Ziel-IP");
             return false;
         }
@@ -19,7 +19,7 @@ final class MessageDeliverySsh {
             return false;
         }
         System.out.println("  Methode : SSH → " + (mac ? "osascript" : "notify-send"));
-        String safe = PlatformUtils.escapeSshArg(message);
+        String safe = PlatformSupport.escapeSshArg(message);
         String cmd  = mac
                 ? "osascript -e 'display notification \"" + safe + "\" with title \"NetTool\"'"
                 : "DISPLAY=:0 DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus "

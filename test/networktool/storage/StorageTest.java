@@ -9,12 +9,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class StorageTest {
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    //  JsonHelper
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ══════════════════════════════════════════════════════════════════
+    //  JsonCodec
+    // ══════════════════════════════════════════════════════════════════
 
     @Nested
-    class JsonHelperTest {
+    class JsonCodecTest {
 
         @Test void extractStr_simple()          { assertEquals("alice", invokeExtractStr("{\"name\":\"alice\"}", "name")); }
         @Test void extractStr_missing_null()     { assertNull(invokeExtractStr("{\"a\":\"b\"}", "missing")); }
@@ -53,24 +53,24 @@ class StorageTest {
             assertEquals(2, invokeExtractObjects("[{\"a\":\"1\"},{\"a\":\"2\"}]", 0).size());
         }
 
-        // â”€â”€ Reflection helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Reflection helpers ───────────────────────────────────────────
 
         private String invokeExtractStr(String json, String field) {
-            try { var m = Class.forName("main.java.networktool.storage.JsonHelper")
+            try { var m = Class.forName("main.java.networktool.storage.JsonCodec")
                     .getDeclaredMethod("extractStr", String.class, String.class);
                 m.setAccessible(true); return (String) m.invoke(null, json, field);
             } catch (Exception e) { throw new RuntimeException(e); }
         }
 
         private String invokeEsc(String s) {
-            try { var m = Class.forName("main.java.networktool.storage.JsonHelper")
+            try { var m = Class.forName("main.java.networktool.storage.JsonCodec")
                     .getDeclaredMethod("esc", String.class);
                 m.setAccessible(true); return (String) m.invoke(null, s);
             } catch (Exception e) { throw new RuntimeException(e); }
         }
 
         private String invokeBuildStringArrayJson(String key, List<String> items) {
-            try { var m = Class.forName("main.java.networktool.storage.JsonHelper")
+            try { var m = Class.forName("main.java.networktool.storage.JsonCodec")
                     .getDeclaredMethod("buildStringArrayJson", String.class, List.class);
                 m.setAccessible(true); return (String) m.invoke(null, key, items);
             } catch (Exception e) { throw new RuntimeException(e); }
@@ -78,29 +78,29 @@ class StorageTest {
 
         @SuppressWarnings("unchecked")
         private List<String> invokeExtractStringArray(String json, String key) {
-            try { var m = Class.forName("main.java.networktool.storage.JsonHelper")
+            try { var m = Class.forName("main.java.networktool.storage.JsonCodec")
                     .getDeclaredMethod("extractStringArray", String.class, String.class);
                 m.setAccessible(true); return (List<String>) m.invoke(null, json, key);
             } catch (Exception e) { throw new RuntimeException(e); }
         }
 
         private int invokeFindArrayStart(String json, String key) throws Exception {
-            var m = Class.forName("main.java.networktool.storage.JsonHelper")
+            var m = Class.forName("main.java.networktool.storage.JsonCodec")
                     .getDeclaredMethod("findArrayStart", String.class, String.class);
             m.setAccessible(true); return (int) m.invoke(null, json, key);
         }
 
         @SuppressWarnings("unchecked")
         private List<String> invokeExtractObjects(String json, int start) throws Exception {
-            var m = Class.forName("main.java.networktool.storage.JsonHelper")
+            var m = Class.forName("main.java.networktool.storage.JsonCodec")
                     .getDeclaredMethod("extractObjects", String.class, int.class);
             m.setAccessible(true); return (List<String>) m.invoke(null, json, start);
         }
     }
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ══════════════════════════════════════════════════════════════════
     //  NotificationHistory
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+    // ══════════════════════════════════════════════════════════════════
 
     @Nested
     class NotificationHistoryTest {

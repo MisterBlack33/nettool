@@ -13,29 +13,27 @@ import main.java.networktool.theme.GuiTheme;
 import static main.java.networktool.theme.GuiTheme.*;
 
 /**
- * Aufklappbares Accordion-Menü der Sidebar: Gruppen-Header, Buttons,
- * Auf-/Zuklapp-Verhalten (immer nur eine Gruppe gleichzeitig offen).
- *
- * Die Test-Suite-Gruppe wird über item[2]=="true" am Header erkannt, optisch
- * abgehoben (siehe TEST_SECTION_BG/BORDER — Platzhalter bis Workstream C
- * zentrale GuiTheme-Konstanten liefert) und bleibt standardmäßig eingeklappt.
+ * Aufklappbares Accordion-Menü der Sidebar. Ersetzt frühere Boolean-Flags
+ * (isAdmin/isTestSuite) durch benannte Typen {@link AccessLevel}/{@link SectionKind}.
  */
 final class SidebarAccordion {
 
-    // Platzhalter, bis GuiTheme (Workstream C) eigene Test-Suite-Farben bereitstellt.
+    enum AccessLevel { ADMIN, USER }
+    enum SectionKind { STANDARD, TEST_SUITE }
+
     private static final Color TEST_SECTION_BG     = new Color(0x1A, 0x10, 0x10);
     private static final Color TEST_SECTION_BORDER = new Color(0x60, 0x30, 0x30);
 
     private SidebarAccordion() {}
 
-    static JScrollPane build(String[][] items, boolean isAdmin, Consumer<String> onMenuClick) {
+    static JScrollPane build(String[][] items, AccessLevel accessLevel, Consumer<String> onMenuClick) {
         JPanel container = new JPanel();
         container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
         container.setBackground(SIDEBAR_BG);
         container.setBorder(new EmptyBorder(4, 0, 8, 0));
 
-        List<GroupEntry> groups = buildGroups(items, isAdmin);
-        groups.stream().filter(g -> !g.isTestSuite).findFirst().ifPresent(g -> g.setOpen(true));
+        List<GroupEntry> groups = buildGroups(items, accessLevel);
+        groups.stream().filter(g -> g.kind == SectionKind.STANDARD).findFirst().ifPresent(g -> g.setOpen(true));
 
         for (GroupEntry group : groups) {
             container.add(group.header);
@@ -69,15 +67,15 @@ final class SidebarAccordion {
         return sp;
     }
 
-    private static List<GroupEntry> buildGroups(String[][] items, boolean isAdmin) {
+    private static List<GroupEntry> buildGroups(String[][] items, AccessLevel accessLevel) {
         List<GroupEntry> groups = new ArrayList<>();
         GroupEntry current = null;
         for (String[] item : items) {
             boolean adminOnly = "true".equals(item[3]);
-            if (adminOnly && !isAdmin) continue;
+            if (adminOnly && accessLevel != AccessLevel.ADMIN) continue;
             if (item[0] == null) {
-                boolean isTestSuite = "true".equals(item[2]);
-                current = new GroupEntry(item[1], isTestSuite);
+                SectionKind kind = "true".equals(item[2]) ? SectionKind.TEST_SUITE : SectionKind.STANDARD;
+                current = new GroupEntry(item[1], kind);
                 groups.add(current);
             } else if (current != null) {
                 current.addButton(item[1], item[0]);
@@ -90,20 +88,20 @@ final class SidebarAccordion {
 
     private static class GroupEntry {
         final JPanel header, content;
-        final boolean isTestSuite;
+        final SectionKind kind;
         private boolean open = false;
 
-        GroupEntry(String label, boolean isTestSuite) {
-            this.isTestSuite = isTestSuite;
-            header  = buildHeader(label, isTestSuite);
+        GroupEntry(String label, SectionKind kind) {
+            this.kind = kind;
+            header  = buildHeader(label, kind);
             content = new JPanel();
             content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
-            content.setBackground(isTestSuite ? TEST_SECTION_BG : SIDEBAR_BG);
+            content.setBackground(kind == SectionKind.TEST_SUITE ? TEST_SECTION_BG : SIDEBAR_BG);
             content.setVisible(false);
         }
 
         void addButton(String label, String id) {
-            JButton btn = buildMenuBtn(label, isTestSuite);
+            JButton btn = buildMenuBtn(label, kind);
             btn.putClientProperty("menuId", id);
             content.add(btn);
             content.add(Box.createVerticalStrut(1));
@@ -121,23 +119,36 @@ final class SidebarAccordion {
         }
     }
 
-    // ── Header + Button Styling ───────────────────────────────────────────
+    // ── Header ────────────────────────────────────────────────────────────
 
-    private static JPanel buildHeader(String label, boolean isTestSuite) {
-        Color bg    = isTestSuite ? TEST_SECTION_BG : (GuiTheme.isDark() ? new Color(0x10, 0x14, 0x11) : new Color(0xE0, 0xDE, 0xD8));
-        Color border = isTestSuite ? TEST_SECTION_BORDER : BORDER;
+    private static JPanel buildHeader(String label, SectionKind kind) {
+        return kind == SectionKind.TEST_SUITE ? buildTestSuiteHeader(label) : buildStandardHeader(label);
+    }
 
+    private static JPanel buildStandardHeader(String label) {
+        Color bg = GuiTheme.isDark() ? new Color(0x10, 0x14, 0x11) : new Color(0xE0, 0xDE, 0xD8);
+        Color labelFg = GuiTheme.isDark() ? new Color(0x80, 0x78, 0x50) : new Color(0x72, 0x58, 0x18);
+        return assembleHeader(label, bg, BORDER, labelFg, BTN_HOV, ACCENT, 1);
+    }
+
+    private static JPanel buildTestSuiteHeader(String label) {
+        Color labelFg = new Color(0xD0, 0x80, 0x80);
+        return assembleHeader(label, TEST_SECTION_BG, TEST_SECTION_BORDER, labelFg,
+                new Color(0x2A, 0x18, 0x18), new Color(0xE0, 0xA0, 0xA0), 2);
+    }
+
+    private static JPanel assembleHeader(String label, Color bg, Color border, Color labelFg,
+                                         Color hoverBg, Color hoverFg, int borderTop) {
         JPanel p = new JPanel(new BorderLayout(4, 0));
         p.setBackground(bg);
         p.setBorder(new CompoundBorder(
-                new MatteBorder(isTestSuite ? 2 : 1, 0, 0, 0, border), new EmptyBorder(7, 10, 7, 10)));
+                new MatteBorder(borderTop, 0, 0, 0, border), new EmptyBorder(7, 10, 7, 10)));
         p.setMaximumSize(new Dimension(Integer.MAX_VALUE, 32));
         p.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         JLabel lbl = new JLabel("  " + label);
         lbl.setFont(new Font("JetBrains Mono", Font.BOLD, 9));
-        lbl.setForeground(isTestSuite ? new Color(0xD0, 0x80, 0x80)
-                : (GuiTheme.isDark() ? new Color(0x80, 0x78, 0x50) : new Color(0x72, 0x58, 0x18)));
+        lbl.setForeground(labelFg);
 
         JLabel arrow = new JLabel("[+]");
         arrow.setFont(new Font("JetBrains Mono", Font.PLAIN, 9));
@@ -146,20 +157,20 @@ final class SidebarAccordion {
         p.add(lbl,   BorderLayout.CENTER);
         p.add(arrow, BorderLayout.EAST);
 
-        Color hoverBg = isTestSuite ? new Color(0x2A, 0x18, 0x18) : BTN_HOV;
         p.addMouseListener(new MouseAdapter() {
-            public void mouseEntered(MouseEvent e) { p.setBackground(hoverBg); lbl.setForeground(isTestSuite ? new Color(0xE0, 0xA0, 0xA0) : ACCENT); }
-            public void mouseExited(MouseEvent e)  {
-                p.setBackground(bg);
-                lbl.setForeground(isTestSuite ? new Color(0xD0, 0x80, 0x80)
-                        : (GuiTheme.isDark() ? new Color(0x80, 0x78, 0x50) : new Color(0x72, 0x58, 0x18)));
-            }
+            public void mouseEntered(MouseEvent e) { p.setBackground(hoverBg); lbl.setForeground(hoverFg); }
+            public void mouseExited(MouseEvent e)  { p.setBackground(bg); lbl.setForeground(labelFg); }
         });
         return p;
     }
 
-    private static JButton buildMenuBtn(String label, boolean isTestSuite) {
-        Color sidebarBg = isTestSuite ? TEST_SECTION_BG : SIDEBAR_BG;
+    // ── Menü-Buttons ──────────────────────────────────────────────────────
+
+    private static JButton buildMenuBtn(String label, SectionKind kind) {
+        return assembleMenuBtn(label, kind == SectionKind.TEST_SUITE ? TEST_SECTION_BG : SIDEBAR_BG);
+    }
+
+    private static JButton assembleMenuBtn(String label, Color sidebarBg) {
         Color fg = GuiTheme.isDark() ? new Color(0xD8, 0xD4, 0xC4) : new Color(0x18, 0x1A, 0x16);
         JButton btn = new JButton("    " + label);
         btn.setFont(BTN_F_S);

@@ -1,7 +1,7 @@
 package main.java.networktool.storage.export;
 
 import main.java.networktool.model.HostResult;
-import main.java.networktool.storage.JsonHelper;
+import main.java.networktool.storage.JsonCodec;
 import main.java.networktool.storage.network.NetworkStore;
 
 import java.io.IOException;
@@ -31,7 +31,7 @@ public final class DataImporter {
     }
 
     /**
-     * Parst das JSON-Array string-sicher über {@link JsonHelper#extractObjects}
+     * Parst das JSON-Array string-sicher über {@link JsonCodec#extractObjects}
      * statt eines naiven Regex-Splits, damit Werte mit "},"-artigen Zeichenfolgen
      * (z.B. in Notizen) die Objektgrenzen nicht zerreißen.
      */
@@ -40,13 +40,13 @@ public final class DataImporter {
         int arrStart = content.indexOf('[');
         if (arrStart < 0) return 0;
         int count = 0;
-        for (String obj : JsonHelper.extractObjects(content, arrStart)) {
-            String ip    = JsonHelper.extractStr(obj, "ip");
-            String hn    = JsonHelper.extractStr(obj, "hostname");
-            String os    = JsonHelper.extractStr(obj, "os");
-            String date  = JsonHelper.extractStr(obj, "savedAt");
-            String notes = JsonHelper.extractStr(obj, "notes");
-            String cat   = JsonHelper.extractStr(obj, "category");
+        for (String obj : JsonCodec.extractObjects(content, arrStart)) {
+            String ip    = JsonCodec.extractStr(obj, "ip");
+            String hn    = JsonCodec.extractStr(obj, "hostname");
+            String os    = JsonCodec.extractStr(obj, "os");
+            String date  = JsonCodec.extractStr(obj, "savedAt");
+            String notes = JsonCodec.extractStr(obj, "notes");
+            String cat   = JsonCodec.extractStr(obj, "category");
             if (ip == null || ip.isBlank()) continue;
             if (saveHost(ip, nvl(hn, ip), nvl(os, ""), date, nvl(notes, ""), nvl(cat, "Import"))) count++;
         }

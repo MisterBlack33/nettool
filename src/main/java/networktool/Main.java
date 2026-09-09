@@ -10,18 +10,7 @@ import main.java.networktool.storage.StorageLocations;
 import javax.swing.*;
 
 /**
- * Einstiegspunkt der Anwendung.
- *
- * Speicherorte (siehe {@link StorageLocations}): Nutzerkonten, Logs und
- * Netzwerkdaten liegen in getrennten Unterordnern von saves/, nicht mehr
- * in einem gemeinsamen "data"-Verzeichnis.
- *
- * Sicherheit:
- *   1. AuditLogger/DebugLogger/UserAuth werden mit ihren jeweiligen
- *      Datenverzeichnissen initialisiert.
- *   2. Standard-Konten (admin/user1) werden bei Bedarf angelegt; UserAuth warnt
- *      dabei über DebugLogger, falls Default-Zugangsdaten noch aktiv sind.
- *   3. Login-Dialog erscheint vor dem GUI-Start.
+ * Einstiegspunkt der Anwendung. Ablauf siehe main()/runGui().
  */
 public final class Main {
 
@@ -37,10 +26,7 @@ public final class Main {
     }
 
     private static void runGui() {
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception ignored) {
-        }
+        applySystemLookAndFeel();
 
         SwingUtilities.invokeLater(() -> {
             boolean ok = LoginDialog.show(UserAuth.getInstance());
@@ -50,5 +36,15 @@ public final class Main {
             AuditLogger.getInstance().log("APP_START", "GUI");
             new GUI();
         });
+    }
+
+    /** Fällt bei nicht verfügbarem System-Look-and-Feel auf das Swing-Default zurück. */
+    private static void applySystemLookAndFeel() {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (ClassNotFoundException | InstantiationException
+                 | IllegalAccessException | UnsupportedLookAndFeelException e) {
+            DebugLogger.getInstance().log("WARN", "[Main] System-Look-and-Feel nicht verfügbar: " + e);
+        }
     }
 }

@@ -40,7 +40,7 @@ class MiscTest {
         @Test void osColor_unknown_returnsFgDim()         { assertEquals(GuiTheme.FG_DIM, GuiTheme.osColor("Unbekannt")); }
         @Test void osColor_router()                      { assertEquals(GuiTheme.NET_COL, GuiTheme.osColor("Router / Switch")); }
         @Test void osColor_drucker()                     { assertEquals(GuiTheme.PRN_COL, GuiTheme.osColor("Drucker (IPP/CUPS)")); }
-        @Test void osColor_iot()                         { assertEquals(GuiTheme.IOT_COL, GuiTheme.osColor("IoT-GerÃƒÆ’Ã‚Â¤t (MQTT)")); }
+        @Test void osColor_iot()                         { assertEquals(GuiTheme.IOT_COL, GuiTheme.osColor("IoT-Gerät (MQTT)")); }
         @Test void osColor_macos()                       { assertEquals(GuiTheme.APL_COL, GuiTheme.osColor("macOS")); }
 
         @Test void brighter_returnsLighterColor() {
@@ -50,7 +50,7 @@ class MiscTest {
 
         @Test void dynamicColors_darkMode()  { if (!GuiTheme.isDark()) GuiTheme.toggleTheme(); assertNotNull(GuiTheme.bg()); assertNotNull(GuiTheme.fg()); }
         @Test void dynamicColors_lightMode() { if (GuiTheme.isDark()) GuiTheme.toggleTheme(); assertNotNull(GuiTheme.bg()); assertNotNull(GuiTheme.fg()); }
-        @Test void themeName_dark()          { if (!GuiTheme.isDark()) GuiTheme.toggleTheme(); assertTrue(GuiTheme.themeName().contains("Hell") || GuiTheme.themeName().contains("ÃƒÂ¢Ã‹Å“Ã¢â€šÂ¬")); }
+        @Test void themeName_dark()          { if (!GuiTheme.isDark()) GuiTheme.toggleTheme(); assertTrue(GuiTheme.themeName().contains("Hell") || GuiTheme.themeName().contains("☀")); }
         @Test void fonts_notNull()           { assertNotNull(GuiTheme.MONO); assertNotNull(GuiTheme.MONO_S); assertNotNull(GuiTheme.BTN_F); }
     }
 
@@ -73,7 +73,7 @@ class MiscTest {
         @Test void encrypt_decrypt_roundtrip() throws Exception {
             String pw = "my-secure-pw-456";
             NoteEncryption.setPassword(pw);
-            String plain = "super secret note ÃƒÆ’Ã‚Â¤ÃƒÆ’Ã‚Â¶ÃƒÆ’Ã‚Â¼";
+            String plain = "super secret note äöü";
             assertEquals(plain, NoteEncryption.decrypt(NoteEncryption.encrypt(plain), pw));
         }
 
@@ -90,15 +90,15 @@ class MiscTest {
         @Test void clearSession_disablesKey() throws Exception { NoteEncryption.setPassword("pw123456"); NoteEncryption.clearSession(); assertFalse(NoteEncryption.hasSessionKey()); }
     }
 
-    //  StorageUtils
+    //  StorageLocationsResolver
 
     @Nested
-    class StorageUtilsTest {
+    class StorageLocationsResolverTest {
 
-        @Test void resolveDataDir_notNull()              { assertNotNull(StorageUtils.resolveDataDir()); }
-        @Test void extractJsonStr_delegatesToJsonHelper() { assertEquals("value", StorageUtils.extractJsonStr("{\"key\":\"value\"}", "key")); }
-        @Test void escapeJson_escapesQuotes()             { assertTrue(StorageUtils.escapeJson("say \"hi\"").contains("\\\"")); }
-        @Test void escapeJson_null_returnsEmpty()         { assertEquals("", StorageUtils.escapeJson(null)); }
+        @Test void resolveDataDir_notNull()              { assertNotNull(StorageLocationsResolver.resolveDataDir()); }
+        @Test void extractJsonStr_delegatesToJsonCodec() { assertEquals("value", StorageLocationsResolver.extractJsonStr("{\"key\":\"value\"}", "key")); }
+        @Test void escapeJson_escapesQuotes()             { assertTrue(StorageLocationsResolver.escapeJson("say \"hi\"").contains("\\\"")); }
+        @Test void escapeJson_null_returnsEmpty()         { assertEquals("", StorageLocationsResolver.escapeJson(null)); }
     }
 
     //  DataExportImport
