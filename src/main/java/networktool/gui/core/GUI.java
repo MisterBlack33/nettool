@@ -47,11 +47,8 @@ public class GUI extends JFrame implements OutputRenderer {
     private final GuiOutputPanel     outputPanel;
     private final GuiProgressBar     progressBar;
     private final GuiStatusBar       statusBar;
-    private final GuiInputPanel      inputPanel;
     private final GuiTableRenderer   tableRenderer;
     private final GuiMenuHandler     menuHandler;
-    private final GuiContextMenu     contextMenu;
-    private final GuiSavedHostsPanel savedHostsPanel;
 
     public GUI() {
         super("NetTool //");
@@ -68,11 +65,11 @@ public class GUI extends JFrame implements OutputRenderer {
         outputPanel     = new GuiOutputPanel();
         progressBar     = new GuiProgressBar();
         statusBar       = new GuiStatusBar();
-        inputPanel      = new GuiInputPanel(statusBar.getLabel(), outputPanel);
+        GuiInputPanel inputPanel = new GuiInputPanel(statusBar.getLabel(), outputPanel);
         tableRenderer   = new GuiTableRenderer(outputPanel);
         menuHandler     = new GuiMenuHandler(inputPanel, outputPanel, tableRenderer, statusBar);
-        contextMenu     = new GuiContextMenu(menuHandler, outputPanel);
-        savedHostsPanel = new GuiSavedHostsPanel(menuHandler, outputPanel, contextMenu, searchBar);
+        GuiContextMenu contextMenu = new GuiContextMenu(menuHandler, outputPanel);
+        GuiSavedHostsPanel savedHostsPanel = new GuiSavedHostsPanel(menuHandler, outputPanel, contextMenu, searchBar);
 
         tableRenderer.setContextMenu(contextMenu);
         menuHandler.setSavedHostsPanel(savedHostsPanel);
