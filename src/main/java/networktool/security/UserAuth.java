@@ -33,6 +33,11 @@ public final class UserAuth {
     private static final String DEFAULT_USER_USER      = "user1";
     private static final String DEFAULT_USER_PASSWORD  = "test1234";
 
+    private static final String STANDARD_SESSION_USER = "User";
+    private static final String STANDARD_SESSION_ROLE = "user";
+
+    private volatile boolean hasSessionAdminOverride = false;
+
     private UserAuth() {}
 
     public synchronized void init(Path dir) {
@@ -98,6 +103,47 @@ public final class UserAuth {
         return m;
     }
 
+    // ── Auto-Login (Standard-User) ───────────────────────────────────────
+
+    /** Meldet den Standard-User "User" an, ohne Passwortabfrage. Legt den Account bei Bedarf einmalig an. */
+    public synchronized void authenticateAsStandardUser() {
+        try {
+            List<Map<String, String>> users = UserAuthPersistence.load(dataDir);
+            if (findByUsername(users, STANDARD_SESSION_USER) == null) {
+                users.add(seedEntry(STANDARD_SESSION_USER, generatePassword(), STANDARD_SESSION_ROLE));
+                UserAuthPersistence.save(dataDir, users);
+            }
+        } catch (Exception e) {
+            System.err.println("[UserAuth] authenticateAsStandardUser: " + e.getMessage());
+        }
+        currentUser = STANDARD_SESSION_USER;
+    }
+
+    /** Prüft Passwort gegen den persistierten Admin-Account, ohne currentUser zu ändern. */
+    public synchronized boolean grantSessionAdmin(String password) {
+        Map<String, String> admin = findByUsername(UserAuthPersistence.load(dataDir), DEFAULT_ADMIN_USER);
+        if (admin == null || password == null) return false;
+        if (!verifyPassword(admin, password)) return false;
+        hasSessionAdminOverride = true;
+        return true;
+    }
+
+    private static boolean verifyPassword(Map<String, String> user, String password) {
+        try {
+            byte[] salt = Base64.getDecoder().decode(user.get("salt"));
+            return MessageDigest.isEqual(
+                    Base64.getDecoder().decode(user.get("hash")),
+                    Base64.getDecoder().decode(hash(password, salt)));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /** Zufälliges, nie interaktiv abgefragtes Passwort für den Standard-Session-Account. */
+    private static String generatePassword() {
+        return Base64.getEncoder().encodeToString(generateSalt());
+    }
+
     // ── Public API ────────────────────────────────────────────────────────
 
     public boolean hasUsers() {
@@ -147,13 +193,21 @@ public final class UserAuth {
     }
 
     public boolean isAdmin() {
+        return hasSessionAdminOverride || persistedRoleIsAdmin();
+    }
+
+    public String getCurrentRole() {
+        return hasSessionAdminOverride ? "admin" : persistedRole();
+    }
+
+    private boolean persistedRoleIsAdmin() {
         if (currentUser == null) return false;
         return UserAuthPersistence.load(dataDir).stream()
                 .filter(u -> currentUser.equals(u.get("username")))
                 .anyMatch(u -> "admin".equals(u.get("role")));
     }
 
-    public String getCurrentRole() {
+    private String persistedRole() {
         if (currentUser == null) return "user";
         return UserAuthPersistence.load(dataDir).stream()
                 .filter(u -> currentUser.equals(u.get("username")))
@@ -189,7 +243,7 @@ public final class UserAuth {
         return true;
     }
 
-    public void   logout()         { currentUser = null; }
+    public void   logout()         { currentUser = null; hasSessionAdminOverride = false; }
     public String getCurrentUser() { return currentUser; }
 
     public List<String> listUsernames() {

@@ -67,19 +67,32 @@ final class SidebarAccordion {
         return sp;
     }
 
+    /**
+     * Baut Gruppen aus den flachen ITEMS. Wird ein Header wegen fehlender
+     * Admin-Rechte gefiltert, werden auch dessen Kind-Zeilen bis zum nächsten
+     * Header verworfen — sie dürfen nicht in die vorherige Gruppe rutschen.
+     */
     private static List<GroupEntry> buildGroups(String[][] items, AccessLevel accessLevel) {
         List<GroupEntry> groups = new ArrayList<>();
         GroupEntry current = null;
+        boolean sectionHidden = false;
+
         for (String[] item : items) {
             boolean adminOnly = "true".equals(item[3]);
-            if (adminOnly && accessLevel != AccessLevel.ADMIN) continue;
-            if (item[0] == null) {
+            boolean isHeader  = item[0] == null;
+
+            if (isHeader) {
+                sectionHidden = adminOnly && accessLevel != AccessLevel.ADMIN;
+                if (sectionHidden) { current = null; continue; }
                 SectionKind kind = "true".equals(item[2]) ? SectionKind.TEST_SUITE : SectionKind.STANDARD;
                 current = new GroupEntry(item[1], kind);
                 groups.add(current);
-            } else if (current != null) {
-                current.addButton(item[1], item[0]);
+                continue;
             }
+
+            if (sectionHidden || current == null) continue;
+            if (adminOnly && accessLevel != AccessLevel.ADMIN) continue;
+            current.addButton(item[1], item[0]);
         }
         return groups;
     }

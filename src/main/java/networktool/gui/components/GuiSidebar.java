@@ -11,7 +11,8 @@ import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Linke Seitenleiste als aufklappbares Accordion-Menü.
- * Accordion-Mechanik siehe {@link SidebarAccordion}, Power-Zeile siehe {@link SidebarPowerMenu}.
+ * Accordion-Mechanik siehe {@link SidebarAccordion}, Power-Zeile siehe {@link SidebarPowerMenu},
+ * Admin-Freischaltung siehe {@link SidebarAdminButton}.
  *
  * Zeilenformat {@code ITEMS}: {menuId, label, testSuiteFlag, adminOnly}.
  * Bei Gruppen-Headern (menuId == null) markiert testSuiteFlag == "true" die
@@ -59,9 +60,9 @@ public final class GuiSidebar {
             {null,  "PRIVATSPHÄRE",  null, "false"},
             {"30",  "VPN / Tarnung", null, "false"},
             {null,  "TEST-SUITE (nur Entwicklung)", "true", "true"},
-            {"24",  "Data → Sound",  null, "false"},
-            {"25",  "Data → Visual (Balken)",       null, "false"},
-            {"26",  "Data → Visual (Spektrogramm)", null, "false"},
+            {"24",  "Data → Sound",  null, "true"},
+            {"25",  "Data → Visual (Balken)",       null, "true"},
+            {"26",  "Data → Visual (Spektrogramm)", null, "true"},
     };
 
     private GuiSidebar() {}
@@ -74,14 +75,48 @@ public final class GuiSidebar {
         sidebar.setBackground(SIDEBAR_BG);
         sidebar.setPreferredSize(new Dimension(W, 0));
         sidebar.setBorder(new MatteBorder(0, 0, 0, 1, BORDER));
-        sidebar.add(buildLogo(),                    BorderLayout.NORTH);
-        sidebar.add(buildAccordion(onMenuClick),    BorderLayout.CENTER);
-        sidebar.add(SidebarPowerMenu.build(onCancel, onRestart, onTheme, isRunning), BorderLayout.SOUTH);
+
+        JPanel accordionHolder = new JPanel(new BorderLayout());
+        accordionHolder.setBackground(SIDEBAR_BG);
+        accordionHolder.add(buildAccordion(onMenuClick), BorderLayout.CENTER);
+
+        Runnable rebuildAccordion = () -> {
+            accordionHolder.removeAll();
+            accordionHolder.add(buildAccordion(onMenuClick), BorderLayout.CENTER);
+            accordionHolder.revalidate();
+            accordionHolder.repaint();
+        };
+
+        sidebar.add(buildLogo(),      BorderLayout.NORTH);
+        sidebar.add(accordionHolder,  BorderLayout.CENTER);
+        sidebar.add(buildFooter(onCancel, onRestart, onTheme, isRunning, rebuildAccordion),
+                BorderLayout.SOUTH);
         return sidebar;
     }
 
     public static JPanel build(Consumer<String> onMenuClick, Runnable onCancel, Runnable onRestart) {
         return build(onMenuClick, onCancel, onRestart, () -> {}, () -> false);
+    }
+
+    // ── Footer (Admin-Button + Power-Menü) ───────────────────────────────
+
+    private static JPanel buildFooter(Runnable onCancel, Runnable onRestart, Runnable onTheme,
+                                      java.util.function.BooleanSupplier isRunning,
+                                      Runnable onAdminGranted) {
+        JPanel footer = new JPanel(new BorderLayout());
+        footer.setBackground(SIDEBAR_BG);
+        if (!UserAuth.getInstance().isAdmin())
+            footer.add(buildAdminRow(onAdminGranted), BorderLayout.NORTH);
+        footer.add(SidebarPowerMenu.build(onCancel, onRestart, onTheme, isRunning), BorderLayout.SOUTH);
+        return footer;
+    }
+
+    private static JPanel buildAdminRow(Runnable onAdminGranted) {
+        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
+        row.setBackground(SIDEBAR_BG);
+        row.setBorder(new EmptyBorder(0, 6, 0, 0));
+        row.add(SidebarAdminButton.build(onAdminGranted));
+        return row;
     }
 
     // ── Logo ──────────────────────────────────────────────────────────────
