@@ -72,7 +72,6 @@ public final class GuiSidebar {
 
     public static JPanel build(Consumer<String> onMenuClick,
                                Runnable onCancel, Runnable onRestart,
-                               Runnable onTheme,
                                java.util.function.BooleanSupplier isRunning) {
         JPanel sidebar = new JPanel(new BorderLayout());
         sidebar.setBackground(SIDEBAR_BG);
@@ -92,25 +91,32 @@ public final class GuiSidebar {
 
         sidebar.add(buildLogo(),      BorderLayout.NORTH);
         sidebar.add(accordionHolder,  BorderLayout.CENTER);
-        sidebar.add(buildFooter(onCancel, onRestart, onTheme, isRunning, rebuildAccordion),
+        sidebar.add(buildFooter(onCancel, onRestart, isRunning, rebuildAccordion),
                 BorderLayout.SOUTH);
         return sidebar;
     }
 
     public static JPanel build(Consumer<String> onMenuClick, Runnable onCancel, Runnable onRestart) {
-        return build(onMenuClick, onCancel, onRestart, () -> {}, () -> false);
+        return build(onMenuClick, onCancel, onRestart, () -> false);
+    }
+
+    public static JPanel build(Consumer<String> onMenuClick,
+                                Runnable onCancel, Runnable onRestart,
+                                Runnable onTheme,
+                                java.util.function.BooleanSupplier isRunning) {
+        return build(onMenuClick, onCancel, onRestart, isRunning);
     }
 
     // ── Footer (Admin-Button + Power-Menü) ───────────────────────────────
 
-    private static JPanel buildFooter(Runnable onCancel, Runnable onRestart, Runnable onTheme,
+    private static JPanel buildFooter(Runnable onCancel, Runnable onRestart,
                                       java.util.function.BooleanSupplier isRunning,
                                       Runnable onAdminGranted) {
         JPanel footer = new JPanel(new BorderLayout());
         footer.setBackground(SIDEBAR_BG);
         if (!UserAuth.getInstance().isAdmin())
             footer.add(buildAdminRow(onAdminGranted), BorderLayout.NORTH);
-        footer.add(SidebarPowerMenu.build(onCancel, onRestart, onTheme, isRunning), BorderLayout.SOUTH);
+        footer.add(SidebarPowerMenu.build(onCancel, onRestart, isRunning), BorderLayout.SOUTH);
         return footer;
     }
 

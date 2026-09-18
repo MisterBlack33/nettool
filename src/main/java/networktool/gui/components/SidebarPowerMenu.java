@@ -15,11 +15,15 @@ import static main.java.networktool.theme.GuiTheme.*;
 
 /**
  * Power-Zeile der Sidebar: Status-Indikator (RUN/IDLE) und Power-Menü
- * (Theme wechseln, Abbrechen, Neustart, Abmelden, Beenden).
+ * (Abbrechen, Neustart, Abmelden, Beenden).
  */
 final class SidebarPowerMenu {
 
     private SidebarPowerMenu() {}
+
+    static JPanel build(Runnable onCancel, Runnable onRestart, BooleanSupplier isRunning) {
+        return build(onCancel, onRestart, () -> {}, isRunning);
+    }
 
     static JPanel build(Runnable onCancel, Runnable onRestart, Runnable onTheme, BooleanSupplier isRunning) {
         JPanel row = new JPanel(new BorderLayout(4, 0));
@@ -51,7 +55,7 @@ final class SidebarPowerMenu {
                 pb.setBorder(new CompoundBorder(new LineBorder(BORDER, 1), new EmptyBorder(4, 9, 4, 9)));
             }
         });
-        pb.addActionListener(e -> showPowerMenu(pb, onCancel, onRestart, onTheme, anyRunning));
+        pb.addActionListener(e -> showPowerMenu(pb, onCancel, onRestart, anyRunning));
 
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 0));
         left.setBackground(SIDEBAR_BG);
@@ -61,13 +65,10 @@ final class SidebarPowerMenu {
     }
 
     private static void showPowerMenu(JButton anchor, Runnable onCancel,
-                                      Runnable onRestart, Runnable onTheme,
-                                      BooleanSupplier isRunning) {
+                                      Runnable onRestart, BooleanSupplier isRunning) {
         JPopupMenu m = new JPopupMenu();
         m.setBackground(PANEL_BG);
         m.setBorder(new CompoundBorder(new LineBorder(BORDER_LT, 1), new EmptyBorder(4, 0, 4, 0)));
-        m.add(pItem("Theme wechseln",        new Color(0xB8, 0xD0, 0xFF), onTheme));
-        m.addSeparator();
         m.add(pItem("Abbrechen  Ctrl+A",     WARN,                        onCancel));
         m.addSeparator();
         m.add(pItem("Neustart   Ctrl+R",     new Color(0xFF, 0xD0, 0x50), onRestart));

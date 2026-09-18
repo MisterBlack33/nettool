@@ -24,8 +24,8 @@ final class GuiFrameLayout {
     static void assemble(JFrame frame, GuiSearchBar searchBar, GuiOutputPanel outputPanel,
                          GuiProgressBar progressBar, GuiStatusBar statusBar, GuiInputPanel inputPanel,
                          GuiMenuHandler menuHandler, Consumer<String> onMenuClick,
-                         Runnable onRestart, Runnable onTheme, Runnable onSearchToggle) {
-        frame.add(GuiSidebar.build(onMenuClick, menuHandler::cancel, onRestart, onTheme, menuHandler::isRunning),
+                         Runnable onRestart, Runnable onSearchToggle) {
+        frame.add(GuiSidebar.build(onMenuClick, menuHandler::cancel, onRestart, menuHandler::isRunning),
                 BorderLayout.WEST);
         frame.add(buildMainPanel(searchBar, outputPanel, progressBar, statusBar, inputPanel), BorderLayout.CENTER);
         frame.add(statusBar.buildPanel(), BorderLayout.SOUTH);

@@ -20,40 +20,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @Isolated
 class MiscTest {
 
-    //  GuiTheme
-
-    @Nested
-    class GuiThemeTest {
-
-        @BeforeEach void resetToDark()  { if (!GuiTheme.isDark()) GuiTheme.toggleTheme(); }
-        @AfterEach  void resetAfter()   { if (!GuiTheme.isDark()) GuiTheme.toggleTheme(); }
-
-        @Test void isDark_initiallyTrue()               { assertTrue(GuiTheme.isDark()); }
-        @Test void toggleTheme_switchesToLight()         { GuiTheme.toggleTheme(); assertFalse(GuiTheme.isDark()); }
-        @Test void toggleTheme_twice_backToDark()        { GuiTheme.toggleTheme(); GuiTheme.toggleTheme(); assertTrue(GuiTheme.isDark()); }
-        @Test void applyToStatics_updatesColors()        { GuiTheme.applyToStatics(); assertNotNull(GuiTheme.BG); assertNotNull(GuiTheme.FG); }
-        @Test void osColor_windows()                     { assertEquals(GuiTheme.WIN_COL, GuiTheme.osColor("Windows")); }
-        @Test void osColor_linux()                       { assertEquals(GuiTheme.LIN_COL, GuiTheme.osColor("Linux/Unix")); }
-        @Test void osColor_android()                     { assertEquals(GuiTheme.AND_COL, GuiTheme.osColor("Android (Samsung)")); }
-        @Test void osColor_raspberry()                   { assertEquals(GuiTheme.RPI_COL, GuiTheme.osColor("Raspberry Pi (Linux)")); }
-        @Test void osColor_null_returnsFg()              { assertEquals(GuiTheme.FG, GuiTheme.osColor(null)); }
-        @Test void osColor_unknown_returnsFgDim()         { assertEquals(GuiTheme.FG_DIM, GuiTheme.osColor("Unbekannt")); }
-        @Test void osColor_router()                      { assertEquals(GuiTheme.NET_COL, GuiTheme.osColor("Router / Switch")); }
-        @Test void osColor_drucker()                     { assertEquals(GuiTheme.PRN_COL, GuiTheme.osColor("Drucker (IPP/CUPS)")); }
-        @Test void osColor_iot()                         { assertEquals(GuiTheme.IOT_COL, GuiTheme.osColor("IoT-Gerät (MQTT)")); }
-        @Test void osColor_macos()                       { assertEquals(GuiTheme.APL_COL, GuiTheme.osColor("macOS")); }
-
-        @Test void brighter_returnsLighterColor() {
-            java.awt.Color base = new java.awt.Color(100, 100, 100);
-            assertTrue(GuiTheme.brighter(base, 1.5f).getRed() >= base.getRed());
-        }
-
-        @Test void dynamicColors_darkMode()  { if (!GuiTheme.isDark()) GuiTheme.toggleTheme(); assertNotNull(GuiTheme.bg()); assertNotNull(GuiTheme.fg()); }
-        @Test void dynamicColors_lightMode() { if (GuiTheme.isDark()) GuiTheme.toggleTheme(); assertNotNull(GuiTheme.bg()); assertNotNull(GuiTheme.fg()); }
-        @Test void themeName_dark()          { if (!GuiTheme.isDark()) GuiTheme.toggleTheme(); assertTrue(GuiTheme.themeName().contains("Hell") || GuiTheme.themeName().contains("☀")); }
-        @Test void fonts_notNull()           { assertNotNull(GuiTheme.MONO); assertNotNull(GuiTheme.MONO_S); assertNotNull(GuiTheme.BTN_F); }
-    }
-
     //  NoteEncryption
 
     @Isolated

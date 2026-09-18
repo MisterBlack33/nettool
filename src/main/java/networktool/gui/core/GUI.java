@@ -76,7 +76,7 @@ public class GUI extends JFrame implements OutputRenderer {
 
         outputPanel.redirectStreams();
         GuiFrameLayout.assemble(this, searchBar, outputPanel, progressBar, statusBar, inputPanel,
-                menuHandler, this::handleMenuClick, this::restart, this::toggleTheme, this::toggleSearchBar);
+                menuHandler, this::handleMenuClick, this::restart, this::toggleSearchBar);
 
         GuiWindowActions.enterFullscreen(this, loginMonitor);
         AppIcon.apply(this);
@@ -95,10 +95,6 @@ public class GUI extends JFrame implements OutputRenderer {
             if (searchBar.isSearchVisible()) searchBar.hide();
             else searchBar.show();
         }
-    }
-
-    private void toggleTheme() {
-        GuiWindowActions.toggleTheme(this, outputPanel, statusBar);
     }
 
     // ── OutputRenderer ────────────────────────────────────────────────────

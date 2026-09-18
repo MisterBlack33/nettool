@@ -9,7 +9,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-import main.java.networktool.theme.GuiTheme;
 
 /**
  * Fenster-nahe Querschnitts-Funktionen des Hauptfensters:
@@ -70,24 +69,4 @@ final class GuiWindowActions {
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
 
-    static void toggleTheme(JFrame frame, GuiOutputPanel outputPanel, GuiStatusBar statusBar) {
-        GuiTheme.toggleTheme();
-        GuiTheme.applyToStatics();
-        String msg = GuiTheme.isDark() ? "Dark Mode" : "Light Mode";
-        frame.getContentPane().setBackground(GuiTheme.BG);
-
-        // 3 Repaints im 16-ms-Takt → smooth, kein hartes Flackern
-        int[] count = {0};
-        Timer t = new Timer(16, null);
-        t.addActionListener(e -> {
-            SwingUtilities.updateComponentTreeUI(frame);
-            frame.repaint(); frame.revalidate();
-            if (++count[0] >= 3) t.stop();
-        });
-        t.start();
-
-        outputPanel.appendText("  " + msg + " aktiviert.\n", GuiTheme.ACCENT);
-        statusBar.set("Theme: " + msg, GuiTheme.ACCENT2);
-        AuditLogger.getInstance().log("THEME_TOGGLE", msg);
-    }
 }
