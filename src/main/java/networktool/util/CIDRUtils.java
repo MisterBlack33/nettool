@@ -15,10 +15,22 @@ public final class CIDRUtils {
         int network    = ipInt & mask;
         int broadcast  = network | ~mask;
 
-        List<String> ips = new ArrayList<>();
-        for (int i = network + 1; i < broadcast; i++)
-            ips.add(intToIp(i));
-        return ips;
+        final int first = network + 1;
+        final int last = broadcast - 1;
+        final int count = Math.max(0, last - first + 1);
+
+        return new java.util.AbstractList<String>() {
+            @Override
+            public String get(int index) {
+                if (index < 0 || index >= count) throw new IndexOutOfBoundsException();
+                return intToIp(first + index);
+            }
+
+            @Override
+            public int size() {
+                return count;
+            }
+        };
     }
 
     /** Liefert CIDR-Strings für alle /24-Blöcke im Netz (für Host-Scanner). */

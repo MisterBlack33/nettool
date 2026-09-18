@@ -26,7 +26,7 @@ final class HostTagPersistence {
                 String ip = JsonCodec.extractStr(obj, "ip");
                 if (ip == null || ip.isBlank()) continue;
                 Set<String> tags = new LinkedHashSet<>(JsonCodec.extractStringArray(obj, "tags"));
-                boolean fav = "true".equalsIgnoreCase(JsonCodec.extractStr(obj, "favorite"));
+                boolean fav = JsonCodec.extractBoolean(obj, "favorite");
                 result.put(ip, new HostTagEntry(tags, fav));
             }
         } catch (IOException e) {

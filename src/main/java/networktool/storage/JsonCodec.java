@@ -72,6 +72,28 @@ public final class JsonCodec {
         catch (NumberFormatException ex) { return null; }
     }
 
+    public static boolean extractBoolean(String json, String field) {
+        String key = "\"" + field + "\"";
+        int ki = json.indexOf(key);
+        if (ki < 0) return false;
+        int colon = json.indexOf(':', ki + key.length());
+        if (colon < 0) return false;
+        int s = colon + 1;
+        while (s < json.length() && Character.isWhitespace(json.charAt(s))) s++;
+        if (s >= json.length()) return false;
+        if (json.charAt(s) == '"') {
+            String value = extractStr(json, field);
+            return "true".equalsIgnoreCase(value);
+        }
+        int e = s;
+        while (e < json.length() && !Character.isWhitespace(json.charAt(e))
+                && json.charAt(e) != ',' && json.charAt(e) != '}') e++;
+        String value = json.substring(s, e).trim();
+        if ("true".equalsIgnoreCase(value)) return true;
+        if ("false".equalsIgnoreCase(value)) return false;
+        return false;
+    }
+
     public static String esc(String s) {
         if (s == null) return "";
         return s.replace("\\", "\\\\")

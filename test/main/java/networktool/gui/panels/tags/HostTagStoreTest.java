@@ -2,11 +2,21 @@ package main.java.networktool.gui.panels.tags;
 
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.parallel.Isolated;
 
 import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * @Isolated: HostTagStore ist ein Singleton mit geteiltem Zustand
+ * (tagsByIp/favorites/dataDir, siehe HostTagStore). Ohne Isolation können
+ * parallel laufende Testmethoden dataDir zwischen addTag()/setFavorite()
+ * und persist() gegenseitig überschreiben — Ursache der sporadischen
+ * Fehlschläge (persistence_survivesReinit) und des TestEngine-Fehlers
+ * bei konkurrierendem Zugriff auf dieselbe hostTags.json.
+ */
+@Isolated
 class HostTagStoreTest {
 
     @TempDir Path tmp;
