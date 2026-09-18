@@ -2,33 +2,33 @@ package main.java.networktool.theme;
 
 import java.awt.Color;
 
-/** Hellmodus-Palette: kontrastreich, OS-Farben für hellen Grund abgedunkelt. */
+/** Hellmodus-Palette: klassisch helles UI. */
 final class GuiThemeLight implements GuiColorPalette {
 
     static final GuiThemeLight INSTANCE = new GuiThemeLight();
 
-    private static final Color BACKGROUND   = new Color(0xF4, 0xF2, 0xEE);
-    private static final Color SURFACE      = new Color(0xE8, 0xE6, 0xE0);
-    private static final Color SIDEBAR      = new Color(0xEE, 0xEC, 0xE6);
-    private static final Color BUTTON       = new Color(0xDC, 0xDA, 0xD4);
-    private static final Color BUTTON_HOVER = new Color(0xCE, 0xCC, 0xC4);
-    private static final Color BORDER       = new Color(0xC0, 0xBE, 0xB4);
-    private static final Color BORDER_LIGHT = new Color(0xA8, 0xA4, 0x98);
-    private static final Color TEXT_PRIMARY = new Color(0x1C, 0x1E, 0x1A);
-    private static final Color TEXT_DIM     = new Color(0x52, 0x54, 0x4E);
-    private static final Color ROW_EVEN     = new Color(0xF4, 0xF2, 0xEE);
-    private static final Color ROW_ODD      = new Color(0xE4, 0xE2, 0xDA);
-    private static final Color ROW_SELECTED = new Color(0x90, 0xBC, 0xF0);
+    private static final Color BACKGROUND   = new Color(0xF3, 0xF1, 0xEC);
+    private static final Color SURFACE      = new Color(0xF8, 0xF6, 0xF2);
+    private static final Color SIDEBAR      = new Color(0xE8, 0xE4, 0xDC);
+    private static final Color BUTTON       = new Color(0xE4, 0xE1, 0xD8);
+    private static final Color BUTTON_HOVER = new Color(0xD2, 0xCE, 0xC8);
+    private static final Color BORDER       = new Color(0xC8, 0xC2, 0xB8);
+    private static final Color BORDER_LIGHT = new Color(0xD8, 0xD2, 0xC8);
+    private static final Color TEXT_PRIMARY = new Color(0x1A, 0x1C, 0x1A);
+    private static final Color TEXT_DIM     = new Color(0x70, 0x72, 0x6E);
+    private static final Color ROW_EVEN     = new Color(0xF6, 0xF4, 0xF0);
+    private static final Color ROW_ODD      = new Color(0xEE, 0xEA, 0xE4);
+    private static final Color ROW_SELECTED = new Color(0xD6, 0xD0, 0xC2);
 
-    private static final Color WINDOWS   = new Color(0x18, 0x60, 0xB8);
-    private static final Color LINUX     = new Color(0x18, 0x80, 0x28);
-    private static final Color APPLE     = new Color(0x50, 0x50, 0x60);
-    private static final Color IOS       = new Color(0x30, 0x58, 0xA0);
-    private static final Color ANDROID   = new Color(0x18, 0x78, 0x30);
-    private static final Color NETWORK   = new Color(0xC8, 0x6A, 0x10);
-    private static final Color PRINTER   = new Color(0x90, 0x70, 0x10);
-    private static final Color IOT       = new Color(0x8A, 0x78, 0x10);
-    private static final Color RASPBERRY = new Color(0xB8, 0x30, 0x60);
+    private static final Color WINDOWS   = new Color(0x4D, 0x82, 0xC6);
+    private static final Color LINUX     = new Color(0x3A, 0xA0, 0x5E);
+    private static final Color APPLE     = new Color(0x8D, 0x8F, 0x9D);
+    private static final Color IOS       = new Color(0x52, 0x7B, 0xC7);
+    private static final Color ANDROID   = new Color(0x3A, 0x9C, 0x5D);
+    private static final Color NETWORK   = new Color(0xE8, 0x9D, 0x2A);
+    private static final Color PRINTER   = new Color(0xD4, 0x8A, 0x00);
+    private static final Color IOT       = new Color(0xA5, 0x8D, 0x00);
+    private static final Color RASPBERRY = new Color(0xB5, 0x3C, 0x78);
 
     private GuiThemeLight() {}
 
