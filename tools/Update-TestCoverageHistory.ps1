@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Liest den JaCoCo-Coverage-Report (jacoco.xml) und hängt einen neuen
     "Testlauf"-Block im Excel-Format (siehe test_coverage.xlsx) an eine
@@ -132,7 +132,18 @@ if (Test-Path $OutputXlsx) {
     $runNumber = 1 + (($existing | Where-Object { $_.p1 -match '^Testlauf \d+' }).Count)
 }
 
-$titleRow  = [PSCustomObject]@{ p1="Testlauf $runNumber – $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"; p2=$null; p3=$null; p4=$null; p5=$null; p6=$null; p7=$null; p8=$null; p9=$null; p10=$null }
+$titleRow = [PSCustomObject]@{
+    p1  = "Testlauf $runNumber - " + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+    p2  = $null
+    p3  = $null
+    p4  = $null
+    p5  = $null
+    p6  = $null
+    p7  = $null
+    p8  = $null
+    p9  = $null
+    p10 = $null
+}
 $headerRow = [PSCustomObject]@{ p1="Element"; p2=$null; p3="Class, %"; p4=$null; p5="Method, %"; p6=$null; p7="Line, %"; p8=$null; p9="Branch, %"; p10=$null }
 $blank     = [PSCustomObject]@{ p1=$null; p2=$null; p3=$null; p4=$null; p5=$null; p6=$null; p7=$null; p8=$null; p9=$null; p10=$null }
 
