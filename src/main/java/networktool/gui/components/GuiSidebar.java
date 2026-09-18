@@ -63,6 +63,9 @@ public final class GuiSidebar {
             {"24",  "Data → Sound",  null, "true"},
             {"25",  "Data → Visual (Balken)",       null, "true"},
             {"26",  "Data → Visual (Spektrogramm)", null, "true"},
+            {"27",  "Security-Findings",  null, "true"},
+            {"28",  "Bandwidth-Verlauf",  null, "true"},
+            {"29",  "Dashboard",          null, "true"},
     };
 
     private GuiSidebar() {}

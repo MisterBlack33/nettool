@@ -14,10 +14,13 @@ import main.java.networktool.gui.components.scan.GuiSonifyActions;
 import main.java.networktool.gui.components.scan.GuiTrafficVisualizerActions;
 import main.java.networktool.gui.components.scan.GuiTrafficSpectrogramActions;
 import main.java.networktool.gui.components.map.GuiNetworkMap;
+import main.java.networktool.gui.dashboard.GuiDashboardPanel;
 import main.java.networktool.gui.notification.NotificationListener;
 import main.java.networktool.gui.panels.GuiInputPanel;
 import main.java.networktool.gui.panels.GuiOutputPanel;
+import main.java.networktool.gui.panels.bandwidth.GuiBandwidthHistoryPanel;
 import main.java.networktool.gui.panels.saved.GuiSavedHostsPanel;
+import main.java.networktool.gui.panels.security.GuiSecurityFindingsPanel;
 import main.java.networktool.logic.messaging.MessageSender;
 import main.java.networktool.logic.scan.host.NetworkInfo;
 import main.java.networktool.security.AuditLogger;
@@ -99,6 +102,15 @@ public class GuiMenuHandler {
         registry.register("25", () -> GuiTrafficVisualizerActions.toggle(input, output));
         // Test-Suite: Data-to-Visual, Funktion 2 (Spektrogramm) Toggle
         registry.register("26", () -> GuiTrafficSpectrogramActions.toggle(input, output));
+        // Test-Suite: Workstream A — Security-Findings-Panel
+        registry.register("27", () -> { AuditLogger.getInstance().log("SECURITY_FINDINGS", ""); GuiSecurityFindingsPanel.show(output); });
+        // Test-Suite: Workstream B — Bandbreiten-Verlauf
+        registry.register("28", () -> input.ask("Ziel-IP:", ip -> runAsync(() -> {
+            AuditLogger.getInstance().log("BANDWIDTH_HISTORY", ip);
+            GuiBandwidthHistoryPanel.show(output, ip.trim());
+        })));
+        // Test-Suite: Workstream C — Dashboard-Kennzahlen
+        registry.register("29", () -> { AuditLogger.getInstance().log("DASHBOARD", ""); GuiDashboardPanel.show(output); });
     }
 
     // ── Dispatch ──────────────────────────────────────────────────────────

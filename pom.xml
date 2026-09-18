@@ -212,5 +212,36 @@
                 </plugins>
             </build>
         </profile>
+
+        <!-- Mutation-Testing (Workstream D): nur auf Anfrage via
+             `mvn -Pmutation test-compile org.pitest:pitest-maven:mutationCoverage`,
+             kein Bestandteil des Standard-Builds, keine Standard-Dependency. -->
+        <profile>
+            <id>mutation</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-maven</artifactId>
+                        <version>1.15.8</version>
+                        <configuration>
+                            <targetClasses>
+                                <param>main.java.networktool.logic.*</param>
+                                <param>main.java.networktool.util.*</param>
+                            </targetClasses>
+                            <targetTests>
+                                <param>main.java.networktool.logic.*</param>
+                                <param>main.java.networktool.util.*</param>
+                            </targetTests>
+                            <excludedTestClasses>
+                                <param>*Isolated*</param>
+                            </excludedTestClasses>
+                            <threads>4</threads>
+                            <timeoutFactor>2.0</timeoutFactor>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 </project>
