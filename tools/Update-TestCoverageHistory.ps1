@@ -1,28 +1,36 @@
 ﻿<#
 .SYNOPSIS
-    Liest den JaCoCo-Coverage-Report (jacoco.xml) und hängt einen neuen
-    "Testlauf"-Block im Excel-Format (siehe test_coverage.xlsx) an eine
-    History-Datei an — so bleibt der Verlauf über mehrere Testläufe hinweg
-    nachvollziehbar (Layout unverändert, es wird nur ergänzt).
+    Liest den JaCoCo-Report (jacoco.xml) und hängt einen neuen Testlauf an
+    (1) eine für Menschen lesbare XLSX-Historie (Layout unverändert) und
+    (2) eine maschinenlesbare CSV-Historie an.
 
 .PARAMETER ProjectRoot
     Wurzelverzeichnis des Maven-Projekts (enthält pom.xml).
 
 .PARAMETER OutputXlsx
-    Zieldatei mit der Coverage-Historie. Wird angelegt falls nicht vorhanden.
+    Ziel der lesbaren Historie.
+
+.PARAMETER OutputCsv
+    Ziel der maschinenlesbaren Historie (nur angehängt, nie verändert).
 
 .PARAMETER RunTests
     Führt vorher "mvn test" aus, damit jacoco.xml aktuell ist.
 
 .NOTES
-    Benötigt das PowerShell-Modul "ImportExcel" (Install-Module ImportExcel).
-    Struktur pro Zeile: Element | - | Class% | (n/n) | Method% | (n/n) |
-    Line% | (n/n) | Branch% | (n/n)  — identisch zur Vorlage.
+    XLSX benötigt das Modul "ImportExcel".
+    CSV-Schema (Komma-getrennt, UTF-8, eine Zeile je Testlauf und Element):
+    run,timestamp,element,
+    class_pct,class_covered,class_total,
+    method_pct,method_covered,method_total,
+    line_pct,line_covered,line_total,
+    branch_pct,branch_covered,branch_total
+    Prozentwerte sind Anteile 0..1 (4 Nachkommastellen). Schema nur additiv erweitern.
 #>
 param(
     [string]$ProjectRoot = (Get-Location).Path,
     [string]$JacocoXml   = (Join-Path $ProjectRoot "target\site\jacoco\jacoco.xml"),
     [string]$OutputXlsx  = (Join-Path $ProjectRoot "test_coverage_history.xlsx"),
+    [string]$OutputCsv   = (Join-Path $ProjectRoot "test_coverage_history.csv"),
     [switch]$RunTests
 )
 
@@ -54,6 +62,7 @@ $xml.Load($reader)
 $reader.Close()
 
 $ROOT_PKG = "main/java/networktool"
+$TYPES    = @("CLASS", "METHOD", "LINE", "BRANCH")
 
 function Get-Counter {
     param($Node, [string]$Type)
@@ -67,18 +76,40 @@ function Add-Counter {
     return @{ Missed = $A.Missed + $B.Missed; Covered = $A.Covered + $B.Covered }
 }
 
+function Get-Ratio {
+    param([hashtable]$Counter)
+    $total = $Counter.Missed + $Counter.Covered
+    if ($total -eq 0) { return 0.0 }
+    return $Counter.Covered / $total
+}
+
 function Format-Pct {
     param([hashtable]$Counter)
     $total = $Counter.Missed + $Counter.Covered
-    $pct = if ($total -eq 0) { 0 } else { [math]::Round($Counter.Covered / $total, 2) }
-    return @{ Pct = $pct; Count = "($($Counter.Covered)/$total)" }
+    return @{ Pct = [math]::Round((Get-Ratio $Counter), 2); Count = "($($Counter.Covered)/$total)" }
 }
 
+function New-Entry {
+    param([string]$Name, $Node)
+    $e = @{ Name = $Name }
+    foreach ($t in $TYPES) { $e[$t] = Get-Counter $Node $t }
+    return $e
+}
+
+function New-EmptyGroup {
+    $g = @{}
+    foreach ($t in $TYPES) { $g[$t] = @{ Missed = 0; Covered = 0 } }
+    return $g
+}
+
+# ── Zeilen für XLSX (unverändertes Layout) ───────────────────────────────
+
 function New-Row {
-    param([string]$Name, [hashtable]$Cls, [hashtable]$Mth, [hashtable]$Ln, [hashtable]$Br)
-    $c = Format-Pct $Cls; $m = Format-Pct $Mth; $l = Format-Pct $Ln; $b = Format-Pct $Br
+    param([hashtable]$Entry)
+    $c = Format-Pct $Entry.CLASS;  $m = Format-Pct $Entry.METHOD
+    $l = Format-Pct $Entry.LINE;   $b = Format-Pct $Entry.BRANCH
     [PSCustomObject]@{
-        p1 = $Name; p2 = $null
+        p1 = $Entry.Name; p2 = $null
         p3 = $c.Pct; p4 = $c.Count
         p5 = $m.Pct; p6 = $m.Count
         p7 = $l.Pct; p8 = $l.Count
@@ -86,73 +117,73 @@ function New-Row {
     }
 }
 
-# ── Gesamt-Zeile (Report-Ebene = alle Pakete zusammen) ───────────────────
+# ── Zeilen für CSV (numerisch, ohne Formatierung) ────────────────────────
 
-$overall = New-Row $ROOT_PKG.Replace('/', '.') `
-    (Get-Counter $xml.report "CLASS") (Get-Counter $xml.report "METHOD") `
-    (Get-Counter $xml.report "LINE")  (Get-Counter $xml.report "BRANCH")
+function New-CsvRow {
+    param([hashtable]$Entry, [int]$Run, [string]$Timestamp)
+    $row = [ordered]@{ run = $Run; timestamp = $Timestamp; element = $Entry.Name }
+    foreach ($t in $TYPES) {
+        $c = $Entry[$t]
+        $name = $t.ToLower()
+        $row["${name}_pct"]     = [math]::Round((Get-Ratio $c), 4).ToString([cultureinfo]::InvariantCulture)
+        $row["${name}_covered"] = $c.Covered
+        $row["${name}_total"]   = $c.Missed + $c.Covered
+    }
+    return [PSCustomObject]$row
+}
 
-# ── Pakete nach oberstem Segment gruppieren (z.B. gui/panels -> "gui") ───
+# ── Einträge sammeln: Gesamt, dann Gruppen nach oberstem Paket-Segment ───
+
+$entries = New-Object System.Collections.Generic.List[hashtable]
+$entries.Add((New-Entry $ROOT_PKG.Replace('/', '.') $xml.report))
 
 $groups = [ordered]@{}
 foreach ($pkg in $xml.report.package) {
-    $rel = $pkg.name -replace "^$([regex]::Escape($ROOT_PKG))/?", ''
+    $rel   = $pkg.name -replace "^$([regex]::Escape($ROOT_PKG))/?", ''
     $label = if ([string]::IsNullOrEmpty($rel)) { "Main" } else { ($rel -split '/')[0] }
-
-    if (-not $groups.Contains($label)) {
-        $groups[$label] = @{
-            CLASS = @{ Missed=0; Covered=0 }; METHOD = @{ Missed=0; Covered=0 }
-            LINE  = @{ Missed=0; Covered=0 }; BRANCH = @{ Missed=0; Covered=0 }
-        }
-    }
-    foreach ($type in @("CLASS","METHOD","LINE","BRANCH")) {
-        $groups[$label][$type] = Add-Counter $groups[$label][$type] (Get-Counter $pkg $type)
+    if (-not $groups.Contains($label)) { $groups[$label] = New-EmptyGroup }
+    foreach ($t in $TYPES) {
+        $groups[$label][$t] = Add-Counter $groups[$label][$t] (Get-Counter $pkg $t)
     }
 }
 
-$dataRows = New-Object System.Collections.Generic.List[object]
-$dataRows.Add($overall)
-
-$ordered = ($groups.Keys | Where-Object { $_ -ne "Main" } | Sort-Object)
-foreach ($label in $ordered) {
-    $g = $groups[$label]
-    $dataRows.Add((New-Row $label $g.CLASS $g.METHOD $g.LINE $g.BRANCH))
-}
-if ($groups.Contains("Main")) {
-    $g = $groups["Main"]
-    $dataRows.Add((New-Row "Main" $g.CLASS $g.METHOD $g.LINE $g.BRANCH))
+$labels = @($groups.Keys | Where-Object { $_ -ne "Main" } | Sort-Object)
+if ($groups.Contains("Main")) { $labels += "Main" }
+foreach ($label in $labels) {
+    $entry = @{ Name = $label }
+    foreach ($t in $TYPES) { $entry[$t] = $groups[$label][$t] }
+    $entries.Add($entry)
 }
 
-# ── Neuen Testlauf-Block zusammenbauen (Titel + Header + Daten) ──────────
+# ── XLSX: neuen Testlauf-Block anhängen ──────────────────────────────────
 
 $runNumber = 1
 $existing  = @()
 if (Test-Path $OutputXlsx) {
-    $existing = Import-Excel -Path $OutputXlsx -NoHeader -WorksheetName "Coverage"
+    $existing  = Import-Excel -Path $OutputXlsx -NoHeader -WorksheetName "Coverage"
     $runNumber = 1 + (($existing | Where-Object { $_.p1 -match '^Testlauf \d+' }).Count)
 }
 
-$titleRow  = [PSCustomObject]@{ p1="Testlauf $runNumber - $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"; p2=$null; p3=$null; p4=$null; p5=$null; p6=$null; p7=$null; p8=$null; p9=$null; p10=$null }
+$timestamp = Get-Date -Format 'yyyy-MM-dd HH:mm:ss'
+$titleRow  = [PSCustomObject]@{ p1="Testlauf $runNumber - $timestamp"; p2=$null; p3=$null; p4=$null; p5=$null; p6=$null; p7=$null; p8=$null; p9=$null; p10=$null }
 $headerRow = [PSCustomObject]@{ p1="Element"; p2=$null; p3="Class, %"; p4=$null; p5="Method, %"; p6=$null; p7="Line, %"; p8=$null; p9="Branch, %"; p10=$null }
 $blank     = [PSCustomObject]@{ p1=$null; p2=$null; p3=$null; p4=$null; p5=$null; p6=$null; p7=$null; p8=$null; p9=$null; p10=$null }
 
-$newBlock = New-Object System.Collections.Generic.List[object]
-if ($existing.Count -gt 0) {
-    $newBlock.Add($blank); $newBlock.Add($blank); $newBlock.Add($blank)   # 3 Leerzeilen Trenner
-}
-$newBlock.Add($titleRow)
-$newBlock.Add($headerRow)
-foreach ($r in $dataRows) { $newBlock.Add($r) }
-
 $allRows = New-Object System.Collections.Generic.List[object]
 foreach ($r in $existing) { $allRows.Add($r) }
-foreach ($r in $newBlock) { $allRows.Add($r) }
-
-# ── Datei komplett neu schreiben (History + neuer Block) ─────────────────
+if ($existing.Count -gt 0) { 1..3 | ForEach-Object { $allRows.Add($blank) } }
+$allRows.Add($titleRow)
+$allRows.Add($headerRow)
+foreach ($e in $entries) { $allRows.Add((New-Row $e)) }
 
 if (Test-Path $OutputXlsx) { Remove-Item $OutputXlsx -Force }
 $allRows | Export-Excel -Path $OutputXlsx -WorksheetName "Coverage" -NoHeader -AutoSize
 
-Write-Host "Testlauf $runNumber angehängt an: $OutputXlsx" -ForegroundColor Green
+# ── CSV: Zeilen nur anhängen, Bestand bleibt unverändert ─────────────────
 
+$csvRows = foreach ($e in $entries) { New-CsvRow $e $runNumber $timestamp }
+$csvRows | Export-Csv -Path $OutputCsv -Append -NoTypeInformation -Encoding UTF8
 
+Write-Host "Testlauf $runNumber angehängt an:" -ForegroundColor Green
+Write-Host "  XLSX: $OutputXlsx" -ForegroundColor Green
+Write-Host "  CSV : $OutputCsv"  -ForegroundColor Green
