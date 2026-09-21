@@ -55,4 +55,6 @@ public final class TimeoutConfig {
     public static final int UPNP_DISCOVERY_MS = 3000;
     /** OuiUpdater: HTTP-Connect-Timeout beim Nachladen der OUI-Datenbank. */
     public static final int OUI_UPDATE_MS = 10_000;
+    /** UdpSnmpTransport: Socket-Timeout pro SNMP-Anfrage. */
+    public static final int SNMP_REQUEST_MS = 1000;
 }

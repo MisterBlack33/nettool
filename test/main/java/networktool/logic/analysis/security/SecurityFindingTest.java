@@ -23,7 +23,7 @@ class SecurityFindingTest {
     }
 
     @Test void categories_haveExpectedValues() {
-        assertEquals(3, SecurityFinding.Category.values().length);
+        assertEquals(4, SecurityFinding.Category.values().length);
     }
 
     @Test void severities_haveExpectedValues() {
