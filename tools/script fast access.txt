@@ -1,0 +1,5 @@
+.\tools\Find-DeadCode.ps1
+.\tools\Update-TestCoverageHistory.ps1 -RunTests
+.\tools\New-CoverageChart.ps1 -Open
+
+mvn test; if ($LASTEXITCODE -eq 0) { .\tools\Update-TestCoverageHistory.ps1; .\tools\New-CoverageChart.ps1 -Open }
