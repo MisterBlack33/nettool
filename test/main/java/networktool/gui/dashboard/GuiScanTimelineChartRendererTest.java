@@ -60,7 +60,7 @@ class GuiScanTimelineChartRendererTest {
 
     @Test void chart_updateNull_doesNotThrow() {
         GuiScanTimelineChart chart = new GuiScanTimelineChart(Color.BLACK, List.of());
-        assertDoesNotThrow(() -> chart.update(null));
+        assertDoesNotThrow(() -> chart.update((List<ScanHistory.Entry>) null));
     }
 
     @Test void chart_hasPreferredSize() {
