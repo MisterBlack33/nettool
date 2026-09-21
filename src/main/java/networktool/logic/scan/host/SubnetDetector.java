@@ -11,8 +11,8 @@ public final class SubnetDetector {
     private SubnetDetector() {}
 
     private static final int MIN_PREFIX    = 16;
-    private static final int MAX_PREFIX = 30;
-    private static final int MAX_SUBNETS   = 256;
+    private static final int MAX_PREFIX    = 30;
+    static final int         MAX_SUBNETS   = 256;
     private static final int MAX_PER_IFACE = 256;
 
     private static final Set<String> SKIP_NAME_PREFIXES = Set.of(
@@ -20,45 +20,20 @@ public final class SubnetDetector {
             "wg", "utun", "lo", "vmnet", "vbox"
     );
 
+    /** Lokale Netze plus Heimnetz-Routen aus einem aktiven Tailscale-Subnet-Router. */
     public static List<String> getAllCidrs() throws SocketException {
         List<String> cidrs = new ArrayList<>(PsCidrResolver.resolveCidrs());
         Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces();
-        if (ifaces == null) return cidrs;
-        while (ifaces.hasMoreElements()) {
-            NetworkInterface ni = ifaces.nextElement();
-            if (shouldSkip(ni)) continue;
-            for (InterfaceAddress ia : ni.getInterfaceAddresses())
-                addCidr(ia, cidrs);
-        }
+        if (ifaces != null) collectInterfaceCidrs(cidrs, ifaces);
+        addRouteCidrs(cidrs, TailscaleRouteSource.read(MIN_PREFIX, MAX_PREFIX));
         return cidrs;
     }
 
     public static List<String> getAllSubnets() throws SocketException {
         List<String> result = new ArrayList<>();
         Enumeration<NetworkInterface> ifaces = NetworkInterface.getNetworkInterfaces();
-        if (ifaces == null) return result;
-
-        while (ifaces.hasMoreElements()) {
-            NetworkInterface ni = ifaces.nextElement();
-            if (shouldSkip(ni)) continue;
-
-            for (InterfaceAddress ia : ni.getInterfaceAddresses()) {
-                InetAddress addr = ia.getAddress();
-                if (!(addr instanceof Inet4Address)) continue;
-                if (isLinkLocal(addr)) continue;
-
-                int prefix = ia.getNetworkPrefixLength();
-                if (prefix < MIN_PREFIX) continue;
-
-                List<String> prefixes = CIDRUtils.getSubnet24Prefixes(buildCidr(addr, prefix));
-                int added = 0;
-                for (String p : prefixes) {
-                    if (added >= MAX_PER_IFACE || result.size() >= MAX_SUBNETS) break;
-                    if (!result.contains(p)) { result.add(p); added++; }
-                }
-            }
-            if (result.size() >= MAX_SUBNETS) break;
-        }
+        if (ifaces != null) collectInterfaceSubnets(result, ifaces);
+        addRoutePrefixes(result, TailscaleRouteSource.read(MIN_PREFIX, MAX_PREFIX));
 
         if (!result.isEmpty())
             System.out.printf("[SubnetDetector] %d /24-Subnetz(e): %s%n", result.size(), result);
@@ -69,7 +44,52 @@ public final class SubnetDetector {
         return subnets.size() * 254;
     }
 
-    // ── private ───────────────────────────────────────────────────────────
+    // ── Routen ────────────────────────────────────────────────────────────
+
+    static void addRouteCidrs(List<String> cidrs, List<String> routeCidrs) {
+        for (String cidr : routeCidrs)
+            if (!cidrs.contains(cidr)) cidrs.add(cidr);
+    }
+
+    static void addRoutePrefixes(List<String> result, List<String> routeCidrs) {
+        for (String cidr : routeCidrs)
+            for (String prefix : CIDRUtils.getSubnet24Prefixes(cidr)) {
+                if (result.size() >= MAX_SUBNETS) return;
+                if (!result.contains(prefix)) result.add(prefix);
+            }
+    }
+
+    // ── Interfaces ────────────────────────────────────────────────────────
+
+    private static void collectInterfaceCidrs(List<String> cidrs, Enumeration<NetworkInterface> ifaces) {
+        while (ifaces.hasMoreElements()) {
+            NetworkInterface ni = ifaces.nextElement();
+            if (shouldSkip(ni)) continue;
+            for (InterfaceAddress ia : ni.getInterfaceAddresses()) addCidr(ia, cidrs);
+        }
+    }
+
+    private static void collectInterfaceSubnets(List<String> result, Enumeration<NetworkInterface> ifaces) {
+        while (ifaces.hasMoreElements() && result.size() < MAX_SUBNETS) {
+            NetworkInterface ni = ifaces.nextElement();
+            if (shouldSkip(ni)) continue;
+            for (InterfaceAddress ia : ni.getInterfaceAddresses()) addSubnets(ia, result);
+        }
+    }
+
+    /** /31 und /32 (z.B. Tailscale-Adresse 100.x.y.z/32) sind kein scanbares Netz. */
+    private static void addSubnets(InterfaceAddress ia, List<String> result) {
+        InetAddress addr = ia.getAddress();
+        if (!(addr instanceof Inet4Address) || isLinkLocal(addr)) return;
+        int prefix = ia.getNetworkPrefixLength();
+        if (prefix < MIN_PREFIX || prefix > MAX_PREFIX) return;
+
+        int added = 0;
+        for (String p : CIDRUtils.getSubnet24Prefixes(buildCidr(addr, prefix))) {
+            if (added >= MAX_PER_IFACE || result.size() >= MAX_SUBNETS) break;
+            if (!result.contains(p)) { result.add(p); added++; }
+        }
+    }
 
     private static boolean isLinkLocal(InetAddress addr) {
         return addr.isLinkLocalAddress() || addr.getHostAddress().startsWith("169.254.");

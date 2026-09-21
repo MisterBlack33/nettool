@@ -2,9 +2,9 @@ package main.java.networktool.logic.scan.remote;
 
 import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.logic.TimeoutConfig;
+import main.java.networktool.logic.scan.host.HostAliveChecker;
 import main.java.networktool.util.CIDRUtils;
 
-import java.net.InetAddress;
 import java.util.*;
 import java.util.concurrent.*;
 
@@ -61,14 +61,13 @@ final class RemoteNetProbe {
         return probes;
     }
 
+    /** ICMP + TCP statt reinem ICMP: hinter VPN/Firewall antwortet ein Gateway oft nur auf TCP. */
     private static List<Future<Long>> submitProbes(List<String> probes) {
         ExecutorService exec = Executors.newFixedThreadPool(probes.size());
         List<Future<Long>> futures = probes.stream()
                 .map(ip -> exec.submit(() -> {
                     long t = System.currentTimeMillis();
-                    try { return InetAddress.getByName(ip).isReachable(TimeoutConfig.REMOTE_REACH_MS)
-                            ? System.currentTimeMillis() - t : -1L; }
-                    catch (Exception e) { return -1L; }
+                    return HostAliveChecker.isAlive(ip) ? System.currentTimeMillis() - t : -1L;
                 }))
                 .toList();
         exec.shutdown();

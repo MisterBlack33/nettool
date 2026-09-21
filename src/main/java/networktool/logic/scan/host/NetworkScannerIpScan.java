@@ -1,7 +1,6 @@
 package main.java.networktool.logic.scan.host;
 
 import main.java.networktool.logging.DebugLogger;
-import main.java.networktool.logic.TimeoutConfig;
 import main.java.networktool.logic.analysis.os.OsDetector;
 import main.java.networktool.logic.analysis.security.ScanSecurityHook;
 import main.java.networktool.logic.ports.PortScanner;
@@ -16,9 +15,10 @@ final class NetworkScannerIpScan {
 
     private NetworkScannerIpScan() {}
 
+    /** Erreichbarkeit per {@link HostAliveChecker} (ICMP + TCP): über VPN blockieren Firewalls oft reines ICMP. */
     static void scanIp(String ip, List<ScanResult> results) {
         try {
-            if (!InetAddress.getByName(ip).isReachable(TimeoutConfig.NETWORK_SCANNER_REACH_MS)) return;
+            if (!HostAliveChecker.isAlive(ip)) return;
             String hostname            = resolveHostname(ip);
             Map<Integer, String> ports = PortScanner.scanSimple(ip, 0);
             String os                  = OsDetector.detect(ip);
