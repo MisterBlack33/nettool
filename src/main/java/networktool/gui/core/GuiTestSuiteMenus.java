@@ -1,7 +1,7 @@
 package main.java.networktool.gui.core;
 
 /**
- * Registriert alle Test-Suite-Menüpunkte (IDs 24–29, 31–45), gruppiert nach Thema.
+ * Registriert alle Test-Suite-Menüpunkte (IDs 24–29, 31–46), gruppiert nach Thema.
  * Neue user-invoked Features starten hier statt im Produktiv-Menü (siehe Clean-Code-Guide).
  */
 final class GuiTestSuiteMenus {

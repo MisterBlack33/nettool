@@ -24,9 +24,10 @@ final class UserAuthPersistence {
         }
     }
 
-    static void save(Path dataDir, List<Map<String, String>> users) {
-        if (dataDir == null) return;
+    static boolean save(Path dataDir, List<Map<String, String>> users) {
+        if (dataDir == null) return false;
         Path file = dataDir.resolve(FILE_NAME);
+        Path tempFile = file.resolveSibling(FILE_NAME + ".tmp");
         StringBuilder sb = new StringBuilder("{\n  \"users\": [\n");
         for (int i = 0; i < users.size(); i++) {
             Map<String, String> u = users.get(i);
@@ -40,10 +41,19 @@ final class UserAuthPersistence {
         sb.append("  ]\n}");
         try {
             Files.createDirectories(file.getParent());
-            Files.writeString(file, sb.toString(), StandardCharsets.UTF_8,
+            Files.writeString(tempFile, sb.toString(), StandardCharsets.UTF_8,
                     StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+            try {
+                Files.move(tempFile, file, StandardCopyOption.ATOMIC_MOVE,
+                        StandardCopyOption.REPLACE_EXISTING);
+            } catch (AtomicMoveNotSupportedException e) {
+                Files.move(tempFile, file, StandardCopyOption.REPLACE_EXISTING);
+            }
+            return true;
         } catch (IOException e) {
             System.err.println("[UserAuth] save: " + e.getMessage());
+            try { Files.deleteIfExists(tempFile); } catch (IOException ignored) {}
+            return false;
         }
     }
 

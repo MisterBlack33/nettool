@@ -1,6 +1,7 @@
 package main.java.networktool.gui.components;
 
 import main.java.networktool.gui.components.map.GuiNetworkMap;
+import main.java.networktool.gui.core.GuiDebugMode;
 import main.java.networktool.security.AuditLogger;
 import main.java.networktool.security.UserAuth;
 
@@ -67,18 +68,22 @@ final class SidebarPowerMenu {
     private static void showPowerMenu(JButton anchor, Runnable onCancel,
                                       Runnable onRestart, BooleanSupplier isRunning) {
         JPopupMenu m = new JPopupMenu();
+        m.setOpaque(true);
         m.setBackground(PANEL_BG);
-        m.setBorder(new CompoundBorder(new LineBorder(BORDER_LT, 1), new EmptyBorder(4, 0, 4, 0)));
+        m.setBorder(new CompoundBorder(
+                new MatteBorder(1, 1, 1, 1, PANEL_BG),
+                new MatteBorder(4, 0, 4, 0, PANEL_BG)));
         m.add(pItem("Abbrechen  Ctrl+A",     WARN,                        onCancel));
-        m.addSeparator();
+        m.add(pSeparator());
         m.add(pItem("Neustart   Ctrl+R",     new Color(0xFF, 0xD0, 0x50), onRestart));
-        m.addSeparator();
+        m.add(pSeparator());
         m.add(pItem("Abmelden", new Color(0x80, 0xC8, 0xFF), () -> {
             AuditLogger.getInstance().log("LOGOUT", UserAuth.getInstance().getCurrentUser());
+            GuiDebugMode.disable();
             UserAuth.getInstance().logout();
             onRestart.run();
         }));
-        m.addSeparator();
+        m.add(pSeparator());
         m.add(pItem("Beenden    Ctrl+Q", new Color(0xFF, 0x40, 0x40), () -> confirmQuit(isRunning)));
         m.pack();
         m.show(anchor, 0, -(m.getPreferredSize().height + 2));
@@ -106,6 +111,18 @@ final class SidebarPowerMenu {
             public void mouseExited (MouseEvent e) { item.setBackground(PANEL_BG); }
         });
         return item;
+    }
+
+    private static JSeparator pSeparator() {
+        JSeparator separator = new JSeparator();
+        separator.setOpaque(true);
+        separator.setBackground(PANEL_BG);
+        separator.setForeground(BORDER);
+        separator.setBorder(BorderFactory.createEmptyBorder());
+        separator.setPreferredSize(new Dimension(1, 1));
+        separator.setMinimumSize(new Dimension(1, 1));
+        separator.setMaximumSize(new Dimension(Integer.MAX_VALUE, 1));
+        return separator;
     }
 
     // ── Status-Indikator ──────────────────────────────────────────────────

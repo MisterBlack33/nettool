@@ -128,6 +128,28 @@ public final class UserAuth {
         return true;
     }
 
+    /**
+     * Ändert das Passwort des zentralen Admin-Kontos. Die laufende Admin-
+     * Session muss zusätzlich durch das bisherige Passwort bestätigt werden.
+     */
+    public synchronized boolean changeAdminPassword(String currentPassword, String newPassword) {
+        if (!isAdmin() || currentPassword == null || !isStrongPassword(newPassword)) return false;
+
+        List<Map<String, String>> users = UserAuthPersistence.load(dataDir);
+        Map<String, String> admin = findByUsername(users, DEFAULT_ADMIN_USER);
+        if (admin == null || !verifyPassword(admin, currentPassword)) return false;
+
+        try {
+            byte[] salt = generateSalt();
+            admin.put("salt", Base64.getEncoder().encodeToString(salt));
+            admin.put("hash", hash(newPassword, salt));
+            return UserAuthPersistence.save(dataDir, users);
+        } catch (Exception e) {
+            System.err.println("[UserAuth] changeAdminPassword: " + e.getMessage());
+            return false;
+        }
+    }
+
     private static boolean verifyPassword(Map<String, String> user, String password) {
         try {
             byte[] salt = Base64.getDecoder().decode(user.get("salt"));

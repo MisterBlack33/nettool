@@ -120,6 +120,22 @@ public class GuiMenuHandler {
         registry.dispatch(num);
     }
 
+    void renderDebug(String menuId) {
+        GuiDebugMode.render(menuId, output, tables);
+    }
+
+    void showDebugSavedHosts() {
+        if (savedHostsPanel != null) savedHostsPanel.showDebug();
+    }
+
+    GuiInputPanel inputPanel() {
+        return input;
+    }
+
+    GuiTableRenderer tableRenderer() {
+        return tables;
+    }
+
     public void cancel() {
         Thread t = runningThread.getAndSet(null);
         if (t != null && t.isAlive()) {

@@ -1,5 +1,6 @@
 package main.java.networktool.gui.panels.bandwidth;
 
+import main.java.networktool.gui.core.GuiDebugMode;
 import main.java.networktool.gui.components.BandwidthHistoryChart;
 import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.analysis.probe.BandwidthHistoryStore;
@@ -42,6 +43,29 @@ public final class GuiBandwidthHistoryPanel {
             chart.setBackground(BG);
             chart.setPreferredSize(new Dimension(0, 140));
 
+            JTextPane pane = output.getOutputPane();
+            pane.setCaretPosition(pane.getDocument().getLength());
+            pane.insertComponent(chart);
+            output.appendText("\n", FG);
+        });
+    }
+
+    public static void showDebug(GuiOutputPanel output, String ip) {
+        double down = 80.0;
+        double up = 24.5;
+        SwingUtilities.invokeLater(() -> {
+            output.appendText("\n  Bandbreiten-Verlauf – " + ip + " (DEBUG)\n", ACCENT);
+            output.appendText("  " + StatusTags.OK
+                    + String.format("  ↓ %.2f Mbps  ↑ %.2f Mbps%n", down, up), ACCENT2);
+            JPanel chart = new JPanel() {
+                @Override protected void paintComponent(Graphics g) {
+                    super.paintComponent(g);
+                    BandwidthHistoryChart.paint((Graphics2D) g, getBackground(),
+                            java.util.List.of(), getWidth(), getHeight());
+                }
+            };
+            chart.setBackground(BG);
+            chart.setPreferredSize(new Dimension(0, 140));
             JTextPane pane = output.getOutputPane();
             pane.setCaretPosition(pane.getDocument().getLength());
             pane.insertComponent(chart);

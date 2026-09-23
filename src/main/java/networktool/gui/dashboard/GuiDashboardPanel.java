@@ -1,5 +1,6 @@
 package main.java.networktool.gui.dashboard;
 
+import main.java.networktool.gui.core.GuiDebugMode;
 import main.java.networktool.gui.panels.GuiOutputPanel;
 
 import javax.swing.*;
@@ -18,11 +19,21 @@ public final class GuiDashboardPanel {
         SwingUtilities.invokeLater(() -> embedPanel(output));
     }
 
+    public static void showDebug(GuiOutputPanel output) {
+        SwingUtilities.invokeLater(() -> embedPanel(output, true));
+    }
+
     private static void embedPanel(GuiOutputPanel output) {
+        embedPanel(output, false);
+    }
+
+    private static void embedPanel(GuiOutputPanel output, boolean debug) {
         output.appendText("\nDashboard\n\n", ACCENT);
 
         Color bg = GuiTheme.isDark() ? new Color(0x08, 0x0B, 0x09) : new Color(0xF4, 0xF2, 0xEE);
-        GuiDashboardStats.Snapshot snap = GuiDashboardStats.capture();
+        GuiDashboardStats.Snapshot snap = debug
+                ? new GuiDashboardStats.Snapshot(250, "DEBUG-CIDR (250 Hosts)", 12, 25)
+                : GuiDashboardStats.capture();
 
         JPanel grid = new JPanel(new GridLayout(2, 2, 10, 10));
         grid.setBackground(bg);

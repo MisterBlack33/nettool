@@ -1,5 +1,6 @@
 package main.java.networktool.gui.panels.security;
 
+import main.java.networktool.gui.core.GuiDebugMode;
 import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.analysis.security.DefaultCredentialProbe;
 import main.java.networktool.logic.analysis.security.SecurityFinding;
@@ -23,11 +24,25 @@ public final class GuiSecurityFindingsPanel {
         SwingUtilities.invokeLater(() -> embed(output));
     }
 
+    public static void showDebug(GuiOutputPanel output) {
+        SwingUtilities.invokeLater(() -> embed(output, true));
+    }
+
     private static void embed(GuiOutputPanel output) {
+        embed(output, false);
+    }
+
+    private static void embed(GuiOutputPanel output, boolean debug) {
         output.appendText("\nSecurity-Findings\n\n", ACCENT);
 
         DefaultTableModel model = buildModel();
-        reload(model);
+        if (debug) {
+            model.addRow(new Object[]{"192.168.10.10", "TLS", "MEDIUM", "Zertifikat läuft in 21 Tagen ab"});
+            model.addRow(new Object[]{"192.168.10.20", "Default-Credentials", "HIGH", "Beispielbefund: Standardkonto erkannt"});
+            model.addRow(new Object[]{"192.168.10.30", "Offener Port", "LOW", "Port 8080 erreichbar"});
+        } else {
+            reload(model);
+        }
         JTable table = TableConfig.buildTable(model, new int[]{130, 150, 90, 300});
 
         JScrollPane sp = new JScrollPane(table);

@@ -5,6 +5,8 @@ import java.awt.*;
 import java.util.*;
 
 import main.java.networktool.gui.map.MapCanvas;
+import main.java.networktool.gui.core.GuiDebugMode;
+import main.java.networktool.logic.scan.schedule.ScanHistory;
 import main.java.networktool.theme.GuiTheme;
 
 /**
@@ -26,6 +28,10 @@ public final class GuiNetworkMap {
 
     public static void show() {
         SwingUtilities.invokeLater(GuiNetworkMap::buildWindow);
+        if (GuiDebugMode.isEnabled()) {
+            ScanHistory.getInstance().add("DEBUG-NETWORK-MAP", GuiDebugMode.sampleScanResults());
+            return;
+        }
         // Starte Quick Scan des lokalen Netzwerks im Hintergrund
         GuiNetworkMapScanTasks.startQuickLocalScan();
     }
@@ -52,7 +58,8 @@ public final class GuiNetworkMap {
         dlg.setVisible(true);
 
         SwingUtilities.invokeLater(canvas::reload);
-        GuiNetworkMapScanTasks.startHopDiscovery(canvas, HOP_PARENT);
+        if (!GuiDebugMode.isEnabled())
+            GuiNetworkMapScanTasks.startHopDiscovery(canvas, HOP_PARENT);
     }
 
     // ── Datentypen ────────────────────────────────────────────────────────

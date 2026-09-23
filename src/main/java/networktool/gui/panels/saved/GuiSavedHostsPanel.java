@@ -5,6 +5,7 @@ import main.java.networktool.gui.components.GuiNetworkBar;
 import main.java.networktool.gui.components.table.GuiSearchBar;
 import main.java.networktool.gui.components.table.GuiTableRenderer;
 import main.java.networktool.gui.core.GuiMenuHandler;
+import main.java.networktool.gui.core.GuiDebugMode;
 import main.java.networktool.gui.panels.GuiNetworkDialogs;
 import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.model.HostResult;
@@ -49,6 +50,7 @@ public class GuiSavedHostsPanel {
     // Sort state
     private int  sortCol = COL_IP;
     private boolean sortAsc = true;
+    private boolean debugView;
 
     public GuiSavedHostsPanel(GuiMenuHandler menuHandler, GuiOutputPanel output,
                               GuiContextMenu contextMenu, GuiSearchBar searchBar) {
@@ -61,10 +63,22 @@ public class GuiSavedHostsPanel {
 
     public void show() {
         SwingUtilities.invokeLater(() -> {
+            debugView = false;
             if (searchBar != null) searchBar.show();
             tableModel    = null;
             activeNetwork = NetworkStore.ALL_CATEGORY;
             output.appendText("\n★ Gespeicherte Hosts\n\n", ACCENT);
+            embedFullPanel();
+        });
+    }
+
+    public void showDebug() {
+        SwingUtilities.invokeLater(() -> {
+            debugView = true;
+            if (searchBar != null) searchBar.hide();
+            tableModel = null;
+            activeNetwork = NetworkStore.ALL_CATEGORY;
+            output.appendText("\n★ Gespeicherte Hosts (DEBUG-DATEN, nur Anzeige)\n\n", ACCENT);
             embedFullPanel();
         });
     }
@@ -91,9 +105,11 @@ public class GuiSavedHostsPanel {
         south.add(buildHint(),        BorderLayout.WEST);
         JPanel rightBtns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         rightBtns.setOpaque(false);
-        rightBtns.add(SavedHostsBulkActions.buildBulkDeleteBtn(() -> tableModel, () -> activeNetwork, output, this::refreshTable));
-        rightBtns.add(SavedHostsBulkActions.buildBulkMoveBtn(() -> tableModel, () -> activeNetwork, output, this::refreshTable));
-        rightBtns.add(SavedHostsManualAdd.buildButton(output, this::refreshTable));
+        if (!debugView) {
+            rightBtns.add(SavedHostsBulkActions.buildBulkDeleteBtn(() -> tableModel, () -> activeNetwork, output, this::refreshTable));
+            rightBtns.add(SavedHostsBulkActions.buildBulkMoveBtn(() -> tableModel, () -> activeNetwork, output, this::refreshTable));
+            rightBtns.add(SavedHostsManualAdd.buildButton(output, this::refreshTable));
+        }
         south.add(rightBtns, BorderLayout.EAST);
         outer.add(south, BorderLayout.SOUTH);
 
@@ -108,6 +124,13 @@ public class GuiSavedHostsPanel {
     // ── Tab bar ───────────────────────────────────────────────────────────
 
     private JPanel buildNetworkTabBar() {
+        if (debugView) {
+            JPanel bar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 5));
+            bar.setBackground(BG);
+            JLabel label = SavedHostsStyle.label("DEBUG-DATEN · Alle · keine Änderungen am Speicher");
+            bar.add(label);
+            return bar;
+        }
         return GuiNetworkBar.build(activeNetwork,
                 this::onNew, this::onRename, this::onDelete, this::switchTab);
     }
@@ -122,7 +145,7 @@ public class GuiSavedHostsPanel {
     // ── Prefix bar ────────────────────────────────────────────────────────
 
     private JPanel buildPrefixBar() {
-        String cur = NetworkStore.getInstance().getPrefix(activeNetwork);
+        String cur = debugView ? "" : NetworkStore.getInstance().getPrefix(activeNetwork);
         JPanel bar = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 3));
         bar.setBackground(new Color(0x09, 0x12, 0x1A));
         bar.setBorder(new CompoundBorder(new MatteBorder(0,1,1,1,BORDER), new EmptyBorder(3,8,3,8)));
@@ -136,8 +159,10 @@ public class GuiSavedHostsPanel {
 
         bar.add(prefixLabel); bar.add(prefixField);
         bar.add(SavedHostsStyle.label("(leer = kein Filter)"));
-        bar.add(GuiNetworkBar.iconBtn("✔", ACCENT2, () ->
-                applyPrefix(activeNetwork, prefixField.getText().trim())));
+        JButton apply = GuiNetworkBar.iconBtn("✔", ACCENT2, () ->
+                applyPrefix(activeNetwork, prefixField.getText().trim()));
+        apply.setEnabled(!debugView);
+        bar.add(apply);
         return bar;
     }
 
@@ -146,7 +171,7 @@ public class GuiSavedHostsPanel {
         boolean isAll = activeNetwork.equals(NetworkStore.ALL_CATEGORY);
         prefixLabel.setText("IP-Präfix für \"" + activeNetwork + "\":");
         prefixField.setText(isAll ? "" : NetworkStore.getInstance().getPrefix(activeNetwork));
-        prefixField.setEnabled(!isAll);
+        prefixField.setEnabled(!isAll && !debugView);
     }
 
     // ── Table ─────────────────────────────────────────────────────────────
@@ -206,7 +231,7 @@ public class GuiSavedHostsPanel {
         return new DefaultTableModel(buildData(), activeColumns()) {
             @Override public Class<?> getColumnClass(int c) { return c == COL_CB ? Boolean.class : String.class; }
             @Override public boolean isCellEditable(int r, int c) {
-                return c == COL_CB || c == getColumnCount() - 1 || c == COL_OS;
+                return !debugView && (c == COL_CB || c == getColumnCount() - 1 || c == COL_OS);
             }
         };
     }
@@ -228,7 +253,9 @@ public class GuiSavedHostsPanel {
 
     private Object[][] buildData() {
         boolean isAll = activeNetwork.equals(NetworkStore.ALL_CATEGORY);
-        List<HostResult> hosts = NetworkStore.getInstance().getAll(activeNetwork);
+        List<HostResult> hosts = debugView
+                ? GuiDebugMode.sampleSavedHosts()
+                : NetworkStore.getInstance().getAll(activeNetwork);
 
         if (isAll) {
             if (hosts.isEmpty()) return new Object[][]{{Boolean.FALSE, "–", "Noch keine Hosts", "", "", "", "", ""}};
