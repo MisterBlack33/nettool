@@ -2,6 +2,7 @@ package main.java.networktool.gui.map;
 
 import main.java.networktool.gui.components.map.GuiNetworkMap;
 import main.java.networktool.gui.components.*;
+import main.java.networktool.gui.core.GuiDebugMode;
 import main.java.networktool.logic.scan.schedule.MapTrafficObserver;
 import main.java.networktool.logic.scan.remote.RemoteNetScanner;
 import main.java.networktool.logic.scan.schedule.ScanHistory;
@@ -31,11 +32,14 @@ final class MapNodeCollector {
         Set<String> seen = new LinkedHashSet<>();
         GuiNetworkMap.Node gwNode = null;
 
-        String gw = RemoteNetScanner.detectDefaultGateway();
+        String gw = GuiDebugMode.isEnabled() ? "192.0.10.1" : RemoteNetScanner.detectDefaultGateway();
         if (gw != null && seen.add(gw))
             gwNode = addNode(nodes, gw, "Gateway", "Router / Netzwerkgeraet", GuiNetworkMap.NodeType.GATEWAY);
 
-        try {
+        if (GuiDebugMode.isEnabled()) {
+            if (seen.add("192.0.10.2"))
+                addNode(nodes, "192.0.10.2", "debug-workstation", "Windows", GuiNetworkMap.NodeType.SELF);
+        } else try {
             InetAddress self = InetAddress.getLocalHost();
             if (seen.add(self.getHostAddress()))
                 addNode(nodes, self.getHostAddress(), self.getHostName() + " (ich)", localOs(), GuiNetworkMap.NodeType.SELF);

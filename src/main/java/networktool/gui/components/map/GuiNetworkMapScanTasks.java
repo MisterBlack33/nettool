@@ -1,6 +1,7 @@
 package main.java.networktool.gui.components.map;
 
 import main.java.networktool.gui.core.GUI;
+import main.java.networktool.gui.core.GuiDebugMode;
 import main.java.networktool.gui.map.MapCanvas;
 import main.java.networktool.gui.map.*;
 import main.java.networktool.logic.scan.schedule.LastScanCache;
@@ -34,6 +35,7 @@ final class GuiNetworkMapScanTasks {
      * und aktualisiert LastScanCache mit den Ergebnissen.
      */
     static void startQuickLocalScan() {
+        if (GuiDebugMode.isEnabled()) return;
         new Thread(() -> {
             try {
                 List<String> cidrs = SubnetDetector.getAllCidrs();
@@ -65,6 +67,10 @@ final class GuiNetworkMapScanTasks {
     }
 
     static void startHopDiscovery(MapCanvas canvas, java.util.Map<String, String> hopParent) {
+        if (GuiDebugMode.isEnabled()) {
+            canvas.setStatus("  Debug-Modus: Hop-Analyse simuliert.");
+            return;
+        }
         new Thread(() -> {
             scanRunning.set(true);
             if (GUI.isGuiActive()) GUI.instance().setStatus("Hop-Analyse läuft…", ACCENT);

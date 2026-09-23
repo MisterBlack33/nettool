@@ -4,10 +4,12 @@ import main.java.networktool.filter.JsonExporter;
 import main.java.networktool.filter.ScanFilter;
 import main.java.networktool.gui.components.table.GuiTableRenderer;
 import main.java.networktool.gui.core.GuiMenuHandler;
+import main.java.networktool.gui.core.GuiDebugMode;
 import main.java.networktool.gui.panels.GuiInputPanel;
 import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.scan.host.NetworkInfo;
 import main.java.networktool.logic.scan.host.NetworkScanner;
+import main.java.networktool.logic.scan.schedule.ScanHistory;
 import main.java.networktool.model.ScanResult;
 
 import java.util.List;
@@ -29,6 +31,27 @@ public final class GuiScanActions {
                                       GuiTableRenderer tables, GuiMenuHandler handler) {
         input.ask("CIDR (z.B. 192.168.1.0/24):", cidr -> handler.runAsync(() -> {
             List<ScanResult> results = NetworkScanner.scanCIDR(cidr);
+            tables.showScanTable(results);
+            input.ask("Hostname-Filter Regex (leer = überspringen):", regex -> {
+                List<ScanResult> f1 = applyRegex(results, regex, tables);
+                input.ask("OS + Port-Filter (z.B. linux 22, leer = überspringen):", filter -> {
+                    List<ScanResult> f2 = applyOsPort(f1, filter, tables, output);
+                    input.ask("Als JSON speichern? (j/n):", yn -> {
+                        if (yn.equalsIgnoreCase("j") || yn.equalsIgnoreCase("y"))
+                            JsonExporter.save(f2, "scan_result.json");
+                    });
+                });
+            });
+        }));
+    }
+
+    public static void handleDebugCidrScan(GuiInputPanel input, GuiOutputPanel output,
+                                           GuiTableRenderer tables, GuiMenuHandler handler) {
+        input.ask("CIDR (z.B. 192.168.1.0/24):", cidr -> handler.runAsync(() -> {
+            List<ScanResult> results = GuiDebugMode.sampleScanResults(cidr);
+            ScanHistory.getInstance().add(cidr, results);
+            output.appendText("\nScanne " + results.size() + " Hosts in " + cidr
+                    + " (DEBUG, keine Netzwerkzugriffe)...\n", ACCENT);
             tables.showScanTable(results);
             input.ask("Hostname-Filter Regex (leer = überspringen):", regex -> {
                 List<ScanResult> f1 = applyRegex(results, regex, tables);

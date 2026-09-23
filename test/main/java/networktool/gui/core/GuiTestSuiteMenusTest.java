@@ -15,7 +15,7 @@ class GuiTestSuiteMenusTest {
     }
 
     @Test void registersAllTestSuiteIds() {
-        IntStream.rangeClosed(24, 45).filter(id -> id != 30)
+        IntStream.rangeClosed(24, 46).filter(id -> id != 30)
                 .forEach(id -> assertTrue(registry.contains(String.valueOf(id)), "ID " + id));
     }
 
@@ -23,7 +23,7 @@ class GuiTestSuiteMenusTest {
         assertFalse(registry.contains("30"));
     }
 
-    @Test void registersExactlyTwentyOneIds() {
-        assertEquals(21, registry.size());
+    @Test void registersExactlyTwentyTwoIds() {
+        assertEquals(22, registry.size());
     }
 }

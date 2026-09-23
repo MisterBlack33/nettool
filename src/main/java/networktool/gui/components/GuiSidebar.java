@@ -82,17 +82,31 @@ public final class GuiSidebar {
         accordionHolder.setBackground(SIDEBAR_BG);
         accordionHolder.add(buildAccordion(onMenuClick), BorderLayout.CENTER);
 
+        JPanel footerHolder = new JPanel(new BorderLayout());
+        footerHolder.setBackground(SIDEBAR_BG);
+        Runnable[] rebuildAllHolder = new Runnable[1];
         Runnable rebuildAccordion = () -> {
             accordionHolder.removeAll();
             accordionHolder.add(buildAccordion(onMenuClick), BorderLayout.CENTER);
             accordionHolder.revalidate();
             accordionHolder.repaint();
         };
+        Runnable rebuildFooter = () -> {
+            footerHolder.removeAll();
+            footerHolder.add(buildFooter(onCancel, onRestart, isRunning, rebuildAllHolder[0], onMenuClick),
+                    BorderLayout.CENTER);
+            footerHolder.revalidate();
+            footerHolder.repaint();
+        };
+        rebuildAllHolder[0] = () -> {
+            rebuildAccordion.run();
+            rebuildFooter.run();
+        };
 
         sidebar.add(buildLogo(),      BorderLayout.NORTH);
-        sidebar.add(accordionHolder,  BorderLayout.CENTER);
-        sidebar.add(buildFooter(onCancel, onRestart, isRunning, rebuildAccordion),
-                BorderLayout.SOUTH);
+        sidebar.add(accordionHolder, BorderLayout.CENTER);
+        rebuildFooter.run();
+        sidebar.add(footerHolder, BorderLayout.SOUTH);
         return sidebar;
     }
 
@@ -111,20 +125,31 @@ public final class GuiSidebar {
 
     private static JPanel buildFooter(Runnable onCancel, Runnable onRestart,
                                       java.util.function.BooleanSupplier isRunning,
-                                      Runnable onAdminGranted) {
+                                      Runnable onAdminGranted,
+                                      Consumer<String> onMenuClick) {
         JPanel footer = new JPanel(new BorderLayout());
         footer.setBackground(SIDEBAR_BG);
-        if (!UserAuth.getInstance().isAdmin())
-            footer.add(buildAdminRow(onAdminGranted), BorderLayout.NORTH);
+        footer.add(buildAdminRow(onAdminGranted, onMenuClick), BorderLayout.NORTH);
         footer.add(SidebarPowerMenu.build(onCancel, onRestart, isRunning), BorderLayout.SOUTH);
         return footer;
     }
 
-    private static JPanel buildAdminRow(Runnable onAdminGranted) {
-        JPanel row = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
+    private static JPanel buildAdminRow(Runnable onAdminGranted, Consumer<String> onMenuClick) {
+        JPanel row = new JPanel();
+        row.setLayout(new BoxLayout(row, BoxLayout.Y_AXIS));
         row.setBackground(SIDEBAR_BG);
         row.setBorder(new EmptyBorder(0, 6, 0, 0));
-        row.add(SidebarAdminButton.build(onAdminGranted));
+        JButton adminButton = SidebarAdminButton.build(onAdminGranted);
+        adminButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+        row.add(adminButton);
+        if (UserAuth.getInstance().isAdmin()) {
+            JButton passwordButton = SidebarAdminButton.buildPasswordChangeButton();
+            passwordButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+            row.add(passwordButton);
+            JButton debugButton = SidebarDebugButton.build(() -> onMenuClick.accept("46"));
+            debugButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+            row.add(debugButton);
+        }
         return row;
     }
 
