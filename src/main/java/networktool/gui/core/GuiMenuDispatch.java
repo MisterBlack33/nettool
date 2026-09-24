@@ -4,6 +4,11 @@ import main.java.networktool.gui.components.table.GuiSearchBar;
 import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.gui.panels.audit.GuiAuditPanel;
 import main.java.networktool.gui.panels.privacy.GuiPrivacyPanel;
+import main.java.networktool.gui.components.map.GuiNetworkMap;
+import main.java.networktool.gui.components.scan.GuiScanActions;
+import main.java.networktool.gui.dashboard.GuiDashboardPanel;
+import main.java.networktool.gui.panels.bandwidth.GuiBandwidthHistoryPanel;
+import main.java.networktool.gui.panels.security.GuiSecurityFindingsPanel;
 import main.java.networktool.security.AuditLogger;
 import main.java.networktool.security.UserAuth;
 
@@ -24,6 +29,45 @@ final class GuiMenuDispatch {
     private GuiMenuDispatch() {}
 
     static void handle(String id, GuiOutputPanel outputPanel, GuiSearchBar searchBar, GuiMenuHandler menuHandler) {
+        if ("46".equals(id)) {
+            if (!UserAuth.getInstance().isAdmin()) {
+                outputPanel.appendText("  ✕ Debug-Modus: nur für Admins.\n", GuiTheme.WARN);
+                return;
+            }
+            boolean active = GuiDebugMode.toggle();
+            GuiDebugMode.renderToggle(outputPanel, active);
+            return;
+        }
+        if (GuiDebugMode.isEnabled() && !"46".equals(id)) {
+            searchBar.hide();
+            if ("20".equals(id)) {
+                GuiNetworkMap.show();
+                return;
+            }
+            if ("06".equals(id)) {
+                GuiScanActions.handleDebugCidrScan(menuHandler.inputPanel(),
+                        outputPanel, menuHandler.tableRenderer(), menuHandler);
+                return;
+            }
+            if ("09".equals(id)) {
+                menuHandler.showDebugSavedHosts();
+                return;
+            }
+            if ("27".equals(id)) {
+                GuiSecurityFindingsPanel.showDebug(outputPanel);
+                return;
+            }
+            if ("28".equals(id)) {
+                GuiBandwidthHistoryPanel.showDebug(outputPanel, "192.168.10.10");
+                return;
+            }
+            if ("29".equals(id)) {
+                GuiDashboardPanel.showDebug(outputPanel);
+                return;
+            }
+            menuHandler.renderDebug(id);
+            return;
+        }
         if ("11".equals(id) && !UserAuth.getInstance().isAdmin()) {
             outputPanel.appendText("  ✕ Fremdnetz-Scanner: nur für Admins.\n", GuiTheme.WARN);
             return;

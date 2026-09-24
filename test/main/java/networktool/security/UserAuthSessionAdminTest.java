@@ -66,6 +66,18 @@ class UserAuthSessionAdminTest {
         assertEquals("User", auth.getCurrentUser());
     }
 
+    @Test void changeAdminPassword_requiresAdminSessionAndPersists() {
+        auth.authenticateAsStandardUser();
+        assertFalse(auth.changeAdminPassword(ADMIN_PW, "newAdmin123"));
+        assertTrue(auth.grantSessionAdmin(ADMIN_PW));
+        assertTrue(auth.changeAdminPassword(ADMIN_PW, "newAdmin123"));
+
+        auth.init(tmp);
+        auth.logout();
+        assertTrue(auth.authenticate("admin", "newAdmin123"));
+        assertFalse(auth.authenticate("admin", ADMIN_PW));
+    }
+
     @Test void logout_clearsSessionAdminOverride() {
         auth.authenticateAsStandardUser();
         auth.grantSessionAdmin(ADMIN_PW);

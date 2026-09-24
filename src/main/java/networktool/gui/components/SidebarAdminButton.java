@@ -18,18 +18,32 @@ final class SidebarAdminButton {
 
     private static final String LABEL_LOCKED  = "GET ADMIN";
     private static final String LABEL_GRANTED = "ADMIN AKTIV";
+    private static final String LABEL_CHANGE_PASSWORD = "PASSWORT ÄNDERN";
 
     private SidebarAdminButton() {}
 
     static JButton build(Runnable onAdminGranted) {
-        JButton btn = new JButton(LABEL_LOCKED);
+        JButton btn = new JButton(UserAuth.getInstance().isAdmin() ? LABEL_GRANTED : LABEL_LOCKED);
         btn.setFont(new Font("JetBrains Mono", Font.BOLD, 10));
         btn.setForeground(ACCENT);
         btn.setBackground(BTN_BG);
         btn.setBorder(new CompoundBorder(new LineBorder(BORDER, 1), new EmptyBorder(4, 9, 4, 9)));
         btn.setFocusPainted(false);
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btn.addActionListener(e -> showPasswordDialog(btn, onAdminGranted));
+        btn.setEnabled(!UserAuth.getInstance().isAdmin());
+        if (btn.isEnabled()) btn.addActionListener(e -> showPasswordDialog(btn, onAdminGranted));
+        return btn;
+    }
+
+    static JButton buildPasswordChangeButton() {
+        JButton btn = new JButton(LABEL_CHANGE_PASSWORD);
+        btn.setFont(new Font("JetBrains Mono", Font.BOLD, 10));
+        btn.setForeground(ACCENT);
+        btn.setBackground(BTN_BG);
+        btn.setBorder(new CompoundBorder(new LineBorder(BORDER, 1), new EmptyBorder(4, 9, 4, 9)));
+        btn.setFocusPainted(false);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.addActionListener(e -> showChangePasswordDialog());
         return btn;
     }
 
@@ -132,5 +146,70 @@ final class SidebarAdminButton {
             LoginShakeEffect.shake(errLabel, "Falsches Passwort.");
             pwField.setText("");
         }
+    }
+
+    private static void showChangePasswordDialog() {
+        JDialog dlg = new JDialog((Frame) null, "Admin-Passwort ändern", true);
+        dlg.setResizable(false);
+        dlg.getContentPane().setBackground(PANEL_BG);
+
+        JPasswordField currentField = buildPasswordField();
+        JPasswordField newField = buildPasswordField();
+        JPasswordField confirmField = buildPasswordField();
+        JLabel errLabel = buildErrorLabel();
+        JButton confirmBtn = buildConfirmButton();
+        confirmBtn.setText("Ändern");
+
+        Runnable attempt = () -> {
+            String current = new String(currentField.getPassword());
+            String next = new String(newField.getPassword());
+            String confirmation = new String(confirmField.getPassword());
+            if (!next.equals(confirmation)) {
+                LoginShakeEffect.shake(errLabel, "Passwörter stimmen nicht überein.");
+                return;
+            }
+            if (!UserAuth.getInstance().changeAdminPassword(current, next)) {
+                LoginShakeEffect.shake(errLabel, "Passwort ungültig oder zu schwach.");
+                return;
+            }
+            AuditLogger.getInstance().log("ADMIN_PASSWORD_CHANGED", "admin");
+            dlg.dispose();
+        };
+        confirmBtn.addActionListener(e -> attempt.run());
+        confirmField.addActionListener(e -> attempt.run());
+
+        JPanel content = new JPanel();
+        content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
+        content.setBackground(PANEL_BG);
+        content.setBorder(new EmptyBorder(18, 20, 16, 20));
+        addPasswordRow(content, "Aktuelles Passwort", currentField);
+        addPasswordRow(content, "Neues Passwort", newField);
+        addPasswordRow(content, "Neues Passwort wiederholen", confirmField);
+        errLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
+        content.add(errLabel);
+        content.add(Box.createVerticalStrut(10));
+        JPanel btnRow = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
+        btnRow.setOpaque(false);
+        btnRow.setAlignmentX(Component.LEFT_ALIGNMENT);
+        btnRow.add(confirmBtn);
+        content.add(btnRow);
+
+        dlg.setContentPane(content);
+        dlg.pack();
+        dlg.setLocationRelativeTo(null);
+        SwingUtilities.invokeLater(currentField::requestFocus);
+        dlg.setVisible(true);
+    }
+
+    private static void addPasswordRow(JPanel content, String label, JPasswordField field) {
+        JLabel text = new JLabel(label);
+        text.setFont(new Font("JetBrains Mono", Font.PLAIN, 11));
+        text.setForeground(FG);
+        text.setAlignmentX(Component.LEFT_ALIGNMENT);
+        field.setAlignmentX(Component.LEFT_ALIGNMENT);
+        content.add(text);
+        content.add(Box.createVerticalStrut(3));
+        content.add(field);
+        content.add(Box.createVerticalStrut(7));
     }
 }

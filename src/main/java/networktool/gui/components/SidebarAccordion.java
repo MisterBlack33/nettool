@@ -110,6 +110,7 @@ final class SidebarAccordion {
             content = new JPanel();
             content.setLayout(new BoxLayout(content, BoxLayout.Y_AXIS));
             content.setBackground(kind == SectionKind.TEST_SUITE ? TEST_SECTION_BG : SIDEBAR_BG);
+            content.setAlignmentX(Component.LEFT_ALIGNMENT);
             content.setVisible(false);
         }
 
