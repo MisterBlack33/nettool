@@ -3,3 +3,20 @@
 .\tools\New-CoverageChart.ps1 -Open
 
 mvn test; if ($LASTEXITCODE -eq 0) { .\tools\Update-TestCoverageHistory.ps1; .\tools\New-CoverageChart.ps1 -Open }
+
+mtest           (shortcut zu: mvn test; if ($LASTEXITCODE -eq 0) { .\tools\Update-TestCoverageHistory.ps1; .\tools\New-CoverageChart.ps1 -Open })
+
+
+
+
+New-Item -ItemType File -Path $PROFILE -Force
+notepad $PROFILE
+
+function mtest {
+    mvn test
+
+    if ($LASTEXITCODE -eq 0) {
+        .\tools\Update-TestCoverageHistory.ps1
+        .\tools\New-CoverageChart.ps1 -Open
+    }
+}
