@@ -92,7 +92,6 @@ final class NetworkRegistry {
         return prefixes;
     }
 
-    private static String safe(String s) {
+    static String safe(String s) {   // package-private, für NetworkStore erreichbar
         return s.replaceAll("[^a-zA-Z0-9äöüÄÖÜß \\-]", "_").trim();
-    }
-}
+    }}

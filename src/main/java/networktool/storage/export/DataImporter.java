@@ -3,6 +3,7 @@ package main.java.networktool.storage.export;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.storage.JsonCodec;
 import main.java.networktool.storage.network.NetworkStore;
+import main.java.networktool.util.IpValidator;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -25,6 +26,7 @@ public final class DataImporter {
             String notes = p.length > 5 ? p[5].trim() : "";
             String cat   = p.length > 6 ? p[6].trim() : "Import";
             if (ip.isBlank()) continue;
+            if (!IpValidator.isValidIpv4(ip)) continue;
             if (saveHost(ip, hn, os, date, notes, cat)) count++;
         }
         return count;
@@ -48,6 +50,7 @@ public final class DataImporter {
             String notes = JsonCodec.extractStr(obj, "notes");
             String cat   = JsonCodec.extractStr(obj, "category");
             if (ip == null || ip.isBlank()) continue;
+            if (!IpValidator.isValidIpv4(ip)) continue;
             if (saveHost(ip, nvl(hn, ip), nvl(os, ""), date, nvl(notes, ""), nvl(cat, "Import"))) count++;
         }
         return count;

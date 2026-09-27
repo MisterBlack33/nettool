@@ -79,10 +79,11 @@ public final class NetworkStore {
 
     public synchronized boolean save(HostResult host, String cat) {
         if (host == null || host.ip == null || host.ip.isBlank() || cat.equals(ALL_CATEGORY)) return false;
-        if (!registry.contains(cat)) registry.create(cat, "");
-        if (!registry.ipMatches(host.ip, cat)) return false;
-        boolean isNew = NetworkStoreHostOps.addOrMerge(host.ip, registry.networks(), cat, host);
-        persist(cat);
+        String key = NetworkRegistry.safe(cat);
+        if (!registry.contains(key)) registry.create(cat, "");
+        if (!registry.ipMatches(host.ip, key)) return false;
+        boolean isNew = NetworkStoreHostOps.addOrMerge(host.ip, registry.networks(), key, host);
+        persist(key);
         if (isNew) notifyListeners();
         return true;
     }

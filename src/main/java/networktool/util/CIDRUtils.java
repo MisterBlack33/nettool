@@ -15,21 +15,16 @@ public final class CIDRUtils {
         int network    = ipInt & mask;
         int broadcast  = network | ~mask;
 
-        final int first = network + 1;
-        final int last = broadcast - 1;
-        final int count = Math.max(0, last - first + 1);
+        final long first = (network & 0xFFFFFFFFL) + 1;
+        final long last  = (broadcast & 0xFFFFFFFFL) - 1;
+        final int  count = (int) Math.max(0, Math.min(Integer.MAX_VALUE, last - first + 1));
 
         return new java.util.AbstractList<String>() {
-            @Override
-            public String get(int index) {
+            @Override public String get(int index) {
                 if (index < 0 || index >= count) throw new IndexOutOfBoundsException();
-                return intToIp(first + index);
+                return intToIp((int) (first + index));
             }
-
-            @Override
-            public int size() {
-                return count;
-            }
+            @Override public int size() { return count; }
         };
     }
 
