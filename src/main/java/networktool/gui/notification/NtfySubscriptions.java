@@ -2,6 +2,7 @@ package main.java.networktool.gui.notification;
 
 import main.java.networktool.storage.network.NetworkStore;
 import main.java.networktool.storage.NotificationHistory;
+import main.java.networktool.util.PlatformSupport;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -34,11 +35,10 @@ final class NtfySubscriptions {
     private NtfySubscriptions() {}
 
     static void subscribe(String topic) {
-        if (topic == null || topic.isBlank()) return;
+        if (!PlatformSupport.isSafeNtfyTopic(topic)) return;
         if (subscriptions.containsKey(topic)) return;
         Future<?> f = exec.submit(() -> subscribeLoop(topic));
         subscriptions.put(topic, f);
-        // kein System.out – kein Spam
     }
 
     /**
@@ -47,15 +47,12 @@ final class NtfySubscriptions {
      */
     static void startSavedTopics() {
         exec.schedule(() -> {
-            List<String> topics = NetworkStore.getInstance().getNtfyTopics();
-            for (String topic : topics) {
+            for (String topic : NetworkStore.getInstance().getNtfyTopics()) {
                 String t = topic.trim();
-                if (!t.isEmpty() && !subscriptions.containsKey(t)) {
-                    Future<?> f = exec.submit(() -> subscribeLoop(t));
-                    subscriptions.put(t, f);
+                if (PlatformSupport.isSafeNtfyTopic(t) && !subscriptions.containsKey(t)) {
+                    subscriptions.put(t, exec.submit(() -> subscribeLoop(t)));
                 }
             }
-            // Stille Aktivierung – kein Startup-Spam
         }, 4, TimeUnit.SECONDS);
     }
 

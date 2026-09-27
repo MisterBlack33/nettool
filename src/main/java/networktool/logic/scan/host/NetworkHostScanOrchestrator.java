@@ -76,7 +76,7 @@ final class NetworkHostScanOrchestrator {
             String os       = detectOsFull(ip, hostname, mac);
             found.add(new HostResult(ip, buildDisplay(hostname, mac), os));
         } catch (Exception e) {
-            DebugLogger.getInstance().log("FINE", "[NetworkHostScanOrchestrator] Scan von " + ip + " fehlgeschlagen: " + e);
+            DebugLogger.getInstance().log("FINE", "[NetworkHostScanOrchestrator] " + ScanErrorClassifier.describe(ip, e));
         }
     }
 

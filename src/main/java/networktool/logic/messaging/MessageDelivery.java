@@ -1,6 +1,7 @@
 package main.java.networktool.logic.messaging;
 
 import main.java.networktool.logic.analysis.os.OsDetector;
+import main.java.networktool.util.PlatformSupport;
 
 import java.io.*;
 import java.net.*;
@@ -42,7 +43,12 @@ final class MessageDelivery {
 
     // ── ntfy.sh ───────────────────────────────────────────────────────────
 
-    static void tryNtfy(String topic, String message) {
+    static boolean tryNtfy(String topic, String message) {
+        if (!PlatformSupport.isSafeNtfyTopic(topic)) {
+            System.out.println("  ✕ ntfy.sh: ungültiges Topic");
+            return false;
+        }
+
         System.out.println("  Methode : ntfy.sh → Topic \"" + topic + "\"");
         try {
             HttpURLConnection c = (HttpURLConnection)
@@ -55,12 +61,15 @@ final class MessageDelivery {
             c.setRequestProperty("Priority", "default");
             c.setRequestProperty("Tags", "bell");
             c.getOutputStream().write(message.getBytes(StandardCharsets.UTF_8));
-            System.out.println(c.getResponseCode() == 200
+            boolean sent = c.getResponseCode() == 200;
+            System.out.println(sent
                     ? "  ✔ ntfy.sh: gesendet."
                     : "  ✕ ntfy.sh: HTTP " + c.getResponseCode());
             c.disconnect();
+            return sent;
         } catch (Exception e) {
             System.out.println("  ✕ ntfy.sh: " + e.getMessage());
+            return false;
         }
     }
 

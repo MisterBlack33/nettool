@@ -29,6 +29,8 @@ public final class NoteEncryption {
     public static boolean hasSessionKey() { return sessionKey != null; }
 
     public static void setPassword(String password) throws GeneralSecurityException {
+        if (!main.java.networktool.security.UserAuth.isStrongPassword(password))
+            throw new IllegalArgumentException("Passwort erfüllt nicht die Mindestanforderungen.");
         sessionSalt = new byte[SALT_LEN];
         new SecureRandom().nextBytes(sessionSalt);
         sessionKey = deriveKey(password, sessionSalt);

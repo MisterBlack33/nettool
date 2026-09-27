@@ -29,8 +29,7 @@ public final class MessageSender {
 
             // ntfy immer zuerst (Topic angegeben) – zählt als erfolgreich gesendet
             if (!ntfyTopic.isBlank()) {
-                MessageDelivery.tryNtfy(ntfyTopic, message);
-                ntfySent = true;
+                ntfySent = MessageDelivery.tryNtfy(ntfyTopic, message);
             }
 
             if (!java.net.InetAddress.getByName(targetIp)

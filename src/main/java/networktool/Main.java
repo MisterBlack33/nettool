@@ -1,5 +1,7 @@
 package main.java.networktool;
 
+import main.java.networktool.cli.CliArgs;
+import main.java.networktool.cli.CliRunner;
 import main.java.networktool.gui.core.GUI;
 import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.security.AuditLogger;
@@ -9,7 +11,9 @@ import main.java.networktool.storage.StorageLocations;
 import javax.swing.*;
 
 /**
- * Einstiegspunkt der Anwendung. Ablauf siehe main()/runGui().
+ * Einstiegspunkt der Anwendung.
+ * CLI-Vertrag (--help/--version) siehe {@link CliArgs}/{@link CliRunner};
+ * ohne Argumente bzw. bei GUI_START läuft wie zuvor direkt in die GUI.
  */
 public final class Main {
 
@@ -17,6 +21,12 @@ public final class Main {
     }
 
     public static void main(String[] args) {
+        int cliExit = CliRunner.run(CliArgs.parse(args), System.out);
+        if (cliExit != CliRunner.GUI_START) {
+            if (cliExit != CliRunner.EXIT_OK) System.exit(cliExit);
+            return;
+        }
+
         AuditLogger.getInstance().init(StorageLocations.logs());
         DebugLogger.getInstance().init(StorageLocations.logs());
         UserAuth.getInstance().init(StorageLocations.userData());

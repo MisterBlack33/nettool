@@ -25,7 +25,7 @@ final class NetworkScannerIpScan {
             results.add(new ScanResult(ip, hostname, ports, os));
             ScanSecurityHook.getInstance().onHost(ip, ports);
         } catch (Exception e) {
-            DebugLogger.getInstance().log("FINE", "[NetworkScannerIpScan] Scan von " + ip + " fehlgeschlagen: " + e);
+            DebugLogger.getInstance().log("FINE", "[NetworkScannerIpScan] " + ScanErrorClassifier.describe(ip, e));
         }
     }
 

@@ -33,6 +33,7 @@ public final class PlatformSupport {
     /** 3-Oktett-Subnetz-Präfix, z.B. "192.168.1" (für PsNetScanResolver.sweep). */
     private static final Pattern SAFE_SUBNET_PREFIX =
             Pattern.compile("^(\\d{1,3}\\.){2}\\d{1,3}$");
+    private static final Pattern SAFE_NTFY_TOPIC = Pattern.compile("^[A-Za-z0-9_\\-]{1,64}$");
 
     public static boolean isSafeIp(String s)            { return s != null && SAFE_IP.matcher(s).matches(); }
     public static boolean isSafeInterface(String s)     { return s != null && SAFE_IFACE.matcher(s).matches(); }
@@ -40,6 +41,9 @@ public final class PlatformSupport {
     public static boolean isSafeCidr(String s)          { return s != null && SAFE_CIDR.matcher(s).matches(); }
     public static boolean isSafeHostname(String s)       { return s != null && SAFE_HOSTNAME.matcher(s).matches(); }
     public static boolean isSafeSubnetPrefix(String s)  { return s != null && SAFE_SUBNET_PREFIX.matcher(s).matches(); }
+    public static boolean isSafeNtfyTopic(String s) {
+        return s != null && SAFE_NTFY_TOPIC.matcher(s).matches();
+    }
 
     /**
      * Gibt den validierten String zurück oder wirft IllegalArgumentException.

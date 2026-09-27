@@ -41,9 +41,9 @@ public final class UserAuth {
     private UserAuth() {}
 
     public synchronized void init(Path dir) {
-        // Wenn kein Verzeichnis übergeben wurde, verwende das zentrale Datenverzeichnis
         if (dir == null) this.dataDir = StorageLocationsResolver.resolveDataDir();
         else this.dataDir = dir;
+        SessionAdminRateLimiter.reset();
     }
 
     public synchronized void seedDefaultUsers() {
@@ -121,9 +121,13 @@ public final class UserAuth {
 
     /** Prüft Passwort gegen den persistierten Admin-Account, ohne currentUser zu ändern. */
     public synchronized boolean grantSessionAdmin(String password) {
+        if (SessionAdminRateLimiter.isLocked()) return false;
         Map<String, String> admin = findByUsername(UserAuthPersistence.load(dataDir), DEFAULT_ADMIN_USER);
-        if (admin == null || password == null) return false;
-        if (!verifyPassword(admin, password)) return false;
+        if (admin == null || password == null || !verifyPassword(admin, password)) {
+            SessionAdminRateLimiter.recordFailure();
+            return false;
+        }
+        SessionAdminRateLimiter.recordSuccess();
         hasSessionAdminOverride = true;
         return true;
     }
