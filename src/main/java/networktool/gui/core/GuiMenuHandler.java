@@ -176,7 +176,7 @@ public class GuiMenuHandler {
         Thread t = new Thread(() -> {
             try { task.run(); }
             catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-            catch (Exception e) { output.appendText("  ✕ " + e.getMessage() + "\n", WARN); }
+            catch (Exception e) { output.appendText("  ✕ " + GuiErrorPresenter.userMessage(e) + "\n", WARN); }
             finally {
                 runningThread.compareAndSet(Thread.currentThread(), null);
                 if (!Thread.currentThread().isInterrupted()) status.set("Fertig", ACCENT2);

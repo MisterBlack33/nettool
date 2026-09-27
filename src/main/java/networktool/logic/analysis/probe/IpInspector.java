@@ -7,6 +7,7 @@ import main.java.networktool.logic.analysis.discovery.UpnpDiscovery;
 import main.java.networktool.logic.analysis.os.OsDetector;
 import main.java.networktool.logic.analysis.os.ScanDepth;
 import main.java.networktool.logic.ports.PortScanner;
+import main.java.networktool.logic.scan.host.ScanErrorClassifier;
 
 import java.net.InetAddress;
 import java.util.List;
@@ -39,7 +40,9 @@ public final class IpInspector {
             System.out.println("  OS       : " + OsDetector.detectWithConfidence(ip, ScanDepth.SCHNELL).os);
             printPorts(ip, timeoutMs);
             System.out.println("\n═══════════════════════════════════════════════");
-        } catch (Exception e) { System.err.println("Fehler: " + e.getMessage()); }
+        } catch (Exception e) {
+            System.err.println("Fehler: " + ScanErrorClassifier.describe(target, e));
+        }
     }
 
     public static void inspect(String target) {
@@ -59,7 +62,9 @@ public final class IpInspector {
             printPorts(ip, 1000);
             printTraceroute(ip, 0);
             System.out.println("\n═══════════════════════════════════════════════");
-        } catch (Exception e) { System.err.println("Fehler: " + e.getMessage()); }
+        } catch (Exception e) {
+            System.err.println("Fehler: " + ScanErrorClassifier.describe(target, e));
+        }
     }
 
     public static void inspectHopsOnly(String target) {

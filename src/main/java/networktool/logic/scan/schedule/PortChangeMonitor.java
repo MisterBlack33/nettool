@@ -4,6 +4,7 @@ import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.logic.messaging.MessageSender;
 import main.java.networktool.logic.ports.PortScanner;
 import main.java.networktool.logic.TimeoutConfig;
+import main.java.networktool.logic.scan.host.ScanErrorClassifier;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.storage.network.NetworkStore;
 
@@ -129,8 +130,9 @@ public final class PortChangeMonitor {
             lastKnownPorts.put(host.ip, new HashSet<>(currentPorts));
 
         } catch (Exception e) {
-            System.err.println("[PortMonitor] " + host.ip + ": " + e.getMessage());
-            DebugLogger.getInstance().log("FINE", "[PortChangeMonitor] " + host.ip + ": " + e);
+            System.err.println("[PortMonitor] " + ScanErrorClassifier.describe(host.ip, e));
+            DebugLogger.getInstance().log("FINE",
+                    "[PortChangeMonitor] " + ScanErrorClassifier.describe(host.ip, e));
         }
     }
 

@@ -1,6 +1,7 @@
 package main.java.networktool.logic.analysis.security;
 
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -9,7 +10,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FindingsSourceRegistryTest {
 
-    @AfterEach void reset() { FindingsSourceRegistry.register(null); }
+    @BeforeEach void reset() { FindingsSourceRegistry.register(null); }
+
+    @AfterEach void restoreDefaultSource() {
+        FindingsSourceRegistry.register(SecurityFindingsCollector.getInstance());
+    }
 
     @Test void getAll_noSource_returnsEmpty() {
         assertTrue(FindingsSourceRegistry.getAll().isEmpty());
