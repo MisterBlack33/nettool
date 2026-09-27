@@ -43,8 +43,10 @@ class CIDRUtilsBoundaryTest {
         // /0 → 2^24 theoretische /24-Blöcke; hier wird nur geprüft, dass die
         // ersten Blöcke korrekt beginnen und die Berechnung nicht überläuft/hängt
         List<String> prefixes = CIDRUtils.getSubnet24Prefixes("0.0.0.0/0");
+        assertEquals(256, prefixes.size());
         assertEquals("0.0.0", prefixes.get(0));
         assertEquals("0.0.1", prefixes.get(1));
+        assertEquals("0.0.255", prefixes.get(255));
     }
 
     // ── intToIp/ipToInt an den absoluten Wertegrenzen ────────────────────

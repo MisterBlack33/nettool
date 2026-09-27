@@ -40,7 +40,7 @@ public final class CIDRUtils {
         if (prefix >= 24) {
             prefixes.add(subnet24String(network));
         } else {
-            int count = 1 << (24 - prefix);
+            int count = Math.min(256, 1 << (24 - prefix));
             for (int i = 0; i < count; i++)
                 prefixes.add(subnet24String(network + (i << 8)));
         }

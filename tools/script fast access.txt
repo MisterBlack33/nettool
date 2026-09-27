@@ -5,7 +5,7 @@
 mvn test; if ($LASTEXITCODE -eq 0) { .\tools\Update-TestCoverageHistory.ps1; .\tools\New-CoverageChart.ps1 -Open }
 
 mtest
-(shortcut zu: mvn test; if ($LASTEXITCODE -eq 0) { .\tools\Update-TestCoverageHistory.ps1; .\tools\New-CoverageChart.ps1 -Open })
+(shortcut zu: mvn test; if ($LASTEXITCODE -eq 0) { .\tools\Update-TestCoverageHistory.ps1 -RunTests; .\tools\New-CoverageChart.ps1 -Open })
 
 
 
@@ -17,7 +17,14 @@ function mtest {
     mvn test
 
     if ($LASTEXITCODE -eq 0) {
-        .\tools\Update-TestCoverageHistory.ps1
+        .\tools\Update-TestCoverageHistory.ps1 -RunTests
         .\tools\New-CoverageChart.ps1 -Open
     }
 }
+
+
+
+
+
+
+mvn -Pnightly test????
