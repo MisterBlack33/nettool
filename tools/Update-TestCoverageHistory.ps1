@@ -125,8 +125,28 @@ function New-Row {
 
 # ── Zeilen für CSV (numerisch, ohne Formatierung) ────────────────────────
 
+function Get-TotalRuntimeSeconds {
+    $reportsDir = Join-Path $ProjectRoot 'target\surefire-reports'
+    if (-not (Test-Path $reportsDir)) { return 0.0 }
+
+    $total = 0.0
+    Get-ChildItem $reportsDir -Filter 'TEST-*.xml' | ForEach-Object {
+        try {
+            [xml]$xml = Get-Content -Path $_.FullName -Raw
+            $suite = $xml.testsuite
+            if ($suite -and $null -ne $suite.time) {
+                $total += [double]$suite.time
+            }
+        }
+        catch {
+        }
+    }
+
+    return $total
+}
+
 function New-CsvRow {
-    param([hashtable]$Entry, [int]$Run, [string]$Timestamp)
+    param([hashtable]$Entry, [int]$Run, [string]$Timestamp, [double]$RuntimeSec = 0.0)
     $row = [ordered]@{ run = $Run; timestamp = $Timestamp; element = $Entry.Name }
     foreach ($t in $TYPES) {
         $c = $Entry[$t]
@@ -135,6 +155,7 @@ function New-CsvRow {
         $row["${name}_covered"] = $c.Covered
         $row["${name}_total"]   = $c.Missed + $c.Covered
     }
+    $row["total_runtime_sec"] = [math]::Round($RuntimeSec, 4).ToString([cultureinfo]::InvariantCulture)
     return [PSCustomObject]$row
 }
 
@@ -187,7 +208,7 @@ $allRows | Export-Excel -Path $OutputXlsx -WorksheetName "Coverage" -NoHeader -A
 
 # ── CSV: Zeilen nur anhängen, Bestand bleibt unverändert ─────────────────
 
-$csvRows = foreach ($e in $entries) { New-CsvRow $e $runNumber $timestamp }
+$csvRows = foreach ($e in $entries) { New-CsvRow $e $runNumber $timestamp (Get-TotalRuntimeSeconds) }
 $csvRows | Export-Csv -Path $OutputCsv -Append -NoTypeInformation -Encoding UTF8
 
 if (-not [string]::IsNullOrWhiteSpace($Comment)) {

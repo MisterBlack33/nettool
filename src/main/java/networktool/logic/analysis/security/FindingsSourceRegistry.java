@@ -11,6 +11,7 @@ public final class FindingsSourceRegistry {
 
     public static void register(FindingsSource s)   { source = s; }
     public static void unregister(FindingsSource s) { if (source == s) source = null; }
+    public static void reset() { source = null; }
 
     /** Nie null — liefert leere Liste solange Workstream A keine Quelle registriert hat. */
     public static List<SecurityFinding> getAll() {

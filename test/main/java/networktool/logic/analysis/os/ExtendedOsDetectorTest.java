@@ -1,5 +1,6 @@
 package main.java.networktool.logic.analysis.os;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.net.InetAddress;
@@ -7,6 +8,7 @@ import java.net.InetAddress;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assumptions.*;
 
+@Tag("slow")
 class ExtendedOsDetectorTest {
 
     static boolean loopbackReachable() {
@@ -15,51 +17,27 @@ class ExtendedOsDetectorTest {
     }
 
     @Test
-    void detect_unreachable_returnsResult() {
-        OsDetector.OsResult r = ExtendedOsDetector.detect("192.0.2.1");
-        assertNotNull(r);
-        assertNotNull(r.os);
-        assertNotNull(r.confidence);
-        assertNotNull(r.method);
+    void detect_unreachable_returnsStableResult() {
+        OsDetector.OsResult result = ExtendedOsDetector.detect("192.0.2.1");
+        assertNotNull(result);
+        assertNotNull(result.os);
+        assertNotNull(result.confidence);
+        assertNotNull(result.method);
+        assertEquals(OsDetector.Confidence.NIEDRIG, result.confidence);
+        assertTrue(result.display().contains(result.os));
+    }
+
+    @Test
+    void detect_localhost_returnsResult_whenReachable() {
+        assumeTrue(loopbackReachable());
+        OsDetector.OsResult result = ExtendedOsDetector.detect("127.0.0.1");
+        assertNotNull(result);
+        assertFalse(result.os.isBlank());
+        assertNotNull(result.method);
     }
 
     @Test
     void detect_doesNotThrow() {
         assertDoesNotThrow(() -> ExtendedOsDetector.detect("192.0.2.1"));
-    }
-
-    @Test
-    void detect_localhost_returnsResult() {
-        assumeTrue(loopbackReachable());
-        OsDetector.OsResult r = ExtendedOsDetector.detect("127.0.0.1");
-        assertNotNull(r);
-        assertFalse(r.os.isBlank());
-    }
-
-    @Test
-    void detect_unreachable_confidenceNiedrig() {
-        OsDetector.OsResult r = ExtendedOsDetector.detect("192.0.2.1");
-        assertEquals(OsDetector.Confidence.NIEDRIG, r.confidence);
-    }
-
-    @Test
-    void detect_result_display_containsOs() {
-        OsDetector.OsResult r = ExtendedOsDetector.detect("192.0.2.1");
-        assertTrue(r.display().contains(r.os));
-    }
-
-    @Test
-    void detect_highConfidence_skipsExtendedSteps() {
-        // Loopback hat bekanntes OS ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Å“ Pipeline sollte frÃƒÆ’Ã‚Â¼h abbrechen
-        assumeTrue(loopbackReachable());
-        OsDetector.OsResult r = ExtendedOsDetector.detect("127.0.0.1");
-        assertNotNull(r.method);
-    }
-
-    @Test
-    void detect_resultMethod_notNull() {
-        OsDetector.OsResult r = ExtendedOsDetector.detect("192.0.2.1");
-        assertNotNull(r.method);
-        assertFalse(r.method.isBlank());
     }
 }

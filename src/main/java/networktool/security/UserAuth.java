@@ -197,6 +197,13 @@ public final class UserAuth {
         }
     }
 
+    public synchronized void reset() {
+        currentUser = null;
+        hasSessionAdminOverride = false;
+        dataDir = null;
+        SessionAdminRateLimiter.reset();
+    }
+
     public synchronized boolean authenticate(String username, String password) {
         if (username == null || password == null) return false;
         String canonical = username.trim().toLowerCase();

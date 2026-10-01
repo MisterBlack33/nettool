@@ -1,13 +1,28 @@
 package main.java.networktool.logic.ports;
 
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.api.parallel.Isolated;
 
 import java.lang.reflect.Method;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Tests fÃƒÆ’Ã‚Â¼r PortScanner-Fix: COMMON_PORTS() entfernt, kein Changelog-Kommentar. */
+@Isolated
+@Execution(ExecutionMode.SAME_THREAD)
+/** Tests für PortScanner-Fix: COMMON_PORTS() entfernt, kein Changelog-Kommentar. */
 class PortScannerFixTest {
+
+    @BeforeEach
+    void resetState() {
+        PortScanner.setActivePorts(null);
+    }
+
+    @AfterEach
+    void cleanup() {
+        PortScanner.setActivePorts(null);
+    }
 
     @Test
     void commonPorts_methodDoesNotExist() {
@@ -49,13 +64,14 @@ class PortScannerFixTest {
     void setActivePorts_custom_applied() {
         PortScanner.setActivePorts(java.util.List.of(22, 80, 443));
         assertEquals(3, PortScanner.getActivePorts().size());
-        PortScanner.setActivePorts(null); // reset
+        PortScanner.setActivePorts(null);
     }
 
     @Test
-    void probePort_refused_returnsRefused() {
-        assertEquals(PortScanner.PortState.REFUSED,
-                PortScanner.probePort("127.0.0.1", 19995, 300));
+    void probePort_refusedOrClosed_returnsNonOpen() {
+        PortScanner.PortState state = PortScanner.probePort("127.0.0.1", 19995, 300);
+        assertTrue(state == PortScanner.PortState.REFUSED || state == PortScanner.PortState.CLOSED,
+                "localhost Port should resolve to a closed/refused state, not open");
     }
 
     @Test

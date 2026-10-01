@@ -55,6 +55,10 @@ public final class PortScanner {
         System.out.println("[PortScanner] Port-Liste: " + activePorts.size() + " Ports");
     }
 
+    public static void reset() {
+        activePorts = DEFAULT_PORTS;
+    }
+
     public static List<Integer> getActivePorts() { return activePorts; }
 
     public static Map<Integer, String> scanParallel(String host, int timeoutMs)

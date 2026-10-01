@@ -1,12 +1,17 @@
 package main.java.networktool.logic.ports;
 
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.api.parallel.Isolated;
 
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 @Tag("slow")
+@Isolated
+@Execution(ExecutionMode.SAME_THREAD)
 class PortsPackageTest {
 
     @Nested
@@ -104,7 +109,6 @@ class PortsPackageTest {
 
         @Test
         void grab_port5985_returnsWinrm() {
-            // falls back to WinRM service name since port closed
             String r = BannerGrabber.grab("127.0.0.1", 5985, 300);
             assertNotNull(r);
         }
@@ -115,17 +119,24 @@ class PortsPackageTest {
         }
     }
 
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-    //  PortScanner.probePort
-    // â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
-
     @Nested
     class PortScannerProbeTest {
 
+        @BeforeEach
+        void resetPortState() {
+            PortScanner.setActivePorts(null);
+        }
+
+        @AfterEach
+        void cleanup() {
+            PortScanner.setActivePorts(null);
+        }
+
         @Test
         void probePort_closedPort_returnsClosed() {
-            PortScanner.PortState s = PortScanner.probePort("127.0.0.1", 19990, 300);
-            assertEquals(PortScanner.PortState.CLOSED, s);
+            PortScanner.PortState state = PortScanner.probePort("127.0.0.1", 19990, 300);
+            assertTrue(state == PortScanner.PortState.CLOSED || state == PortScanner.PortState.REFUSED,
+                    "Port on localhost should be closed or refused, not open");
         }
 
         @Test

@@ -1,19 +1,38 @@
 package main.java.networktool.logic.analysis.security;
 
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.api.parallel.Isolated;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Isolated
+@Execution(ExecutionMode.SAME_THREAD)
 class SecurityFindingsCollectorTest {
 
-    SecurityFindingsCollector collector = SecurityFindingsCollector.getInstance();
+    private final SecurityFindingsCollector collector = SecurityFindingsCollector.getInstance();
 
-    @BeforeEach void clear() { collector.clear(); }
+    @BeforeEach
+    void resetState() {
+        collector.clear();
+        FindingsSourceRegistry.register(null);
+        FindingsSourceRegistry.register(collector);
+    }
+
+    @AfterEach
+    void tearDown() {
+        collector.clear();
+        FindingsSourceRegistry.register(null);
+    }
 
     @Test void add_and_getAll() {
-        collector.add(new SecurityFinding("1.1.1.1", SecurityFinding.Category.TLS_CERT,
-                SecurityFinding.Severity.INFO, "ok"));
-        assertEquals(1, collector.getAll().size());
+        SecurityFinding finding = new SecurityFinding("1.1.1.1", SecurityFinding.Category.TLS_CERT,
+                SecurityFinding.Severity.INFO, "ok");
+        collector.add(finding);
+        assertEquals(List.of(finding), collector.getAll());
     }
 
     @Test void add_null_ignored() {
@@ -29,6 +48,8 @@ class SecurityFindingsCollectorTest {
     }
 
     @Test void getAll_isUnmodifiable() {
+        collector.add(new SecurityFinding("1.1.1.1", SecurityFinding.Category.TLS_CERT,
+                SecurityFinding.Severity.INFO, "ok"));
         assertThrows(UnsupportedOperationException.class, () -> collector.getAll().add(null));
     }
 
@@ -40,10 +61,11 @@ class SecurityFindingsCollectorTest {
         assertSame(SecurityFindingsCollector.getInstance(), SecurityFindingsCollector.getInstance());
     }
 
-    /** Regression: Collector muss sich selbst als FindingsSource registrieren (sonst sieht das Dashboard nie echte Daten). */
+    /** Regression-Test: Die Singleton-Instanz muss sich selbst in der Registry registrieren und dabei nicht auf fremden Zustand reagieren. */
     @Test void getInstance_selfRegistersInFindingsSourceRegistry() {
-        collector.add(new SecurityFinding("2.2.2.2", SecurityFinding.Category.KNOWN_VULNERABLE,
-                SecurityFinding.Severity.CRITICAL, "cve"));
-        assertEquals(1, FindingsSourceRegistry.getAll().size());
+        SecurityFinding finding = new SecurityFinding("2.2.2.2", SecurityFinding.Category.KNOWN_VULNERABLE,
+                SecurityFinding.Severity.CRITICAL, "cve");
+        collector.add(finding);
+        assertEquals(List.of(finding), FindingsSourceRegistry.getAll());
     }
 }

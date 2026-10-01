@@ -3,10 +3,12 @@ package main.java.networktool.gui.panels.bandwidth;
 import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.analysis.probe.BandwidthHistoryStore;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Tag("slow")
 class GuiBandwidthHistoryPanelTest {
 
     @BeforeAll static void headless() { System.setProperty("java.awt.headless", "true"); }

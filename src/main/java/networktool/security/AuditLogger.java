@@ -87,6 +87,12 @@ public final class AuditLogger {
         writer = newWriter();
     }
 
+    public void reset() {
+        flushAndShutdown();
+        logFile = null;
+        writer = newWriter();
+    }
+
     // ── Legacy ────────────────────────────────────────────────────────────
 
     public static AuditLogEntry parse(String line) { return AuditLogFile.parse(line); }

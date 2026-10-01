@@ -1,16 +1,17 @@
 package main.java.networktool.gui.map;
 
+import main.java.networktool.gui.components.map.GuiNetworkMap;
 import main.java.networktool.gui.map.MapHopDiscovery;
 import main.java.networktool.gui.map.MapSwitchStore;
 import main.java.networktool.logic.analysis.probe.TracerouteRunner;
 import main.java.networktool.logic.scan.schedule.MapTrafficObserver;
 import org.junit.jupiter.api.*;
-import main.java.networktool.gui.components.map.GuiNetworkMap;
 
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Tag("slow")
 class NetworkMapTest {
 
     @BeforeEach
@@ -19,7 +20,7 @@ class NetworkMapTest {
         GuiNetworkMap.HOP_PARENT.clear();
     }
 
-    // â”€â”€ MapTopology â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â”€â”€ MapTopology â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class MapTopologyTest {
@@ -260,7 +261,7 @@ class NetworkMapTest {
         }
     }
 
-    // â”€â”€ HOP_PARENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // â”€â”€ HOP_PARENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Nested
     class HopParentTest {

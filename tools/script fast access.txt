@@ -14,9 +14,12 @@ function mtest {
     mvn clean validate compile test
 
     if ($LASTEXITCODE -eq 0) {
-        .\tools\Update-TestCoverageHistory.ps1 -Comment $commentText
+        .\tools\Measure-TestRuntime.ps1 -SkipTestRun
         if ($LASTEXITCODE -eq 0) {
-            .\tools\New-CoverageChart.ps1 -Open
+            .\tools\Update-TestCoverageHistory.ps1 -Comment $commentText
+            if ($LASTEXITCODE -eq 0) {
+                .\tools\New-CoverageChart.ps1 -Open
+            }
         }
     }
 }

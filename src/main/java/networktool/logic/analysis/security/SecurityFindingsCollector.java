@@ -43,4 +43,11 @@ public final class SecurityFindingsCollector implements FindingsSource {
     }
 
     public void clear() { findings.clear(); }
+
+    public void reset() {
+        synchronized (findings) {
+            findings.clear();
+        }
+        FindingsSourceRegistry.reset();
+    }
 }

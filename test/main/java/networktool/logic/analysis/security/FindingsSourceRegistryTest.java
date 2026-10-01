@@ -3,17 +3,22 @@ package main.java.networktool.logic.analysis.security;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.junit.jupiter.api.parallel.Isolated;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Isolated
+@Execution(ExecutionMode.SAME_THREAD)
 class FindingsSourceRegistryTest {
 
     @BeforeEach void reset() { FindingsSourceRegistry.register(null); }
 
     @AfterEach void restoreDefaultSource() {
-        FindingsSourceRegistry.register(SecurityFindingsCollector.getInstance());
+        FindingsSourceRegistry.register(null);
     }
 
     @Test void getAll_noSource_returnsEmpty() {
