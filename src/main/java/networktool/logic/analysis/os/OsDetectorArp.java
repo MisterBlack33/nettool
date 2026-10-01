@@ -1,7 +1,12 @@
 package main.java.networktool.logic.analysis.os;
 
 import main.java.networktool.logic.windows.PsArpResolver;
+import main.java.networktool.logic.error.ScanContext;
+import main.java.networktool.logic.error.ScanFailure;
+import main.java.networktool.logic.scan.host.ScanErrorClassifier;
+import main.java.networktool.logging.DebugLogger;
 
+import java.io.IOException;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.util.Set;
@@ -37,46 +42,68 @@ final class OsDetectorArp {
     }
 
     static int getTtl(String ip) {
+        Process process = null;
         try {
             String[] cmd = isWin()
                     ? new String[]{"ping", "-n", "1", ip}
                     : new String[]{"ping", "-c", "1", ip};
-            Process p = Runtime.getRuntime().exec(cmd);
-            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+            process = Runtime.getRuntime().exec(cmd);
             StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = br.readLine()) != null) sb.append(line).append(' ');
-            p.destroy();
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = br.readLine()) != null) sb.append(line).append(' ');
+            }
             Matcher m = Pattern.compile("(?i)ttl[=:]\\s*(\\d+)").matcher(sb);
             if (m.find()) return Integer.parseInt(m.group(1));
-        } catch (Exception ignored) {}
+        } catch (IOException e) {
+            logExpected("ttl-probe", ip, e);
+        } catch (RuntimeException e) {
+            logFailure("ttl-probe", ip, e);
+        } finally {
+            if (process != null) process.destroy();
+        }
         return -1;
     }
 
     private static void triggerArp(String ip) {
+        Process process = null;
         try {
             String[] cmd = isWin()
                     ? new String[]{"ping", "-n", "1", "-w", "300", ip}
                     : new String[]{"ping", "-c", "1", "-W", "1", ip};
-            Process p = Runtime.getRuntime().exec(cmd);
-            p.waitFor(700, TimeUnit.MILLISECONDS);
-            p.destroy();
-        } catch (Exception ignored) {}
+            process = Runtime.getRuntime().exec(cmd);
+            process.waitFor(700, TimeUnit.MILLISECONDS);
+        } catch (IOException e) {
+            logExpected("arp-trigger", ip, e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            logExpected("arp-trigger", ip, e);
+        } catch (RuntimeException e) {
+            logFailure("arp-trigger", ip, e);
+        } finally {
+            if (process != null) process.destroy();
+        }
     }
 
     private static String queryArp(String[] cmd, String targetIp) {
+        Process process = null;
         try {
-            Process p = Runtime.getRuntime().exec(cmd);
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
+            process = Runtime.getRuntime().exec(cmd);
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     if (!line.contains(targetIp)) continue;
                     String mac = extractMac(line);
-                    if (mac != null) { p.destroy(); return mac; }
+                    if (mac != null) return mac;
                 }
             }
-            p.destroy();
-        } catch (Exception ignored) {}
+        } catch (IOException e) {
+            logExpected("arp-cache-query", targetIp, e);
+        } catch (RuntimeException e) {
+            logFailure("arp-cache-query", targetIp, e);
+        } finally {
+            if (process != null) process.destroy();
+        }
         return null;
     }
 
@@ -99,5 +126,16 @@ final class OsDetectorArp {
 
     private static boolean isWin() {
         return System.getProperty("os.name","").toLowerCase().contains("win");
+    }
+
+    private static void logExpected(String operation, String host, Throwable error) {
+        ScanFailure failure = ScanFailure.from(new ScanContext("unknown", operation, host, -1), error);
+        DebugLogger.getInstance().log("FINE", "[OsDetectorArp] " + failure.describe());
+    }
+
+    private static void logFailure(String operation, String host, Throwable error) {
+        ScanFailure failure = ScanFailure.from(new ScanContext("unknown", operation, host, -1), error);
+        DebugLogger.getInstance().log(failure.kind() == ScanErrorClassifier.Kind.TIMEOUT
+                ? "FINE" : "WARN", "[OsDetectorArp] " + failure.describe());
     }
 }

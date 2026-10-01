@@ -38,12 +38,18 @@ public class MapTrafficObserver {
     }
 
     public void probeAll(List<String> ips) {
+        if (ips == null || ips.isEmpty()) return;
         ExecutorService exec = Executors.newFixedThreadPool(
                 Math.min(ips.size(), 16));
         ips.forEach(ip -> exec.submit(() -> probe(ip)));
         exec.shutdown();
-        try { exec.awaitTermination(TimeoutConfig.MAP_TRAFFIC_MS * 2L + 500, TimeUnit.MILLISECONDS); }
-        catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        try {
+            if (!exec.awaitTermination(TimeoutConfig.MAP_TRAFFIC_MS * 2L + 500, TimeUnit.MILLISECONDS))
+                exec.shutdownNow();
+        } catch (InterruptedException e) {
+            exec.shutdownNow();
+            Thread.currentThread().interrupt();
+        }
     }
 
     public NodeRole getRole(String ip) {

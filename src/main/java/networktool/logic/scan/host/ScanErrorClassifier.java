@@ -1,34 +1,84 @@
 package main.java.networktool.logic.scan.host;
 
+import main.java.networktool.logic.error.ScanContext;
+
 import java.io.InterruptedIOException;
 import java.net.ConnectException;
+import java.net.NoRouteToHostException;
+import java.net.PortUnreachableException;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.nio.file.AccessDeniedException;
+import java.util.Locale;
 
 /**
- * Ordnet Scan-Exceptions einer groben Fehlerart zu, damit Debug-Logs
- * Timeout/DNS/Unreachable/Permission unterscheiden statt nur "fehlgeschlagen: ...".
- * Reine Klassifizierung — kein Verhalten (Rückgabewerte, Retries) ändert sich.
+ * Classifies scan failures and formats descriptions without exception messages.
  */
 public final class ScanErrorClassifier {
 
-    public enum Kind { TIMEOUT, DNS, UNREACHABLE, PERMISSION, UNKNOWN }
+    public enum Kind {
+        TIMEOUT, HOST_OFFLINE, DNS, CONNECTION_REFUSED, CONNECTION_RESET, PERMISSION, UNKNOWN,
+        /** @deprecated Use {@link #CONNECTION_REFUSED}. */
+        @Deprecated UNREACHABLE
+    }
+
+    private static final int MAX_CAUSE_DEPTH = 5;
 
     private ScanErrorClassifier() {}
 
-    public static Kind classify(Throwable e) {
-        if (e == null) return Kind.UNKNOWN;
-        if (e instanceof SocketTimeoutException || e instanceof InterruptedIOException) return Kind.TIMEOUT;
-        if (e instanceof UnknownHostException) return Kind.DNS;
-        if (e instanceof ConnectException) return Kind.UNREACHABLE;
-        if (e instanceof AccessDeniedException || e instanceof SecurityException) return Kind.PERMISSION;
+    /** Inspects at most five exceptions, including the supplied throwable. */
+    public static Kind classify(Throwable error) {
+        Throwable current = error;
+        for (int depth = 0; current != null && depth < MAX_CAUSE_DEPTH; depth++) {
+            Kind kind = classifySingle(current);
+            if (kind != Kind.UNKNOWN) {
+                return kind;
+            }
+            current = current.getCause();
+        }
         return Kind.UNKNOWN;
     }
 
-    /** Log-Zeile ohne Stacktrace/Secrets: nur Fehlerart, Host und Exception-Typ. */
-    public static String describe(String host, Throwable e) {
-        String type = e != null ? e.getClass().getSimpleName() : "null";
-        return "[" + classify(e) + "] " + host + ": " + type;
+    /**
+     * Produces a log-safe description; exception messages and stack traces are omitted.
+     */
+    public static String describe(ScanContext context, Throwable error) {
+        ScanContext safeContext = context == null ? ScanContext.unknown() : context;
+        String type = error == null ? "null" : error.getClass().getSimpleName();
+        return "[" + classify(error) + "] " + safeContext.host() + ":" + safeContext.port()
+                + " scan=" + safeContext.scanId() + " op=" + safeContext.operation()
+                + " type=" + type;
+    }
+
+    /** Retains the existing host-only logging API while enriching its output safely. */
+    public static String describe(String host, Throwable error) {
+        return describe(ScanContext.forHost(host), error);
+    }
+
+    private static Kind classifySingle(Throwable error) {
+        if (error instanceof SocketTimeoutException || error instanceof InterruptedIOException) {
+            return Kind.TIMEOUT;
+        }
+        if (error instanceof UnknownHostException) {
+            return Kind.DNS;
+        }
+        if (error instanceof ConnectException) {
+            return Kind.CONNECTION_REFUSED;
+        }
+        if (error instanceof NoRouteToHostException || error instanceof PortUnreachableException) {
+            return Kind.HOST_OFFLINE;
+        }
+        if (error instanceof SocketException && containsReset(error.getMessage())) {
+            return Kind.CONNECTION_RESET;
+        }
+        if (error instanceof AccessDeniedException || error instanceof SecurityException) {
+            return Kind.PERMISSION;
+        }
+        return Kind.UNKNOWN;
+    }
+
+    private static boolean containsReset(String message) {
+        return message != null && message.toLowerCase(Locale.ROOT).contains("reset");
     }
 }

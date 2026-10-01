@@ -33,7 +33,7 @@ public final class PortChangeMonitor {
     private final Map<String, Set<Integer>> lastKnownPorts = new ConcurrentHashMap<>();
 
     private volatile boolean       active    = false;
-    private ScheduledExecutorService scheduler;
+    private volatile ScheduledExecutorService scheduler;
     private int    intervalMin = 5;
     private String ntfyTopic   = "";
 
@@ -61,7 +61,7 @@ public final class PortChangeMonitor {
 
         scheduler = Executors.newSingleThreadScheduledExecutor(
                 r -> { Thread t = new Thread(r, "PortMonitor"); t.setDaemon(true); return t; });
-        scheduler.scheduleAtFixedRate(this::checkAll, 0, intervalMin, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(this::runSafely, 0, intervalMin, TimeUnit.MINUTES);
         System.out.println("[PortMonitor] Gestartet ("
                 + intervalMin + " min, " + lastKnownPorts.size() + " Host(s))");
     }
@@ -78,6 +78,15 @@ public final class PortChangeMonitor {
 
     // ── Prüf-Logik ────────────────────────────────────────────────────────
 
+    private void runSafely() {
+        try {
+            checkAll();
+        } catch (RuntimeException e) {
+            DebugLogger.getInstance().log("WARN",
+                    "[PortChangeMonitor] Lauf fehlgeschlagen: " + e.getClass().getSimpleName());
+        }
+    }
+
     private void checkAll() {
         List<HostResult> hosts = NetworkStore.getInstance().getAllHosts();
         if (hosts.isEmpty()) return;
@@ -88,8 +97,18 @@ public final class PortChangeMonitor {
                 Math.min(hosts.size(), 20));
         hosts.forEach(h -> exec.submit(() -> checkHost(h)));
         exec.shutdown();
-        try { exec.awaitTermination(2, TimeUnit.MINUTES); }
-        catch (InterruptedException e) { Thread.currentThread().interrupt(); }
+        try {
+            if (!exec.awaitTermination(2, TimeUnit.MINUTES)) {
+                exec.shutdownNow();
+                System.err.println("[PortMonitor] Unvollständiger Lauf: "
+                        + hosts.size() + " Host(s) geplant, verbleibende Aufgaben abgebrochen.");
+            }
+        } catch (InterruptedException e) {
+            exec.shutdownNow();
+            Thread.currentThread().interrupt();
+            DebugLogger.getInstance().log("WARN",
+                    "[PortChangeMonitor] Lauf unterbrochen: Aufgaben abgebrochen.");
+        }
     }
 
     private void checkHost(HostResult host) {
@@ -121,16 +140,11 @@ public final class PortChangeMonitor {
                 if (!ntfyTopic.isBlank())
                     MessageSender.send("localhost", msg, ntfyTopic);
 
-                // Store aktualisieren
-                NetworkStore.getInstance().updateNotes(
-                        host.ip, NetworkStore.ALL_CATEGORY,
-                        host.notes); // Notes unverändert, nur Ports werden neu gesetzt durch Rechtsklick-Save
             }
 
             lastKnownPorts.put(host.ip, new HashSet<>(currentPorts));
 
         } catch (Exception e) {
-            System.err.println("[PortMonitor] " + ScanErrorClassifier.describe(host.ip, e));
             DebugLogger.getInstance().log("FINE",
                     "[PortChangeMonitor] " + ScanErrorClassifier.describe(host.ip, e));
         }

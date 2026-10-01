@@ -1,6 +1,7 @@
 package main.java.networktool.logic.messaging;
 
 import main.java.networktool.logic.analysis.os.OsDetector;
+import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.util.PlatformSupport;
 
 /** Überträgt Nachrichten per SSH (notify-send/osascript) an Linux/macOS-Ziele. Package-private. */
@@ -11,14 +12,14 @@ final class MessageDeliverySsh {
     static boolean trySsh(String ip, String message, boolean mac) {
         // Ziel-IP wird als ssh-Argument verwendet → Pflichtvalidierung
         if (!PlatformSupport.isSafeIp(ip)) {
-            System.out.println("  ✕ SSH: ungültige Ziel-IP");
+            DebugLogger.getInstance().warn("[MessageDeliverySsh] Invalid destination");
             return false;
         }
         if (!OsDetector.isOpen(ip, 22)) {
-            System.out.println("  SSH (22) nicht offen.");
+            DebugLogger.getInstance().info("[MessageDeliverySsh] SSH port is closed");
             return false;
         }
-        System.out.println("  Methode : SSH → " + (mac ? "osascript" : "notify-send"));
+        DebugLogger.getInstance().info("[MessageDeliverySsh] SSH delivery started");
         String safe = PlatformSupport.escapeSshArg(message);
         String cmd  = mac
                 ? "osascript -e 'display notification \"" + safe + "\" with title \"NetTool\"'"
@@ -30,11 +31,15 @@ final class MessageDeliverySsh {
                     "-o", "BatchMode=yes", ip, cmd});
             String err = MessageDelivery.readStream(p.getErrorStream());
             p.waitFor();
-            if (p.exitValue() == 0) { System.out.println("  ✔ SSH: gesendet."); return true; }
-            System.out.println(err.contains("publickey")
-                    ? "  ✕ SSH-Key fehlt → ssh-copy-id user@" + ip
-                    : "  ✕ SSH: " + err.lines().findFirst().orElse("").trim());
-        } catch (Exception e) { System.out.println("  ✕ SSH: " + e.getMessage()); }
+            if (p.exitValue() == 0) {
+                DebugLogger.getInstance().info("[MessageDeliverySsh] SSH delivery succeeded");
+                return true;
+            }
+            DebugLogger.getInstance().warn("[MessageDeliverySsh] SSH delivery failed"
+                    + (err.contains("publickey") ? " (key unavailable)" : ""));
+        } catch (Exception e) {
+            DebugLogger.getInstance().warn("[MessageDeliverySsh] SSH delivery failed");
+        }
         return false;
     }
 }

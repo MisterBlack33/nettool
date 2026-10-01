@@ -1,6 +1,9 @@
 package main.java.networktool.logic.analysis.os;
 
 import main.java.networktool.logic.TimeoutConfig;
+import main.java.networktool.logic.error.ScanContext;
+import main.java.networktool.logic.error.ScanFailure;
+import main.java.networktool.logging.DebugLogger;
 
 import java.io.*;
 import java.net.*;
@@ -41,7 +44,15 @@ final class OsBannerAnalyzer {
                     .readLine();
             if (banner == null) return null;
             return parseSshBanner(banner.toLowerCase());
-        } catch (Exception e) { return null; }
+        } catch (SocketTimeoutException e) {
+            return null;
+        } catch (IOException e) {
+            logFailure("ssh-banner", ip, e);
+            return null;
+        } catch (SecurityException e) {
+            logFailure("ssh-banner", ip, e);
+            return null;
+        }
     }
 
     private static OsSignature parseSshBanner(String b) {
@@ -72,7 +83,13 @@ final class OsBannerAnalyzer {
             byte[] buf = new byte[128];
             int read = s.getInputStream().read(buf);
             if (read > 40) return OsSignature.of("Windows", 70, "SMB-Probe");
-        } catch (Exception ignored) {}
+        } catch (SocketTimeoutException e) {
+            return null;
+        } catch (IOException e) {
+            logFailure("smb-banner", ip, e);
+        } catch (SecurityException e) {
+            logFailure("smb-banner", ip, e);
+        }
         return null;
     }
 
@@ -109,7 +126,13 @@ final class OsBannerAnalyzer {
                 OsSignature sig = parseHttpHeader(line.toLowerCase());
                 if (sig != null) return sig;
             }
-        } catch (Exception ignored) {}
+        } catch (SocketTimeoutException e) {
+            return null;
+        } catch (IOException e) {
+            logFailure("http-banner", ip, e);
+        } catch (SecurityException e) {
+            logFailure("http-banner", ip, e);
+        }
         return null;
     }
 
@@ -153,7 +176,13 @@ final class OsBannerAnalyzer {
                 return sig;
             }
             ssl.close();
-        } catch (Exception ignored) {}
+        } catch (SocketTimeoutException e) {
+            return null;
+        } catch (IOException e) {
+            logFailure("https-banner", ip, e);
+        } catch (SecurityException e) {
+            logFailure("https-banner", ip, e);
+        }
         return null;
     }
 
@@ -178,7 +207,15 @@ final class OsBannerAnalyzer {
                     .readLine();
             if (banner == null) return null;
             return parseFtpBanner(banner.toLowerCase());
-        } catch (Exception e) { return null; }
+        } catch (SocketTimeoutException e) {
+            return null;
+        } catch (IOException e) {
+            logFailure("ftp-banner", ip, e);
+            return null;
+        } catch (SecurityException e) {
+            logFailure("ftp-banner", ip, e);
+            return null;
+        }
     }
 
     private static OsSignature parseFtpBanner(String b) {
@@ -188,5 +225,11 @@ final class OsBannerAnalyzer {
         if (b.contains("synology")) return OsSignature.of("NAS (Synology)",     75, "FTP-Banner");
         if (b.contains("qnap"))     return OsSignature.of("NAS (QNAP)",         75, "FTP-Banner");
         return null;
+    }
+
+    private static void logFailure(String operation, String host, Throwable error) {
+        ScanFailure failure = ScanFailure.from(new ScanContext("unknown", operation, host, -1), error);
+        DebugLogger.getInstance().log(failure.kind() == main.java.networktool.logic.scan.host.ScanErrorClassifier.Kind.TIMEOUT
+                ? "FINE" : "WARN", "[OsBannerAnalyzer] " + failure.describe());
     }
 }

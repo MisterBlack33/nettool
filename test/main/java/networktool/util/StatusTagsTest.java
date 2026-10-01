@@ -15,7 +15,8 @@ class StatusTagsTest {
         assertEquals(4, java.util.Set.of(StatusTags.OK, StatusTags.FEHLER, StatusTags.WARN, StatusTags.INFO).size());
     }
     @Test void tags_areBracketed() {
-        assertTrue(StatusTags.OK.startsWith("[") && StatusTags.OK.endsWith("]"));
-        assertTrue(StatusTags.FEHLER.startsWith("[") && StatusTags.FEHLER.endsWith("]"));
+        for (String tag : java.util.Set.of(StatusTags.OK, StatusTags.FEHLER, StatusTags.WARN, StatusTags.INFO)) {
+            assertTrue(tag.startsWith("[") && tag.endsWith("]"));
+        }
     }
 }

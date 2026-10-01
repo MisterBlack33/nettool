@@ -174,12 +174,27 @@ public class GuiMenuHandler {
     public void runAsync(RunnableEx task) {
         status.set("Läuft…", ACCENT);
         Thread t = new Thread(() -> {
-            try { task.run(); }
-            catch (InterruptedException e) { Thread.currentThread().interrupt(); }
-            catch (Exception e) { output.appendText("  ✕ " + GuiErrorPresenter.userMessage(e) + "\n", WARN); }
+            boolean succeeded = false;
+            boolean interrupted = false;
+            try {
+                task.run();
+                succeeded = true;
+            } catch (InterruptedException e) {
+                interrupted = true;
+                Thread.currentThread().interrupt();
+                GuiStatusReporter.warning(output, "Aktion abgebrochen.");
+            } catch (Exception e) {
+                GuiStatusReporter.error(output, GuiErrorPresenter.userMessage(e));
+            }
             finally {
                 runningThread.compareAndSet(Thread.currentThread(), null);
-                if (!Thread.currentThread().isInterrupted()) status.set("Fertig", ACCENT2);
+                if (succeeded) {
+                    status.set("Fertig", ACCENT2);
+                } else if (interrupted) {
+                    status.set("Abgebrochen", WARN);
+                } else {
+                    status.set("Fehler", WARN);
+                }
             }
         });
         runningThread.set(t);

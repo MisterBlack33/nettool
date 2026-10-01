@@ -2,13 +2,12 @@ package main.java.networktool.gui.components.scan;
 
 import main.java.networktool.gui.panels.GuiInputPanel;
 import main.java.networktool.gui.panels.GuiOutputPanel;
+import main.java.networktool.gui.core.GuiStatusReporter;
+import main.java.networktool.gui.core.GuiToggleAction;
 import main.java.networktool.logic.sonify.SonifyConfig;
 import main.java.networktool.logic.sonify.SonifyConfigStore;
 import main.java.networktool.logic.sonify.TrafficSonifier;
 import main.java.networktool.security.AuditLogger;
-import main.java.networktool.util.StatusTags;
-
-import static main.java.networktool.theme.GuiTheme.*;
 
 /** Sidebar-Aktion für den Netzwerk-Sonifier inkl. Ton-Einstellungen (Menü-ID "24"). */
 public final class GuiSonifyActions {
@@ -17,14 +16,19 @@ public final class GuiSonifyActions {
 
     public static void toggle(GuiInputPanel input, GuiOutputPanel output) {
         TrafficSonifier sonifier = TrafficSonifier.getInstance();
-        if (sonifier.isActive()) {
-            sonifier.stop();
-            AuditLogger.getInstance().log("SONIFY_STOP", "");
-            output.appendText("  " + StatusTags.OK + " Sonify gestoppt\n", WARN);
-            return;
-        }
-        input.ask("Interface (z.B. eth0, leer = eth0):", iface ->
-                askConfig(input, output, iface.isBlank() ? "eth0" : iface.trim()));
+        GuiToggleAction.toggle(new GuiToggleAction.Parameters(
+                sonifier::isActive,
+                () -> input.ask("Interface (z.B. eth0, leer = eth0):", iface ->
+                        askConfig(input, output, iface.isBlank() ? "eth0" : iface.trim())),
+                () -> {
+                    sonifier.stop();
+                    AuditLogger.getInstance().log("SONIFY_STOP", "");
+                    if (sonifier.isActive()) {
+                        GuiStatusReporter.warning(output, "Sonify konnte nicht gestoppt werden");
+                    } else {
+                        GuiStatusReporter.ok(output, "Sonify gestoppt");
+                    }
+                }));
     }
 
     private static void askConfig(GuiInputPanel input, GuiOutputPanel output, String iface) {
@@ -46,8 +50,12 @@ public final class GuiSonifyActions {
         sonifier.setConfig(cfg);
         sonifier.start(iface);
         AuditLogger.getInstance().log("SONIFY_START", iface + " " + cfg.highHz + "/" + cfg.lowHz + "Hz");
-        output.appendText("  " + StatusTags.OK + " Sonify aktiv auf \"" + iface + "\"  ("
-                + cfg.highHz + "Hz / " + cfg.lowHz + "Hz)\n", ACCENT2);
+        if (sonifier.isActive()) {
+            GuiStatusReporter.ok(output, "Sonify aktiv auf \"" + iface + "\"  ("
+                    + cfg.highHz + "Hz / " + cfg.lowHz + "Hz)");
+        } else {
+            GuiStatusReporter.warning(output, "Sonify konnte nicht gestartet werden");
+        }
     }
 
     private static int parseOr(String s, int fallback) {

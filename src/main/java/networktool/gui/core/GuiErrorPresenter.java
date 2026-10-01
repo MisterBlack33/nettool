@@ -10,16 +10,12 @@ final class GuiErrorPresenter {
     static String userMessage(Throwable e) {
         return switch (ScanErrorClassifier.classify(e)) {
             case TIMEOUT      -> "Zeitüberschreitung – Ziel antwortet nicht.";
+            case HOST_OFFLINE -> "Ziel ist offline oder nicht erreichbar.";
             case DNS          -> "Hostname konnte nicht aufgelöst werden.";
-            case UNREACHABLE  -> "Ziel nicht erreichbar (Verbindung abgelehnt).";
+            case CONNECTION_RESET -> "Verbindung zum Ziel wurde unterbrochen.";
+            case CONNECTION_REFUSED, UNREACHABLE -> "Ziel nicht erreichbar (Verbindung abgelehnt).";
             case PERMISSION   -> "Keine Berechtigung für diese Aktion.";
-            case UNKNOWN      -> "Fehler: " + safeMessage(e);
+            case UNKNOWN      -> "Ein unerwarteter Fehler ist aufgetreten.";
         };
-    }
-
-    private static String safeMessage(Throwable e) {
-        if (e == null) return "Unbekannter Fehler";
-        String message = e.getMessage();
-        return (message == null || message.isBlank()) ? e.getClass().getSimpleName() : message;
     }
 }

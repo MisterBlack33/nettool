@@ -2,7 +2,10 @@ package main.java.networktool.logic.scan.remote;
 
 import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.logic.TimeoutConfig;
+import main.java.networktool.logic.error.ScanContext;
+import main.java.networktool.logic.error.ScanFailure;
 import main.java.networktool.logic.scan.host.HostAliveChecker;
+import main.java.networktool.logic.scan.host.ScanErrorClassifier;
 import main.java.networktool.util.CIDRUtils;
 
 import java.util.*;
@@ -18,7 +21,10 @@ final class RemoteNetProbe {
     static RemoteNetScanner.ReachResult parallelProbe(String cidr) {
         List<String> allIps;
         try { allIps = CIDRUtils.getAllIPs(RemoteNetScanner.normalizeCidr(cidr)); }
-        catch (Exception e) { return new RemoteNetScanner.ReachResult(false, 0, 0); }
+        catch (Exception e) {
+            logFailure("remote-cidr-parse", e);
+            return new RemoteNetScanner.ReachResult(false, 0, 0);
+        }
         if (allIps.isEmpty()) return new RemoteNetScanner.ReachResult(false, 0, 0);
 
         List<String> probes = selectProbes(allIps);
@@ -30,8 +36,16 @@ final class RemoteNetProbe {
             try {
                 long ms = f.get(100, TimeUnit.MILLISECONDS);
                 if (ms >= 0) { responded++; totalMs += ms; }
-            } catch (Exception e) {
-                DebugLogger.getInstance().log("FINE", "[RemoteNetProbe] Reachability-Probe fehlgeschlagen: " + e);
+            } catch (TimeoutException e) {
+                logFailure(ScanErrorClassifier.Kind.TIMEOUT, "remote-reachability", e);
+            } catch (ExecutionException e) {
+                logFailure("remote-reachability", e.getCause() == null ? e : e.getCause());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                logFailure("remote-reachability", e);
+                break;
+            } catch (CancellationException e) {
+                logFailure("remote-reachability", e);
             }
         }
         return new RemoteNetScanner.ReachResult(
@@ -74,5 +88,18 @@ final class RemoteNetProbe {
         try { exec.awaitTermination(TimeoutConfig.REMOTE_REACH_MS + 500L, TimeUnit.MILLISECONDS); }
         catch (InterruptedException e) { Thread.currentThread().interrupt(); }
         return futures;
+    }
+
+    private static void logFailure(String operation, Throwable error) {
+        ScanFailure failure = ScanFailure.from(
+                new ScanContext("unknown", operation, "remote-network", -1), error);
+        DebugLogger.getInstance().log(failure.kind() == ScanErrorClassifier.Kind.TIMEOUT
+                ? "FINE" : "WARN", "[RemoteNetProbe] " + failure.describe());
+    }
+
+    private static void logFailure(ScanErrorClassifier.Kind kind, String operation, Throwable error) {
+        DebugLogger.getInstance().log(kind == ScanErrorClassifier.Kind.TIMEOUT ? "FINE" : "WARN",
+                "[RemoteNetProbe] " + new ScanFailure(
+                        kind, "remote-network", -1, "unknown", operation).describe());
     }
 }

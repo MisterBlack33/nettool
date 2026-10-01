@@ -1,6 +1,9 @@
 package main.java.networktool.logic.analysis.discovery;
 
 import main.java.networktool.logic.TimeoutConfig;
+import main.java.networktool.logic.error.ScanContext;
+import main.java.networktool.logic.error.ScanFailure;
+import main.java.networktool.logging.DebugLogger;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -85,11 +88,16 @@ public final class MdnsDiscovery {
 
                     parseResponse(ip, buf, pkt.getLength(), results);
                 } catch (SocketTimeoutException e) {
+                    logFailure("mdns-discovery", "multicast", e);
                     break;
+                } catch (Exception e) {
+                    logFailure("mdns-discovery", "multicast", e);
                 }
             }
             socket.leaveGroup(group);
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            logFailure("mdns-discovery", "multicast", e);
+        }
 
         return Collections.unmodifiableList(results);
     }
@@ -116,10 +124,15 @@ public final class MdnsDiscovery {
                     socket.receive(pkt);
                     parseResponse(ip, buf, pkt.getLength(), results);
                 } catch (SocketTimeoutException e) {
+                    logFailure("mdns-query", ip, e);
                     break;
+                } catch (Exception e) {
+                    logFailure("mdns-query", ip, e);
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            logFailure("mdns-query", ip, e);
+        }
         return Collections.unmodifiableList(results);
     }
 
@@ -171,7 +184,9 @@ public final class MdnsDiscovery {
                     break;
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            logFailure("mdns-parse", ip, e);
+        }
     }
 
     private static String extractName(String raw) {
@@ -182,5 +197,11 @@ public final class MdnsDiscovery {
             else if (sb.length() > 3) break;
         }
         return sb.length() > 0 ? sb.toString().trim() : "unbekannt";
+    }
+
+    private static void logFailure(String operation, String host, Throwable error) {
+        ScanFailure failure = ScanFailure.from(new ScanContext("unknown", operation, host, MDNS_PORT), error);
+        DebugLogger.getInstance().log(failure.kind() == main.java.networktool.logic.scan.host.ScanErrorClassifier.Kind.TIMEOUT
+                ? "FINE" : "WARN", "[MdnsDiscovery] " + failure.describe());
     }
 }

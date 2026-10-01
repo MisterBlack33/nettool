@@ -1,6 +1,9 @@
 package main.java.networktool.logic.analysis.discovery;
 
 import main.java.networktool.logic.TimeoutConfig;
+import main.java.networktool.logic.error.ScanContext;
+import main.java.networktool.logic.error.ScanFailure;
+import main.java.networktool.logging.DebugLogger;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -81,10 +84,15 @@ public final class UpnpDiscovery {
                         if (dev != null) devices.add(dev);
                     }
                 } catch (SocketTimeoutException e) {
+                    logFailure("upnp-discovery", "multicast", e);
                     break;
+                } catch (Exception e) {
+                    logFailure("upnp-discovery", "multicast", e);
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (Exception e) {
+            logFailure("upnp-discovery", "multicast", e);
+        }
 
         return Collections.unmodifiableList(devices);
     }
@@ -104,5 +112,11 @@ public final class UpnpDiscovery {
             }
         }
         return null;
+    }
+
+    private static void logFailure(String operation, String host, Throwable error) {
+        ScanFailure failure = ScanFailure.from(new ScanContext("unknown", operation, host, SSDP_PORT), error);
+        DebugLogger.getInstance().log(failure.kind() == main.java.networktool.logic.scan.host.ScanErrorClassifier.Kind.TIMEOUT
+                ? "FINE" : "WARN", "[UpnpDiscovery] " + failure.describe());
     }
 }

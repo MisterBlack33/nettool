@@ -1,6 +1,11 @@
 package main.java.networktool.logic.analysis.os;
 
 import main.java.networktool.logic.TimeoutConfig;
+import main.java.networktool.logic.error.ScanContext;
+import main.java.networktool.logic.error.ScanFailure;
+import main.java.networktool.logging.DebugLogger;
+
+import java.io.IOException;
 import java.net.*;
 import java.util.List;
 
@@ -47,7 +52,13 @@ final class OsProbeUdp {
                 }
                 return OsSignature.of("Windows", 75, "NetBIOS");
             }
-        } catch (Exception ignored) {}
+        } catch (SocketTimeoutException e) {
+            return null;
+        } catch (IOException e) {
+            logFailure("netbios-probe", ip, e);
+        } catch (SecurityException e) {
+            logFailure("netbios-probe", ip, e);
+        }
         return null;
     }
 
@@ -100,7 +111,13 @@ final class OsProbeUdp {
                 String response = new String(buf, 0, resp.getLength());
                 return classifyMdnsResponse(response);
             }
-        } catch (Exception ignored) {}
+        } catch (SocketTimeoutException e) {
+            return null;
+        } catch (IOException e) {
+            logFailure("mdns-probe", ip, e);
+        } catch (SecurityException e) {
+            logFailure("mdns-probe", ip, e);
+        }
         return null;
     }
 
@@ -157,8 +174,20 @@ final class OsProbeUdp {
                 String content = extractSnmpString(buf, resp.getLength());
                 return classifySnmpResponse(content);
             }
-        } catch (Exception ignored) {}
+        } catch (SocketTimeoutException e) {
+            return null;
+        } catch (IOException e) {
+            logFailure("snmp-probe", ip, e);
+        } catch (SecurityException e) {
+            logFailure("snmp-probe", ip, e);
+        }
         return null;
+    }
+
+    private static void logFailure(String operation, String host, Throwable error) {
+        ScanFailure failure = ScanFailure.from(new ScanContext("unknown", operation, host, -1), error);
+        DebugLogger.getInstance().log(failure.kind() == main.java.networktool.logic.scan.host.ScanErrorClassifier.Kind.TIMEOUT
+                ? "FINE" : "WARN", "[OsProbeUdp] " + failure.describe());
     }
 
     private static byte[] buildSnmpGetRequest() {

@@ -2,20 +2,18 @@ package main.java.networktool.gui.components.scan;
 
 import main.java.networktool.gui.panels.GuiInputPanel;
 import main.java.networktool.gui.panels.GuiOutputPanel;
+import main.java.networktool.gui.core.GuiStatusReporter;
 import main.java.networktool.logic.analysis.security.RogueDhcpDetector;
 import main.java.networktool.logic.analysis.security.ScanSecurityHook;
 import main.java.networktool.logic.analysis.security.TlsCertScheduler;
 import main.java.networktool.logic.scan.remote.RemoteNetScanner;
 import main.java.networktool.security.AuditLogger;
 import main.java.networktool.util.PlatformSupport;
-import main.java.networktool.util.StatusTags;
 
 import java.util.Arrays;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-
-import static main.java.networktool.theme.GuiTheme.*;
 
 /** Test-Suite-Toggles der Security-Automatisierung (Menü-IDs "35"–"37"). */
 public final class GuiSecurityAutomationActions {
@@ -29,8 +27,11 @@ public final class GuiSecurityAutomationActions {
     public static void toggleRogueDhcp(GuiInputPanel input, GuiOutputPanel output) {
         RogueDhcpDetector detector = RogueDhcpDetector.getInstance();
         if (detector.isActive()) {
-            detector.stop();
-            output.appendText("  " + StatusTags.OK + " DHCP-Watch gestoppt\n", WARN);
+            if (detector.stop()) {
+                GuiStatusReporter.ok(output, "DHCP-Watch gestoppt");
+            } else {
+                GuiStatusReporter.warning(output, "DHCP-Watch konnte nicht gestoppt werden");
+            }
             return;
         }
         input.ask("Intervall in Sekunden (Standard " + DEFAULT_DHCP_INTERVAL_SEC + "):", sec ->
@@ -41,10 +42,10 @@ public final class GuiSecurityAutomationActions {
 
     static boolean startRogueDhcp(GuiOutputPanel output, int sec, Set<String> trusted) {
         if (!RogueDhcpDetector.getInstance().start(sec, trusted)) {
-            output.appendText("  " + StatusTags.FEHLER + " Kein vertrauter DHCP-Server angegeben/erkannt\n", WARN);
+            GuiStatusReporter.error(output, "Kein vertrauter DHCP-Server angegeben/erkannt");
             return false;
         }
-        output.appendText("  " + StatusTags.OK + " DHCP-Watch aktiv (" + sec + " s)\n", ACCENT2);
+        GuiStatusReporter.ok(output, "DHCP-Watch aktiv (" + sec + " s)");
         return true;
     }
 
@@ -61,25 +62,36 @@ public final class GuiSecurityAutomationActions {
         ScanSecurityHook hook = ScanSecurityHook.getInstance();
         hook.setEnabled(!hook.isEnabled());
         AuditLogger.getInstance().log("CVE_HOOK", hook.isEnabled() ? "on" : "off");
-        output.appendText("  " + StatusTags.OK + " CVE-Hook "
-                + (hook.isEnabled() ? "aktiv" : "aus") + "\n", hook.isEnabled() ? ACCENT2 : WARN);
+        if (hook.isEnabled()) {
+            GuiStatusReporter.ok(output, "CVE-Hook aktiv");
+        } else {
+            GuiStatusReporter.warning(output, "CVE-Hook aus");
+        }
     }
 
     public static void toggleTlsScheduler(GuiInputPanel input, GuiOutputPanel output) {
         TlsCertScheduler scheduler = TlsCertScheduler.getInstance();
         if (scheduler.isActive()) {
-            scheduler.stop();
-            output.appendText("  " + StatusTags.OK + " TLS-Scheduler gestoppt\n", WARN);
+            if (scheduler.stop()) {
+                GuiStatusReporter.ok(output, "TLS-Scheduler gestoppt");
+            } else {
+                GuiStatusReporter.warning(output, "TLS-Scheduler konnte nicht gestoppt werden");
+            }
             return;
         }
         input.ask("Intervall in Minuten (Standard " + DEFAULT_TLS_INTERVAL_MIN + "):",
                 raw -> startTlsScheduler(output, raw));
     }
 
-    static void startTlsScheduler(GuiOutputPanel output, String raw) {
+    static boolean startTlsScheduler(GuiOutputPanel output, String raw) {
         int min = parseOr(raw, DEFAULT_TLS_INTERVAL_MIN);
-        TlsCertScheduler.getInstance().start(min * SECONDS_PER_MINUTE);
-        output.appendText("  " + StatusTags.OK + " TLS-Scheduler aktiv (" + min + " min)\n", ACCENT2);
+        boolean started = TlsCertScheduler.getInstance().start(min * SECONDS_PER_MINUTE);
+        if (started) {
+            GuiStatusReporter.ok(output, "TLS-Scheduler aktiv (" + min + " min)");
+        } else {
+            GuiStatusReporter.warning(output, "TLS-Scheduler konnte nicht gestartet werden");
+        }
+        return started;
     }
 
     static int parseOr(String raw, int fallback) {

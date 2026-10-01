@@ -3,6 +3,7 @@ package main.java.networktool.gui.components.actions;
 import main.java.networktool.gui.components.GuiStatusBar;
 import main.java.networktool.gui.core.GUI;
 import main.java.networktool.gui.core.GuiMenuHandler;
+import main.java.networktool.gui.core.GuiStatusReporter;
 import main.java.networktool.gui.panels.GuiInputPanel;
 import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.ports.PortScanner;
@@ -65,9 +66,13 @@ public final class GuiDataIOActions {
         }
     }
 
-    private static void importAndReport(GuiOutputPanel output, String auditAction, int count) {
+    static void importAndReport(GuiOutputPanel output, String auditAction, int count) {
         AuditLogger.getInstance().log(auditAction, "n=" + count);
-        output.appendText("  " + StatusTags.OK + " " + count + " importiert\n", ACCENT2);
+        if (count > 0) {
+            GuiStatusReporter.ok(output, count + " importiert");
+        } else {
+            GuiStatusReporter.warning(output, "Keine Daten importiert");
+        }
     }
 
     public static void handleNotificationHistory(GuiInputPanel input, GuiOutputPanel output) {

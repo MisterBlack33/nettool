@@ -1,5 +1,6 @@
 package main.java.networktool.logic.scan.host;
 
+import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.util.CIDRUtils;
 
@@ -7,6 +8,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -20,6 +22,16 @@ public final class NetworkHostScanner {
 
     /** Scannt /24-Präfixe — nutzt ARP-Cache + ICMP. */
     public static List<HostResult> scan(List<String> subnets) {
+        if (subnets == null) {
+            DebugLogger.getInstance().log("WARN", "[NetworkHostScanner] Subnet-Liste fehlt");
+            return List.of();
+        }
+        if (subnets.isEmpty()) return List.of();
+        subnets = subnets.stream().filter(Objects::nonNull).filter(s -> !s.isBlank()).toList();
+        if (subnets.isEmpty()) {
+            DebugLogger.getInstance().log("WARN", "[NetworkHostScanner] Keine gültigen Subnetze");
+            return List.of();
+        }
         List<String> allIps = expandSubnets(subnets);
         // Vor dem ARP-Read: zusätzliche Discovery, damit stille WLAN-Geräte
         // im ARP-Cache erscheinen bzw. separat als erreichbar zählen.
@@ -31,6 +43,10 @@ public final class NetworkHostScanner {
     }
 
     public static List<HostResult> scanCidr(String cidr) {
+        if (cidr == null || cidr.isBlank()) {
+            DebugLogger.getInstance().log("WARN", "[NetworkHostScanner] CIDR fehlt");
+            return List.of();
+        }
         HostAliveChecker.warmCache();
         List<String> ips = CIDRUtils.getAllIPs(cidr);
         Set<String> discovered = NetworkDiscoverySweep.discover(ips);

@@ -44,6 +44,10 @@ public final class ScanProgress {
         }
     }
 
+    int completed() {
+        return done.get();
+    }
+
     // ── Private Hilfsmethoden ─────────────────────────────────────────────
 
     private synchronized void renderCli(int n) {

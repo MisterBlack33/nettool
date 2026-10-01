@@ -2,6 +2,7 @@ package main.java.networktool.logic.scan.schedule;
 
 import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.logic.messaging.MessageSender;
+import main.java.networktool.logic.scan.host.ScanErrorClassifier;
 import main.java.networktool.logic.scan.host.NetworkHostScanner;
 import main.java.networktool.logic.scan.host.NetworkScanner;
 import main.java.networktool.logic.scan.host.SubnetDetector;
@@ -11,6 +12,7 @@ import main.java.networktool.model.ScanResult;
 import main.java.networktool.storage.network.NetworkStore;
 import main.java.networktool.storage.profile.ScanProfileStore;
 
+import java.net.SocketException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -35,17 +37,18 @@ public final class ScanScheduler {
 
     private ScanScheduler() {}
 
-    public void start(String profileName, int intervalMin, String ntfyTopic) {
+    public synchronized void start(String profileName, int intervalMin, String ntfyTopic) {
         stop(profileName);
         ScheduledFuture<?> future = executor.scheduleAtFixedRate(
-                () -> runScheduledScan(profileName, ntfyTopic),
+                () -> runSafely(profileName, ntfyTopic),
                 0, intervalMin, TimeUnit.MINUTES);
         running.put(profileName, future);
         System.out.println("[Scheduler] '" + profileName + "' gestartet (" + intervalMin + " min)");
     }
 
-    public void stop(String profileName) {
+    public synchronized void stop(String profileName) {
         ScheduledFuture<?> f = running.remove(profileName);
+        lastScan.remove(profileName);
         if (f != null) {
             f.cancel(false);
             System.out.println("[Scheduler] '" + profileName + "' gestoppt.");
@@ -59,7 +62,25 @@ public final class ScanScheduler {
 
     // ── Interner Scan-Loop ────────────────────────────────────────────────
 
-    private void runScheduledScan(String profileName, String ntfyTopic) {
+    private void runSafely(String profileName, String ntfyTopic) {
+        try {
+            runScheduledScan(profileName, ntfyTopic);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            DebugLogger.getInstance().log("WARN",
+                    "[ScanScheduler] Lauf für " + profileName + " unterbrochen");
+        } catch (SocketException e) {
+            DebugLogger.getInstance().log("WARN",
+                    "[ScanScheduler] " + ScanErrorClassifier.describe("scheduled-scan", e));
+        } catch (RuntimeException e) {
+            DebugLogger.getInstance().log("WARN",
+                    "[ScanScheduler] " + ScanErrorClassifier.describe(
+                            "scheduled-scan", e));
+        }
+    }
+
+    private void runScheduledScan(String profileName, String ntfyTopic)
+            throws InterruptedException, SocketException {
         Optional<ScanProfile> opt = ScanProfileStore.getInstance().get(profileName);
         if (opt.isEmpty()) { stop(profileName); return; }
         ScanProfile profile = opt.get();
@@ -67,50 +88,44 @@ public final class ScanScheduler {
         String ts = LocalDateTime.now().format(FMT);
         System.out.println("\n[Scheduler " + ts + "] Scan: " + profile.summary());
 
-        try {
-            List<ScanResult> current  = runProfileScan(profile);
-            List<ScanResult> previous = lastScan.get(profileName);
+        List<ScanResult> current  = runProfileScan(profile);
+        List<ScanResult> previous = lastScan.get(profileName);
 
-            if (previous != null && !previous.isEmpty()) {
-                List<ScanDelta.DeltaEntry> delta = ScanDelta.compare(
-                        previous, current, "vorheriger Lauf", ts);
+        if (previous != null && !previous.isEmpty()) {
+            List<ScanDelta.DeltaEntry> delta = ScanDelta.compare(
+                    previous, current, "vorheriger Lauf", ts);
 
-                if (!delta.isEmpty() && ntfyTopic != null && !ntfyTopic.isBlank()) {
-                    long neu = delta.stream().filter(e -> e.type == ScanDelta.ChangeType.NEU).count();
-                    long weg = delta.stream().filter(e -> e.type == ScanDelta.ChangeType.WEG).count();
-                    String msg = "[NetTool] " + profileName + " – " + delta.size()
-                            + " Änderung(en) (+" + neu + " neu, -" + weg + " weg)";
-                    MessageSender.send("localhost", msg, ntfyTopic);
-                }
-            } else {
-                System.out.println("  [Scheduler] Erster Lauf – kein Delta.");
+            if (!delta.isEmpty() && ntfyTopic != null && !ntfyTopic.isBlank()) {
+                long neu = delta.stream().filter(e -> e.type == ScanDelta.ChangeType.NEU).count();
+                long weg = delta.stream().filter(e -> e.type == ScanDelta.ChangeType.WEG).count();
+                String msg = "[NetTool] " + profileName + " – " + delta.size()
+                        + " Änderung(en) (+" + neu + " neu, -" + weg + " weg)";
+                MessageSender.send("localhost", msg, ntfyTopic);
             }
+        } else {
+            System.out.println("  [Scheduler] Erster Lauf – kein Delta.");
+        }
 
-            lastScan.put(profileName, current);
-            ScanProfileStore.getInstance().updateLastRun(
-                    profileName, LocalDateTime.now().format(
-                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+        lastScan.put(profileName, current);
+        ScanProfileStore.getInstance().updateLastRun(
+                profileName, LocalDateTime.now().format(
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
 
-            // AutoSave: nur wenn previous nicht leer war (FIX: !previous.isEmpty() guard)
-            if (profile.autoSave && !profile.category.isBlank()
-                    && previous != null && !previous.isEmpty()) {
-                Set<String> knownIps = new HashSet<>();
-                previous.forEach(r -> knownIps.add(r.getIp()));
-                current.stream()
-                        .filter(r -> !knownIps.contains(r.getIp()))
-                        .forEach(r -> NetworkStore.getInstance().save(
-                                new HostResult(r.getIp(), r.getHostname(),
-                                        r.getOsGuess(), null, r.getOpenPorts(), ""),
-                                profile.category));
-            }
-
-        } catch (Exception e) {
-            System.err.println("[Scheduler] Fehler bei '" + profileName + "': " + e.getMessage());
-            DebugLogger.getInstance().log("WARN", "[ScanScheduler] " + profileName + ": " + e);
+        if (profile.autoSave && !profile.category.isBlank()
+                && previous != null && !previous.isEmpty()) {
+            Set<String> knownIps = new HashSet<>();
+            previous.forEach(r -> knownIps.add(r.getIp()));
+            current.stream()
+                    .filter(r -> !knownIps.contains(r.getIp()))
+                    .forEach(r -> NetworkStore.getInstance().save(
+                            new HostResult(r.getIp(), r.getHostname(),
+                                    r.getOsGuess(), null, r.getOpenPorts(), ""),
+                            profile.category));
         }
     }
 
-    private List<ScanResult> runProfileScan(ScanProfile profile) throws Exception {
+    private List<ScanResult> runProfileScan(ScanProfile profile)
+            throws InterruptedException, SocketException {
         if (profile.cidrs.isEmpty()) {
             List<String> subnets = SubnetDetector.getAllSubnets();
             List<HostResult> hosts = NetworkHostScanner.scan(subnets);
@@ -120,7 +135,9 @@ public final class ScanScheduler {
         } else {
             List<ScanResult> all = new ArrayList<>();
             for (String cidr : profile.cidrs) {
-                if (Thread.currentThread().isInterrupted()) break;
+                if (Thread.currentThread().isInterrupted()) {
+                    throw new InterruptedException();
+                }
                 all.addAll(NetworkScanner.scanCIDR(cidr));
             }
             return all;

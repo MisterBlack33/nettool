@@ -3,6 +3,10 @@ package main.java.networktool.logic.messaging;
 import main.java.networktool.gui.notification.LocalToast;
 import main.java.networktool.gui.notification.NotificationListener;
 import main.java.networktool.logic.analysis.os.OsDetector;
+import main.java.networktool.logic.error.ScanContext;
+import main.java.networktool.logic.error.ScanFailure;
+import main.java.networktool.logic.scan.host.ScanErrorClassifier;
+import main.java.networktool.logging.DebugLogger;
 
 /**
  * Sendet Benachrichtigungen an Netzwerk-Hosts.
@@ -49,8 +53,12 @@ public final class MessageSender {
             if (!localSent && isUnix(os)) localSent = MessageDelivery.trySsh(targetIp, message, isMac(os));
             if (!localSent && !ntfySent) printFallbackHints(targetIp);
 
-        } catch (Exception e) {
-            System.err.println("  Fehler: " + e.getMessage());
+        } catch (java.io.IOException e) {
+            logFailure(targetIp, e);
+            System.err.println("  Fehler bei der Nachrichtenübertragung.");
+        } catch (RuntimeException e) {
+            logFailure(targetIp, e);
+            System.err.println("  Fehler bei der Nachrichtenübertragung.");
         }
         System.out.println("\n═══════════════════════════════════════════════");
     }
@@ -80,6 +88,13 @@ public final class MessageSender {
     }
     private static boolean isMac(String os) {
         return os.contains("macos") || os.contains("apple");
+    }
+
+    private static void logFailure(String targetIp, Throwable error) {
+        ScanFailure failure = ScanFailure.from(
+                new ScanContext("unknown", "message-send", targetIp, -1), error);
+        DebugLogger.getInstance().log(failure.kind() == ScanErrorClassifier.Kind.TIMEOUT
+                ? "FINE" : "WARN", "[MessageSender] " + failure.describe());
     }
 
     private static void printHeader(String ip, String msg, String topic) {

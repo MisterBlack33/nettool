@@ -4,6 +4,8 @@ import main.java.networktool.logic.messaging.MessageDelivery;
 import org.junit.jupiter.api.*;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -50,5 +52,21 @@ class MessagingPackageTest {
     @Test
     void timeout_constant_positive() {
         assertTrue(MessageDelivery.TIMEOUT_MS > 0);
+    }
+
+    @Test
+    void send_invalidHost_reportsGenericErrorWithoutExceptionDetails() {
+        PrintStream original = System.err;
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        try {
+            System.setErr(new PrintStream(output, true, StandardCharsets.UTF_8));
+            MessageSender.send("invalid host", "hello", "");
+        } finally {
+            System.setErr(original);
+        }
+        String text = output.toString(StandardCharsets.UTF_8);
+        assertTrue(text.contains("Fehler bei der Nachrichtenübertragung."));
+        assertFalse(text.contains("UnknownHostException"));
+        assertFalse(text.contains("invalid host:"));
     }
 }

@@ -3,6 +3,10 @@ package main.java.networktool.gui.notification;
 import main.java.networktool.storage.network.NetworkStore;
 import main.java.networktool.storage.NotificationHistory;
 import main.java.networktool.util.PlatformSupport;
+import main.java.networktool.logic.error.ScanContext;
+import main.java.networktool.logic.error.ScanFailure;
+import main.java.networktool.logic.scan.host.ScanErrorClassifier;
+import main.java.networktool.logging.DebugLogger;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -66,17 +70,28 @@ final class NtfySubscriptions {
     private static void subscribeLoop(String topic) {
         long   backoffMs = 1_000;
         String lastId    = null;
+        ScanErrorClassifier.Kind lastFailure = null;
 
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 lastId    = connectAndReceive(topic, lastId);
                 backoffMs = 1_000;
+                if (lastFailure != null) {
+                    DebugLogger.getInstance().info("[NtfySubscriptions] Subscription recovered");
+                    lastFailure = null;
+                }
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;
             } catch (Exception e) {
-                // Fehler nur loggen wenn Verbindung wirklich verloren gegangen ist
-                // (kein Dauerspam bei temporären Netzwerkproblemen)
+                ScanFailure failure = ScanFailure.from(
+                        new ScanContext("unknown", "ntfy-subscription", topic, -1), e);
+                if (failure.kind() != lastFailure) {
+                    DebugLogger.getInstance().log(
+                            failure.kind() == ScanErrorClassifier.Kind.TIMEOUT ? "FINE" : "WARN",
+                            "[NtfySubscriptions] Subscription status changed " + failure.describe());
+                    lastFailure = failure.kind();
+                }
             }
             try {
                 Thread.sleep(backoffMs);

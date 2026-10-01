@@ -3,7 +3,7 @@ package main.java.networktool.util;
 /**
  * Einheitliche Text-Tags für Statusmeldungen (Ausgabefenster, Logs).
  * Ersetzt bisherige Emoji-Präfixe (✔ ✕ ⚠ ℹ) — farbliche Kennzeichnung
- * (GuiTheme.ACCENT2 / WARN / ACCENT / FG_DIM) übernimmt die Signalwirkung.
+ * {@code GuiStatusReporter} übernimmt die Signalwirkung über GuiTheme-Farben.
  */
 public final class StatusTags {
 

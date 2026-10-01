@@ -3,6 +3,8 @@ package main.java.networktool.gui.core;
 import org.junit.jupiter.api.Test;
 
 import java.net.ConnectException;
+import java.net.NoRouteToHostException;
+import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.nio.file.AccessDeniedException;
@@ -21,9 +23,19 @@ class GuiErrorPresenterTest {
                 GuiErrorPresenter.userMessage(new UnknownHostException("x")));
     }
 
-    @Test void unreachable_hasFriendlyMessage() {
+    @Test void connectionRefused_hasFriendlyMessage() {
         assertEquals("Ziel nicht erreichbar (Verbindung abgelehnt).",
                 GuiErrorPresenter.userMessage(new ConnectException()));
+    }
+
+    @Test void hostOffline_hasFriendlyMessage() {
+        assertEquals("Ziel ist offline oder nicht erreichbar.",
+                GuiErrorPresenter.userMessage(new NoRouteToHostException()));
+    }
+
+    @Test void connectionReset_hasFriendlyMessage() {
+        assertEquals("Verbindung zum Ziel wurde unterbrochen.",
+                GuiErrorPresenter.userMessage(new SocketException("Connection reset")));
     }
 
     @Test void permission_hasFriendlyMessage() {
@@ -31,11 +43,12 @@ class GuiErrorPresenterTest {
                 GuiErrorPresenter.userMessage(new AccessDeniedException("x")));
     }
 
-    @Test void unknown_includesExceptionMessage() {
-        assertTrue(GuiErrorPresenter.userMessage(new IllegalStateException("boom")).contains("boom"));
-    }
-
-    @Test void unknown_blankMessage_fallsBackToClassName() {
-        assertTrue(GuiErrorPresenter.userMessage(new RuntimeException()).contains("RuntimeException"));
+    @Test void unknown_doesNotExposeExceptionDetails() {
+        String message = GuiErrorPresenter.userMessage(
+                new IllegalStateException("https://host.test/hook?token=secret private note"));
+        assertEquals("Ein unerwarteter Fehler ist aufgetreten.", message);
+        assertFalse(message.contains("secret"));
+        assertFalse(message.contains("host.test"));
+        assertFalse(message.contains("private note"));
     }
 }

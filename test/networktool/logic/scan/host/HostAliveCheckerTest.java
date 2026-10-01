@@ -1,6 +1,7 @@
 package networktool.logic.scan;
 
 import main.java.networktool.logic.scan.host.HostAliveChecker;
+import main.java.networktool.logic.ScanOutcome;
 import org.junit.jupiter.api.*;
 
 import java.net.ServerSocket;
@@ -31,6 +32,21 @@ class HostAliveCheckerTest {
     @Test
     void isAlive_doesNotThrow() {
         assertDoesNotThrow(() -> HostAliveChecker.isAlive("127.0.0.1"));
+    }
+
+    @Test
+    void probe_nullHost_returnsFailureWithoutProbing() {
+        ScanOutcome<Boolean> outcome = HostAliveChecker.probe(null);
+        assertFalse(outcome.isSuccess());
+        assertFalse(HostAliveChecker.isAlive(null));
+    }
+
+    @Test
+    void probe_invalidHostname_returnsDnsFailure() {
+        ScanOutcome<Boolean> outcome = HostAliveChecker.probe("invalid host");
+
+        assertFalse(outcome.isSuccess());
+        assertTrue(((ScanOutcome.Failure<Boolean>) outcome).reason().contains("[DNS]"));
     }
 
     @Test

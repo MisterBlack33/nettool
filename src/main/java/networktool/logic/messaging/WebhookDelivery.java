@@ -1,6 +1,9 @@
 package main.java.networktool.logic.messaging;
 
 import main.java.networktool.logging.DebugLogger;
+import main.java.networktool.logic.error.ScanContext;
+import main.java.networktool.logic.error.ScanFailure;
+import main.java.networktool.logic.scan.host.ScanErrorClassifier;
 import main.java.networktool.storage.JsonCodec;
 
 import java.io.IOException;
@@ -30,8 +33,10 @@ public final class WebhookDelivery {
             return post(uri, buildPayload(message));
         } catch (IOException e) {
             // URL kann Tokens enthalten → nur Host und Fehlertyp loggen
-            DebugLogger.getInstance().log("WARN",
-                    "[WebhookDelivery] " + uri.getHost() + ": " + e.getClass().getSimpleName());
+            ScanFailure failure = ScanFailure.from(
+                    new ScanContext("unknown", "webhook-delivery", uri.getHost(), uri.getPort()), e);
+            DebugLogger.getInstance().log(failure.kind() == ScanErrorClassifier.Kind.TIMEOUT
+                    ? "FINE" : "WARN", "[WebhookDelivery] " + failure.describe());
             return false;
         }
     }

@@ -1,19 +1,24 @@
 package main.java.networktool.logic.messaging;
 
 import com.sun.net.httpserver.HttpServer;
+import main.java.networktool.logging.DebugLogger;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicReference;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class WebhookDeliveryTest {
 
+    @TempDir Path logDir;
     HttpServer server;
     final AtomicReference<String> body = new AtomicReference<>();
     volatile int status = 200;
@@ -52,6 +57,28 @@ class WebhookDeliveryTest {
 
     @Test void send_closedPort_falseNotThrow() {
         assertFalse(WebhookDelivery.send("http://127.0.0.1:1/x", "x"));
+    }
+
+    @Test void send_failureDoesNotLogUrlOrPayloadSecrets() throws IOException {
+        int closedPort;
+        try (ServerSocket reservation = new ServerSocket(
+                0, 1, java.net.InetAddress.getByName("127.0.0.1"))) {
+            closedPort = reservation.getLocalPort();
+        }
+        DebugLogger logger = DebugLogger.getInstance();
+        logger.init(logDir);
+        try {
+            assertFalse(WebhookDelivery.send("http://127.0.0.1:" + closedPort
+                    + "/secret-path?token=secret-token", "private-message"));
+            String log = logger.readRecent(10).stream()
+                    .map(entry -> entry.message())
+                    .reduce("", (a, b) -> a + "\n" + b);
+            assertFalse(log.contains("secret-path"));
+            assertFalse(log.contains("secret-token"));
+            assertFalse(log.contains("private-message"));
+        } finally {
+            logger.shutdown();
+        }
     }
 
     @Test void parse_httpAndHttps_accepted() {

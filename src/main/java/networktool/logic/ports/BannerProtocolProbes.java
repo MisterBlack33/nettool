@@ -1,5 +1,10 @@
 package main.java.networktool.logic.ports;
 
+import main.java.networktool.logic.error.ScanContext;
+import main.java.networktool.logic.error.ScanFailure;
+import main.java.networktool.logic.scan.host.ScanErrorClassifier;
+import main.java.networktool.logging.DebugLogger;
+
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
@@ -24,8 +29,12 @@ final class BannerProtocolProbes {
                 return new String(buf, 0, read, StandardCharsets.UTF_8);
             }
         } catch (SocketTimeoutException ignored) {
-            // Kein Banner gesendet – trotzdem offen
-        } catch (Exception ignored) {}
+            logExpected("passive-banner", host, port, ignored);
+        } catch (IOException e) {
+            logExpected("passive-banner", host, port, e);
+        } catch (RuntimeException e) {
+            logUnexpected("passive-banner", host, port, e);
+        }
         return null;
     }
 
@@ -66,7 +75,13 @@ final class BannerProtocolProbes {
             if (powered != null) parts.add(powered);
             return String.join(" | ", parts);
 
-        } catch (Exception ignored) {}
+        } catch (SocketTimeoutException e) {
+            logExpected("http-banner", host, port, e);
+        } catch (IOException e) {
+            logExpected("http-banner", host, port, e);
+        } catch (RuntimeException e) {
+            logUnexpected("http-banner", host, port, e);
+        }
         return "HTTP";
     }
 
@@ -101,7 +116,13 @@ final class BannerProtocolProbes {
                         ? statusLine.substring(9, 12) : "";
                 return "HTTPS " + status + (server != null ? " | " + server : "");
             }
-        } catch (Exception ignored) {}
+        } catch (SocketTimeoutException e) {
+            logExpected("https-banner", host, port, e);
+        } catch (IOException e) {
+            logExpected("https-banner", host, port, e);
+        } catch (RuntimeException e) {
+            logUnexpected("https-banner", host, port, e);
+        }
         return "HTTPS";
     }
 
@@ -122,7 +143,13 @@ final class BannerProtocolProbes {
                 }
             }
             return sb.length() > 0 ? "SMTP: " + sb : "SMTP";
-        } catch (Exception ignored) {}
+        } catch (SocketTimeoutException e) {
+            logExpected("smtp-banner", host, port, e);
+        } catch (IOException e) {
+            logExpected("smtp-banner", host, port, e);
+        } catch (RuntimeException e) {
+            logUnexpected("smtp-banner", host, port, e);
+        }
         return "SMTP";
     }
 
@@ -143,7 +170,13 @@ final class BannerProtocolProbes {
                         return "MySQL " + version;
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (SocketTimeoutException e) {
+            logExpected("mysql-banner", host, port, e);
+        } catch (IOException e) {
+            logExpected("mysql-banner", host, port, e);
+        } catch (RuntimeException e) {
+            logUnexpected("mysql-banner", host, port, e);
+        }
         return "MySQL";
     }
 
@@ -162,7 +195,13 @@ final class BannerProtocolProbes {
                 if (resp.startsWith("-")) return "Redis (Auth required)";
                 return "Redis";
             }
-        } catch (Exception ignored) {}
+        } catch (SocketTimeoutException e) {
+            logExpected("redis-banner", host, port, e);
+        } catch (IOException e) {
+            logExpected("redis-banner", host, port, e);
+        } catch (RuntimeException e) {
+            logUnexpected("redis-banner", host, port, e);
+        }
         return "Redis";
     }
 
@@ -189,7 +228,24 @@ final class BannerProtocolProbes {
             byte[] buf = new byte[128];
             int read = s.getInputStream().read(buf);
             if (read > 0) return "MongoDB";
-        } catch (Exception ignored) {}
+        } catch (SocketTimeoutException e) {
+            logExpected("mongodb-banner", host, port, e);
+        } catch (IOException e) {
+            logExpected("mongodb-banner", host, port, e);
+        } catch (RuntimeException e) {
+            logUnexpected("mongodb-banner", host, port, e);
+        }
         return "MongoDB";
+    }
+
+    private static void logExpected(String operation, String host, int port, IOException error) {
+        ScanFailure failure = ScanFailure.from(new ScanContext("unknown", operation, host, port), error);
+        DebugLogger.getInstance().log("FINE", "[BannerProtocolProbes] " + failure.describe());
+    }
+
+    private static void logUnexpected(String operation, String host, int port, RuntimeException error) {
+        ScanFailure failure = ScanFailure.from(new ScanContext("unknown", operation, host, port), error);
+        DebugLogger.getInstance().log(failure.kind() == ScanErrorClassifier.Kind.TIMEOUT
+                ? "FINE" : "WARN", "[BannerProtocolProbes] " + failure.describe());
     }
 }

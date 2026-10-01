@@ -2,6 +2,9 @@ package main.java.networktool.logic.ports;
 
 import main.java.networktool.logic.scan.schedule.ScanRateLimiter;
 import main.java.networktool.logic.windows.PsPortScanResolver;
+import main.java.networktool.logic.error.ScanContext;
+import main.java.networktool.logic.error.ScanFailure;
+import main.java.networktool.logging.DebugLogger;
 
 import java.net.*;
 import java.util.*;
@@ -72,7 +75,7 @@ public final class PortScanner {
     }
 
     public static boolean isOpen(String host, int port, int timeoutMs) {
-        return probePort(host, port, timeoutMs > 0 ? timeoutMs : TIMEOUT_LAN) != PortState.CLOSED;
+        return probePort(host, port, timeoutMs > 0 ? timeoutMs : TIMEOUT_LAN) == PortState.OPEN;
     }
 
     public static boolean isOpen(String host, int port) {
@@ -130,11 +133,23 @@ public final class PortScanner {
         try (Socket s = new Socket()) {
             s.connect(new InetSocketAddress(host, port), timeout);
             return PortState.OPEN;
-        } catch (ConnectException | SocketTimeoutException e) {
+        } catch (ConnectException e) {
+            logFailure(host, port, e);
+            return PortState.REFUSED;
+        } catch (SocketTimeoutException e) {
+            logFailure(host, port, e);
             return psFallback(host, port);
         } catch (Exception e) {
+            logFailure(host, port, e);
             return psFallback(host, port);
         }
+    }
+
+    private static void logFailure(String host, int port, Throwable error) {
+        ScanFailure failure = ScanFailure.from(
+                new ScanContext("unknown", "port-probe", host, port), error);
+        DebugLogger.getInstance().log(failure.kind() == main.java.networktool.logic.scan.host.ScanErrorClassifier.Kind.TIMEOUT
+                ? "FINE" : "WARN", "[PortScanner] " + failure.describe());
     }
 
     // Windows-Fallback: Firewalls blocken teils rohe Sockets, aber nicht Test-NetConnection

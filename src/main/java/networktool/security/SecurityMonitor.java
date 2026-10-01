@@ -1,5 +1,7 @@
 package main.java.networktool.security;
 
+import main.java.networktool.logging.DebugLogger;
+import main.java.networktool.logic.scan.host.ScanErrorClassifier;
 import main.java.networktool.logic.messaging.MessageSender;
 import main.java.networktool.storage.network.NetworkStore;
 import main.java.networktool.gui.notification.LocalToast;
@@ -27,7 +29,7 @@ public final class SecurityMonitor {
     private final Set<String>         alerted = ConcurrentHashMap.newKeySet();
 
     private volatile boolean         active    = false;
-    private ScheduledExecutorService scheduler;
+    private volatile ScheduledExecutorService scheduler;
     private String                   ntfyTopic = "";
 
     private SecurityMonitor() {}
@@ -44,7 +46,7 @@ public final class SecurityMonitor {
             t.setDaemon(true);
             return t;
         });
-        scheduler.scheduleAtFixedRate(this::scan, 0, SCAN_INTERVAL_SEC, TimeUnit.SECONDS);
+        scheduler.scheduleAtFixedRate(this::runSafely, 0, SCAN_INTERVAL_SEC, TimeUnit.SECONDS);
         AuditLogger.getInstance().log("SECURITY_MONITOR_START", "Interval=" + SCAN_INTERVAL_SEC + "s");
         System.out.println("[SecurityMonitor] Gestartet (" + SCAN_INTERVAL_SEC + "s)");
     }
@@ -60,6 +62,15 @@ public final class SecurityMonitor {
     public boolean isActive() { return active; }
 
     public void addToWhitelist(String ip) { /* kept for API compat */ }
+
+    private void runSafely() {
+        try {
+            scan();
+        } catch (RuntimeException e) {
+            DebugLogger.getInstance().log("WARN",
+                    "[SecurityMonitor] " + ScanErrorClassifier.describe("security-scan", e));
+        }
+    }
 
     public void addBaseline(String ip, String mac) {
         if (ip == null || mac == null) return;
@@ -137,22 +148,23 @@ public final class SecurityMonitor {
     private static Map<String, String> readArpCache() {
         Map<String, String> result = new LinkedHashMap<>();
         boolean isWin = System.getProperty("os.name", "").toLowerCase().contains("win");
-        try {
-            Process p = Runtime.getRuntime().exec(isWin ? "arp -a" : "arp -a -n");
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()))) {
-                String line;
-                while ((line = br.readLine()) != null) {
-                    Matcher ipM  = IP_PAT.matcher(line);
-                    Matcher macM = MAC_PAT.matcher(line);
-                    if (ipM.find() && macM.find()) {
-                        String ip  = ipM.group();
-                        String mac = normalize(macM.group());
-                        if (!isNoisyAddress(ip) && !mac.startsWith("FF:FF") && !mac.startsWith("01:"))
-                            result.put(ip, mac);
-                    }
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(
+                Runtime.getRuntime().exec(isWin ? "arp -a" : "arp -a -n").getInputStream()))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                Matcher ipM  = IP_PAT.matcher(line);
+                Matcher macM = MAC_PAT.matcher(line);
+                if (ipM.find() && macM.find()) {
+                    String ip  = ipM.group();
+                    String mac = normalize(macM.group());
+                    if (!isNoisyAddress(ip) && !mac.startsWith("FF:FF") && !mac.startsWith("01:"))
+                        result.put(ip, mac);
                 }
             }
-        } catch (Exception ignored) {}
+        } catch (IOException | SecurityException e) {
+            DebugLogger.getInstance().log("FINE",
+                    "[SecurityMonitor] " + ScanErrorClassifier.describe("arp-cache", e));
+        }
         return result;
     }
 

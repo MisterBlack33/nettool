@@ -1,6 +1,10 @@
 package main.java.networktool.logic.analysis.os;
 
 import main.java.networktool.logic.TimeoutConfig;
+import main.java.networktool.logic.error.ScanContext;
+import main.java.networktool.logic.error.ScanFailure;
+import main.java.networktool.logic.scan.host.ScanErrorClassifier;
+import main.java.networktool.logging.DebugLogger;
 
 import java.io.*;
 import java.net.*;
@@ -81,7 +85,13 @@ public final class OsDetectorPorts {
                 if (srv.contains("lighttpd")) return "Web-Server (lighttpd)";
                 if (!srv.isBlank())           return "Web-Server (" + srv.split("/")[0] + ")";
             }
-        } catch (Exception ignored) {}
+        } catch (SocketTimeoutException e) {
+            logExpected("web-server-banner", ip, 80, e);
+        } catch (IOException e) {
+            logExpected("web-server-banner", ip, 80, e);
+        } catch (RuntimeException e) {
+            logFailure("web-server-banner", ip, 80, e);
+        }
         return "Web-Server";
     }
 
@@ -89,6 +99,26 @@ public final class OsDetectorPorts {
         try (Socket s = new Socket()) {
             s.connect(new InetSocketAddress(ip, port), TimeoutConfig.OS_DETECT_PORT_SCAN_MS);
             return true;
-        } catch (Exception e) { return false; }
+        } catch (SocketTimeoutException e) {
+            logExpected("port-probe", ip, port, e);
+            return false;
+        } catch (IOException e) {
+            logExpected("port-probe", ip, port, e);
+            return false;
+        } catch (RuntimeException e) {
+            logFailure("port-probe", ip, port, e);
+            return false;
+        }
+    }
+
+    private static void logExpected(String operation, String host, int port, IOException error) {
+        ScanFailure failure = ScanFailure.from(new ScanContext("unknown", operation, host, port), error);
+        DebugLogger.getInstance().log("FINE", "[OsDetectorPorts] " + failure.describe());
+    }
+
+    private static void logFailure(String operation, String host, int port, Throwable error) {
+        ScanFailure failure = ScanFailure.from(new ScanContext("unknown", operation, host, port), error);
+        DebugLogger.getInstance().log(failure.kind() == ScanErrorClassifier.Kind.TIMEOUT
+                ? "FINE" : "WARN", "[OsDetectorPorts] " + failure.describe());
     }
 }

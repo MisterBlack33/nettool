@@ -1,6 +1,8 @@
 package main.java.networktool.logic.scan.host;
 
 import main.java.networktool.logic.scan.schedule.ScanHistory;
+import main.java.networktool.logic.ScanOutcome;
+import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.model.ScanResult;
 import main.java.networktool.util.CIDRUtils;
 
@@ -19,7 +21,11 @@ public final class NetworkScanner {
     public static volatile boolean testMode = false;
 
     public static List<ScanResult> scanCIDR(String cidr) {
-        if (testMode) return Collections.emptyList();
+        return scanCIDROutcome(cidr).orElse(Collections.emptyList());
+    }
+
+    public static ScanOutcome<List<ScanResult>> scanCIDROutcome(String cidr) {
+        if (testMode) return ScanOutcome.success(Collections.emptyList());
         List<String> allIps = CIDRUtils.getAllIPs(cidr);
         List<String> ips    = allIps.size() <= DIRECT_LIMIT ? allIps : sweepFirst(allIps);
 
@@ -39,11 +45,30 @@ public final class NetworkScanner {
         }
 
         executor.shutdown();
-        try { executor.awaitTermination(5, TimeUnit.MINUTES); }
-        catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+        boolean complete = true;
+        try {
+            complete = executor.awaitTermination(5, TimeUnit.MINUTES);
+            if (!complete) {
+                executor.shutdownNow();
+                DebugLogger.getInstance().log("WARN",
+                        "[NetworkScanner] Unvollständiger Scan: "
+                                + progress.completed() + "/" + ips.size() + " Host(s) verarbeitet.");
+            }
+        } catch (InterruptedException e) {
+            executor.shutdownNow();
+            Thread.currentThread().interrupt();
+            DebugLogger.getInstance().log("WARN",
+                    "[NetworkScanner] Scan unterbrochen: " + cidr);
+            return ScanOutcome.failure("unterbrochen: " + progress.completed() + "/" + ips.size()
+                    + " Host(s) verarbeitet");
+        }
 
         ScanHistory.getInstance().add(cidr, results);
-        return results;
+        if (!complete) {
+            return ScanOutcome.failure("unvollständig: " + progress.completed() + "/" + ips.size()
+                    + " Host(s) verarbeitet");
+        }
+        return ScanOutcome.success(results);
     }
 
     private static List<String> sweepFirst(List<String> allIps) {

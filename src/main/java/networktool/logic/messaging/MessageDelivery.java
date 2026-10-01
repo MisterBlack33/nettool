@@ -1,6 +1,9 @@
 package main.java.networktool.logic.messaging;
 
 import main.java.networktool.logic.analysis.os.OsDetector;
+import main.java.networktool.logic.error.ScanContext;
+import main.java.networktool.logic.error.ScanFailure;
+import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.util.PlatformSupport;
 
 import java.io.*;
@@ -28,15 +31,15 @@ final class MessageDelivery {
 
     static boolean tryListener(String ip, String message) {
         if (!OsDetector.isOpen(ip, MessageSender.NETTOOL_LISTENER_PORT)) return false;
-        System.out.println("  Methode : NetTool-Listener (Port " + MessageSender.NETTOOL_LISTENER_PORT + ")");
+        DebugLogger.getInstance().info("[MessageDelivery] Listener delivery started");
         try (Socket s = new Socket()) {
             s.connect(new InetSocketAddress(ip, MessageSender.NETTOOL_LISTENER_PORT), TIMEOUT_MS);
             s.getOutputStream().write((message + "\n").getBytes(StandardCharsets.UTF_8));
             s.getOutputStream().flush();
-            System.out.println("  ✔ Nachricht übertragen.");
+            DebugLogger.getInstance().info("[MessageDelivery] Listener delivery succeeded");
             return true;
         } catch (Exception e) {
-            System.out.println("  ✕ Listener: " + e.getMessage());
+            logFailure("listener-delivery", ip, MessageSender.NETTOOL_LISTENER_PORT, e);
             return false;
         }
     }
@@ -45,11 +48,11 @@ final class MessageDelivery {
 
     static boolean tryNtfy(String topic, String message) {
         if (!PlatformSupport.isSafeNtfyTopic(topic)) {
-            System.out.println("  ✕ ntfy.sh: ungültiges Topic");
+            DebugLogger.getInstance().warn("[MessageDelivery] ntfy delivery rejected");
             return false;
         }
 
-        System.out.println("  Methode : ntfy.sh → Topic \"" + topic + "\"");
+        DebugLogger.getInstance().info("[MessageDelivery] ntfy delivery started");
         try {
             HttpURLConnection c = (HttpURLConnection)
                     new URL("https://ntfy.sh/" + topic).openConnection();
@@ -62,13 +65,12 @@ final class MessageDelivery {
             c.setRequestProperty("Tags", "bell");
             c.getOutputStream().write(message.getBytes(StandardCharsets.UTF_8));
             boolean sent = c.getResponseCode() == 200;
-            System.out.println(sent
-                    ? "  ✔ ntfy.sh: gesendet."
-                    : "  ✕ ntfy.sh: HTTP " + c.getResponseCode());
+            DebugLogger.getInstance().log(sent ? "INFO" : "WARN",
+                    "[MessageDelivery] ntfy delivery " + (sent ? "succeeded" : "failed"));
             c.disconnect();
             return sent;
         } catch (Exception e) {
-            System.out.println("  ✕ ntfy.sh: " + e.getMessage());
+            logFailure("ntfy-delivery", topic, -1, e);
             return false;
         }
     }
@@ -93,5 +95,14 @@ final class MessageDelivery {
             while ((l = br.readLine()) != null) sb.append(l).append("\n");
             return sb.toString();
         } catch (IOException e) { return ""; }
+    }
+
+    private static void logFailure(String operation, String host, int port, Throwable error) {
+        ScanFailure failure = ScanFailure.from(
+                new ScanContext("unknown", operation, host, port), error);
+        DebugLogger.getInstance().log(
+                failure.kind() == main.java.networktool.logic.scan.host.ScanErrorClassifier.Kind.TIMEOUT
+                        ? "FINE" : "WARN",
+                "[MessageDelivery] " + failure.describe());
     }
 }

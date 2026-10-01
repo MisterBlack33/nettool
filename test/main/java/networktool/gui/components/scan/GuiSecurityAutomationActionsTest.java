@@ -54,6 +54,15 @@ class GuiSecurityAutomationActionsTest {
         assertFalse(TlsCertScheduler.getInstance().isActive());
     }
 
+    @Test void startTlsScheduler_failedStartIsReportedAsWarning() throws Exception {
+        assertTrue(GuiSecurityAutomationActions.startTlsScheduler(output, "1"));
+        assertFalse(GuiSecurityAutomationActions.startTlsScheduler(output, "1"));
+        javax.swing.SwingUtilities.invokeAndWait(() -> {});
+        String text = output.doc.getText(0, output.doc.getLength());
+        assertTrue(text.contains("[WARN] TLS-Scheduler konnte nicht gestartet werden"));
+        assertEquals(1, text.split("\\[OK\\]", -1).length - 1);
+    }
+
     @Test void toggleRogueDhcp_inactive_onlyAsksInterval() {
         assertDoesNotThrow(() -> GuiSecurityAutomationActions.toggleRogueDhcp(input, output));
     }

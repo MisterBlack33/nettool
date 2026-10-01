@@ -53,14 +53,19 @@ class PortScannerFixTest {
     }
 
     @Test
-    void probePort_closed_returnsClosed() {
-        assertEquals(PortScanner.PortState.CLOSED,
+    void probePort_refused_returnsRefused() {
+        assertEquals(PortScanner.PortState.REFUSED,
                 PortScanner.probePort("127.0.0.1", 19995, 300));
     }
 
     @Test
     void isOpen_closedPort_false() {
         assertFalse(PortScanner.isOpen("127.0.0.1", 19996, 300));
+    }
+
+    @Test
+    void isOpen_refusedPort_false() {
+        assertFalse(PortScanner.isOpen("127.0.0.1", 19995, 300));
     }
 
     @Test

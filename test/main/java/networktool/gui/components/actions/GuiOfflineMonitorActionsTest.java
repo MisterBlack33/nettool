@@ -11,6 +11,7 @@ import javax.swing.*;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.swing.SwingUtilities;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -48,6 +49,14 @@ class GuiOfflineMonitorActionsTest {
         assertFalse(OfflineThresholdMonitor.getInstance().isActive());
     }
 
+    @Test void start_alreadyActive_reportsWarningInsteadOfSuccess() throws Exception {
+        GuiOfflineMonitorActions.start("2", null, output);
+        GuiOfflineMonitorActions.start("3", null, output);
+        SwingUtilities.invokeAndWait(() -> {});
+        String text = output.doc.getText(0, output.doc.getLength());
+        assertTrue(text.contains("[WARN] Offline-Monitor konnte nicht gestartet werden"));
+    }
+
     @Test void handle_inactive_registersPrompt() {
         assertDoesNotThrow(() -> GuiOfflineMonitorActions.handle(input, output));
         assertFalse(OfflineThresholdMonitor.getInstance().isActive());
@@ -62,6 +71,22 @@ class GuiOfflineMonitorActionsTest {
             GuiOfflineMonitorActions.notifyOffline("x",
                     "http://127.0.0.1:" + s.getAddress().getPort() + "/", output);
             assertEquals(1, hits.get());
+        } finally {
+            s.stop(0);
+        }
+    }
+
+    @Test void notifyOffline_failedWebhook_reportsWarning() throws Exception {
+        HttpServer s = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        s.createContext("/", ex -> { ex.sendResponseHeaders(500, -1); ex.close(); });
+        s.start();
+        try {
+            GuiOfflineMonitorActions.notifyOffline("x",
+                    "http://127.0.0.1:" + s.getAddress().getPort() + "/", output);
+            SwingUtilities.invokeAndWait(() -> {});
+            String text = output.doc.getText(0, output.doc.getLength());
+            assertTrue(text.contains("[WARN] Offline-Webhook fehlgeschlagen"));
+            assertFalse(text.contains("[OK] Offline-Webhook"));
         } finally {
             s.stop(0);
         }

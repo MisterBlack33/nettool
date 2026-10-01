@@ -33,7 +33,7 @@ final class RemoteNetGateway {
                 }
             }
         } catch (Exception e) {
-            DebugLogger.getInstance().log("FINE", "[RemoteNetGateway] Gateway-Ermittlung fehlgeschlagen: " + e);
+            DebugLogger.getInstance().warn("[RemoteNetGateway] Gateway detection failed");
         }
         return null;
     }

@@ -136,7 +136,7 @@ public final class RemoteNetScanner {
                     prefixes.add(oct[0] + "." + (second + i / 256) + "." + (i % 256));
             }
         } catch (Exception e) {
-            DebugLogger.getInstance().log("FINE", "[RemoteNetScanner] Präfix-Erweiterung fehlgeschlagen: " + e);
+            DebugLogger.getInstance().warn("[RemoteNetScanner] Prefix expansion failed");
         }
         return prefixes;
     }
@@ -149,7 +149,7 @@ public final class RemoteNetScanner {
         int r = 0;
         for (String s : p) {
             try { r = (r << 8) | Integer.parseInt(s.trim()); }
-            catch (Exception e) { DebugLogger.getInstance().log("FINE", "[RemoteNetScanner] IP-Oktett nicht parsebar: " + s); }
+            catch (Exception e) { DebugLogger.getInstance().warn("[RemoteNetScanner] IP octet parsing failed"); }
         }
         return r;
     }

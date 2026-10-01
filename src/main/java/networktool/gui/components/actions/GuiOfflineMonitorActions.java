@@ -1,14 +1,12 @@
 package main.java.networktool.gui.components.actions;
 
+import main.java.networktool.gui.core.GuiStatusReporter;
 import main.java.networktool.gui.notification.LocalToast;
 import main.java.networktool.gui.panels.GuiInputPanel;
 import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.messaging.WebhookDelivery;
 import main.java.networktool.logic.scan.schedule.OfflineThresholdMonitor;
 import main.java.networktool.security.AuditLogger;
-import main.java.networktool.util.StatusTags;
-
-import static main.java.networktool.theme.GuiTheme.*;
 
 /** Test-Suite-Aktion "Offline-Monitor" (Menü-ID "44"): Schwellenwert-Alarme, optional per Webhook. */
 public final class GuiOfflineMonitorActions {
@@ -29,27 +27,41 @@ public final class GuiOfflineMonitorActions {
     static void start(String rawHours, String rawWebhook, GuiOutputPanel output) {
         int hours = parsePositive(rawHours);
         if (hours <= 0) {
-            output.appendText("  " + StatusTags.FEHLER + " Ungültige Stundenzahl\n", WARN);
+            GuiStatusReporter.error(output, "Ungültige Stundenzahl");
             return;
         }
         String webhook = rawWebhook == null ? "" : rawWebhook.trim();
-        OfflineThresholdMonitor.getInstance().start(hours, CHECK_INTERVAL_MIN,
+        OfflineThresholdMonitor monitor = OfflineThresholdMonitor.getInstance();
+        boolean wasActive = monitor.isActive();
+        monitor.start(hours, CHECK_INTERVAL_MIN,
                 msg -> notifyOffline(msg, webhook, output));
         AuditLogger.getInstance().log("OFFLINE_MONITOR_START", hours + "h");
-        output.appendText("  " + StatusTags.OK + " Offline-Monitor aktiv (> " + hours + " h)\n", ACCENT2);
+        if (!wasActive && monitor.isActive()) {
+            GuiStatusReporter.ok(output, "Offline-Monitor aktiv (> " + hours + " h)");
+        } else {
+            GuiStatusReporter.warning(output, "Offline-Monitor konnte nicht gestartet werden");
+        }
     }
 
     static void stop(GuiOutputPanel output) {
-        OfflineThresholdMonitor.getInstance().stop();
+        OfflineThresholdMonitor monitor = OfflineThresholdMonitor.getInstance();
+        boolean wasActive = monitor.isActive();
+        monitor.stop();
         AuditLogger.getInstance().log("OFFLINE_MONITOR_STOP", "");
-        output.appendText("  " + StatusTags.FEHLER + " Offline-Monitor gestoppt\n", WARN);
+        if (wasActive && !monitor.isActive()) {
+            GuiStatusReporter.ok(output, "Offline-Monitor gestoppt");
+        } else {
+            GuiStatusReporter.warning(output, "Offline-Monitor konnte nicht gestoppt werden");
+        }
     }
 
     static void notifyOffline(String msg, String webhook, GuiOutputPanel output) {
         AuditLogger.getInstance().log("OFFLINE_ALERT", msg);
-        output.appendText("\n  " + msg + "\n", WARN);
+        GuiStatusReporter.warning(output, msg);
         LocalToast.show("NetTool – Offline", msg);
-        if (!webhook.isBlank()) WebhookDelivery.send(webhook, msg);
+        if (!webhook.isBlank() && !WebhookDelivery.send(webhook, msg)) {
+            GuiStatusReporter.warning(output, "Offline-Webhook fehlgeschlagen");
+        }
     }
 
     static int parsePositive(String raw) {

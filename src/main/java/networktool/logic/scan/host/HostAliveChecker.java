@@ -2,11 +2,14 @@ package main.java.networktool.logic.scan.host;
 
 import main.java.networktool.logging.DebugLogger;
 import main.java.networktool.logic.TimeoutConfig;
+import main.java.networktool.logic.ScanOutcome;
 import main.java.networktool.logic.scan.schedule.ScanRateLimiter;
 
+import java.io.IOException;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.regex.*;
 
 /**
@@ -60,18 +63,27 @@ public final class HostAliveChecker {
     private static final long ARP_CACHE_TTL_MS = 10_000;
 
     public static boolean isAlive(String host) {
-        if (isInArpCache(host)) return true;
+        return probe(host).orElse(false);
+    }
+
+    public static ScanOutcome<Boolean> probe(String host) {
+        if (host == null || host.isBlank()) {
+            DebugLogger.getInstance().log("WARN", "[HostAliveChecker] Host fehlt");
+            return ScanOutcome.failure("host fehlt");
+        }
+        if (isInArpCache(host)) return ScanOutcome.success(true);
 
         // ICMP + Ports parallel, brich bei erstem Treffer ab
         CompletionService<Boolean> cs =
                 new ExecutorCompletionService<>(POOL);
 
         List<Future<Boolean>> futures = new ArrayList<>();
+        AtomicReference<Throwable> probeFailure = new AtomicReference<>();
 
         futures.add(cs.submit(() -> {
             rateLimiter.acquire();
             try { return InetAddress.getByName(host).isReachable(TimeoutConfig.ICMP_REACHABLE_MS); }
-            catch (Exception e) { return false; }
+            catch (IOException | SecurityException e) { return failedProbe(e, probeFailure); }
         }));
 
         for (int port : PROBE_PORTS) {
@@ -81,7 +93,7 @@ public final class HostAliveChecker {
                 try (Socket s = new Socket()) {
                     s.connect(new InetSocketAddress(host, p), TimeoutConfig.TCP_PROBE_MS);
                     return true;
-                } catch (Exception e) { return false; }
+                } catch (IOException | SecurityException e) { return failedProbe(e, probeFailure); }
             }));
         }
 
@@ -98,12 +110,47 @@ public final class HostAliveChecker {
                 checked++;
                 if (Boolean.TRUE.equals(f.get())) { alive = true; break; }
             }
-        } catch (Exception e) {
-            DebugLogger.getInstance().log("FINE", "[HostAliveChecker] TCP-Probe fehlgeschlagen: " + e);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            DebugLogger.getInstance().log("FINE",
+                    "[HostAliveChecker] Probe unterbrochen");
+            return ScanOutcome.failure("unterbrochen");
+        } catch (ExecutionException e) {
+            probeFailure.compareAndSet(null, e.getCause() == null ? e : e.getCause());
+        } catch (RuntimeException e) {
+            return failure(host, e);
         } finally {
             futures.forEach(f -> f.cancel(true));
         }
-        return alive;
+        if (alive) return ScanOutcome.success(true);
+        Throwable failure = probeFailure.get();
+        if (failure != null) {
+            return failure(host, failure);
+        }
+        if (checked < futures.size()) {
+            return failure(host, new SocketTimeoutException("probe deadline"));
+        }
+        return ScanOutcome.success(alive);
+    }
+
+    private static ScanOutcome<Boolean> failure(String host, Throwable error) {
+        ScanErrorClassifier.Kind kind = ScanErrorClassifier.classify(error);
+        String level = switch (kind) {
+            case TIMEOUT, HOST_OFFLINE, CONNECTION_REFUSED -> "FINE";
+            default -> "WARN";
+        };
+        String description = ScanErrorClassifier.describe(host, error);
+        DebugLogger.getInstance().log(level, "[HostAliveChecker] " + description);
+        return ScanOutcome.failure(description);
+    }
+
+    private static boolean failedProbe(Throwable error, AtomicReference<Throwable> firstFailure) {
+        ScanErrorClassifier.Kind kind = ScanErrorClassifier.classify(error);
+        if (kind != ScanErrorClassifier.Kind.HOST_OFFLINE
+                && kind != ScanErrorClassifier.Kind.CONNECTION_REFUSED) {
+            firstFailure.compareAndSet(null, error);
+        }
+        return false;
     }
 
     /**
@@ -141,8 +188,9 @@ public final class HostAliveChecker {
                 }
             }
             p.destroy();
-        } catch (Exception e) {
-            DebugLogger.getInstance().log("FINE", "[HostAliveChecker] ARP-Cache-Warmup fehlgeschlagen: " + e);
+        } catch (IOException | SecurityException e) {
+            DebugLogger.getInstance().log("FINE",
+                    "[HostAliveChecker] " + ScanErrorClassifier.describe("arp-cache", e));
         }
         cachedArpIps = Collections.unmodifiableSet(ips);
         arpCacheTime = System.currentTimeMillis();

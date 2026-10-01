@@ -1,10 +1,12 @@
 package main.java.networktool.logic.analysis.discovery;
 
 import main.java.networktool.logging.DebugLogger;
+import main.java.networktool.logic.scan.host.ScanErrorClassifier;
 import main.java.networktool.logic.messaging.MessageSender;
 import main.java.networktool.storage.network.NetworkStore;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.*;
 import java.util.concurrent.*;
@@ -42,8 +44,8 @@ public final class ArpMonitor {
     private final Set<String>              alertedKeys  = ConcurrentHashMap.newKeySet();
 
     private volatile boolean active = false;
-    private ScheduledExecutorService scheduler;
-    private String ntfyTopic = "";
+    private volatile ScheduledExecutorService scheduler;
+    private volatile String ntfyTopic = "";
 
     private ArpMonitor() {}
 
@@ -56,7 +58,7 @@ public final class ArpMonitor {
      */
     public synchronized void start(String ntfyTopic) {
         if (active) { System.out.println("[ARP-Monitor] Läuft bereits."); return; }
-        this.ntfyTopic = ntfyTopic;
+        this.ntfyTopic = ntfyTopic == null ? "" : ntfyTopic;
         this.active    = true;
 
         // Initialzustand aus gespeicherten Hosts laden
@@ -64,13 +66,13 @@ public final class ArpMonitor {
             String mac = extractMac(h.hostname);
             if (mac != null) {
                 knownIpMac.put(h.ip, mac.toUpperCase());
-                macToIps.computeIfAbsent(mac.toUpperCase(), k -> new HashSet<>()).add(h.ip);
+                macToIps.computeIfAbsent(mac.toUpperCase(), k -> ConcurrentHashMap.newKeySet()).add(h.ip);
             }
         });
 
         scheduler = Executors.newSingleThreadScheduledExecutor(
                 r -> { Thread t = new Thread(r, "ARP-Monitor"); t.setDaemon(true); return t; });
-        scheduler.scheduleAtFixedRate(this::scan, 0,
+        scheduler.scheduleAtFixedRate(this::runSafely, 0,
                 SCAN_INTERVAL_SEC, TimeUnit.SECONDS);
 
         System.out.println("[ARP-Monitor] Gestartet (Intervall: "
@@ -86,12 +88,21 @@ public final class ArpMonitor {
 
     public boolean isActive() { return active; }
 
+    private void runSafely() {
+        try {
+            scan();
+        } catch (RuntimeException e) {
+            DebugLogger.getInstance().log("WARN",
+                    "[ArpMonitor] Lauf fehlgeschlagen: " + e.getClass().getSimpleName());
+        }
+    }
+
     /** Fügt eine bekannte IP→MAC Zuordnung manuell hinzu (Baseline). */
     public void addBaseline(String ip, String mac) {
-        if (ip == null || mac == null) return;  // <-- diese Zeile hinzufügen
+        if (ip == null || mac == null) return;
         String macUpper = mac.toUpperCase();
         knownIpMac.put(ip, macUpper);
-        macToIps.computeIfAbsent(macUpper, k -> new HashSet<>()).add(ip);
+        macToIps.computeIfAbsent(macUpper, k -> ConcurrentHashMap.newKeySet()).add(ip);
     }
 
     // ── Scan-Logik ────────────────────────────────────────────────────────
@@ -152,23 +163,25 @@ public final class ArpMonitor {
             String os  = System.getProperty("os.name", "").toLowerCase();
             String cmd = os.contains("win") ? "arp -a" : "arp -a -n";
             Process p  = Runtime.getRuntime().exec(cmd);
-            BufferedReader br = new BufferedReader(
-                    new InputStreamReader(p.getInputStream()));
-            String line;
-            while ((line = br.readLine()) != null) {
-                Matcher ipM  = IP_PATTERN.matcher(line);
-                Matcher macM = MAC_PATTERN.matcher(line);
-                if (ipM.find() && macM.find()) {
-                    String ip  = ipM.group();
-                    String mac = macM.group().toUpperCase()
-                            .replace("-", ":");
-                    // Broadcast/Multicast filtern
-                    if (!mac.startsWith("FF:FF") && !mac.startsWith("01:"))
-                        result.put(ip, mac);
+            try (BufferedReader br = new BufferedReader(
+                    new InputStreamReader(p.getInputStream()))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    Matcher ipM  = IP_PATTERN.matcher(line);
+                    Matcher macM = MAC_PATTERN.matcher(line);
+                    if (ipM.find() && macM.find()) {
+                        String ip  = ipM.group();
+                        String mac = macM.group().toUpperCase()
+                                .replace("-", ":");
+                        // Broadcast/Multicast filtern
+                        if (!mac.startsWith("FF:FF") && !mac.startsWith("01:"))
+                            result.put(ip, mac);
+                    }
                 }
             }
-        } catch (Exception e) {
-            DebugLogger.getInstance().log("FINE", "[ArpMonitor] ARP-Cache-Lesen fehlgeschlagen: " + e);
+        } catch (IOException | SecurityException e) {
+            DebugLogger.getInstance().log("FINE",
+                    "[ArpMonitor] " + ScanErrorClassifier.describe("arp-cache", e));
         }
         return result;
     }

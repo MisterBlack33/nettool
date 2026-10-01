@@ -1,7 +1,11 @@
 package main.java.networktool.logic.analysis.os;
 
+import main.java.networktool.logic.error.ScanContext;
+import main.java.networktool.logic.error.ScanFailure;
 import main.java.networktool.logic.analysis.discovery.MdnsDiscovery;
 import main.java.networktool.logic.analysis.probe.OuiDatabase;
+import main.java.networktool.logic.scan.host.ScanErrorClassifier;
+import main.java.networktool.logging.DebugLogger;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -62,6 +66,7 @@ final class OsDetectionPipeline {
         try {
             return runSafely(ip, THRESHOLDS.get(depth));
         } catch (Exception e) {
+            logFailure("os-detection-pipeline", ip, e);
             return new OsDetector.OsResult("Unbekannt", OsDetector.Confidence.NIEDRIG, "Fallback");
         }
     }
@@ -162,11 +167,26 @@ final class OsDetectionPipeline {
             try {
                 String h = java.net.InetAddress.getByName(ip).getCanonicalHostName();
                 if (!h.equals(ip)) out[0] = h;
-            } catch (Exception ignored) {}
+            } catch (java.net.UnknownHostException e) {
+                logExpected("hostname-resolution", ip, e);
+            } catch (RuntimeException e) {
+                logFailure("hostname-resolution", ip, e);
+            }
         });
         t.setDaemon(true);
         t.start();
         try { t.join(600); } catch (InterruptedException e) { Thread.currentThread().interrupt(); }
         return out[0];
+    }
+
+    private static void logExpected(String operation, String host, java.io.IOException error) {
+        ScanFailure failure = ScanFailure.from(new ScanContext("unknown", operation, host, -1), error);
+        DebugLogger.getInstance().log("FINE", "[OsDetectionPipeline] " + failure.describe());
+    }
+
+    private static void logFailure(String operation, String host, Throwable error) {
+        ScanFailure failure = ScanFailure.from(new ScanContext("unknown", operation, host, -1), error);
+        DebugLogger.getInstance().log(failure.kind() == ScanErrorClassifier.Kind.TIMEOUT
+                ? "FINE" : "WARN", "[OsDetectionPipeline] " + failure.describe());
     }
 }
