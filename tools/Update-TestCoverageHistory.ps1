@@ -13,6 +13,9 @@
 .PARAMETER OutputCsv
     Ziel der maschinenlesbaren Historie (nur angehängt, nie verändert).
 
+.PARAMETER Comment
+    Optionale Notiz zum aktuellen Testlauf; wird in einer separaten Datei gespeichert.
+
 .PARAMETER RunTests
     Führt vorher "mvn test" aus, damit jacoco.xml aktuell ist.
 
@@ -25,12 +28,15 @@
     line_pct,line_covered,line_total,
     branch_pct,branch_covered,branch_total
     Prozentwerte sind Anteile 0..1 (4 Nachkommastellen). Schema nur additiv erweitern.
+    Notizen werden separat in test_coverage_notes.csv gespeichert (run,timestamp,comment).
 #>
 param(
     [string]$ProjectRoot = (Get-Location).Path,
     [string]$JacocoXml   = (Join-Path $ProjectRoot "target\site\jacoco\jacoco.xml"),
     [string]$OutputXlsx  = (Join-Path $ProjectRoot "test_coverage_history.xlsx"),
     [string]$OutputCsv   = (Join-Path $ProjectRoot "test_coverage_history.csv"),
+    [string]$NotesCsv    = (Join-Path $ProjectRoot "test_coverage_notes.csv"),
+    [string]$Comment     = "",
     [switch]$RunTests
 )
 
@@ -184,6 +190,17 @@ $allRows | Export-Excel -Path $OutputXlsx -WorksheetName "Coverage" -NoHeader -A
 $csvRows = foreach ($e in $entries) { New-CsvRow $e $runNumber $timestamp }
 $csvRows | Export-Csv -Path $OutputCsv -Append -NoTypeInformation -Encoding UTF8
 
+if (-not [string]::IsNullOrWhiteSpace($Comment)) {
+    [PSCustomObject]@{
+        run = $runNumber
+        timestamp = $timestamp
+        comment = $Comment.Trim()
+    } | Export-Csv -Path $NotesCsv -Append -NoTypeInformation -Encoding UTF8
+}
+
 Write-Host "Testlauf $runNumber angehängt an:" -ForegroundColor Green
 Write-Host "  XLSX: $OutputXlsx" -ForegroundColor Green
 Write-Host "  CSV : $OutputCsv"  -ForegroundColor Green
+if (-not [string]::IsNullOrWhiteSpace($Comment)) {
+    Write-Host "  Notiz: $NotesCsv" -ForegroundColor Green
+}

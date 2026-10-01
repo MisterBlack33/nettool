@@ -2,10 +2,6 @@
 .\tools\Update-TestCoverageHistory.ps1 -RunTests
 .\tools\New-CoverageChart.ps1 -Open
 
-mvn test; if ($LASTEXITCODE -eq 0) { .\tools\Update-TestCoverageHistory.ps1; .\tools\New-CoverageChart.ps1 -Open }
-
-mtest
-(shortcut zu: mvn test; if ($LASTEXITCODE -eq 0) { .\tools\Update-TestCoverageHistory.ps1 -RunTests; .\tools\New-CoverageChart.ps1 -Open })
 
 
 
@@ -14,17 +10,16 @@ New-Item -ItemType File -Path $PROFILE -Force
 notepad $PROFILE
 
 function mtest {
-    mvn test
+    $commentText = $args -join ' '
+    mvn clean validate compile test
 
     if ($LASTEXITCODE -eq 0) {
-        .\tools\Update-TestCoverageHistory.ps1 -RunTests
-        .\tools\New-CoverageChart.ps1 -Open
+        .\tools\Update-TestCoverageHistory.ps1 -Comment $commentText
+        if ($LASTEXITCODE -eq 0) {
+            .\tools\New-CoverageChart.ps1 -Open
+        }
     }
 }
 
+# Beispiel: mtest neue Implementierung 61 Klassen
 
-
-
-
-
-mvn -Pnightly test????

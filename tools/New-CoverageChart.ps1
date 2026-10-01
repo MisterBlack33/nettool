@@ -1,7 +1,8 @@
 <#
 .SYNOPSIS
     Erzeugt aus test_coverage_history.csv eine HTML-Datei mit SVG-Verlaufsdiagrammen:
-    (1) Gesamt-Coverage je Metrik, (2) Line-Coverage je Paket. Keine Abhängigkeiten.
+    (1) Gesamt-Coverage je Metrik, (2) Line-Coverage je Paket, mit Testlauf-Notizen.
+    Keine Abhängigkeiten.
 
 .EXAMPLE
     .\New-CoverageChart.ps1 -Open
@@ -9,6 +10,7 @@
 param(
     [string]$ProjectRoot = (Get-Location).Path,
     [string]$CsvPath     = (Join-Path $ProjectRoot "test_coverage_history.csv"),
+    [string]$NotesCsv    = (Join-Path $ProjectRoot "test_coverage_notes.csv"),
     [string]$OutFile     = (Join-Path $ProjectRoot "test_coverage_history.html"),
     [double]$Threshold   = 0.90,
     [switch]$Open
@@ -91,6 +93,22 @@ $dots = ($points | ForEach-Object { "<circle cx='$($_.X)' cy='$($_.Y)' r='3.5' f
 return "<polyline points='$poly' fill='none' stroke='$color' stroke-width='2'/>`n$dots"
 }
 
+function Get-NotesSvg($runs, $notes, [int]$ChartW = $W, [int]$ChartH = $H, [int]$ChartMl = $ML, [int]$ChartMr = $MR, [int]$ChartMt = $MT, [int]$ChartMb = $MB) {
+$pw = $ChartW - $ChartMl - $ChartMr
+$ph = $ChartH - $ChartMt - $ChartMb
+$count = $runs.Count
+$svg = foreach ($note in $notes) {
+    $index = [array]::IndexOf([int[]]$runs, [int]$note.run)
+    if ($index -lt 0 -or [string]::IsNullOrWhiteSpace($note.comment)) { continue }
+    $x = [math]::Round(($ChartMl + $pw * $index / [math]::Max(1, $count - 1)), 1)
+    $anchor = if ($x -gt $ChartMl + ($pw / 2)) { "end" } else { "start" }
+    $labelX = if ($anchor -eq "end") { $x - 5 } else { $x + 5 }
+    $comment = [System.Security.SecurityElement]::Escape([string]$note.comment)
+    "<line x1='$x' y1='$ChartMt' x2='$x' y2='$($ChartMt + $ph)' stroke='#f7e000' stroke-width='2' stroke-dasharray='7 5'><title>$comment</title></line><text x='$labelX' y='$($ChartMt + 12)' text-anchor='$anchor' fill='#f7e000' font-size='10' font-weight='bold'>$comment</text>"
+}
+return $svg -join "`n"
+}
+
 function Get-GridSvg([int]$ChartW = $W, [int]$ChartH = $H, [int]$ChartMl = $ML, [int]$ChartMr = $MR, [int]$ChartMt = $MT, [int]$ChartMb = $MB) {
 $pw = $ChartW - $ChartMl - $ChartMr
 $ph = $ChartH - $ChartMt - $ChartMb
@@ -116,13 +134,13 @@ $i++
 return $items -join "`n"
 }
 
-function New-Section([string]$title, $series, $labels, [string]$labelSuffix = "") {
+function New-Section([string]$title, $series, $labels, $runs, $notes, [string]$labelSuffix = "") {
 $i = 0
 $lines = foreach ($name in $series.Keys) {
 Get-LineSvg $series[$name] (Get-Color $i)
 $i++
 }
-$body   = @((Get-GridSvg), (Get-XLabelsSvg $labels), ($lines -join "`n")) -join "`n"
+$body   = @((Get-GridSvg), (Get-XLabelsSvg $labels), ($lines -join "`n"), (Get-NotesSvg $runs $notes)) -join "`n"
 $legend = Get-LegendHtml $series
 $tag = if ($labelSuffix) { "<span class='tag'>$labelSuffix</span>" } else { "" }
 return "<section class='chart-panel'><h2>$title $tag</h2>`n<svg viewBox='0 0 $W $H'>`n$body`n</svg>`n<div class='legend'>$legend</div></section>"
@@ -151,6 +169,7 @@ return "<!DOCTYPE html><html lang='de'><head><meta charset='UTF-8'><title>Covera
 $rows = Import-Csv -Path $CsvPath -Encoding UTF8
 $allRuns = $rows | ForEach-Object { [int]$_.run } | Sort-Object -Unique
 $recentRuns = if ($allRuns.Count -gt 7) { $allRuns | Select-Object -Last 7 } else { $allRuns }
+$notes = if (Test-Path $NotesCsv) { @(Import-Csv -Path $NotesCsv -Encoding UTF8) } else { @() }
 
 function Build-SectionSet($runs) {
 $labels = @($runs | ForEach-Object { Get-RunLabel $rows $_ })
@@ -165,6 +184,7 @@ return [pscustomobject]@{
     Labels = $labels
     Total = $total
     Packages = $packages
+    Runs = @($runs)
 }
 }
 
@@ -172,13 +192,13 @@ $recent = Build-SectionSet $recentRuns
 $full = Build-SectionSet $allRuns
 
 $mainLeft = @(
-(New-Section "Gesamt ($ROOT_ELEMENT)" $recent.Total $recent.Labels "letzte 7 Tests"),
-(New-Section "Line-Coverage je Paket" $recent.Packages $recent.Labels "letzte 7 Tests")
+(New-Section "Gesamt ($ROOT_ELEMENT)" $recent.Total $recent.Labels $recent.Runs $notes "letzte 7 Tests"),
+(New-Section "Line-Coverage je Paket" $recent.Packages $recent.Labels $recent.Runs $notes "letzte 7 Tests")
 ) -join "`n"
 
 $mainRight = @(
-(New-Section "Gesamt ($ROOT_ELEMENT)" $full.Total $full.Labels "alle Tests"),
-(New-Section "Line-Coverage je Paket" $full.Packages $full.Labels "alle Tests")
+(New-Section "Gesamt ($ROOT_ELEMENT)" $full.Total $full.Labels $full.Runs $notes "alle Tests"),
+(New-Section "Line-Coverage je Paket" $full.Packages $full.Labels $full.Runs $notes "alle Tests")
 ) -join "`n"
 
 Set-Content -Path $OutFile -Value (Get-PageHtml $mainLeft $mainRight) -Encoding UTF8
