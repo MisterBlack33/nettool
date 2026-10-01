@@ -104,13 +104,14 @@ if ($i -lt $RunNumbers.Count) {
     if ($RunRuntimeMap.Contains($runKey)) { $runtimeValue = $RunRuntimeMap[$runKey] }
 }
 $runtimeText = if ($null -ne $runtimeValue) { " | Laufzeit: $(Format-RuntimeText $runtimeValue)" } else { "" }
-$valueText = if ($labelText) { "$runName ($labelText) | Wert: $([math]::Round($values[$i]*100, 1))%$runtimeText" } else { "$runName | Wert: $([math]::Round($values[$i]*100, 1))%$runtimeText" }
+$runLabel = if ($labelText) { $labelText } else { $runName }
+$valueText = "$runLabel | Wert: $([math]::Round($values[$i]*100, 1))%$runtimeText"
 [pscustomobject]@{ X = $x; Y = $y; Title = $valueText }
 }
 }
 if (-not $points) { return "" }
 $poly = ($points | ForEach-Object { "$($_.X),$($_.Y)" }) -join ' '
-$dots = ($points | ForEach-Object { "<circle cx='$($_.X)' cy='$($_.Y)' r='3.5' fill='$color' class='data-point' data-tooltip='$([System.Security.SecurityElement]::Escape($_.Title))'><title>$([System.Security.SecurityElement]::Escape($_.Title))</title></circle>" }) -join "`n"
+$dots = ($points | ForEach-Object { "<circle cx='$($_.X)' cy='$($_.Y)' r='3.5' fill='$color' class='data-point' data-tooltip='$([System.Security.SecurityElement]::Escape($_.Title))' role='img' aria-label='$([System.Security.SecurityElement]::Escape($_.Title))'/>" }) -join "`n"
 return "<polyline points='$poly' fill='none' stroke='$color' stroke-width='2'/>`n$dots"
 }
 
@@ -125,7 +126,7 @@ $svg = foreach ($note in $notes) {
     $anchor = if ($x -gt $ChartMl + ($pw / 2)) { "end" } else { "start" }
     $labelX = if ($anchor -eq "end") { $x - 5 } else { $x + 5 }
     $comment = [System.Security.SecurityElement]::Escape([string]$note.comment)
-    "<line x1='$x' y1='$ChartMt' x2='$x' y2='$($ChartMt + $ph)' stroke='#f7e000' stroke-width='2' stroke-dasharray='7 5' class='chart-note' data-tooltip='$comment' pointer-events='all'><title>$comment</title></line><text x='$labelX' y='$($ChartMt + 12)' text-anchor='$anchor' fill='#f7e000' font-size='10' font-weight='bold'>$comment</text>"
+    "<line x1='$x' y1='$ChartMt' x2='$x' y2='$($ChartMt + $ph)' stroke='#f7e000' stroke-width='2' stroke-dasharray='7 5' class='chart-note' data-tooltip='$comment' role='img' aria-label='$comment' pointer-events='all'/><text x='$labelX' y='$($ChartMt + 12)' text-anchor='$anchor' fill='#f7e000' font-size='10' font-weight='bold'>$comment</text>"
 }
 return $svg -join "`n"
 }
@@ -215,9 +216,12 @@ $script = @"
     const show = (event, text) => {
       if (!text) return;
       tooltip.textContent = text;
-      tooltip.style.opacity = '1';
-      tooltip.style.left = (event.clientX + 12) + 'px';
+      const left = event.clientX + 12 + tooltip.offsetWidth > window.innerWidth
+        ? event.clientX - tooltip.offsetWidth - 12
+        : event.clientX + 12;
+      tooltip.style.left = Math.max(0, left) + 'px';
       tooltip.style.top = (event.clientY + 12) + 'px';
+      tooltip.style.opacity = '1';
     };
     const hide = () => { tooltip.style.opacity = '0'; };
     document.querySelectorAll('.data-point, .chart-note').forEach(function(node) {
@@ -225,9 +229,6 @@ $script = @"
         show(event, node.getAttribute('data-tooltip'));
       });
       node.addEventListener('mouseleave', hide);
-      node.addEventListener('mouseenter', function(event) {
-        show(event, node.getAttribute('data-tooltip'));
-      });
       node.addEventListener('focus', function(event) {
         show(event, node.getAttribute('data-tooltip'));
       });
@@ -334,4 +335,3 @@ else {
 Set-Content -Path $OutFile -Value (Get-PageHtml $mainLeft $mainRight) -Encoding UTF8
 Write-Host "Diagramm erzeugt: $OutFile" -ForegroundColor Green
 if ($Open) { Start-Process $OutFile }
-
