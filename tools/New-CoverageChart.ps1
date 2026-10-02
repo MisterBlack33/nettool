@@ -158,19 +158,21 @@ return $items -join "`n"
 
 function Get-RunRuntimeMap($rows, $runs) {
 $map = [ordered]@{}
-$globalFallback = Get-TotalRuntimeSeconds
 
 foreach ($run in $runs) {
     $runtimeRow = $rows | Where-Object { $_.element -eq $ROOT_ELEMENT -and [int]$_.run -eq [int]$run } | Select-Object -Last 1
-    if ($runtimeRow -and $runtimeRow.PSObject.Properties.Name -contains 'total_runtime_sec') {
-        $value = [double]::Parse([string]$runtimeRow.total_runtime_sec, $inv)
+    if (-not $runtimeRow) { continue }
+    if ($runtimeRow.PSObject.Properties.Name -notcontains 'total_runtime_sec') { continue }
+
+    $runtimeValue = [string]$runtimeRow.total_runtime_sec
+    if ([string]::IsNullOrWhiteSpace($runtimeValue)) { continue }
+
+    try {
+        $value = [double]::Parse($runtimeValue, $inv)
         if ($value -ge 0) { $map[[string]$run] = $value }
     }
-}
-
-if ($map.Count -eq 0 -and $null -ne $globalFallback -and $globalFallback -gt 0) {
-    foreach ($run in $runs) {
-        $map[[string]$run] = [double]$globalFallback
+    catch {
+        # Historisch vorhandene Laufzeiten sind eindeutig pro Run; fehlende Werte bleiben leer.
     }
 }
 
@@ -249,35 +251,22 @@ return "<!DOCTYPE html><html lang='de'><head><meta charset='UTF-8'><title>Covera
 
 function Get-TotalRuntimeSeconds {
     $reportsDir = Join-Path $ProjectRoot 'target\surefire-reports'
-    if (Test-Path $reportsDir) {
-        $total = 0.0
-        Get-ChildItem $reportsDir -Filter 'TEST-*.xml' | ForEach-Object {
-            try {
-                [xml]$xml = Get-Content -Path $_.FullName -Raw
-                $suite = $xml.testsuite
-                if ($suite -and $null -ne $suite.time) {
-                    $total += [double]$suite.time
-                }
-            }
-            catch {
-            }
-        }
-        if ($total -gt 0) { return $total }
-    }
+    if (-not (Test-Path $reportsDir)) { return $null }
 
-    $hotspotsCsv = Join-Path $ProjectRoot 'target\test_runtime_hotspots.csv'
-    if (Test-Path $hotspotsCsv) {
+    $total = 0.0
+    Get-ChildItem $reportsDir -Filter 'TEST-*.xml' | ForEach-Object {
         try {
-            $rows = Import-Csv -Path $hotspotsCsv -Encoding UTF8
-            if ($rows) {
-                $sum = ($rows | ForEach-Object { [double]$_.TimeSec } | Measure-Object -Sum).Sum
-                if ($null -ne $sum -and $sum -gt 0) { return [double]$sum }
+            [xml]$xml = Get-Content -Path $_.FullName -Raw
+            $suite = $xml.testsuite
+            if ($suite -and $null -ne $suite.time) {
+                $total += [double]$suite.time
             }
         }
         catch {
         }
     }
 
+    if ($total -gt 0) { return $total }
     return $null
 }
 

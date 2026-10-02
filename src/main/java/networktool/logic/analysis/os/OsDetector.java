@@ -1,5 +1,7 @@
 package main.java.networktool.logic.analysis.os;
 
+import main.java.networktool.util.PlatformSupport;
+
 /**
  * Öffentliche API für OS-Erkennung.
  * Alle Erkennungslogik liegt in {@link OsDetectionPipeline} bzw. {@link ExtendedOsDetector}.
@@ -26,6 +28,8 @@ public final class OsDetector {
 
     /** Erkennt OS mit Konfidenz-Angabe (STANDARD-Tiefe). Delegiert an {@link OsDetectionPipeline}. */
     public static OsResult detectWithConfidence(String ip) {
+        if (ip == null || ip.isBlank()) return new OsResult("Unbekannt", Confidence.NIEDRIG, "Input");
+        if (PlatformSupport.isReservedTestIp(ip)) return new OsResult("Unbekannt", Confidence.NIEDRIG, "Dokumentations-IP");
         return OsDetectionPipeline.run(ip);
     }
 
@@ -34,6 +38,8 @@ public final class OsDetector {
      * GRUENDLICH nutzt zusätzlich DHCP/UPnP/ICMP-Timing über {@link ExtendedOsDetector}.
      */
     public static OsResult detectWithConfidence(String ip, ScanDepth depth) {
+        if (ip == null || ip.isBlank()) return new OsResult("Unbekannt", Confidence.NIEDRIG, "Input");
+        if (PlatformSupport.isReservedTestIp(ip)) return new OsResult("Unbekannt", Confidence.NIEDRIG, "Dokumentations-IP");
         return depth == ScanDepth.GRUENDLICH
                 ? ExtendedOsDetector.detect(ip)
                 : OsDetectionPipeline.run(ip, depth);

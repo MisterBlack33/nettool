@@ -8,6 +8,7 @@ import main.java.networktool.logic.analysis.os.OsDetector;
 import main.java.networktool.logic.analysis.os.ScanDepth;
 import main.java.networktool.logic.ports.PortScanner;
 import main.java.networktool.logic.scan.host.ScanErrorClassifier;
+import main.java.networktool.util.PlatformSupport;
 
 import java.net.InetAddress;
 import java.util.List;
@@ -27,6 +28,10 @@ public final class IpInspector {
     public static void quickScan(String target, int timeoutMs) {
         if (testMode) return;
         try {
+            if (PlatformSupport.isReservedTestIp(target)) {
+                System.out.println("  Status   : Dokumentations-/Test-IP, keine echte Netzwerkanalyse\n═══");
+                return;
+            }
             InetAddress inet = InetAddress.getByName(target);
             String ip = inet.getHostAddress();
             printBanner("Schnelldiagnose");
@@ -48,6 +53,10 @@ public final class IpInspector {
     public static void inspect(String target) {
         if (testMode) return;
         try {
+            if (PlatformSupport.isReservedTestIp(target)) {
+                System.out.println("\n[ Status ]\n  Dokumentations-/Test-IP: keine echte Netzwerkanalyse");
+                return;
+            }
             InetAddress inet = InetAddress.getByName(target);
             String ip = inet.getHostAddress();
             printBanner("IP-Detailanalyse");

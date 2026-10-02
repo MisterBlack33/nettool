@@ -6,6 +6,7 @@ import main.java.networktool.logic.analysis.discovery.MdnsDiscovery;
 import main.java.networktool.logic.analysis.probe.OuiDatabase;
 import main.java.networktool.logic.scan.host.ScanErrorClassifier;
 import main.java.networktool.logging.DebugLogger;
+import main.java.networktool.util.PlatformSupport;
 
 import java.util.EnumMap;
 import java.util.List;
@@ -63,6 +64,12 @@ final class OsDetectionPipeline {
     }
 
     static OsDetector.OsResult run(String ip, ScanDepth depth) {
+        if (ip == null || ip.isBlank()) {
+            return new OsDetector.OsResult("Unbekannt", OsDetector.Confidence.NIEDRIG, "Input");
+        }
+        if (PlatformSupport.isReservedTestIp(ip)) {
+            return new OsDetector.OsResult("Unbekannt", OsDetector.Confidence.NIEDRIG, "Dokumentations-IP");
+        }
         try {
             return runSafely(ip, THRESHOLDS.get(depth));
         } catch (Exception e) {

@@ -16,7 +16,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <junit.version>5.10.2</junit.version>
-        <surefire.excludedTags>slow</surefire.excludedTags>
+        <surefire.excludedGroups>slow</surefire.excludedGroups>
     </properties>
 
     <dependencies>
@@ -70,7 +70,7 @@
                     <reuseForks>true</reuseForks>
                     <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
                     <argLine>@{argLine} -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -Xmx512m -Xms128m</argLine>
-                    <excludedTags>${surefire.excludedTags}</excludedTags>
+                    <excludedGroups>${surefire.excludedGroups}</excludedGroups>
                 </configuration>
             </plugin>
 

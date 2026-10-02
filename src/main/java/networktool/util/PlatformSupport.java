@@ -24,6 +24,9 @@ public final class PlatformSupport {
             Pattern.compile("^(\\d{1,3}\\.){3}\\d{1,3}$");
     private static final Pattern SAFE_IFACE =
             Pattern.compile("^[a-zA-Z0-9@:\\-]{1,32}$");
+    private static final int[] TEST_NET_192_0_2 = {192, 0, 2};
+    private static final int[] TEST_NET_198_51_100 = {198, 51, 100};
+    private static final int[] TEST_NET_203_0_113 = {203, 0, 113};
     private static final Pattern SAFE_MAC =
             Pattern.compile("^([0-9A-Fa-f]{2}[:\\-]){5}[0-9A-Fa-f]{2}$");
     private static final Pattern SAFE_CIDR =
@@ -43,6 +46,26 @@ public final class PlatformSupport {
     public static boolean isSafeSubnetPrefix(String s)  { return s != null && SAFE_SUBNET_PREFIX.matcher(s).matches(); }
     public static boolean isSafeNtfyTopic(String s) {
         return s != null && SAFE_NTFY_TOPIC.matcher(s).matches();
+    }
+
+    public static boolean isReservedTestIp(String s) {
+        if (!isSafeIp(s)) return false;
+        String[] octets = s.split("\\.");
+        int[] values = new int[4];
+        for (int i = 0; i < 4; i++) {
+            int value = Integer.parseInt(octets[i]);
+            if (value < 0 || value > 255) return false;
+            values[i] = value;
+        }
+        return matchesPrefix(values, TEST_NET_192_0_2)
+                || matchesPrefix(values, TEST_NET_198_51_100)
+                || matchesPrefix(values, TEST_NET_203_0_113);
+    }
+
+    private static boolean matchesPrefix(int[] actual, int[] expected) {
+        return actual[0] == expected[0]
+                && actual[1] == expected[1]
+                && actual[2] == expected[2];
     }
 
     /**

@@ -1,0 +1,44 @@
+name: Test quality
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '17 2 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: windows-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Run standard test suite
+        if: github.event_name != 'schedule'
+        shell: pwsh
+        run: ./tools/Verify-TestSuite.ps1 -Runs 1
+      - name: Repeat standard suite to detect flaky tests
+        if: github.event_name == 'schedule'
+        shell: pwsh
+        run: ./tools/Verify-TestSuite.ps1 -Runs 5
+      - name: Run complete suite including slow tests
+        if: github.event_name == 'schedule'
+        shell: pwsh
+        run: ./tools/Verify-TestSuite.ps1 -IncludeSlow -SummaryName full
+      - name: Archive Surefire reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ github.run_id }}
+          path: |
+            target/surefire-reports/
+            .test-results/
+          if-no-files-found: warn
