@@ -24,5 +24,34 @@ function mtest {
     }
 }
 
+function vtest {
+    $global:LASTEXITCODE = 0
+    try {
+        .\tools\Verify-TestSuite.ps1 @args
+        $global:LASTEXITCODE = 0
+    }
+    catch {
+        Write-Host $_.Exception.Message -ForegroundColor Red
+        $global:LASTEXITCODE = 1
+    }
+}
+
+function gtest {
+    param(
+        [ValidateRange(1, 20)]
+        [int]$Runs = 1,
+        [Parameter(ValueFromRemainingArguments)]
+        [string[]]$Comment
+    )
+
+    vtest -Runs $Runs
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host 'gtest abgebrochen: Verify-TestSuite nicht sauber.' -ForegroundColor Red
+        return
+    }
+
+    mtest @Comment
+}
+
 # Beispiel: mtest neue Implementierung 61 Klassen
 
