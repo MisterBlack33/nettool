@@ -1,13 +1,13 @@
-# Tools und Claude-Projektinventar
+# Tools und Projektinventar
 
 Dieses Verzeichnis enthält Hilfsskripte für Wartung, Tests und Auswertung des
 NetTool-Repositories. Die Skripte sind für PowerShell unter Windows ausgelegt
 und werden üblicherweise vom Repository-Root gestartet.
 
-## Claude-Kontextbericht erzeugen
+## Kontextbericht erzeugen
 
-`New-ClaudeContextReport.ps1` erstellt ein Markdown-Inventar, das Claude oder
-anderen Coding-Assistenten einen strukturierten Überblick über das Projekt
+`New-ContextReport.ps1` erstellt ein Markdown-Inventar, das Coding-Assistenten
+einen strukturierten Überblick über das Projekt
 gibt, ohne den vollständigen Quellcode in den Bericht zu kopieren. Das ist
 nützlich, wenn ein vollständiger Projektimport zu groß für das Kontextfenster
 ist: Der Bericht liefert Projektstruktur, Dateipfade, Pakete, Abhängigkeiten
@@ -17,10 +17,10 @@ bereitgestellt werden können.
 Vom Repository-Root:
 
 ```powershell
-.\tools\New-ClaudeContextReport.ps1
+.\tools\New-ContextReport.ps1
 ```
 
-Standardmäßig entsteht `claude-context-report.md` im Repository-Root. Die
+Standardmäßig entsteht `context-report.md` im Repository-Root. Die
 Datei wird in `.gitignore` ignoriert, weil sie ein veränderlicher,
 maschinenlokaler Snapshot ist und normalerweise nicht eingecheckt werden
 sollte. Der Bericht wird bei jedem Aufruf neu erstellt.
@@ -30,7 +30,7 @@ sollte. Der Bericht wird bei jedem Aufruf neu erstellt.
 | Parameter | Standard | Beschreibung |
 |---|---|---|
 | `-RootPath <Pfad>` | Repository-Root relativ zum Skript | Projektordner, der inventarisiert wird. |
-| `-OutputPath <Pfad>` | `<RootPath>\claude-context-report.md` | Vollständiger oder relativer (zum aktuellen Arbeitsverzeichnis) Zielpfad des Markdown-Berichts. |
+| `-OutputPath <Pfad>` | `<RootPath>\context-report.md` | Vollständiger oder relativer (zum aktuellen Arbeitsverzeichnis) Zielpfad des Markdown-Berichts. |
 | `-IncludeGenerated` | aus | Nimmt typische generierte Ordner wie `target`, `build`, `dist`, `out`, `node_modules` und Cache-Verzeichnisse in die Inventarisierung auf. |
 | `-IncludeRuntimeData` | aus | Nimmt lokale Laufzeitordner wie `saves`, `tmp` und `.test-results` in die Inventarisierung auf. |
 | `-TopLargeFiles <1..100>` | `20` | Anzahl der größten erfassten Dateien im Größenüberblick. |
@@ -39,14 +39,14 @@ Beispiele:
 
 ```powershell
 # Andere Ausgabe-Datei verwenden
-.\tools\New-ClaudeContextReport.ps1 -OutputPath "$env:TEMP\nettool-context.md"
+.\tools\New-ContextReport.ps1 -OutputPath "$env:TEMP\nettool-context.md"
 
 # Auch Build-Artefakte und lokale Laufzeitdaten auflisten
-.\tools\New-ClaudeContextReport.ps1 -IncludeGenerated -IncludeRuntimeData
+.\tools\New-ContextReport.ps1 -IncludeGenerated -IncludeRuntimeData
 
 # Anderes Projekt inventarisieren
-.\tools\New-ClaudeContextReport.ps1 -RootPath "C:\work\another-project" `
-    -OutputPath "C:\work\another-project\claude-context-report.md"
+.\tools\New-ContextReport.ps1 -RootPath "C:\work\another-project" `
+    -OutputPath "C:\work\another-project\context-report.md"
 ```
 
 ### Inhalt des Berichts
@@ -82,9 +82,9 @@ Schaltern lässt sich die jeweilige Gruppe ausdrücklich aufnehmen; `.git`
 bleibt immer ausgeschlossen.
 
 Ein vollständiges Dateiinventar kann selbst umfangreich sein. Für eine
-kleinere Claude-Anfrage kann man den Bericht als Wegweiser verwenden und dem
-Assistenten danach nur die für die konkrete Änderung relevanten Dateien
-geben. Der Bericht ist eine Inventarliste, kein Ersatz für den Quellcode.
+kleinere Anfrage an einen Coding-Assistenten kann man den Bericht als Wegweiser
+verwenden und danach nur die für die konkrete Änderung relevanten Dateien
+bereitstellen. Der Bericht ist eine Inventarliste, kein Ersatz für den Quellcode.
 
 ## PowerShell-Profil-Funktion `cctx`
 

@@ -1,4 +1,4 @@
-<#
+﻿<#
 Creates a compact Markdown inventory of the repository for sharing with an AI assistant.
 Source files are listed but their contents are never copied into the report.
 #>
@@ -21,7 +21,7 @@ if (-not (Test-Path -LiteralPath $RootPath -PathType Container)) {
 
 $root = (Resolve-Path -LiteralPath $RootPath).Path.TrimEnd('\', '/')
 if (-not $OutputPath) {
-    $OutputPath = Join-Path $root 'claude-context-report.md'
+    $OutputPath = Join-Path $root 'context-report.md'
 }
 $outputFullPath = [System.IO.Path]::GetFullPath($OutputPath)
 
@@ -201,7 +201,7 @@ else {
 }
 
 $lines = New-Object 'System.Collections.Generic.List[string]'
-$lines.Add("# Claude-Projektkontext: $(Split-Path -Leaf $root)")
+$lines.Add("# Projektkontext: $(Split-Path -Leaf $root)")
 $lines.Add('')
 $lines.Add("> Automatisch erzeugtes Inventar. Es enthält Metadaten und Pfade, aber keine Quelltext-Inhalte.")
 $lines.Add('')
@@ -324,5 +324,5 @@ if (-not (Test-Path -LiteralPath $outputDirectory -PathType Container)) {
     [System.Text.UTF8Encoding]::new($false)
 )
 
-Write-Host "Claude-Kontextbericht geschrieben: $outputFullPath"
+Write-Host "Kontextbericht geschrieben: $outputFullPath"
 Write-Host ("Erfasst: {0} Dateien, {1} Ordner, {2} Java-Packages" -f $fileRows.Count, $directoryRows.Count, $packages.Count)

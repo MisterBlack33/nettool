@@ -40,5 +40,5 @@ function gtest {
 }
 
 function cctx {
-    & .\tools\New-ClaudeContextReport.ps1 @args
+    & .\tools\New-ContextReport.ps1 @args
 }
