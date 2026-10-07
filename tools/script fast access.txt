@@ -39,6 +39,6 @@ function gtest {
     & .\tools\Run-Coverage.ps1 -Runs $Runs -Comment ($Comment -join ' ')
 }
 
-function cctx {
+function ctx {
     & .\tools\New-ContextReport.ps1 @args
 }
