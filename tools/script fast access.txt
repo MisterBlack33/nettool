@@ -10,18 +10,12 @@ New-Item -ItemType File -Path $PROFILE -Force
 notepad $PROFILE
 
 function mtest {
-    $commentText = $args -join ' '
-    mvn clean validate compile test
+    param(
+        [Parameter(Position = 0, ValueFromRemainingArguments)]
+        [string[]]$Comment
+    )
 
-    if ($LASTEXITCODE -eq 0) {
-        .\tools\Measure-TestRuntime.ps1 -SkipTestRun
-        if ($LASTEXITCODE -eq 0) {
-            .\tools\Update-TestCoverageHistory.ps1 -Comment $commentText
-            if ($LASTEXITCODE -eq 0) {
-                .\tools\New-CoverageChart.ps1 -Open
-            }
-        }
-    }
+    & .\tools\Run-Coverage.ps1 -Comment ($Comment -join ' ')
 }
 
 function vtest {
@@ -44,14 +38,7 @@ function gtest {
         [string[]]$Comment
     )
 
-    vtest -Runs $Runs
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host 'gtest abgebrochen: Verify-TestSuite nicht sauber.' -ForegroundColor Red
-        return
-    }
-
-    mtest @Comment
+    & .\tools\Run-Coverage.ps1 -Runs $Runs -Comment ($Comment -join ' ')
 }
 
 # Beispiel: mtest neue Implementierung 61 Klassen
-

@@ -17,7 +17,8 @@
     Optionale Notiz zum aktuellen Testlauf; wird in einer separaten Datei gespeichert.
 
 .PARAMETER RunTests
-    Führt vorher "mvn test" aus, damit jacoco.xml aktuell ist.
+    Führt vorher die vollständige Testsuite inklusive @Tag("slow") aus,
+    damit jacoco.xml aktuell und mit der Coverage-Historie vergleichbar ist.
 
 .NOTES
     XLSX benötigt das Modul "ImportExcel".
@@ -50,8 +51,15 @@ Import-Module ImportExcel
 
 if ($RunTests) {
     Push-Location $ProjectRoot
-    & mvn -q test
-    Pop-Location
+    try {
+        & mvn --batch-mode clean test -Pnightly
+        if ($LASTEXITCODE -ne 0) {
+            throw "mvn clean test -Pnightly failed with exit code $LASTEXITCODE"
+        }
+    }
+    finally {
+        Pop-Location
+    }
 }
 
 if (-not (Test-Path $JacocoXml)) {

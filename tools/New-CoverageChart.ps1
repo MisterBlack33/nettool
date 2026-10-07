@@ -123,10 +123,8 @@ $svg = foreach ($note in $notes) {
     $index = [array]::IndexOf([int[]]$runs, [int]$note.run)
     if ($index -lt 0 -or [string]::IsNullOrWhiteSpace($note.comment)) { continue }
     $x = [math]::Round(($ChartMl + $pw * $index / [math]::Max(1, $count - 1)), 1)
-    $anchor = if ($x -gt $ChartMl + ($pw / 2)) { "end" } else { "start" }
-    $labelX = if ($anchor -eq "end") { $x - 5 } else { $x + 5 }
     $comment = [System.Security.SecurityElement]::Escape([string]$note.comment)
-    "<line x1='$x' y1='$ChartMt' x2='$x' y2='$($ChartMt + $ph)' stroke='#f7e000' stroke-width='2' stroke-dasharray='7 5' pointer-events='none'/><text x='$labelX' y='$($ChartMt + 12)' text-anchor='$anchor' fill='#f7e000' font-size='10' font-weight='bold'>$comment</text>"
+    "<line x1='$x' y1='$ChartMt' x2='$x' y2='$($ChartMt + $ph)' stroke='transparent' stroke-width='12' pointer-events='stroke' class='note-marker-hit' data-tooltip='$comment' tabindex='0' role='img' aria-label='$comment'/><line x1='$x' y1='$ChartMt' x2='$x' y2='$($ChartMt + $ph)' stroke='#f7e000' stroke-width='2' stroke-dasharray='7 5' pointer-events='none'/>"
 }
 return $svg -join "`n"
 }
@@ -197,6 +195,7 @@ $css = @"
 body{background:#0d0f0f;color:#e8e4d8;font-family:monospace;margin:24px}
 #chartTooltip{position:fixed;z-index:9999;pointer-events:none;opacity:0;transform:translateY(-4px);transition:opacity .12s ease;max-width:260px;padding:7px 9px;background:#0f1310;border:1px solid #d4a020;color:#f3ead1;font-size:11px;line-height:1.4;border-radius:4px;box-shadow:0 0 10px rgba(0,0,0,.35)}
 .data-point{cursor:pointer}
+.note-marker-hit{cursor:pointer}
 .dashboard{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start}
 .column{display:flex;flex-direction:column;gap:18px}
 h2,h3{margin:0 0 12px 0}
@@ -226,7 +225,7 @@ $script = @"
       tooltip.style.opacity = '1';
     };
     const hide = () => { tooltip.style.opacity = '0'; };
-    document.querySelectorAll('.data-point').forEach(function(node) {
+    document.querySelectorAll('.data-point, .note-marker-hit').forEach(function(node) {
       node.addEventListener('mousemove', function(event) {
         show(event, node.getAttribute('data-tooltip'));
       });

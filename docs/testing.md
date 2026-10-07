@@ -47,6 +47,14 @@ separat vollständig einschließen:
 .\tools\Verify-TestSuite.ps1 -IncludeSlow
 ```
 
+Die Coverage-Historie muss immer mit allen Tests einschließlich `slow`
+aufgezeichnet werden. Dafür den eigenständigen Runner verwenden; er führt die
+Vollsuite für Stabilität und Coverage aus, bevor er die Historie aktualisiert:
+
+```powershell
+.\tools\Run-Coverage.ps1 -Comment "Beschreibung der Änderung"
+```
+
 ## Automatisierte Absicherung
 
 GitHub Actions führt die Test-Suite bei Pushes und Pull Requests aus. Der
