@@ -2,10 +2,6 @@
 .\tools\Update-TestCoverageHistory.ps1 -RunTests
 .\tools\New-CoverageChart.ps1 -Open
 
-
-
-
-
 New-Item -ItemType File -Path $PROFILE -Force
 notepad $PROFILE
 
@@ -17,6 +13,8 @@ function mtest {
 
     & .\tools\Run-Coverage.ps1 -Comment ($Comment -join ' ')
 }
+
+# Beispiel: mtest neue Implementierung 61 Klassen
 
 function vtest {
     $global:LASTEXITCODE = 0
@@ -41,4 +39,6 @@ function gtest {
     & .\tools\Run-Coverage.ps1 -Runs $Runs -Comment ($Comment -join ' ')
 }
 
-# Beispiel: mtest neue Implementierung 61 Klassen
+function cctx {
+    & .\tools\New-ClaudeContextReport.ps1 @args
+}
