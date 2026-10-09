@@ -190,7 +190,7 @@ $tag = if ($labelSuffix) { "<span class='tag'>$labelSuffix</span>" } else { "" }
 return "<section class='chart-panel'><h2>$title $tag</h2>`n<svg viewBox='0 0 $W $H'>`n$body`n</svg>`n<div class='legend'>$legend</div></section>"
 }
 
-function Get-PageHtml([string]$left, [string]$right) {
+function Get-PageHtml([string]$left, [string]$right, [string]$DataJson) {
 $css = @"
 body{background:#0d0f0f;color:#e8e4d8;font-family:monospace;margin:24px}
 #chartTooltip{position:fixed;z-index:9999;pointer-events:none;opacity:0;transform:translateY(-4px);transition:opacity .12s ease;max-width:260px;padding:7px 9px;background:#0f1310;border:1px solid #d4a020;color:#f3ead1;font-size:11px;line-height:1.4;border-radius:4px;box-shadow:0 0 10px rgba(0,0,0,.35)}
@@ -207,45 +207,49 @@ section,article{background:#111816;border:1px solid #22282a;padding:10px 12px 12
 svg{width:100%;background:#0f1310;border:1px solid #22282a;display:block}.t{fill:#8a9088;font-size:11px}
 .legend{display:flex;flex-wrap:wrap;gap:6px 18px;font-size:12px;margin-top:8px}
 .legend i{display:inline-block;width:10px;height:10px;margin-right:6px}
+.range-row{display:flex;align-items:center;gap:12px}
+.range-row input{flex:1;accent-color:#d4a020}
+.presets{display:flex;gap:6px;margin-top:8px}
+.presets button{background:#0f1310;color:#e8e4d8;border:1px solid #22282a;padding:3px 10px;font-family:monospace;cursor:pointer}
+.presets button:hover{border-color:#d4a020}
 "@
 $script = @"
-<script>
-(function() {
-  function bindTooltip() {
-    const tooltip = document.getElementById('chartTooltip');
-    if (!tooltip) return;
-    const show = (event, text) => {
-      if (!text) return;
-      tooltip.textContent = text;
-      const left = event.clientX + 12 + tooltip.offsetWidth > window.innerWidth
-        ? event.clientX - tooltip.offsetWidth - 12
-        : event.clientX + 12;
-      tooltip.style.left = Math.max(0, left) + 'px';
-      tooltip.style.top = (event.clientY + 12) + 'px';
-      tooltip.style.opacity = '1';
-    };
-    const hide = () => { tooltip.style.opacity = '0'; };
-    document.querySelectorAll('.data-point, .note-marker-hit').forEach(function(node) {
-      node.addEventListener('mousemove', function(event) {
-        show(event, node.getAttribute('data-tooltip'));
-      });
-      node.addEventListener('mouseleave', hide);
-      node.addEventListener('focus', function(event) {
-        show(event, node.getAttribute('data-tooltip'));
-      });
-      node.addEventListener('blur', hide);
-    });
-  }
-
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', bindTooltip);
-  } else {
-    bindTooltip();
-  }
-})();
-</script>
+<script id='coverageData' type='application/json'>$DataJson</script>
+<script>$(Get-Content (Join-Path $PSScriptRoot 'chart-tooltip.js') -Raw -Encoding UTF8)</script>
+<script>$(Get-Content (Join-Path $PSScriptRoot 'chart-range.js') -Raw -Encoding UTF8)</script>
 "@
 return "<!DOCTYPE html><html lang='de'><head><meta charset='UTF-8'><title>Coverage-Verlauf</title><style>$css</style></head><body>`n<div id='chartTooltip'></div>`n<div class='dashboard'><div class='column'>$left</div><div class='column'>$right</div></div>`n$script`n</body></html>"
+}
+
+function Get-ChartDataJson($set, $notes) {
+$runtimeMap = Get-RunRuntimeMap $rows $set.Runs
+$runtimes = @($set.Runs | ForEach-Object { if ($runtimeMap.Contains([string]$_)) { $runtimeMap[[string]$_] } else { $null } })
+$noteList = @($notes | ForEach-Object { [ordered]@{ run = [int]$_.run; comment = [string]$_.comment } })
+$data = [ordered]@{
+    threshold = $Threshold
+    palette   = @($PALETTE)
+    dim       = [ordered]@{ w = $W; h = $H; ml = $ML; mr = $MR; mt = $MT; mb = $MB }
+    runs      = @($set.Runs)
+    labels    = @($set.Labels)
+    runtimes  = $runtimes
+    total     = $set.Total
+    packages  = $set.Packages
+    notes     = $noteList
+}
+return ($data | ConvertTo-Json -Depth 6 -Compress).Replace('<', '\u003c')
+}
+
+function New-RangePanels {
+$title = "Gesamt ($ROOT_ELEMENT)"
+return @"
+<section class='controls'><h2>Zeitraum <span class='tag' id='rangeLabel'></span></h2>
+<div class='range-row'><input type='range' id='rangeSlider' min='1' max='1' value='1'></div>
+<div class='presets' id='rangePresets'></div></section>
+<section class='chart-panel'><h2>$title <span class='tag' data-range-tag></span></h2>
+<svg id='chartTotal' viewBox='0 0 $W $H'></svg><div class='legend' id='legendTotal'></div></section>
+<section class='chart-panel'><h2>Line-Coverage je Paket <span class='tag' data-range-tag></span></h2>
+<svg id='chartPackages' viewBox='0 0 $W $H'></svg><div class='legend' id='legendPackages'></div></section>
+"@
 }
 
 function Get-TotalRuntimeSeconds {
@@ -301,10 +305,8 @@ $mainLeft = @(
 (New-Section "Line-Coverage je Paket" $recent.Packages $recent.Labels $recent.Runs $notes "letzte 7 Tests")
 ) -join "`n"
 
-$mainRight = @(
-(New-Section "Gesamt ($ROOT_ELEMENT)" $full.Total $full.Labels $full.Runs $notes "alle Tests"),
-(New-Section "Line-Coverage je Paket" $full.Packages $full.Labels $full.Runs $notes "alle Tests")
-) -join "`n"
+$mainRight = New-RangePanels
+$dataJson = Get-ChartDataJson $full $notes
 
 $totalRuntimeSeconds = Get-TotalRuntimeSeconds
 $runtimeSummary = if ($null -ne $totalRuntimeSeconds) {
@@ -320,6 +322,6 @@ else {
     "<div class='summary'><div class='summary-label'>Gesamtlaufzeit</div><div class='summary-value'>-</div></div>"
 }
 
-Set-Content -Path $OutFile -Value (Get-PageHtml $mainLeft $mainRight) -Encoding UTF8
+Set-Content -Path $OutFile -Value (Get-PageHtml $mainLeft $mainRight $dataJson) -Encoding UTF8
 Write-Host "Diagramm erzeugt: $OutFile" -ForegroundColor Green
 if ($Open) { Start-Process $OutFile }
