@@ -5,13 +5,13 @@
     Keine Abhängigkeiten.
 
 .EXAMPLE
-    .\New-CoverageChart.ps1 -Open
+    .\tools\scripts\New-CoverageChart.ps1 -Open
 #>
 param(
-    [string]$ProjectRoot = (Get-Location).Path,
-    [string]$CsvPath     = (Join-Path $ProjectRoot "test_coverage_history.csv"),
-    [string]$NotesCsv    = (Join-Path $ProjectRoot "test_coverage_notes.csv"),
-    [string]$OutFile     = (Join-Path $ProjectRoot "test_coverage_history.html"),
+    [string]$ProjectRoot = (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)),
+    [string]$CsvPath     = (Join-Path (Join-Path (Split-Path -Parent $PSScriptRoot) 'output') "test_coverage_history.csv"),
+    [string]$NotesCsv    = (Join-Path (Join-Path (Split-Path -Parent $PSScriptRoot) 'output') "test_coverage_notes.csv"),
+    [string]$OutFile     = (Join-Path (Join-Path (Split-Path -Parent $PSScriptRoot) 'output') "test_coverage_history.html"),
     [double]$Threshold   = 0.90,
     [switch]$Open
 )
@@ -323,6 +323,10 @@ else {
 "<div class='summary'><div class='summary-label'>Gesamtlaufzeit</div><div class='summary-value'>-</div></div>"
 }
 
+$outputDirectory = Split-Path -Parent $OutFile
+if ($outputDirectory -and -not (Test-Path -LiteralPath $outputDirectory -PathType Container)) {
+    New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
+}
 Set-Content -Path $OutFile -Value (Get-PageHtml $mainLeft $mainRight $dataJson) -Encoding UTF8
 Write-Host "Diagramm erzeugt: $OutFile" -ForegroundColor Green
 if ($Open) { Start-Process $OutFile }

@@ -10,9 +10,10 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$repoRoot = Split-Path -Parent $PSScriptRoot
+$repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $reportsDir = Join-Path $repoRoot 'target\surefire-reports'
-$summaryDirectory = Join-Path $repoRoot '.test-results'
+$toolsOutputDirectory = Join-Path (Split-Path -Parent $PSScriptRoot) 'output'
+$summaryDirectory = Join-Path $toolsOutputDirectory 'test-results'
 $summaryPath = Join-Path $summaryDirectory "test-stability-$SummaryName.json"
 New-Item -ItemType Directory -Path $summaryDirectory -Force | Out-Null
 if (Test-Path $summaryPath) {

@@ -5,7 +5,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$repoRoot = Split-Path -Parent $PSScriptRoot
+$repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $verifyScript = Join-Path $PSScriptRoot 'Verify-TestSuite.ps1'
 $runtimeScript = Join-Path $PSScriptRoot 'Measure-TestRuntime.ps1'
 $historyScript = Join-Path $PSScriptRoot 'Update-TestCoverageHistory.ps1'

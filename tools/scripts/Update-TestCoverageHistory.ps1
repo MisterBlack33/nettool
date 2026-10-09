@@ -32,11 +32,11 @@
     Notizen werden separat in test_coverage_notes.csv gespeichert (run,timestamp,comment).
 #>
 param(
-    [string]$ProjectRoot = (Get-Location).Path,
+    [string]$ProjectRoot = (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)),
     [string]$JacocoXml   = (Join-Path $ProjectRoot "target\site\jacoco\jacoco.xml"),
-    [string]$OutputXlsx  = (Join-Path $ProjectRoot "test_coverage_history.xlsx"),
-    [string]$OutputCsv   = (Join-Path $ProjectRoot "test_coverage_history.csv"),
-    [string]$NotesCsv    = (Join-Path $ProjectRoot "test_coverage_notes.csv"),
+    [string]$OutputXlsx  = (Join-Path (Join-Path (Split-Path -Parent $PSScriptRoot) 'output') "test_coverage_history.xlsx"),
+    [string]$OutputCsv   = (Join-Path (Join-Path (Split-Path -Parent $PSScriptRoot) 'output') "test_coverage_history.csv"),
+    [string]$NotesCsv    = (Join-Path (Join-Path (Split-Path -Parent $PSScriptRoot) 'output') "test_coverage_notes.csv"),
     [string]$Comment     = "",
     [switch]$RunTests
 )
@@ -64,6 +64,13 @@ if ($RunTests) {
 
 if (-not (Test-Path $JacocoXml)) {
     throw "jacoco.xml nicht gefunden: $JacocoXml`nErst 'mvn test' ausführen oder -RunTests verwenden."
+}
+
+foreach ($outputPath in @($OutputXlsx, $OutputCsv, $NotesCsv)) {
+    $outputDirectory = Split-Path -Parent $outputPath
+    if ($outputDirectory -and -not (Test-Path -LiteralPath $outputDirectory -PathType Container)) {
+        New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
+    }
 }
 
 # ── JaCoCo-XML einlesen ──────────────────────────────────────────────────

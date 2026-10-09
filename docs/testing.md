@@ -5,7 +5,7 @@
 Aus dem Repository-Root:
 
 ```powershell
-.\tools\Verify-TestSuite.ps1
+.\tools\scripts\Verify-TestSuite.ps1
 ```
 
 Standardmäßig führt das Skript `mvn --batch-mode clean test` aus. `clean`
@@ -25,26 +25,26 @@ Gezielte Entwicklungsläufe sind möglich, werden aber nicht als vollständige
 Validierung gewertet:
 
 ```powershell
-.\tools\Verify-TestSuite.ps1 -TestSelector 'OsParallelStepRunnerTest'
+.\tools\scripts\Verify-TestSuite.ps1 -TestSelector 'OsParallelStepRunnerTest'
 ```
 
 Flakiness lässt sich mit unabhängigen vollständigen Läufen sichtbar machen:
 
 ```powershell
-.\tools\Verify-TestSuite.ps1 -Runs 5
+.\tools\scripts\Verify-TestSuite.ps1 -Runs 5
 ```
 
 Jeder Lauf startet mit `clean`; ein Fehlschlag beendet die Serie sofort. Es
 gibt keine automatischen Test-Retries, die einen Fehlschlag in einen Pass
 umdeuten. Nach einer erfolgreichen Serie enthält
-`.test-results/test-stability-standard.json` die pro Lauf gezählten Ergebnisse,
-Laufzeiten, übersprungenen Tests und Umgebungsdaten.
+`tools/output/test-results/test-stability-standard.json` die pro Lauf
+gezählten Ergebnisse, Laufzeiten, übersprungenen Tests und Umgebungsdaten.
 
 `@Tag("slow")`-Tests werden im Standardlauf ausgeschlossen. Sie lassen sich
 separat vollständig einschließen:
 
 ```powershell
-.\tools\Verify-TestSuite.ps1 -IncludeSlow
+.\tools\scripts\Verify-TestSuite.ps1 -IncludeSlow
 ```
 
 Die Coverage-Historie muss immer mit allen Tests einschließlich `slow`
@@ -52,7 +52,7 @@ aufgezeichnet werden. Dafür den eigenständigen Runner verwenden; er führt die
 Vollsuite für Stabilität und Coverage aus, bevor er die Historie aktualisiert:
 
 ```powershell
-.\tools\Run-Coverage.ps1 -Comment "Beschreibung der Änderung"
+.\tools\scripts\Run-Coverage.ps1 -Comment "Beschreibung der Änderung"
 ```
 
 ## Automatisierte Absicherung
@@ -60,8 +60,9 @@ Vollsuite für Stabilität und Coverage aus, bevor er die Historie aktualisiert:
 GitHub Actions führt die Test-Suite bei Pushes und Pull Requests aus. Der
 geplante nächtliche Lauf wiederholt die Standard-Suite fünfmal und führt
 zusätzlich einmal alle `slow`-Tests aus. Surefire-Berichte und
-Zusammenfassungen werden als Actions-Artefakt gespeichert. Nur ein wirklich
-ausgeführter und sauber beendeter Maven-Lauf zählt als bestanden.
+Zusammenfassungen aus `tools/output/test-results/` werden als Actions-Artefakt
+gespeichert. Nur ein wirklich ausgeführter und sauber beendeter Maven-Lauf
+zählt als bestanden.
 
 Die vorhandene JaCoCo-Prüfung bleibt Teil von `verify`. Für gezielte Prüfung,
 ob Tests auf Verhaltensänderungen reagieren, kann zusätzlich das bereits

@@ -1,11 +1,11 @@
 ﻿<#
 Creates a compact Markdown inventory of the repository for sharing with an AI assistant.
-Source files are listed but their contents are never copied into the report.
+Source-code contents are omitted; setup documentation and readable coverage data are embedded.
 #>
 
 [CmdletBinding()]
 param(
-    [string]$RootPath = (Split-Path -Parent $PSScriptRoot),
+    [string]$RootPath = (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)),
     [string]$OutputPath,
     [switch]$IncludeGenerated,
     [switch]$IncludeRuntimeData,
@@ -21,9 +21,12 @@ if (-not (Test-Path -LiteralPath $RootPath -PathType Container)) {
 
 $root = (Resolve-Path -LiteralPath $RootPath).Path.TrimEnd('\', '/')
 if (-not $OutputPath) {
-    $OutputPath = Join-Path $root 'context-report.md'
+    $OutputPath = Join-Path (Join-Path (Split-Path -Parent $PSScriptRoot) 'output') 'context-report.md'
 }
 $outputFullPath = [System.IO.Path]::GetFullPath($OutputPath)
+$scriptOutputDirectory = [System.IO.Path]::GetFullPath(
+    (Join-Path (Split-Path -Parent $PSScriptRoot) 'output')
+).TrimEnd('\', '/')
 
 $generatedDirectoryNames = @(
     'target', 'out', 'build', 'dist', 'node_modules', '.gradle',
@@ -43,7 +46,14 @@ while ($pendingDirectories.Count -gt 0) {
 
         if ($item.PSIsContainer) {
             $reason = $null
-            if ($item.Name -eq '.git') {
+            if ([string]::Equals(
+                    [System.IO.Path]::GetFullPath($item.FullName).TrimEnd('\', '/'),
+                    $scriptOutputDirectory,
+                    [System.StringComparison]::OrdinalIgnoreCase
+                )) {
+                $reason = 'Skriptausgaben'
+            }
+            elseif ($item.Name -eq '.git') {
                 $reason = 'Git internals'
             }
             elseif (-not $IncludeGenerated -and $generatedDirectoryNames -contains $item.Name) {
@@ -305,13 +315,83 @@ else {
 $lines.Add('')
 $lines.Add("## Dateiinventar ($($fileRows.Count))")
 $lines.Add('')
-$lines.Add('Dateiinhalte werden absichtlich nicht ausgegeben. Größen sind Byte-genau; Zeitstempel sind lokale Dateisystem-Zeit.')
+$lines.Add('Quelltext-Inhalte werden absichtlich nicht ausgegeben. Größen sind Byte-genau; Zeitstempel sind lokale Dateisystem-Zeit.')
 $lines.Add('')
 $lines.Add('| Größe (Bytes) | Geändert | Pfad |')
 $lines.Add('|---:|---|---|')
 foreach ($file in $fileRows) {
     $escapedPath = $file.Path.Replace('|', '\|')
     $lines.Add("| $($file.Bytes) | $($file.Modified.ToString('yyyy-MM-dd HH:mm')) | ``$escapedPath`` |")
+}
+
+$appendEmbeddedFile = {
+    param([string]$Title, [string]$RelativePath)
+
+    $fullPath = Join-Path $root $RelativePath
+    $content = [System.IO.File]::ReadAllText($fullPath)
+    $longestBacktickRun = 0
+    foreach ($match in [regex]::Matches($content, '`+')) {
+        $longestBacktickRun = [math]::Max($longestBacktickRun, $match.Length)
+    }
+    $fence = '`' * [math]::Max(3, $longestBacktickRun + 1)
+    $extension = [System.IO.Path]::GetExtension($RelativePath).TrimStart('.').ToLowerInvariant()
+    $lines.Add('')
+    $lines.Add("## $Title")
+    $lines.Add('')
+    $lines.Add("Quelle: ``$RelativePath``")
+    $lines.Add('')
+    $lines.Add("$fence$extension")
+    foreach ($contentLine in [regex]::Split($content, "\r\n|\n|\r")) {
+        $lines.Add($contentLine)
+    }
+    $lines.Add($fence)
+}
+
+$readmePath = Join-Path $root 'README.md'
+if (Test-Path -LiteralPath $readmePath -PathType Leaf) {
+    & $appendEmbeddedFile 'Projekt-README' 'README.md'
+}
+
+$testingGuidePath = Join-Path $root 'docs\testing.md'
+if (Test-Path -LiteralPath $testingGuidePath -PathType Leaf) {
+    & $appendEmbeddedFile 'Test- und Coverage-Anleitung' 'docs\testing.md'
+}
+
+$coverageFiles = @(
+    Get-ChildItem -LiteralPath $root -File |
+        Where-Object {
+            $_.Name -match '(?i)(coverage|jacoco)' -and
+            $_.Extension.ToLowerInvariant() -in @('.csv', '.html', '.xml', '.md', '.txt')
+        } |
+        Sort-Object FullName
+)
+$coverageOutputDirectory = Join-Path $root 'tools\output'
+if (Test-Path -LiteralPath $coverageOutputDirectory -PathType Container) {
+    $coverageFiles += Get-ChildItem -LiteralPath $coverageOutputDirectory -File |
+        Where-Object {
+            $_.Name -match '(?i)(coverage|jacoco)' -and
+            $_.Extension.ToLowerInvariant() -in @('.csv', '.html', '.xml', '.md', '.txt')
+        } |
+        Sort-Object FullName
+}
+$jacocoCsvPath = Join-Path $root 'target\site\jacoco\jacoco.csv'
+if (Test-Path -LiteralPath $jacocoCsvPath -PathType Leaf) {
+    $coverageFiles += Get-Item -LiteralPath $jacocoCsvPath
+}
+
+$lines.Add('')
+$lines.Add('## Coverage-Dateien')
+$lines.Add('')
+$lines.Add('Lesbare Coverage-Dateien werden vollständig eingebettet. Binärdateien wie XLSX und JaCoCo-EXEC bleiben im Dateiinventar, werden aber nicht als Text interpretiert.')
+if ($coverageFiles.Count -gt 0) {
+    foreach ($coverageFile in $coverageFiles) {
+        $relativeCoveragePath = $coverageFile.FullName.Substring($root.Length).TrimStart('\', '/')
+        & $appendEmbeddedFile "Coverage: $relativeCoveragePath" $relativeCoveragePath
+    }
+}
+else {
+    $lines.Add('')
+    $lines.Add('- Keine lesbaren Coverage-Dateien gefunden.')
 }
 
 $outputDirectory = Split-Path -Parent $outputFullPath

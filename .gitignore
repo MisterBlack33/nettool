@@ -5,6 +5,12 @@ context-report.md
 !**/src/main/**/target/
 !**/src/test/**/target/
 .kotlin
+tools/output/*
+!tools/output/.gitkeep
+!tools/output/test_coverage_history.csv
+!tools/output/test_coverage_history.html
+!tools/output/test_coverage_history.xlsx
+!tools/output/test_coverage_notes.csv
 
 ### NetTool Laufzeitdaten ###
 # Nutzerkonten, Netzwerke, Logs, Caches, Backups – gehören nicht ins Repo

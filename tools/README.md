@@ -1,14 +1,17 @@
 # Tools und Projektinventar
 
-Dieses Verzeichnis enthält Hilfsskripte für Wartung, Tests und Auswertung des
-NetTool-Repositories. Die Skripte sind für PowerShell unter Windows ausgelegt
-und werden üblicherweise vom Repository-Root gestartet.
+Dieses Verzeichnis enthält Schnellzugriffe, Code-Guides und die Dokumentation
+für die Wartungs- und Testscripts des NetTool-Repositories. Die Scripts liegen
+in `scripts/`; ihre erzeugten Dateien werden standardmäßig in `output/`
+gespeichert. Temporäre Ergebnisse werden ignoriert; die bestehende Coverage-
+Historie bleibt versioniert. PowerShell-Scripts werden üblicherweise vom
+Repository-Root gestartet.
 
 ## Kontextbericht erzeugen
 
-`New-ContextReport.ps1` erstellt ein Markdown-Inventar, das Coding-Assistenten
-einen strukturierten Überblick über das Projekt
-gibt, ohne den vollständigen Quellcode in den Bericht zu kopieren. Das ist
+`scripts/New-ContextReport.ps1` erstellt ein Markdown-Inventar, das
+Coding-Assistenten einen strukturierten Überblick über das Projekt gibt, ohne
+den vollständigen Quellcode in den Bericht zu kopieren. Das ist
 nützlich, wenn ein vollständiger Projektimport zu groß für das Kontextfenster
 ist: Der Bericht liefert Projektstruktur, Dateipfade, Pakete, Abhängigkeiten
 und Git-Zustand, damit anschließend gezielt nur relevante Quelldateien
@@ -17,11 +20,11 @@ bereitgestellt werden können.
 Vom Repository-Root:
 
 ```powershell
-.\tools\New-ContextReport.ps1
+.\tools\scripts\New-ContextReport.ps1
 ```
 
-Standardmäßig entsteht `context-report.md` im Repository-Root. Die
-Datei wird in `.gitignore` ignoriert, weil sie ein veränderlicher,
+Standardmäßig entsteht `tools/output/context-report.md`. Die Datei wird in
+`.gitignore` ignoriert, weil sie ein veränderlicher,
 maschinenlokaler Snapshot ist und normalerweise nicht eingecheckt werden
 sollte. Der Bericht wird bei jedem Aufruf neu erstellt.
 
@@ -30,22 +33,22 @@ sollte. Der Bericht wird bei jedem Aufruf neu erstellt.
 | Parameter | Standard | Beschreibung |
 |---|---|---|
 | `-RootPath <Pfad>` | Repository-Root relativ zum Skript | Projektordner, der inventarisiert wird. |
-| `-OutputPath <Pfad>` | `<RootPath>\context-report.md` | Vollständiger oder relativer (zum aktuellen Arbeitsverzeichnis) Zielpfad des Markdown-Berichts. |
+| `-OutputPath <Pfad>` | `tools\output\context-report.md` | Vollständiger oder relativer (zum aktuellen Arbeitsverzeichnis) Zielpfad des Markdown-Berichts. |
 | `-IncludeGenerated` | aus | Nimmt typische generierte Ordner wie `target`, `build`, `dist`, `out`, `node_modules` und Cache-Verzeichnisse in die Inventarisierung auf. |
-| `-IncludeRuntimeData` | aus | Nimmt lokale Laufzeitordner wie `saves`, `tmp` und `.test-results` in die Inventarisierung auf. |
+| `-IncludeRuntimeData` | aus | Nimmt lokale Laufzeitordner wie `saves`, `tmp` und `.test-results` in die Inventarisierung auf. `tools/output/` bleibt ausgeschlossen. |
 | `-TopLargeFiles <1..100>` | `20` | Anzahl der größten erfassten Dateien im Größenüberblick. |
 
 Beispiele:
 
 ```powershell
 # Andere Ausgabe-Datei verwenden
-.\tools\New-ContextReport.ps1 -OutputPath "$env:TEMP\nettool-context.md"
+.\tools\scripts\New-ContextReport.ps1 -OutputPath "$env:TEMP\nettool-context.md"
 
 # Auch Build-Artefakte und lokale Laufzeitdaten auflisten
-.\tools\New-ContextReport.ps1 -IncludeGenerated -IncludeRuntimeData
+.\tools\scripts\New-ContextReport.ps1 -IncludeGenerated -IncludeRuntimeData
 
 # Anderes Projekt inventarisieren
-.\tools\New-ContextReport.ps1 -RootPath "C:\work\another-project" `
+.\tools\scripts\New-ContextReport.ps1 -RootPath "C:\work\another-project" `
     -OutputPath "C:\work\another-project\context-report.md"
 ```
 
@@ -63,12 +66,18 @@ Beispiele:
 - Erkannte Java-Package-Deklarationen.
 - Vollständige Verzeichnis- und Dateipfade des erfassten Umfangs, inklusive
   Dateigrößen und Änderungszeitpunkten.
+- Vollständiger Inhalt von `README.md` und, sofern vorhanden,
+  `docs/testing.md`.
+- Lesbare Coverage-Dateien im Projekt-Root und in `tools/output/` (CSV, HTML,
+  XML, Markdown und TXT) sowie `target/site/jacoco/jacoco.csv`, sofern
+  vorhanden. Binäre Dateien wie XLSX und JaCoCo-EXEC werden nicht eingebettet.
 
-Der Bericht enthält **keine Dateiinhalte**, keine transitiven Maven-
-Abhängigkeiten und keine Rekonstruktion von Datei-Inhalten. Package-Namen
-werden aus Java-Quelldateien gelesen. Abhängigkeiten werden aus der
-Projekt-`pom.xml` ermittelt; verwendete Maven-Property-Versionen werden
-aufgelöst, sofern die Property dort deklariert ist.
+Der Bericht enthält **keine Quelltext-Inhalte** und keine transitiven Maven-
+Abhängigkeiten. Die explizit eingebetteten Setup-Dokumente und lesbaren
+Coverage-Dateien sind davon ausgenommen. Package-Namen werden aus Java-
+Quelldateien gelesen. Abhängigkeiten werden aus der Projekt-`pom.xml`
+ermittelt; verwendete Maven-Property-Versionen werden aufgelöst, sofern die
+Property dort deklariert ist.
 
 ### Umfang und Datenschutz
 
@@ -114,12 +123,14 @@ laden). Das Skript selbst ist auch ohne Profil direkt ausführbar.
 
 | Skript | Zweck |
 |---|---|
-| `Verify-TestSuite.ps1` | Führt die Testsuite aus und prüft, dass Maven- und Surefire-Ergebnisse tatsächlich einen sauberen Testlauf belegen. Unterstützt gezielte Selektoren, Slow-Tests und optionale Verify-Prüfung. |
-| `Run-Coverage.ps1` | Führt die vollständige Test-/Coverage-Auswertung aus und aktualisiert Laufzeit- und Coverage-Ausgaben. |
-| `Measure-TestRuntime.ps1` | Liest Surefire-XML-Berichte aus und erzeugt eine Liste langsamer Tests. |
-| `Update-TestCoverageHistory.ps1` | Aktualisiert die Coverage-Historie aus erzeugten JaCoCo-Ergebnissen. |
-| `New-CoverageChart.ps1` | Erstellt beziehungsweise öffnet die Coverage-Visualisierung. |
-| `Find-DeadCode.ps1` | Sucht heuristisch nach möglichen ungenutzten Java-Klassen und -Methoden. Regex-Treffer sind Kandidaten und müssen manuell geprüft werden. |
+| `scripts/Verify-TestSuite.ps1` | Führt die Testsuite aus und prüft, dass Maven- und Surefire-Ergebnisse tatsächlich einen sauberen Testlauf belegen. Unterstützt gezielte Selektoren, Slow-Tests und optionale Verify-Prüfung. Ergebnisse landen in `output/test-results/`. |
+| `scripts/Run-Coverage.ps1` | Führt die vollständige Test-/Coverage-Auswertung aus und aktualisiert Laufzeit- und Coverage-Ausgaben in `output/`. |
+| `scripts/Measure-TestRuntime.ps1` | Liest Surefire-XML-Berichte aus und erzeugt `output/test_runtime_hotspots.csv`. |
+| `scripts/Update-TestCoverageHistory.ps1` | Aktualisiert die Coverage-Historie aus erzeugten JaCoCo-Ergebnissen in `output/`. |
+| `scripts/New-CoverageChart.ps1` | Erstellt beziehungsweise öffnet `output/test_coverage_history.html`. |
+| `scripts/Find-DeadCode.ps1` | Sucht heuristisch nach möglichen ungenutzten Java-Klassen und -Methoden und speichert `output/dead_code_report.csv`. Regex-Treffer sind Kandidaten und müssen manuell geprüft werden. |
 
+`chart-range.js` und `chart-tooltip.js` sind interne Hilfsdateien in
+`scripts/`. Schnellzugriffe und Code-Guides bleiben direkt unter `tools/`.
 Details zu Testläufen, Selektoren und der Interpretation von Testresultaten
 stehen in [`../docs/testing.md`](../docs/testing.md).

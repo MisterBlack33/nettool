@@ -5,7 +5,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$repoRoot = Split-Path -Parent $PSScriptRoot
+$repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $pomPath = Join-Path $repoRoot 'pom.xml'
 if (-not (Test-Path $pomPath)) {
     throw "Keine pom.xml im Projektroot gefunden: $repoRoot"
@@ -61,7 +61,8 @@ if (-not $rows) {
 $topRows = $rows | Sort-Object TimeSec -Descending | Select-Object -First $Top
 $topRows | Format-Table -AutoSize Name, TimeSec, Tests, Failures, Errors, Skipped, File
 
-$csvPath = Join-Path $repoRoot 'target\test_runtime_hotspots.csv'
+$outputDirectory = Join-Path (Split-Path -Parent $PSScriptRoot) 'output'
+New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
+$csvPath = Join-Path $outputDirectory 'test_runtime_hotspots.csv'
 $topRows | Select-Object Name, TimeSec, Tests, Failures, Errors, Skipped, File | Export-Csv -NoTypeInformation -Encoding UTF8 -Path $csvPath
 Write-Host "`nCSV geschrieben: $csvPath"
-

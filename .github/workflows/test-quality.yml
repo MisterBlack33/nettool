@@ -24,15 +24,15 @@ jobs:
       - name: Run standard test suite
         if: github.event_name != 'schedule'
         shell: pwsh
-        run: ./tools/Verify-TestSuite.ps1 -Runs 1
+        run: ./tools/scripts/Verify-TestSuite.ps1 -Runs 1
       - name: Repeat standard suite to detect flaky tests
         if: github.event_name == 'schedule'
         shell: pwsh
-        run: ./tools/Verify-TestSuite.ps1 -Runs 5
+        run: ./tools/scripts/Verify-TestSuite.ps1 -Runs 5
       - name: Run complete suite including slow tests
         if: github.event_name == 'schedule'
         shell: pwsh
-        run: ./tools/Verify-TestSuite.ps1 -IncludeSlow -SummaryName full
+        run: ./tools/scripts/Verify-TestSuite.ps1 -IncludeSlow -SummaryName full
       - name: Archive Surefire reports
         if: always()
         uses: actions/upload-artifact@v4
@@ -40,5 +40,5 @@ jobs:
           name: test-results-${{ github.run_id }}
           path: |
             target/surefire-reports/
-            .test-results/
+            tools/output/test-results/
           if-no-files-found: warn

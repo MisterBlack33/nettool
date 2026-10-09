@@ -79,23 +79,23 @@ clean run with explicit report and result validation, use the repository
 script:
 
 ```powershell
-.\tools\Verify-TestSuite.ps1
+.\tools\scripts\Verify-TestSuite.ps1
 ```
 
 Useful variants:
 
 ```powershell
 # Run one selected test or test class
-.\tools\Verify-TestSuite.ps1 -TestSelector 'OsParallelStepRunnerTest'
+.\tools\scripts\Verify-TestSuite.ps1 -TestSelector 'OsParallelStepRunnerTest'
 
 # Include slow tests
-.\tools\Verify-TestSuite.ps1 -IncludeSlow
+.\tools\scripts\Verify-TestSuite.ps1 -IncludeSlow
 
 # Repeat independent standard-suite runs
-.\tools\Verify-TestSuite.ps1 -Runs 5
+.\tools\scripts\Verify-TestSuite.ps1 -Runs 5
 
 # Also run Maven verify, including the configured JaCoCo coverage gate
-.\tools\Verify-TestSuite.ps1 -Verify
+.\tools\scripts\Verify-TestSuite.ps1 -Verify
 ```
 
 The complete suite, including slow tests, can also be run directly through the
@@ -132,7 +132,9 @@ src/main/java/networktool/   Application source
 src/main/resources/          Application resources
 test/                        JUnit tests and test resources
 docs/                        Project and testing documentation
-tools/                       PowerShell test and maintenance scripts
+tools/                       Quick access, guides, and tool documentation
+tools/scripts/               PowerShell and JavaScript maintenance scripts
+tools/output/                Generated reports and script output
 .github/workflows/           GitHub Actions CI configuration
 pom.xml                      Maven build and plugin configuration
 ```
@@ -150,11 +152,12 @@ The Java code is organized by responsibility. Important areas include:
 
 ## Development tools
 
-The `tools/` directory includes PowerShell scripts for verifying the suite,
+The `tools/scripts/` directory includes scripts for verifying the suite,
 collecting coverage history, measuring test runtimes, and identifying
-potentially unused code. Start these scripts from the repository root unless
-their own help or documentation says otherwise. See [`tools/README.md`](tools/README.md)
-for script details and the Claude project-inventory report.
+potentially unused code. Generated script reports are stored in
+`tools/output/`. Quick access commands, code guides, and tool documentation
+remain directly in `tools/`. See [`tools/README.md`](tools/README.md) for
+details.
 
 ## CI
 

@@ -20,14 +20,14 @@ oder als Einstiegspunkt genutzt):
   - Standard-Overrides: toString, equals, hashCode, main
 
 Nutzung:
-  .\Find-DeadCode.ps1 -RootPath "C:\Pfad\zum\Projekt"
-  .\Find-DeadCode.ps1                # nutzt aktuelles Verzeichnis
-  .\Find-DeadCode.ps1 -OutFile report.csv
+  .\tools\scripts\Find-DeadCode.ps1 -RootPath "C:\Pfad\zum\Projekt"
+  .\tools\scripts\Find-DeadCode.ps1
+  .\tools\scripts\Find-DeadCode.ps1 -OutFile report.csv
 #>
 
 param(
-    [string]$RootPath = "C:\Users\elino\IdeaProjects\nettool",
-    [string]$OutFile  = "dead_code_report.csv"
+    [string]$RootPath = (Split-Path -Parent (Split-Path -Parent $PSScriptRoot)),
+    [string]$OutFile  = (Join-Path (Join-Path (Split-Path -Parent $PSScriptRoot) 'output') 'dead_code_report.csv')
 )
 
 $ErrorActionPreference = "Stop"
@@ -150,6 +150,10 @@ $methodResults | Sort-Object Class, Name | Format-Table Class, Name, File -AutoS
 $all = @()
 $all += $classResults
 $all += $methodResults
+$outputDirectory = Split-Path -Parent $OutFile
+if ($outputDirectory -and -not (Test-Path -LiteralPath $outputDirectory -PathType Container)) {
+    New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
+}
 $all | Export-Csv -Path $OutFile -NoTypeInformation -Encoding UTF8
 
 Write-Host "`nBericht gespeichert unter: $OutFile" -ForegroundColor Green
