@@ -13,7 +13,7 @@
 
   function escapeAttr(text) {
     return String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/'/g, '&#39;').replace(/"/g, '&quot;');
+        .replace(/'/g, '&#39;').replace(/"/g, '&quot;');
   }
 
   function formatRuntime(seconds) {
@@ -37,13 +37,13 @@
     const parts = [0, 0.25, 0.5, 0.75, 1].map(function (p) {
       const y = yAt(p);
       return "<line x1='" + dim.ml + "' y1='" + y + "' x2='" + right + "' y2='" + y + "' stroke='#2a2f2c'/>"
-        + "<text x='" + (dim.ml - 6) + "' y='" + (y + 4) + "' text-anchor='end' class='t'>" + percent(p) + '%</text>';
+          + "<text x='" + (dim.ml - 6) + "' y='" + (y + 4) + "' text-anchor='end' class='t'>" + percent(p) + '%</text>';
     });
     const ty = yAt(data.threshold);
     parts.push("<line x1='" + dim.ml + "' y1='" + ty + "' x2='" + right + "' y2='" + ty
-      + "' stroke='#e05a4a' stroke-dasharray='6 4'/>");
+        + "' stroke='#e05a4a' stroke-dasharray='6 4'/>");
     parts.push("<text x='" + right + "' y='" + (ty - 4) + "' text-anchor='end' fill='#e05a4a' class='t'>Ziel "
-      + percent(data.threshold) + '%</text>');
+        + percent(data.threshold) + '%</text>');
     return parts.join('\n');
   }
 
@@ -53,7 +53,7 @@
     const parts = [];
     for (let i = 0; i < labels.length; i += step) {
       parts.push("<text x='" + xAt(i, labels.length) + "' y='" + y + "' text-anchor='middle' class='t'>"
-        + escapeAttr(labels[i]) + '</text>');
+          + escapeAttr(labels[i]) + '</text>');
     }
     return parts.join('\n');
   }
@@ -70,7 +70,7 @@
     if (!points.length) return '';
     const poly = points.map((p) => p.x + ',' + p.y).join(' ');
     const dots = points.map((p) => "<circle cx='" + p.x + "' cy='" + p.y + "' r='" + POINT_RADIUS + "' fill='" + color
-      + "' class='data-point' data-tooltip='" + p.tip + "' role='img' aria-label='" + p.tip + "'/>").join('\n');
+        + "' class='data-point' data-tooltip='" + p.tip + "' role='img' aria-label='" + p.tip + "'/>").join('\n');
     return "<polyline points='" + poly + "' fill='none' stroke='" + color + "' stroke-width='2'/>\n" + dots;
   }
 
@@ -82,10 +82,10 @@
       const tip = escapeAttr(note.comment);
       const y2 = dim.mt + plotHeight;
       return "<line x1='" + x + "' y1='" + dim.mt + "' x2='" + x + "' y2='" + y2
-        + "' stroke='transparent' stroke-width='12' pointer-events='stroke' class='note-marker-hit' data-tooltip='"
-        + tip + "' tabindex='0' role='img' aria-label='" + tip + "'/>"
-        + "<line x1='" + x + "' y1='" + dim.mt + "' x2='" + x + "' y2='" + y2
-        + "' stroke='#f7e000' stroke-width='2' stroke-dasharray='7 5' pointer-events='none'/>";
+          + "' stroke='transparent' stroke-width='12' pointer-events='stroke' class='note-marker-hit' data-tooltip='"
+          + tip + "' tabindex='0' role='img' aria-label='" + tip + "'/>"
+          + "<line x1='" + x + "' y1='" + dim.mt + "' x2='" + x + "' y2='" + y2
+          + "' stroke='#f7e000' stroke-width='2' stroke-dasharray='7 5' pointer-events='none'/>";
     }).join('\n');
   }
 
@@ -97,13 +97,15 @@
     }).join('\n');
   }
 
-  function viewOf(count) {
-    const start = total - count;
+  function viewOf(count, offset) {
+    const end = total - offset;
+    const start = end - count;
     return {
-      runs: data.runs.slice(start), labels: data.labels.slice(start), runtimes: data.runtimes.slice(start),
+      runs: data.runs.slice(start, end), labels: data.labels.slice(start, end),
+      runtimes: data.runtimes.slice(start, end),
       slice: function (series) {
         const out = {};
-        Object.keys(series).forEach((name) => { out[name] = series[name].slice(start); });
+        Object.keys(series).forEach((name) => { out[name] = series[name].slice(start, end); });
         return out;
       }
     };
@@ -112,22 +114,31 @@
   function renderChart(svgId, legendId, series, view) {
     const lines = Object.keys(series).map((name, i) => lineSvg(series[name], colorAt(i), view)).join('\n');
     document.getElementById(svgId).innerHTML =
-      [gridSvg(), labelsSvg(view.labels), lines, notesSvg(view)].join('\n');
+        [gridSvg(), labelsSvg(view.labels), lines, notesSvg(view)].join('\n');
     document.getElementById(legendId).innerHTML = legendHtml(series);
   }
 
-  function describe(count) {
+  function describe(count, offset) {
+    if (offset > 0) return count + ' Tests, bis vor ' + offset + ' Tests';
     return count >= total ? 'alle Tests (' + total + ')' : 'letzte ' + count + ' Tests';
   }
 
-  function render(count) {
-    const view = viewOf(count);
+  const state = { count: total, offset: 0 };
+
+  function render(count, offset) {
+    const maxOffset = total - count;
+    state.count = count;
+    state.offset = Math.min(offset, maxOffset);
+    const view = viewOf(state.count, state.offset);
     renderChart('chartTotal', 'legendTotal', view.slice(data.total), view);
     renderChart('chartPackages', 'legendPackages', view.slice(data.packages), view);
-    const text = describe(count);
+    const text = describe(state.count, state.offset);
     document.getElementById('rangeLabel').textContent = text;
     document.querySelectorAll('[data-range-tag]').forEach((node) => { node.textContent = text; });
-    document.getElementById('rangeSlider').value = count;
+    slider.value = state.count;
+    offsetSlider.max = maxOffset;
+    offsetSlider.value = state.offset;
+    offsetSlider.disabled = maxOffset === 0;
   }
 
   function buildPresets() {
@@ -137,16 +148,18 @@
       const button = document.createElement('button');
       button.type = 'button';
       button.textContent = count === total ? 'Alle' : String(count);
-      button.addEventListener('click', () => render(count));
+      button.addEventListener('click', () => render(count, state.offset));
       box.appendChild(button);
     });
   }
 
   const slider = document.getElementById('rangeSlider');
+  const offsetSlider = document.getElementById('offsetSlider');
   slider.min = Math.min(MIN_RUNS, total);
   slider.max = total;
-  slider.addEventListener('input', () => render(Number(slider.value)));
+  offsetSlider.min = 0;
+  slider.addEventListener('input', () => render(Number(slider.value), state.offset));
+  offsetSlider.addEventListener('input', () => render(state.count, Number(offsetSlider.value)));
   buildPresets();
-  render(total);
+  render(total, 0);
 })();
-

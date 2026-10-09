@@ -40,11 +40,11 @@ if ($row) { [double]::Parse($row."${metric}_pct", $inv) } else { $null }
 function Format-RuntimeText([double]$seconds) {
 if ($null -eq $seconds -or [double]::IsNaN($seconds) -or $seconds -lt 0) { return "-" }
 if ($seconds -ge 3600) {
-    $hours = $seconds / 3600
-    return "{0:N1} h ({1:N1} min)" -f $hours, ($seconds / 60)
+$hours = $seconds / 3600
+return "{0:N1} h ({1:N1} min)" -f $hours, ($seconds / 60)
 }
 if ($seconds -ge 60) {
-    return "{0:N1} min ({1:N0} s)" -f ($seconds / 60), $seconds
+return "{0:N1} min ({1:N0} s)" -f ($seconds / 60), $seconds
 }
 return "{0:N1} s" -f $seconds
 }
@@ -100,8 +100,8 @@ $runName = if ($i -lt $RunNumbers.Count) { [string]$RunNumbers[$i] } else { "#" 
 $labelText = if ($i -lt $Labels.Count -and -not [string]::IsNullOrWhiteSpace($Labels[$i])) { $Labels[$i] } else { "" }
 $runtimeValue = $null
 if ($i -lt $RunNumbers.Count) {
-    $runKey = [string]$RunNumbers[$i]
-    if ($RunRuntimeMap.Contains($runKey)) { $runtimeValue = $RunRuntimeMap[$runKey] }
+$runKey = [string]$RunNumbers[$i]
+if ($RunRuntimeMap.Contains($runKey)) { $runtimeValue = $RunRuntimeMap[$runKey] }
 }
 $runtimeText = if ($null -ne $runtimeValue) { " | Laufzeit: $(Format-RuntimeText $runtimeValue)" } else { "" }
 $runLabel = if ($labelText) { $labelText } else { $runName }
@@ -120,11 +120,11 @@ $pw = $ChartW - $ChartMl - $ChartMr
 $ph = $ChartH - $ChartMt - $ChartMb
 $count = $runs.Count
 $svg = foreach ($note in $notes) {
-    $index = [array]::IndexOf([int[]]$runs, [int]$note.run)
-    if ($index -lt 0 -or [string]::IsNullOrWhiteSpace($note.comment)) { continue }
-    $x = [math]::Round(($ChartMl + $pw * $index / [math]::Max(1, $count - 1)), 1)
-    $comment = [System.Security.SecurityElement]::Escape([string]$note.comment)
-    "<line x1='$x' y1='$ChartMt' x2='$x' y2='$($ChartMt + $ph)' stroke='transparent' stroke-width='12' pointer-events='stroke' class='note-marker-hit' data-tooltip='$comment' tabindex='0' role='img' aria-label='$comment'/><line x1='$x' y1='$ChartMt' x2='$x' y2='$($ChartMt + $ph)' stroke='#f7e000' stroke-width='2' stroke-dasharray='7 5' pointer-events='none'/>"
+$index = [array]::IndexOf([int[]]$runs, [int]$note.run)
+if ($index -lt 0 -or [string]::IsNullOrWhiteSpace($note.comment)) { continue }
+$x = [math]::Round(($ChartMl + $pw * $index / [math]::Max(1, $count - 1)), 1)
+$comment = [System.Security.SecurityElement]::Escape([string]$note.comment)
+"<line x1='$x' y1='$ChartMt' x2='$x' y2='$($ChartMt + $ph)' stroke='transparent' stroke-width='12' pointer-events='stroke' class='note-marker-hit' data-tooltip='$comment' tabindex='0' role='img' aria-label='$comment'/><line x1='$x' y1='$ChartMt' x2='$x' y2='$($ChartMt + $ph)' stroke='#f7e000' stroke-width='2' stroke-dasharray='7 5' pointer-events='none'/>"
 }
 return $svg -join "`n"
 }
@@ -158,20 +158,20 @@ function Get-RunRuntimeMap($rows, $runs) {
 $map = [ordered]@{}
 
 foreach ($run in $runs) {
-    $runtimeRow = $rows | Where-Object { $_.element -eq $ROOT_ELEMENT -and [int]$_.run -eq [int]$run } | Select-Object -Last 1
-    if (-not $runtimeRow) { continue }
-    if ($runtimeRow.PSObject.Properties.Name -notcontains 'total_runtime_sec') { continue }
+$runtimeRow = $rows | Where-Object { $_.element -eq $ROOT_ELEMENT -and [int]$_.run -eq [int]$run } | Select-Object -Last 1
+if (-not $runtimeRow) { continue }
+if ($runtimeRow.PSObject.Properties.Name -notcontains 'total_runtime_sec') { continue }
 
-    $runtimeValue = [string]$runtimeRow.total_runtime_sec
-    if ([string]::IsNullOrWhiteSpace($runtimeValue)) { continue }
+$runtimeValue = [string]$runtimeRow.total_runtime_sec
+if ([string]::IsNullOrWhiteSpace($runtimeValue)) { continue }
 
-    try {
-        $value = [double]::Parse($runtimeValue, $inv)
-        if ($value -ge 0) { $map[[string]$run] = $value }
-    }
-    catch {
-        # Historisch vorhandene Laufzeiten sind eindeutig pro Run; fehlende Werte bleiben leer.
-    }
+try {
+$value = [double]::Parse($runtimeValue, $inv)
+if ($value -ge 0) { $map[[string]$run] = $value }
+}
+catch {
+# Historisch vorhandene Laufzeiten sind eindeutig pro Run; fehlende Werte bleiben leer.
+}
 }
 
 return $map
@@ -226,15 +226,15 @@ $runtimeMap = Get-RunRuntimeMap $rows $set.Runs
 $runtimes = @($set.Runs | ForEach-Object { if ($runtimeMap.Contains([string]$_)) { $runtimeMap[[string]$_] } else { $null } })
 $noteList = @($notes | ForEach-Object { [ordered]@{ run = [int]$_.run; comment = [string]$_.comment } })
 $data = [ordered]@{
-    threshold = $Threshold
-    palette   = @($PALETTE)
-    dim       = [ordered]@{ w = $W; h = $H; ml = $ML; mr = $MR; mt = $MT; mb = $MB }
-    runs      = @($set.Runs)
-    labels    = @($set.Labels)
-    runtimes  = $runtimes
-    total     = $set.Total
-    packages  = $set.Packages
-    notes     = $noteList
+threshold = $Threshold
+palette   = @($PALETTE)
+dim       = [ordered]@{ w = $W; h = $H; ml = $ML; mr = $MR; mt = $MT; mb = $MB }
+runs      = @($set.Runs)
+labels    = @($set.Labels)
+runtimes  = $runtimes
+total     = $set.Total
+packages  = $set.Packages
+notes     = $noteList
 }
 return ($data | ConvertTo-Json -Depth 6 -Compress).Replace('<', '\u003c')
 }
@@ -243,7 +243,8 @@ function New-RangePanels {
 $title = "Gesamt ($ROOT_ELEMENT)"
 return @"
 <section class='controls'><h2>Zeitraum <span class='tag' id='rangeLabel'></span></h2>
-<div class='range-row'><input type='range' id='rangeSlider' min='1' max='1' value='1'></div>
+<div class='range-row'><span>Anzahl</span><input type='range' id='rangeSlider' min='1' max='1' value='1'></div>
+<div class='range-row'><span>Versatz</span><input type='range' id='offsetSlider' min='0' max='0' value='0'></div>
 <div class='presets' id='rangePresets'></div></section>
 <section class='chart-panel'><h2>$title <span class='tag' data-range-tag></span></h2>
 <svg id='chartTotal' viewBox='0 0 $W $H'></svg><div class='legend' id='legendTotal'></div></section>
@@ -253,24 +254,24 @@ return @"
 }
 
 function Get-TotalRuntimeSeconds {
-    $reportsDir = Join-Path $ProjectRoot 'target\surefire-reports'
-    if (-not (Test-Path $reportsDir)) { return $null }
+$reportsDir = Join-Path $ProjectRoot 'target\surefire-reports'
+if (-not (Test-Path $reportsDir)) { return $null }
 
-    $total = 0.0
-    Get-ChildItem $reportsDir -Filter 'TEST-*.xml' | ForEach-Object {
-        try {
-            [xml]$xml = Get-Content -Path $_.FullName -Raw
-            $suite = $xml.testsuite
-            if ($suite -and $null -ne $suite.time) {
-                $total += [double]$suite.time
-            }
-        }
-        catch {
-        }
-    }
+$total = 0.0
+Get-ChildItem $reportsDir -Filter 'TEST-*.xml' | ForEach-Object {
+try {
+[xml]$xml = Get-Content -Path $_.FullName -Raw
+$suite = $xml.testsuite
+if ($suite -and $null -ne $suite.time) {
+$total += [double]$suite.time
+}
+}
+catch {
+}
+}
 
-    if ($total -gt 0) { return $total }
-    return $null
+if ($total -gt 0) { return $total }
+return $null
 }
 
 # ── Ablauf ───────────────────────────────────────────────────────────────
@@ -290,10 +291,10 @@ $names = $rows.element | Sort-Object -Unique | Where-Object { $_ -ne $ROOT_ELEME
 foreach ($name in $names) { $packages[$name] = @(Get-Series $rows $name 'line' $runs) }
 
 return [pscustomobject]@{
-    Labels = $labels
-    Total = $total
-    Packages = $packages
-    Runs = @($runs)
+Labels = $labels
+Total = $total
+Packages = $packages
+Runs = @($runs)
 }
 }
 
@@ -310,16 +311,16 @@ $dataJson = Get-ChartDataJson $full $notes
 
 $totalRuntimeSeconds = Get-TotalRuntimeSeconds
 $runtimeSummary = if ($null -ne $totalRuntimeSeconds) {
-    $display = if ($totalRuntimeSeconds -ge 60) {
-        "{0:N2} min ({1:N0} s)" -f ($totalRuntimeSeconds / 60), $totalRuntimeSeconds
-    }
-    else {
-        "{0:N2} s" -f $totalRuntimeSeconds
-    }
-    "<div class='summary'><div class='summary-label'>Gesamtlaufzeit</div><div class='summary-value'>$display</div></div>"
+$display = if ($totalRuntimeSeconds -ge 60) {
+"{0:N2} min ({1:N0} s)" -f ($totalRuntimeSeconds / 60), $totalRuntimeSeconds
 }
 else {
-    "<div class='summary'><div class='summary-label'>Gesamtlaufzeit</div><div class='summary-value'>-</div></div>"
+"{0:N2} s" -f $totalRuntimeSeconds
+}
+"<div class='summary'><div class='summary-label'>Gesamtlaufzeit</div><div class='summary-value'>$display</div></div>"
+}
+else {
+"<div class='summary'><div class='summary-label'>Gesamtlaufzeit</div><div class='summary-value'>-</div></div>"
 }
 
 Set-Content -Path $OutFile -Value (Get-PageHtml $mainLeft $mainRight $dataJson) -Encoding UTF8
