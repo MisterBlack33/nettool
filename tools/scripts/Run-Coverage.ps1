@@ -8,6 +8,7 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $verifyScript = Join-Path $PSScriptRoot 'Verify-TestSuite.ps1'
 $runtimeScript = Join-Path $PSScriptRoot 'Measure-TestRuntime.ps1'
+$runtimeHistoryScript = Join-Path $PSScriptRoot 'Update-TestRuntimeHistory.ps1'
 $historyScript = Join-Path $PSScriptRoot 'Update-TestCoverageHistory.ps1'
 $chartScript = Join-Path $PSScriptRoot 'New-CoverageChart.ps1'
 
@@ -24,6 +25,7 @@ try {
     }
 
     & $runtimeScript -SkipTestRun
+    & $runtimeHistoryScript -SkipTestRun
     & $historyScript -Comment $Comment
     & $chartScript -Open
 }

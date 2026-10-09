@@ -55,14 +55,40 @@ Vollsuite für Stabilität und Coverage aus, bevor er die Historie aktualisiert:
 .\tools\scripts\Run-Coverage.ps1 -Comment "Beschreibung der Änderung"
 ```
 
+Der Coverage-Runner aktualisiert dabei auch
+`tools/output/test_runtime_history.csv` und `tools/output/test_runtime_history.html`.
+Das HTML-Diagramm zeigt den Verlauf der bis zu zehn langsamsten Testklassen des
+neuesten Laufs. Die CSV enthält pro Lauf die Laufzeit jeder Testklasse; beide
+Historien-Dateien sind versioniert und können nach einem `git pull` auch auf
+anderen Geräten eingesehen werden. Vor einem neuen Lauf sollte die aktuelle
+Historie synchronisiert werden; einzelne Testläufe können alternativ direkt
+erfasst werden:
+
+```powershell
+.\tools\scripts\Update-TestRuntimeHistory.ps1
+```
+
+Der eigenständige Aufruf führt standardmäßig `mvn clean test` aus. Mit
+`-IncludeSlow` werden zusätzlich die `slow`-Tests ausgeführt; mit
+`-SkipTestRun` werden bereits vorhandene Surefire-Berichte verarbeitet.
+Änderungen an der Historie müssen committet und gepusht werden, damit sie auf
+anderen Geräten verfügbar sind. Temporäre Testberichte und maschinenlokale
+Snapshots bleiben weiterhin aus dem Repository ausgeschlossen.
+
 ## Automatisierte Absicherung
 
 GitHub Actions führt die Test-Suite bei Pushes und Pull Requests aus. Der
 geplante nächtliche Lauf wiederholt die Standard-Suite fünfmal und führt
-zusätzlich einmal alle `slow`-Tests aus. Surefire-Berichte und
-Zusammenfassungen aus `tools/output/test-results/` werden als Actions-Artefakt
-gespeichert. Nur ein wirklich ausgeführter und sauber beendeter Maven-Lauf
-zählt als bestanden.
+zusätzlich einmal alle `slow`-Tests aus. Surefire-Berichte und Zusammenfassungen werden als Actions-Artefakt
+gespeichert. Die Standard-Zusammenfassung
+`tools/output/test-results/test-stability-standard.json`, der
+Testlaufzeit-Hotspot-Bericht `tools/output/test_runtime_hotspots.csv` und der
+Kontextbericht `tools/output/context-report.md` sind zusätzlich versioniert,
+damit sie auf anderen Geräten verfügbar und vergangene Ergebnisse im Git-
+Verlauf nachvollziehbar sind. Testzusammenfassungen speichern Java-Version und
+Anbieter, aber keinen lokalen JDK-Installationspfad. Übrige temporäre
+Testberichte und maschinenlokale Ausgaben bleiben ausgeschlossen. Nur ein
+wirklich ausgeführter und sauber beendeter Maven-Lauf zählt als bestanden.
 
 Die vorhandene JaCoCo-Prüfung bleibt Teil von `verify`. Für gezielte Prüfung,
 ob Tests auf Verhaltensänderungen reagieren, kann zusätzlich das bereits

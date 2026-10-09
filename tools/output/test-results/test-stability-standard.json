@@ -1,0 +1,19 @@
+﻿{
+    "Scope":  "full Maven test suite including slow tests",
+    "RunsRequested":  1,
+    "OperatingSystem":  "Microsoft Windows 10.0.26200",
+    "MavenJavaVersion": "Java version: 25.0.4.1, vendor: Eclipse Adoptium",
+    "Results":  [
+                    {
+                        "Run":  1,
+                        "FinishedUtc":  "2026-10-09T20:41:56.6303880Z",
+                        "ElapsedSeconds":  189.34,
+                        "Tests":  2173,
+                        "Skipped":  1,
+                        "Failures":  0,
+                        "Errors":  0,
+                        "FlakyRetries":  0,
+                        "Reports":  309
+                    }
+                ]
+}

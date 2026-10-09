@@ -126,6 +126,7 @@ laden). Das Skript selbst ist auch ohne Profil direkt ausführbar.
 | `scripts/Verify-TestSuite.ps1` | Führt die Testsuite aus und prüft, dass Maven- und Surefire-Ergebnisse tatsächlich einen sauberen Testlauf belegen. Unterstützt gezielte Selektoren, Slow-Tests und optionale Verify-Prüfung. Ergebnisse landen in `output/test-results/`. |
 | `scripts/Run-Coverage.ps1` | Führt die vollständige Test-/Coverage-Auswertung aus und aktualisiert Laufzeit- und Coverage-Ausgaben in `output/`. |
 | `scripts/Measure-TestRuntime.ps1` | Liest Surefire-XML-Berichte aus und erzeugt `output/test_runtime_hotspots.csv`. |
+| `scripts/Update-TestRuntimeHistory.ps1` | Hängt die Laufzeiten aller Testklassen an `output/test_runtime_history.csv` an und erstellt den HTML-Verlauf `output/test_runtime_history.html`. |
 | `scripts/Update-TestCoverageHistory.ps1` | Aktualisiert die Coverage-Historie aus erzeugten JaCoCo-Ergebnissen in `output/`. |
 | `scripts/New-CoverageChart.ps1` | Erstellt beziehungsweise öffnet `output/test_coverage_history.html`. |
 | `scripts/Find-DeadCode.ps1` | Sucht heuristisch nach möglichen ungenutzten Java-Klassen und -Methoden und speichert `output/dead_code_report.csv`. Regex-Treffer sind Kandidaten und müssen manuell geprüft werden. |
@@ -133,4 +134,12 @@ laden). Das Skript selbst ist auch ohne Profil direkt ausführbar.
 `chart-range.js` und `chart-tooltip.js` sind interne Hilfsdateien in
 `scripts/`. Schnellzugriffe und Code-Guides bleiben direkt unter `tools/`.
 Details zu Testläufen, Selektoren und der Interpretation von Testresultaten
-stehen in [`../docs/testing.md`](../docs/testing.md).
+stehen in [`../docs/testing.md`](../docs/testing.md). Die Testlaufzeit-Historie
+in `output/test_runtime_history.csv` und ihr Diagramm in
+`output/test_runtime_history.html` sind versionierte, geräteübergreifende
+Daten. Ebenso versioniert sind `output/test_runtime_hotspots.csv`, der
+Kontext-Snapshot `output/context-report.md` und die Standard-Testzusammenfassung
+`output/test-results/test-stability-standard.json`. Nach dem Synchronisieren
+des Repositories lassen sich Historie und Ergebnisse dort einsehen; neue
+Einträge werden mit dem Commit des Updates geteilt. Weitere temporäre
+Testergebnisse bleiben ausgeschlossen.

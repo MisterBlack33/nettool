@@ -29,6 +29,7 @@ $javaVersionLine = $mavenVersionOutput | Where-Object { $_ -match '^Java version
 if (-not $javaVersionLine) {
     throw 'Maven did not report its Java version.'
 }
+$javaVersionLine = $javaVersionLine -replace ',\s*runtime:\s*.*$', ''
 
 if ($TestSelector -and ($IncludeSlow -or $Verify)) {
     throw 'Use -IncludeSlow and -Verify only with the full suite, not with -TestSelector.'

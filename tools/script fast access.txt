@@ -1,6 +1,7 @@
 .\tools\scripts\Find-DeadCode.ps1
 .\tools\scripts\Update-TestCoverageHistory.ps1 -RunTests
 .\tools\scripts\New-CoverageChart.ps1 -Open
+.\tools\scripts\Update-TestRuntimeHistory.ps1 -SkipTestRun -Open
 
 New-Item -ItemType File -Path $PROFILE -Force
 notepad $PROFILE
@@ -69,3 +70,10 @@ function gtest {
 function ctx {
     & .\tools\scripts\New-ContextReport.ps1 @args
 }
+
+function truntime {
+    & .\tools\scripts\Update-TestRuntimeHistory.ps1 @args
+}
+# truntime             # Tests ausführen, Laufzeit-History anhängen und Chart erstellen
+# truntime -SkipTestRun # Chart aus vorhandenen Surefire-Berichten aktualisieren
+# truntime -Open        # Chart nach dem Erstellen öffnen
