@@ -28,16 +28,43 @@ function vtest {
     }
 }
 
+#vtest                                  # 1 Run, mvn clean test, ohne Slow-Tests
+#vtest 3                                # 3 Runs
+#vtest 3 'MyClassTest'                  # 3 Runs, nur MyClassTest
+#vtest 1 'MyClassTest#myMethod'         # einzelne Testmethode
+#vtest -IncludeSlow                     # volle Suite inkl. Slow-Tests
+#vtest -Verify                          # mvn verify
+#vtest 5 -IncludeSlow -Verify -SummaryName nightly
+#vtest -Runs 5 -SummaryName baseline    # benannt statt positional
+
 function gtest {
     param(
-        [ValidateRange(1, 20)]
-        [int]$Runs = 1,
         [Parameter(ValueFromRemainingArguments)]
-        [string[]]$Comment
+        [object[]]$Arguments
     )
 
-    & .\tools\scripts\Run-Coverage.ps1 -Runs $Runs -Comment ($Comment -join ' ')
+    $runs  = 1
+    $words = @($Arguments)
+
+    # Runs nur, wenn das erste Argument explizit als String in Quotes übergeben wurde, z. B. '5'
+    if ($words.Count -gt 0 -and $words[0] -is [string] -and $words[0] -match '^\d+$') {
+        $n = [int]$words[0]
+        if ($n -lt 1 -or $n -gt 20) {
+            Write-Host "Runs muss zwischen 1 und 20 liegen." -ForegroundColor Red
+            return
+        }
+        $runs  = $n
+        $words = @($words | Select-Object -Skip 1)
+    }
+
+    & .\tools\scripts\Run-Coverage.ps1 -Runs $runs -Comment ($words -join ' ')
 }
+
+#gtest                          # 1 Run, kein Kommentar
+#gtest '5'                      # 5 Runs, kein Kommentar
+#gtest nach Refactoring         # 1 Run, Kommentar "nach Refactoring"
+#gtest 2026 Baseline            # 1 Run, Kommentar "2026 Baseline"
+#gtest '5' 2026 Baseline        # 5 Runs, Kommentar "2026 Baseline"
 
 function ctx {
     & .\tools\scripts\New-ContextReport.ps1 @args
