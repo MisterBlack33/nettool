@@ -5,23 +5,14 @@ context-report.md
 !**/src/main/**/target/
 !**/src/test/**/target/
 .kotlin
-tools/output/*
-!tools/output/.gitkeep
-!tools/output/test_coverage_history.csv
-!tools/output/test_coverage_history.html
-!tools/output/test_coverage_history.xlsx
-!tools/output/test_coverage_notes.csv
-!tools/output/test_runtime_history.csv
-!tools/output/test_runtime_history.html
-!tools/output/context-report.md
-!tools/output/test_runtime_hotspots.csv
-!tools/output/test-results/
-tools/output/test-results/*
-!tools/output/test-results/test-stability-standard.json
 
 ### NetTool Laufzeitdaten ###
-# Nutzerkonten, Netzwerke, Logs, Caches, Backups – gehören nicht ins Repo
-saves/
+# Gespeicherte Projekt-/Netzwerkdaten werden versioniert; Passwort-Hashes nicht.
+/saves/userdata/users.json
+
+# tmp bleibt als leerer Ordner erhalten; temporäre Inhalte werden nicht versioniert.
+/tmp/*
+!/tmp/.gitkeep
 
 ### IntelliJ IDEA ###
 .idea/modules.xml

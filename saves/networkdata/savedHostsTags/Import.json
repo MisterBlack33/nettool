@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "network": "Import",
+  "prefix": "",
+  "hosts": [
+    {
+      "ip": "10.5.5.5",
+      "hostname": "10.5.5.5",
+      "os": "",
+      "savedAt": "2026-10-06 18:15:48",
+      "ports": {},
+      "notes": ""
+    }
+  ]
+}

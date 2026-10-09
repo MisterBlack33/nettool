@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "network": "b___junit__ws_b_import",
+  "prefix": "",
+  "hosts": [
+    {
+      "ip": "10.6.6.6",
+      "hostname": "host6",
+      "os": "Linux",
+      "savedAt": "2026-10-06 18:15:48",
+      "ports": {},
+      "notes": "a"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "network": "__junit__FixImportCat",
+  "prefix": "",
+  "hosts": [
+    {
+      "ip": "172.30.0.2",
+      "hostname": "test.eintrag.2",
+      "os": "Linux",
+      "savedAt": "2026-09-21 10:56:28",
+      "ports": {},
+      "notes": "note"
+    },
+    {
+      "ip": "172.30.0.1",
+      "hostname": "test.eintrag.1",
+      "os": "Linux",
+      "savedAt": "2026-09-21 10:56:28",
+      "ports": {},
+      "notes": ""
+    },
+    {
+      "ip": "88.88.0.1",
+      "hostname": "h",
+      "os": "Linux",
+      "savedAt": "2026-09-21 10:56:29",
+      "ports": {},
+      "notes": "a}, {b"
+    },
+    {
+      "ip": "88.88.0.2",
+      "hostname": "b",
+      "os": "Win",
+      "savedAt": "2026-09-21 10:56:29",
+      "ports": {},
+      "notes": ""
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "generated": true,
+  "entries": [
+    {"ip":"10.6.6.6","category":"b___junit__ws_b_import"},
+    {"ip":"10.5.5.5","category":"Import"},
+    {"ip":"172.30.0.2","category":"__junit__FixImportCat"},
+    {"ip":"172.30.0.1","category":"__junit__FixImportCat"},
+    {"ip":"88.88.0.1","category":"__junit__FixImportCat"},
+    {"ip":"88.88.0.2","category":"__junit__FixImportCat"},
+    {"ip":"172.16.0.2","category":"__junit__ImportCat"},
+    {"ip":"172.16.0.1","category":"__junit__ImportCat"}
+  ]
+}

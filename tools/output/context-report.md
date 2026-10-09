@@ -4,23 +4,22 @@
 
 ## Überblick
 
-- Erfasst am: 2026-10-09 23:50:39 +02:00
+- Erfasst am: 2026-10-10 00:12:31 +02:00
 - Projektordner: nettool
-- Dateien im erfassten Umfang: 619
-- Ordner im erfassten Umfang: 125
+- Dateien im erfassten Umfang: 633
+- Ordner im erfassten Umfang: 133
 - Java-Dateien: 586
 - Erkannte Java-Packages: 61
-- Datenmenge der erfassten Dateien: 1.97 MiB
+- Datenmenge der erfassten Dateien: 3.37 MiB
 
 ### Umfang und Ausschlüsse
 
 `.git`-Interna und Verzeichnis-Links werden immer ausgelassen. Generierte Build-/Cache-Ordner sowie lokale Laufzeitdaten werden standardmäßig ausgelassen; die Liste zeigt die erkannten Ausschlüsse. Inhalte dieser Ordner werden nicht aufgelistet.
 
 - `.git` — Git internals
-- `saves` — Laufzeit-/lokale Daten (mit -IncludeRuntimeData einschließen)
 - `target` — generierte/build-Dateien (mit -IncludeGenerated einschließen)
-- `tmp` — Laufzeit-/lokale Daten (mit -IncludeRuntimeData einschließen)
-- `tools\output` — Skriptausgaben
+- `tmp` — temporärer Ordner (Inhalte werden nicht versioniert)
+- `tools\output` — Skriptausgaben (werden separat versioniert)
 
 ## Projekt- und Build-Konfiguration
 
@@ -32,35 +31,41 @@
 - Maven-Testverzeichnis: `test`
 
 Direkte Maven-Abhängigkeiten aus `pom.xml` (keine transitiven Abhängigkeiten):
-- `org.junit.jupiter:junit-jupiter:5.10.2` — test
 - `org.junit.jupiter:junit-jupiter-api:5.10.2` — test
 - `org.junit.jupiter:junit-jupiter-engine:5.10.2` — test
 - `org.junit.jupiter:junit-jupiter-params:5.10.2` — test
+- `org.junit.jupiter:junit-jupiter:5.10.2` — test
 
 ## Git-Status
 
 Git-Repository: erkannt (lokaler Pfad aus Datenschutzgründen ausgelassen)
 Branch: master
-HEAD: 66694bc kommentare in fast access added und ver├ñnderte scripts getestet
-Working-tree entries: 5
+HEAD: a5be3b2 some changes
+Working-tree entries: 8
 ```text
+ M .gitignore
  M docs/testing.md
+D  "tmp/Aufzeichnung 2026-10-01 214952.mp4"
  M tools/README.md
- M "tools/script fast access.txt"
- M tools/scripts/Run-Coverage.ps1
-?? tools/scripts/Update-TestRuntimeHistory.ps1
+ M tools/output/context-report.md
+ M tools/scripts/New-ContextReport.ps1
+?? saves/
+?? tmp/
 ```
 
 ## Dateitypen
 
 | Endung | Anzahl | Gesamtgröße (MiB) |
 |---|---:|---:|
+| `.bin` | 2 | 1.32 |
 | `.gitignore` | 2 | 0 |
+| `.gitkeep` | 1 | 0 |
 | `.ico` | 1 | 0.08 |
 | `.java` | 586 | 1.76 |
 | `.js` | 2 | 0.01 |
-| `.json` | 1 | 0 |
-| `.md` | 5 | 0.02 |
+| `.json` | 10 | 0 |
+| `.log` | 2 | 0.08 |
+| `.md` | 5 | 0.03 |
 | `.properties` | 1 | 0 |
 | `.ps1` | 8 | 0.06 |
 | `.txt` | 1 | 0 |
@@ -72,7 +77,9 @@ Working-tree entries: 5
 
 | Größe (MiB) | Pfad |
 |---:|---|
+| 1.32 | `saves\networkdata\oui_cache.bin` |
 | 0.08 | `src\main\resources\icon.ico` |
+| 0.06 | `saves\logs\debug.log` |
 | 0.02 | `test\networktool\logic\ScanInfraTest.java` |
 | 0.02 | `.idea\workspace.xml` |
 | 0.02 | `tools\scripts\New-ContextReport.ps1` |
@@ -80,6 +87,7 @@ Working-tree entries: 5
 | 0.02 | `tools\scripts\New-CoverageChart.ps1` |
 | 0.01 | `src\main\java\networktool\security\UserAuth.java` |
 | 0.01 | `test\networktool\filter\FilterTest.java` |
+| 0.01 | `saves\logs\audit.log` |
 | 0.01 | `test\main\java\networktool\storage\JsonHelperFuzzTest.java` |
 | 0.01 | `src\main\java\networktool\logic\analysis\os\OsBannerAnalyzer.java` |
 | 0.01 | `test\main\java\networktool\gui\map\NetworkMapTest.java` |
@@ -89,9 +97,6 @@ Working-tree entries: 5
 | 0.01 | `test\networktool\security\SecurityTest.java` |
 | 0.01 | `test\main\java\networktool\gui\map\MapTopologyTest.java` |
 | 0.01 | `test\main\java\networktool\security\AuditLoggerTest.java` |
-| 0.01 | `src\main\java\networktool\gui\core\GuiMenuHandler.java` |
-| 0.01 | `pom.xml` |
-| 0.01 | `test\main\java\networktool\logic\analysis\os\OsProbeUdpTest.java` |
 
 ## Java-Packages (61)
 
@@ -157,12 +162,20 @@ Working-tree entries: 5
 - `networktool.transfer`
 - `networktool.util`
 
-## Ordnerinventar (125)
+## Ordnerinventar (133)
 
 - `.github`
 - `.github\workflows`
 - `.idea`
 - `docs`
+- `saves`
+- `saves\cache`
+- `saves\cache\bandwidthHistory`
+- `saves\logs`
+- `saves\networkdata`
+- `saves\networkdata\savedHostsTags`
+- `saves\profiles`
+- `saves\userdata`
 - `src`
 - `src\main`
 - `src\main\java`
@@ -285,7 +298,7 @@ Working-tree entries: 5
 - `tools`
 - `tools\scripts`
 
-## Dateiinventar (619)
+## Dateiinventar (633)
 
 Quelltext-Inhalte werden absichtlich nicht ausgegeben. Größen sind Byte-genau; Zeitstempel sind lokale Dateisystem-Zeit.
 
@@ -294,7 +307,7 @@ Quelltext-Inhalte werden absichtlich nicht ausgegeben. Größen sind Byte-genau;
 | 700 | 2026-10-03 17:59 | `.github\copilot-instructions.md` |
 | 1275 | 2026-10-07 15:05 | `.github\workflows\qodana_code_quality.yml` |
 | 1260 | 2026-10-09 21:54 | `.github\workflows\test-quality.yml` |
-| 894 | 2026-10-09 21:54 | `.gitignore` |
+| 827 | 2026-10-10 00:08 | `.gitignore` |
 | 238 | 2026-09-21 10:30 | `.idea\.gitignore` |
 | 247 | 2026-09-21 10:30 | `.idea\codeInsightSettings.xml` |
 | 710 | 2026-10-03 17:59 | `.idea\compiler.xml` |
@@ -302,11 +315,25 @@ Quelltext-Inhalte werden absichtlich nicht ausgegeben. Größen sind Byte-genau;
 | 864 | 2026-10-03 17:59 | `.idea\jarRepositories.xml` |
 | 659 | 2026-09-21 10:30 | `.idea\misc.xml` |
 | 185 | 2026-09-21 10:30 | `.idea\vcs.xml` |
-| 17615 | 2026-10-09 23:11 | `.idea\workspace.xml` |
-| 4676 | 2026-10-09 22:54 | `docs\testing.md` |
+| 17919 | 2026-10-10 00:02 | `.idea\workspace.xml` |
+| 5416 | 2026-10-10 00:09 | `docs\testing.md` |
 | 10556 | 2026-10-03 17:59 | `pom.xml` |
 | 1943 | 2026-10-07 15:05 | `qodana.yaml` |
 | 6560 | 2026-10-09 21:54 | `README.md` |
+| 52 | 2026-10-09 23:49 | `saves\cache\sonifyConfig.json` |
+| 13600 | 2026-10-06 13:02 | `saves\logs\audit.log` |
+| 66372 | 2026-10-06 13:01 | `saves\logs\debug.log` |
+| 2 | 2026-10-09 23:49 | `saves\networkdata\mapSwitches.json` |
+| 1382958 | 2026-09-23 14:31 | `saves\networkdata\oui_cache.bin` |
+| 4 | 2026-09-21 10:56 | `saves\networkdata\saved_hosts.bin` |
+| 767 | 2026-10-09 23:49 | `saves\networkdata\savedHostsTags\__junit__FixImportCat.json` |
+| 442 | 2026-10-09 22:44 | `saves\networkdata\savedHostsTags\__junit__ImportCat.json` |
+| 496 | 2026-10-09 23:49 | `saves\networkdata\savedHostsTags\all.json` |
+| 259 | 2026-10-09 23:49 | `saves\networkdata\savedHostsTags\b___junit__ws_b_import.json` |
+| 240 | 2026-10-09 23:49 | `saves\networkdata\savedHostsTags\Import.json` |
+| 23 | 2026-10-09 23:49 | `saves\profiles\scanProfiles.json` |
+| 0 | 2026-10-10 00:08 | `saves\userdata\.gitkeep` |
+| 574 | 2026-09-23 15:31 | `saves\userdata\users.json` |
 | 1409 | 2026-09-28 12:53 | `src\main\java\networktool\cli\CliArgs.java` |
 | 1854 | 2026-09-28 12:53 | `src\main\java\networktool\cli\CliRunner.java` |
 | 883 | 2026-09-21 10:30 | `src\main\java\networktool\filter\ClipboardUtil.java` |
@@ -898,18 +925,18 @@ Quelltext-Inhalte werden absichtlich nicht ausgegeben. Größen sind Byte-genau;
 | 291 | 2026-10-03 17:59 | `test\resources\junit-platform.properties` |
 | 5675 | 2026-09-21 10:31 | `tools\clean_code_guide.md` |
 | 1751 | 2026-09-21 10:31 | `tools\clean_code_guide.yaml` |
-| 7282 | 2026-10-09 22:54 | `tools\README.md` |
+| 8151 | 2026-10-10 00:12 | `tools\README.md` |
 | 2731 | 2026-10-09 22:58 | `tools\script fast access.txt` |
 | 7229 | 2026-10-09 16:22 | `tools\scripts\chart-range.js` |
 | 1149 | 2026-10-09 14:28 | `tools\scripts\chart-tooltip.js` |
 | 7271 | 2026-10-09 21:54 | `tools\scripts\Find-DeadCode.ps1` |
 | 2141 | 2026-10-09 21:53 | `tools\scripts\Measure-TestRuntime.ps1` |
-| 16668 | 2026-10-09 21:55 | `tools\scripts\New-ContextReport.ps1` |
+| 16876 | 2026-10-10 00:09 | `tools\scripts\New-ContextReport.ps1` |
 | 15834 | 2026-10-09 21:54 | `tools\scripts\New-CoverageChart.ps1` |
 | 1090 | 2026-10-09 22:54 | `tools\scripts\Run-Coverage.ps1` |
 | 9569 | 2026-10-09 21:53 | `tools\scripts\Update-TestCoverageHistory.ps1` |
 | 9157 | 2026-10-09 22:58 | `tools\scripts\Update-TestRuntimeHistory.ps1` |
-| 5271 | 2026-10-09 21:53 | `tools\scripts\Verify-TestSuite.ps1` |
+| 5342 | 2026-10-10 00:00 | `tools\scripts\Verify-TestSuite.ps1` |
 
 ## Projekt-README
 
@@ -1151,8 +1178,11 @@ Vollsuite für Stabilität und Coverage aus, bevor er die Historie aktualisiert:
 Der Coverage-Runner aktualisiert dabei auch
 `tools/output/test_runtime_history.csv` und `tools/output/test_runtime_history.html`.
 Das HTML-Diagramm zeigt den Verlauf der bis zu zehn langsamsten Testklassen des
-neuesten Laufs. Die CSV enthält pro Lauf die Laufzeit jeder Testklasse; einzelne
-Testläufe können alternativ direkt erfasst werden:
+neuesten Laufs. Die CSV enthält pro Lauf die Laufzeit jeder Testklasse; beide
+Historien-Dateien sind versioniert und können nach einem `git pull` auch auf
+anderen Geräten eingesehen werden. Vor einem neuen Lauf sollte die aktuelle
+Historie synchronisiert werden; einzelne Testläufe können alternativ direkt
+erfasst werden:
 
 ```powershell
 .\tools\scripts\Update-TestRuntimeHistory.ps1
@@ -1160,18 +1190,24 @@ Testläufe können alternativ direkt erfasst werden:
 
 Der eigenständige Aufruf führt standardmäßig `mvn clean test` aus. Mit
 `-IncludeSlow` werden zusätzlich die `slow`-Tests ausgeführt; mit
-`-SkipTestRun` werden bereits vorhandene Surefire-Berichte verarbeitet. Die
-Laufzeit-History-Dateien sind lokale, regenerierbare Ausgaben und werden nicht
-eingecheckt.
+`-SkipTestRun` werden bereits vorhandene Surefire-Berichte verarbeitet.
+Änderungen an der Historie müssen committet und gepusht werden, damit sie auf
+anderen Geräten verfügbar sind. Alle Dateien unter `tools/output/` sind
+versioniert. Temporäre Maven-/Surefire-Berichte unter `target/` und
+maschinenlokale Build-Ausgaben bleiben ausgeschlossen.
 
 ## Automatisierte Absicherung
 
 GitHub Actions führt die Test-Suite bei Pushes und Pull Requests aus. Der
 geplante nächtliche Lauf wiederholt die Standard-Suite fünfmal und führt
-zusätzlich einmal alle `slow`-Tests aus. Surefire-Berichte und
-Zusammenfassungen aus `tools/output/test-results/` werden als Actions-Artefakt
-gespeichert. Nur ein wirklich ausgeführter und sauber beendeter Maven-Lauf
-zählt als bestanden.
+zusätzlich einmal alle `slow`-Tests aus. Surefire-Berichte und Zusammenfassungen
+werden als Actions-Artefakt gespeichert. Die versionierten Dateien unter
+`tools/output/` machen Zusammenfassungen, Laufzeit- und Coverage-Historien
+sowie den Kontextbericht geräteübergreifend verfügbar und halten vergangene
+Ergebnisse im Git-Verlauf fest. Testzusammenfassungen speichern Java-Version
+und Anbieter, aber keinen lokalen JDK-Installationspfad. Temporäre
+Surefire-Berichte unter `target/` bleiben ausgeschlossen. Nur ein wirklich
+ausgeführter und sauber beendeter Maven-Lauf zählt als bestanden.
 
 Die vorhandene JaCoCo-Prüfung bleibt Teil von `verify`. Für gezielte Prüfung,
 ob Tests auf Verhaltensänderungen reagieren, kann zusätzlich das bereits

@@ -32,7 +32,7 @@ $generatedDirectoryNames = @(
     'target', 'out', 'build', 'dist', 'node_modules', '.gradle',
     '.next', '.nuxt', '.pytest_cache', '__pycache__', 'coverage'
 )
-$runtimeDirectoryNames = @('saves', 'tmp', '.test-results')
+$runtimeDirectoryNames = @('tmp', '.test-results')
 $files = New-Object 'System.Collections.Generic.List[object]'
 $directories = New-Object 'System.Collections.Generic.List[string]'
 $excludedDirectories = New-Object 'System.Collections.Generic.List[object]'
@@ -51,7 +51,7 @@ while ($pendingDirectories.Count -gt 0) {
                     $scriptOutputDirectory,
                     [System.StringComparison]::OrdinalIgnoreCase
                 )) {
-                $reason = 'Skriptausgaben'
+                $reason = 'Skriptausgaben (werden separat versioniert)'
             }
             elseif ($item.Name -eq '.git') {
                 $reason = 'Git internals'
@@ -60,7 +60,12 @@ while ($pendingDirectories.Count -gt 0) {
                 $reason = 'generierte/build-Dateien (mit -IncludeGenerated einschließen)'
             }
             elseif (-not $IncludeRuntimeData -and $runtimeDirectoryNames -contains $item.Name) {
-                $reason = 'Laufzeit-/lokale Daten (mit -IncludeRuntimeData einschließen)'
+                $reason = if ($item.Name -eq 'tmp') {
+                    'temporärer Ordner (Inhalte werden nicht versioniert)'
+                }
+                else {
+                    'Laufzeit-/lokale Daten (mit -IncludeRuntimeData einschließen)'
+                }
             }
             elseif (($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
                 $reason = 'Verzeichnis-Link (wird aus Sicherheitsgründen nicht verfolgt)'

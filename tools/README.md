@@ -3,9 +3,9 @@
 Dieses Verzeichnis enthält Schnellzugriffe, Code-Guides und die Dokumentation
 für die Wartungs- und Testscripts des NetTool-Repositories. Die Scripts liegen
 in `scripts/`; ihre erzeugten Dateien werden standardmäßig in `output/`
-gespeichert. Temporäre Ergebnisse werden ignoriert; die bestehende Coverage-
-Historie bleibt versioniert. PowerShell-Scripts werden üblicherweise vom
-Repository-Root gestartet.
+gespeichert und versioniert, damit Testergebnisse und Verläufe zwischen
+Geräten geteilt und im Git-Verlauf nachverfolgt werden können.
+PowerShell-Scripts werden üblicherweise vom Repository-Root gestartet.
 
 ## Kontextbericht erzeugen
 
@@ -23,10 +23,9 @@ Vom Repository-Root:
 .\tools\scripts\New-ContextReport.ps1
 ```
 
-Standardmäßig entsteht `tools/output/context-report.md`. Die Datei wird in
-`.gitignore` ignoriert, weil sie ein veränderlicher,
-maschinenlokaler Snapshot ist und normalerweise nicht eingecheckt werden
-sollte. Der Bericht wird bei jedem Aufruf neu erstellt.
+Standardmäßig entsteht `tools/output/context-report.md`. Die Datei ist
+versioniert und wird bei jedem Aufruf neu erstellt; sie enthält Inventar-
+Metadaten und Git-Status zum Erstellungszeitpunkt.
 
 ### Parameter
 
@@ -35,7 +34,7 @@ sollte. Der Bericht wird bei jedem Aufruf neu erstellt.
 | `-RootPath <Pfad>` | Repository-Root relativ zum Skript | Projektordner, der inventarisiert wird. |
 | `-OutputPath <Pfad>` | `tools\output\context-report.md` | Vollständiger oder relativer (zum aktuellen Arbeitsverzeichnis) Zielpfad des Markdown-Berichts. |
 | `-IncludeGenerated` | aus | Nimmt typische generierte Ordner wie `target`, `build`, `dist`, `out`, `node_modules` und Cache-Verzeichnisse in die Inventarisierung auf. |
-| `-IncludeRuntimeData` | aus | Nimmt lokale Laufzeitordner wie `saves`, `tmp` und `.test-results` in die Inventarisierung auf. `tools/output/` bleibt ausgeschlossen. |
+| `-IncludeRuntimeData` | aus | Nimmt temporäre Laufzeitordner wie `tmp` und `.test-results` in die Inventarisierung auf. `saves/` ist standardmäßig enthalten. `tools/output/` bleibt als Ausgabeordner des Berichts ausgeschlossen. |
 | `-TopLargeFiles <1..100>` | `20` | Anzahl der größten erfassten Dateien im Größenüberblick. |
 
 Beispiele:
@@ -82,13 +81,16 @@ Property dort deklariert ist.
 ### Umfang und Datenschutz
 
 `.git`-Interna und Verzeichnis-Links werden immer ausgelassen. Standardmäßig
-werden typische Build-/Cache-Verzeichnisse und lokale Laufzeitdaten nicht
-durchlaufen. Dadurch gelangen beispielsweise lokale Konfigurationen, Logs,
-gespeicherte Netzwerkdaten und große generierte Test-/Coverage-Ausgaben nicht
-ungefragt in den Bericht. Die ausgeschlossenen Verzeichnisse werden mit ihrem
-Namen und dem Grund im Bericht festgehalten. Mit den beiden `Include`-
-Schaltern lässt sich die jeweilige Gruppe ausdrücklich aufnehmen; `.git`
-bleibt immer ausgeschlossen.
+werden typische Build-/Cache-Verzeichnisse und temporäre Laufzeitdaten nicht
+durchlaufen. `saves/` und `tools/output/` sind im Git versioniert; der
+Kontextbericht listet `saves/` mit auf, lässt aber `tools/output/` aus, um
+seine eigenen Ausgaben nicht in das Inventar aufzunehmen. Es gibt keine
+persönlichen Benutzerprofile zum Teilen; `saves/userdata/users.json` ist ein
+lokaler Zugangsdaten-Speicher für die optionale Admin-Freischaltung und
+enthält Passwort-Hashes. Diese Datei bleibt deshalb absichtlich aus Git
+ausgeschlossen. `tmp/` bleibt im Repository leer; Inhalte darin werden
+ignoriert. Die ausgeschlossenen Verzeichnisse werden mit ihrem Namen und
+Grund im Bericht festgehalten. `.git` bleibt immer ausgeschlossen.
 
 Ein vollständiges Dateiinventar kann selbst umfangreich sein. Für eine
 kleinere Anfrage an einen Coding-Assistenten kann man den Bericht als Wegweiser

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "network": "__junit__ImportCat",
+  "prefix": "",
+  "hosts": [
+    {
+      "ip": "172.16.0.2",
+      "hostname": "test.eintrag.2",
+      "os": "Linux",
+      "savedAt": "2026-09-21 11:35:42",
+      "ports": {},
+      "notes": ""
+    },
+    {
+      "ip": "172.16.0.1",
+      "hostname": "test.eintrag.1",
+      "os": "Linux",
+      "savedAt": "2026-09-21 11:35:42",
+      "ports": {},
+      "notes": "note"
+    }
+  ]
+}
