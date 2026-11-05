@@ -87,16 +87,21 @@ saved scan profiles, and `--profiles-json` emits their names and CIDRs as JSON.
 Both are read-only local operations and send no network traffic. Active scans
 are intentionally not available in headless CLI mode.
 
-Security findings include their detection source, local observation time, and
-an evidence-confidence label. Confidence describes how directly the evidence
+Security findings are kept in `.nettool/networkdata/security-findings.json`
+across application restarts. The panel supports open/resolved states and
+explicit deletion of the local history. Findings include their detection
+source, local observation time, and an evidence-confidence label. Confidence describes how directly the evidence
 supports a finding, not its severity: certificate expiry and a successful FTP
 anonymous login are marked confirmed, while a local banner-to-CVE match is
 low-confidence because a matching banner alone does not prove a vulnerability.
 HTTP 200 responses are medium-confidence evidence, not proof by themselves.
-Findings are kept in memory for the current application session and can be
-explicitly exported as a semicolon-delimited CSV from the Security-Findings
-panel. The export includes evidence metadata and is written only to the
-user-selected location.
+Findings can be exported as a semicolon-delimited CSV from the Security-Findings
+panel. The export includes evidence metadata and state and is written only to
+the user-selected location. CIDR scans validate IPv4 ranges and refuse ranges larger than 65,534 hosts;
+scan profiles show the targets and estimated size
+before execution. The latest ten completed scans are stored locally for
+comparison after restarting the application; interrupted or incomplete scans
+are not added to that history.
 
 ## Tests
 
@@ -146,7 +151,7 @@ property `-Dnettool.dataDir=<path>`:
 | Directory | Contents |
 |---|---|
 | `.nettool/userdata/` | User/account data |
-| `.nettool/networkdata/` | Saved networks, hosts, and related inventory |
+| `.nettool/networkdata/` | Saved networks, hosts, scan history, security findings, and related inventory |
 | `.nettool/profiles/` | Scan profiles |
 | `.nettool/logs/` | Audit and debug logs |
 | `.nettool/cache/` | Local caches and application settings |
@@ -180,7 +185,8 @@ The Java code is organized by responsibility. Important areas include:
 - `storage/` — persistence and local data formats.
 - `security/` — authentication and audit logging.
 - `model/` — shared application data structures.
-- `cli/` — the small command-line contract (`--help` and `--version`).
+- `cli/` — command-line options for help/version and read-only scan-profile
+  listing (`--help`, `--version`, `--profiles`, and `--profiles-json`).
 
 ## Development tools
 

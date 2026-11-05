@@ -138,7 +138,16 @@ public final class ScanScheduler {
                 if (Thread.currentThread().isInterrupted()) {
                     throw new InterruptedException();
                 }
-                all.addAll(NetworkScanner.scanCIDR(cidr));
+                var outcome = NetworkScanner.scanCIDROutcome(
+                        cidr, profile.ports.isEmpty() ? null : profile.ports);
+                if (outcome instanceof main.java.networktool.logic.ScanOutcome.Success<List<ScanResult>> success) {
+                    all.addAll(success.value());
+                } else {
+                    String reason = ((main.java.networktool.logic.ScanOutcome.Failure<List<ScanResult>>) outcome)
+                            .reason();
+                    if (Thread.currentThread().isInterrupted()) throw new InterruptedException(reason);
+                    throw new SocketException(reason);
+                }
             }
             return all;
         }

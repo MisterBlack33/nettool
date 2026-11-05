@@ -10,7 +10,9 @@ import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.scan.host.NetworkInfo;
 import main.java.networktool.logic.scan.host.NetworkScanner;
 import main.java.networktool.logic.scan.schedule.ScanHistory;
+import main.java.networktool.logic.ScanOutcome;
 import main.java.networktool.model.ScanResult;
+import main.java.networktool.util.IpValidator;
 
 import java.util.List;
 
@@ -29,20 +31,39 @@ public final class GuiScanActions {
 
     public static void handleCidrScan(GuiInputPanel input, GuiOutputPanel output,
                                       GuiTableRenderer tables, GuiMenuHandler handler) {
-        input.ask("CIDR (z.B. 192.168.1.0/24):", cidr -> handler.runAsync(() -> {
-            List<ScanResult> results = NetworkScanner.scanCIDR(cidr);
-            tables.showScanTable(results);
-            input.ask("Hostname-Filter Regex (leer = überspringen):", regex -> {
-                List<ScanResult> f1 = applyRegex(results, regex, tables);
-                input.ask("OS + Port-Filter (z.B. linux 22, leer = überspringen):", filter -> {
-                    List<ScanResult> f2 = applyOsPort(f1, filter, tables, output);
-                    input.ask("Als JSON speichern? (j/n):", yn -> {
-                        if (yn.equalsIgnoreCase("j") || yn.equalsIgnoreCase("y"))
-                            JsonExporter.save(f2, "scan_result.json");
+        input.ask("CIDR (z.B. 192.168.1.0/24):", cidr -> {
+            if (!IpValidator.isValidCidr(cidr)) {
+                output.appendText("Ungültiges IPv4-CIDR.\n", WARN);
+                return;
+            }
+            long hosts = NetworkScanner.estimatedHostCount(cidr);
+            if (hosts > NetworkScanner.MAX_SCAN_HOSTS) {
+                output.appendText("Scanbereich zu groß (" + hosts + " Hosts). Maximal "
+                        + NetworkScanner.MAX_SCAN_HOSTS + " Hosts pro Scan.\n", WARN);
+                return;
+            }
+            handler.runAsync(() -> {
+                ScanOutcome<List<ScanResult>> outcome = NetworkScanner.scanCIDROutcome(cidr);
+                if (!(outcome instanceof ScanOutcome.Success<List<ScanResult>> success)) {
+                    String reason = ((ScanOutcome.Failure<List<ScanResult>>) outcome).reason();
+                    if (Thread.currentThread().isInterrupted()) throw new InterruptedException(reason);
+                    output.appendText("Scan fehlgeschlagen: " + reason + "\n", WARN);
+                    return;
+                }
+                List<ScanResult> results = success.value();
+                tables.showScanTable(results);
+                input.ask("Hostname-Filter Regex (leer = überspringen):", regex -> {
+                    List<ScanResult> f1 = applyRegex(results, regex, tables);
+                    input.ask("OS + Port-Filter (z.B. linux 22, leer = überspringen):", filter -> {
+                        List<ScanResult> f2 = applyOsPort(f1, filter, tables, output);
+                        input.ask("Als JSON speichern? (j/n):", yn -> {
+                            if (yn.equalsIgnoreCase("j") || yn.equalsIgnoreCase("y"))
+                                JsonExporter.save(f2, "scan_result.json");
+                        });
                     });
                 });
             });
-        }));
+        });
     }
 
     public static void handleDebugCidrScan(GuiInputPanel input, GuiOutputPanel output,

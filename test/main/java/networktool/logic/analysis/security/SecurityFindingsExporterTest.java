@@ -29,9 +29,9 @@ class SecurityFindingsExporterTest {
 
         assertEquals(file, SecurityFindingsExporter.exportCsv(file, List.of(finding)));
         assertEquals(
-                "IP;Kategorie;Stufe;Konfidenz;Quelle;Beobachtet;Beleg / Detail\r\n"
+                "IP;Kategorie;Stufe;Konfidenz;Quelle;Beobachtet;Status;Beleg / Detail\r\n"
                         + "\"10.0.0.1\";\"KNOWN_VULNERABLE\";\"WARN\";\"LOW\";"
-                        + "\"CVE_BANNER_MATCH\";\"2026-10-29T17:00:00Z\";"
+                        + "\"CVE_BANNER_MATCH\";\"2026-10-29T17:00:00Z\";\"OPEN\";"
                         + "\"Banner says \"\"legacy; service\"\"\ncheck\"\r\n",
                 Files.readString(file, StandardCharsets.UTF_8));
     }

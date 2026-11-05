@@ -1,19 +1,19 @@
-﻿{
-    "Scope":  "full Maven test suite including slow tests",
-    "RunsRequested":  1,
-    "OperatingSystem":  "Microsoft Windows 10.0.26200",
-    "MavenJavaVersion":  "Java version: 26, vendor: Oracle Corporation",
-    "Results":  [
-                    {
-                        "Run":  1,
-                        "FinishedUtc":  "2026-11-05T09:10:29.8779441Z",
-                        "ElapsedSeconds":  175.01,
-                        "Tests":  2188,
-                        "Skipped":  1,
-                        "Failures":  0,
-                        "Errors":  0,
-                        "FlakyRetries":  0,
-                        "Reports":  311
-                    }
-                ]
+{
+  "Scope": "Maven test suite excluding slow tests",
+  "RunsRequested": 1,
+  "OperatingSystem": "Microsoft Windows 10.0.26200",
+  "MavenJavaVersion": "Java version: 21.0.11, vendor: Oracle Corporation",
+  "Results": [
+    {
+      "Run": 1,
+      "FinishedUtc": "2026-11-05T16:21:31.1917683Z",
+      "ElapsedSeconds": 85.8,
+      "Tests": 1919,
+      "Skipped": 1,
+      "Failures": 0,
+      "Errors": 0,
+      "FlakyRetries": 0,
+      "Reports": 264
+    }
+  ]
 }

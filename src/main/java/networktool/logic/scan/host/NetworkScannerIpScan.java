@@ -17,10 +17,18 @@ final class NetworkScannerIpScan {
 
     /** Erreichbarkeit per {@link HostAliveChecker} (ICMP + TCP): über VPN blockieren Firewalls oft reines ICMP. */
     static void scanIp(String ip, List<ScanResult> results) {
+        scanIp(ip, results, null);
+    }
+
+    static void scanIp(String ip, List<ScanResult> results, List<Integer> portsToScan) {
         try {
             if (!HostAliveChecker.isAlive(ip)) return;
+            if (Thread.currentThread().isInterrupted()) return;
             String hostname            = resolveHostname(ip);
-            Map<Integer, String> ports = PortScanner.scanSimple(ip, 0);
+            Map<Integer, String> ports = portsToScan == null
+                    ? PortScanner.scanSimple(ip, 0)
+                    : PortScanner.scanSimple(ip, 0, portsToScan);
+            if (Thread.currentThread().isInterrupted()) return;
             String os                  = OsDetector.detect(ip);
             results.add(new ScanResult(ip, hostname, ports, os));
             ScanSecurityHook.getInstance().onHost(ip, ports);

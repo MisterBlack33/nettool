@@ -84,12 +84,12 @@ final class NetworkHostScanOrchestrator {
             }
         });
 
-        persistToHistory(found);
         System.out.println("Scan abgeschlossen: " + found.size() + " Gerät(e) gefunden.");
         if (!complete) {
             return ScanOutcome.failure("unvollständig: " + progress.completed() + "/" + ips.size()
                     + " Host(s) verarbeitet");
         }
+        persistToHistory(found);
         return ScanOutcome.success(found);
     }
 

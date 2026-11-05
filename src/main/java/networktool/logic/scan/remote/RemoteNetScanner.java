@@ -6,6 +6,7 @@ import main.java.networktool.logic.scan.host.NetworkScanner;
 import main.java.networktool.model.HostResult;
 import main.java.networktool.model.ScanResult;
 import main.java.networktool.filter.TablePrinter;
+import main.java.networktool.logic.ScanOutcome;
 
 import java.util.*;
 
@@ -32,6 +33,11 @@ public final class RemoteNetScanner {
 
     public static List<ScanResult> scanCidr(String rawInput) {
         String cidr = normalizeCidr(rawInput);
+        String validationError = NetworkScanner.validateCidr(cidr);
+        if (validationError != null) {
+            System.out.println("  ✕ " + validationError);
+            return Collections.emptyList();
+        }
         printBox("Fremdnetz-Scan: " + cidr);
 
         String gw = RemoteNetGateway.detectDefaultGateway();
@@ -47,16 +53,28 @@ public final class RemoteNetScanner {
         System.out.printf("  ✔ Erreichbar  (Probes: %d/%d  ~%d ms)%n",
                 reach.respondedProbes, RemoteNetProbe.PROBE_COUNT, reach.avgMs);
 
-        List<ScanResult> results = NetworkScanner.scanCIDR(cidr);
+        ScanOutcome<List<ScanResult>> outcome = NetworkScanner.scanCIDROutcome(cidr);
+        if (!(outcome instanceof ScanOutcome.Success<List<ScanResult>> success)) {
+            System.out.println("  ✕ " + ((ScanOutcome.Failure<List<ScanResult>>) outcome).reason());
+            return Collections.emptyList();
+        }
+        List<ScanResult> results = success.value();
         TablePrinter.print(results);
         return results;
     }
 
     public static List<HostResult> scanMultiple(List<String> rawInputs) {
-        List<String> cidrs = rawInputs.stream()
-                .map(RemoteNetScanner::normalizeCidr)
-                .filter(Objects::nonNull)
-                .toList();
+        List<String> cidrs = new ArrayList<>();
+        for (String rawInput : rawInputs) {
+            String cidr = normalizeCidr(rawInput);
+            String validationError = NetworkScanner.validateCidr(cidr);
+            if (validationError != null) {
+                System.out.println("  ✕ " + cidr + " übersprungen: " + validationError);
+                continue;
+            }
+            cidrs.add(cidr);
+        }
+        if (cidrs.isEmpty()) return Collections.emptyList();
 
         printBox("Multi-Netz-Scan: " + cidrs.size() + " Netzwerk(e)");
         String gw = RemoteNetGateway.detectDefaultGateway();

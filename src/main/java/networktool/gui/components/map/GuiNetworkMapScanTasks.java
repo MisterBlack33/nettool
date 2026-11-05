@@ -7,6 +7,7 @@ import main.java.networktool.gui.map.*;
 import main.java.networktool.logic.scan.schedule.LastScanCache;
 import main.java.networktool.logic.scan.host.NetworkScanner;
 import main.java.networktool.logic.scan.host.SubnetDetector;
+import main.java.networktool.logic.ScanOutcome;
 import main.java.networktool.model.ScanResult;
 
 import javax.swing.*;
@@ -48,7 +49,13 @@ final class GuiNetworkMapScanTasks {
                 String mainCidr = cidrs.getFirst();
                 System.out.println("[GuiNetworkMap] Starte Quick Scan für: " + mainCidr);
 
-                List<ScanResult> results = NetworkScanner.scanCIDR(mainCidr);
+                ScanOutcome<List<ScanResult>> outcome = NetworkScanner.scanCIDROutcome(mainCidr);
+                if (!(outcome instanceof ScanOutcome.Success<List<ScanResult>> success)) {
+                    LOG.warning("Quick Scan fehlgeschlagen: "
+                            + ((ScanOutcome.Failure<List<ScanResult>>) outcome).reason());
+                    return;
+                }
+                List<ScanResult> results = success.value();
 
                 if (!results.isEmpty()) {
                     LastScanCache.updateFromScanResults(results);

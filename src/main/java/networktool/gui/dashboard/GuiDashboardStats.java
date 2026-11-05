@@ -2,6 +2,7 @@ package main.java.networktool.gui.dashboard;
 
 import main.java.networktool.gui.panels.tags.HostTagStore;
 import main.java.networktool.logic.analysis.security.FindingsSourceRegistry;
+import main.java.networktool.logic.analysis.security.SecurityFinding;
 import main.java.networktool.logic.scan.schedule.ScanHistory;
 import main.java.networktool.storage.network.NetworkStore;
 
@@ -17,7 +18,9 @@ public final class GuiDashboardStats {
         String lastScan = ScanHistory.getInstance().getLast()
                 .map(ScanHistory.Entry::display)
                 .orElse("Noch kein Scan in dieser Session");
-        int findings = FindingsSourceRegistry.getAll().size();
+        int findings = (int) FindingsSourceRegistry.getAll().stream()
+                .filter(finding -> finding.status() == SecurityFinding.Status.OPEN)
+                .count();
         int favorites = HostTagStore.getInstance().favoriteCount();
         return new Snapshot(hosts, lastScan, findings, favorites);
     }

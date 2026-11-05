@@ -3,6 +3,7 @@ package main.java.networktool.gui.components.scan;
 import main.java.networktool.gui.core.GuiMenuHandler;
 import main.java.networktool.gui.panels.GuiInputPanel;
 import main.java.networktool.gui.panels.GuiOutputPanel;
+import main.java.networktool.logic.ScanOutcome;
 import main.java.networktool.logic.scan.host.NetworkScanner;
 import main.java.networktool.logic.scan.schedule.ScanDelta;
 import main.java.networktool.logic.scan.schedule.ScanHistory;
@@ -31,28 +32,50 @@ public final class GuiScanCompareActions {
                 JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
         if (choice < 0) return;
         if (choice == 1) {
-            input.ask("CIDR A (alt):", cidrA ->
-                    input.ask("CIDR B (neu):", cidrB -> handler.runAsync(() -> {
+            input.ask("CIDR A (alt):", cidrA -> {
+                if (!validateCidr(cidrA)) return;
+                input.ask("CIDR B (neu):", cidrB -> {
+                    if (!validateCidr(cidrB)) return;
+                    handler.runAsync(() -> {
                         AuditLogger.getInstance().log("SCAN_DELTA", cidrA + " vs " + cidrB);
-                        ScanDelta.compare(NetworkScanner.scanCIDR(cidrA),
-                                NetworkScanner.scanCIDR(cidrB), cidrA, cidrB);
-                    })));
+                        ScanDelta.compare(scan(cidrA), scan(cidrB), cidrA, cidrB);
+                    });
+                });
+            });
         } else {
-            input.ask("CIDR:", cidr -> handler.runAsync(() -> {
-                AuditLogger.getInstance().log("SCAN_DELTA_LIVE", cidr);
-                List<ScanResult> fresh = NetworkScanner.scanCIDR(cidr);
-                List<HostResult> saved = NetworkStore.getInstance().getAllHosts();
-                ScanDelta.compareHosts(saved, fresh.stream().map(r ->
-                                new HostResult(r.getIp(), r.getHostname(), r.getOsGuess())).toList(),
-                        "Gespeichert", "Aktuell");
-            }));
+            input.ask("CIDR:", cidr -> {
+                if (!validateCidr(cidr)) return;
+                handler.runAsync(() -> {
+                    AuditLogger.getInstance().log("SCAN_DELTA_LIVE", cidr);
+                    List<ScanResult> fresh = scan(cidr);
+                    List<HostResult> saved = NetworkStore.getInstance().getAllHosts();
+                    ScanDelta.compareHosts(saved, fresh.stream().map(r ->
+                                    new HostResult(r.getIp(), r.getHostname(), r.getOsGuess())).toList(),
+                            "Gespeichert", "Aktuell");
+                });
+            });
         }
+    }
+
+    private static boolean validateCidr(String cidr) {
+        String error = NetworkScanner.validateCidr(cidr);
+        if (error == null) return true;
+        JOptionPane.showMessageDialog(null, error, "Scanbereich ungültig", JOptionPane.WARNING_MESSAGE);
+        return false;
+    }
+
+    private static List<ScanResult> scan(String cidr) throws InterruptedException {
+        ScanOutcome<List<ScanResult>> outcome = NetworkScanner.scanCIDROutcome(cidr);
+        if (outcome instanceof ScanOutcome.Success<List<ScanResult>> success) return success.value();
+        String reason = ((ScanOutcome.Failure<List<ScanResult>>) outcome).reason();
+        if (Thread.currentThread().isInterrupted()) throw new InterruptedException(reason);
+        throw new IllegalStateException(reason);
     }
 
     public static void handleScanHistoryDelta(GuiOutputPanel output, GuiMenuHandler handler) {
         ScanHistory hist = ScanHistory.getInstance();
         if (hist.size() == 0) {
-            output.appendText("  Kein Scan in dieser Session.\n", FG_DIM);
+            output.appendText("  Keine gespeicherten Scans vorhanden.\n", FG_DIM);
             return;
         }
         String[] entries = new String[hist.size()];

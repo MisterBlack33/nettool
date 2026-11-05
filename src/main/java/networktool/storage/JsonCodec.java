@@ -27,6 +27,8 @@ public final class JsonCodec {
                     case '"' -> sb.append('"');
                     case '\\' -> sb.append('\\');
                     case '/' -> sb.append('/');
+                    case 'b' -> sb.append('\b');
+                    case 'f' -> sb.append('\f');
                     case 'n' -> sb.append('\n');
                     case 't' -> sb.append('\t');
                     case 'r' -> sb.append('\r');
@@ -96,11 +98,24 @@ public final class JsonCodec {
 
     public static String esc(String s) {
         if (s == null) return "";
-        return s.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "")
-                .replace("\t", "\\t");
+        StringBuilder escaped = new StringBuilder(s.length());
+        for (int i = 0; i < s.length(); i++) {
+            char character = s.charAt(i);
+            switch (character) {
+                case '"' -> escaped.append("\\\"");
+                case '\\' -> escaped.append("\\\\");
+                case '\b' -> escaped.append("\\b");
+                case '\f' -> escaped.append("\\f");
+                case '\n' -> escaped.append("\\n");
+                case '\r' -> escaped.append("\\r");
+                case '\t' -> escaped.append("\\t");
+                default -> {
+                    if (character < 0x20) escaped.append(String.format("\\u%04x", (int) character));
+                    else escaped.append(character);
+                }
+            }
+        }
+        return escaped.toString();
     }
 
     public static String nvl(String s, String fallback) {

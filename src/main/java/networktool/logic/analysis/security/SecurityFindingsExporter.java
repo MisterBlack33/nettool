@@ -10,7 +10,7 @@ import java.util.List;
 public final class SecurityFindingsExporter {
 
     private static final String HEADER =
-            "IP;Kategorie;Stufe;Konfidenz;Quelle;Beobachtet;Beleg / Detail";
+            "IP;Kategorie;Stufe;Konfidenz;Quelle;Beobachtet;Status;Beleg / Detail";
 
     private SecurityFindingsExporter() {}
 
@@ -23,6 +23,7 @@ public final class SecurityFindingsExporter {
                     .append(cell(finding.confidence().name())).append(';')
                     .append(cell(finding.source().name())).append(';')
                     .append(cell(finding.observedAt().toString())).append(';')
+                    .append(cell(finding.status().name())).append(';')
                     .append(cell(finding.detail())).append("\r\n");
         }
         Path parent = file.toAbsolutePath().getParent();

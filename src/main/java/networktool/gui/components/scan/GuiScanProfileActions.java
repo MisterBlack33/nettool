@@ -5,12 +5,16 @@ import main.java.networktool.gui.components.table.GuiTableRenderer;
 import main.java.networktool.gui.core.GuiMenuHandler;
 import main.java.networktool.gui.panels.GuiInputPanel;
 import main.java.networktool.gui.panels.GuiOutputPanel;
+import main.java.networktool.filter.ScanFilter;
+import main.java.networktool.logic.ScanOutcome;
 import main.java.networktool.logic.scan.host.NetworkInfo;
 import main.java.networktool.logic.scan.host.NetworkScanner;
-import main.java.networktool.logic.ports.PortScanner;
+import main.java.networktool.model.HostResult;
 import main.java.networktool.model.ScanProfile;
 import main.java.networktool.model.ScanResult;
 import main.java.networktool.security.AuditLogger;
+import main.java.networktool.storage.network.NetworkStore;
+import main.java.networktool.util.IpValidator;
 import main.java.networktool.storage.profile.ScanProfileStore;
 import main.java.networktool.util.StatusTags;
 
@@ -18,6 +22,8 @@ import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 import static main.java.networktool.theme.GuiTheme.*;
 
@@ -56,9 +62,19 @@ public final class GuiScanProfileActions {
         Object chosen = JOptionPane.showInputDialog(null, "Profil:", "Ausführen",
                 JOptionPane.QUESTION_MESSAGE, null, names, names[0]);
         if (chosen == null) return;
+        ScanProfile profile = ScanProfileStore.getInstance().get(chosen.toString()).orElse(null);
+        if (profile == null) return;
+        String preview = preview(profile);
+        if (preview == null) {
+            output.appendText("  " + StatusTags.FEHLER
+                    + " Profil enthält ungültige Ziele, Ports oder Filter.\n", WARN);
+            return;
+        }
+        if (JOptionPane.showConfirmDialog(null, preview + "\n\nScan starten?",
+                "Scan-Vorschau", JOptionPane.OK_CANCEL_OPTION, JOptionPane.INFORMATION_MESSAGE)
+                != JOptionPane.OK_OPTION) return;
         AuditLogger.getInstance().log("PROFILE_RUN", chosen.toString());
-        ScanProfileStore.getInstance().get(chosen.toString())
-                .ifPresent(p -> handler.runAsync(() -> runProfile(p, status, tables)));
+        handler.runAsync(() -> runProfile(profile, status, tables, output));
     }
 
     private static void deleteProfile(List<ScanProfile> profiles, GuiOutputPanel output) {
@@ -77,9 +93,16 @@ public final class GuiScanProfileActions {
             if (name.isBlank()) return;
             ScanProfile p = new ScanProfile(name.trim());
             input.ask("CIDRs (leer = lokal):", cidrs -> {
-                if (!cidrs.isBlank())
-                    Arrays.stream(cidrs.split(",")).map(String::trim)
-                            .filter(s -> !s.isBlank()).forEach(p.cidrs::add);
+                if (!cidrs.isBlank()) {
+                    List<String> targets = Arrays.stream(cidrs.split(",")).map(String::trim)
+                            .filter(s -> !s.isBlank()).toList();
+                    if (!validTargets(targets)) {
+                        output.appendText("  " + StatusTags.FEHLER
+                                + " Ungültige oder zu große Ziele; Profil nicht gespeichert.\n", WARN);
+                        return;
+                    }
+                    p.cidrs.addAll(targets);
+                }
                 input.ask("OS-Filter (leer = alle):", os -> {
                     p.osFilter = os.trim();
                     input.ask("Hostname-Filter (leer = alle):", hn -> {
@@ -97,19 +120,76 @@ public final class GuiScanProfileActions {
     }
 
     private static void runProfile(ScanProfile profile, GuiStatusBar status,
-                                   GuiTableRenderer tables) throws Exception {
+                                   GuiTableRenderer tables, GuiOutputPanel output) throws Exception {
         status.set("Profil: " + profile.name, ACCENT);
-        if (!profile.ports.isEmpty()) PortScanner.setActivePorts(profile.ports);
         if (profile.cidrs.isEmpty()) {
-            NetworkInfo.showMinimalInfo();
+            List<HostResult> hosts = NetworkInfo.scanWithFilterResults(profile.osFilter, profile.hnFilter);
+            if (profile.autoSave && !profile.category.isBlank()) {
+                for (HostResult host : hosts)
+                    NetworkStore.getInstance().save(host, profile.category);
+            }
         } else {
             List<ScanResult> all = new ArrayList<>();
             for (String cidr : profile.cidrs) {
-                if (Thread.currentThread().isInterrupted()) break;
-                all.addAll(NetworkScanner.scanCIDR(cidr));
+                if (Thread.currentThread().isInterrupted()) throw new InterruptedException();
+                ScanOutcome<List<ScanResult>> outcome = NetworkScanner.scanCIDROutcome(
+                        cidr, profile.ports.isEmpty() ? null : profile.ports);
+                if (outcome instanceof ScanOutcome.Success<List<ScanResult>> success) {
+                    all.addAll(success.value());
+                } else {
+                    String reason = ((ScanOutcome.Failure<List<ScanResult>>) outcome).reason();
+                    if (Thread.currentThread().isInterrupted()) throw new InterruptedException(reason);
+                    output.appendText("Profil-Scan fehlgeschlagen: " + reason + "\n", WARN);
+                    return;
+                }
             }
-            tables.showScanTable(all);
+            List<ScanResult> filtered = applyProfileFilters(all, profile);
+            tables.showScanTable(filtered);
+            if (profile.autoSave && !profile.category.isBlank()) {
+                for (ScanResult result : filtered) {
+                    NetworkStore.getInstance().save(new HostResult(result.getIp(), result.getHostname(),
+                            result.getOsGuess(), null, result.getOpenPorts(), ""), profile.category);
+                }
+            }
         }
-        if (!profile.ports.isEmpty()) PortScanner.setActivePorts(null);
+    }
+
+    private static List<ScanResult> applyProfileFilters(List<ScanResult> results, ScanProfile profile) {
+        List<ScanResult> filtered = results;
+        if (!profile.osFilter.isBlank())
+            filtered = ScanFilter.filterByOS(filtered, profile.osFilter);
+        if (!profile.hnFilter.isBlank())
+            filtered = ScanFilter.filterByHostnameRegex(filtered, profile.hnFilter);
+        return filtered;
+    }
+
+    static String preview(ScanProfile profile) {
+        if (profile.ports.stream().anyMatch(port -> port == null || port < 1 || port > 65_535))
+            return null;
+        try {
+            if (!profile.hnFilter.isBlank()) Pattern.compile(profile.hnFilter);
+        } catch (PatternSyntaxException e) {
+            return null;
+        }
+        if (profile.cidrs.isEmpty()) return "Ziel: lokales Netzwerk\nScanbereich: lokale Erkennung";
+        if (!validTargets(profile.cidrs)) return null;
+        long total = profile.cidrs.stream().mapToLong(NetworkScanner::estimatedHostCount).sum();
+        return "Ziel-CIDRs: " + String.join(", ", profile.cidrs)
+                + "\nGeschätzte Hosts: " + total
+                + "\nAktive Ports: " + (profile.cidrs.isEmpty() ? "lokale Erkennung"
+                : profile.ports.isEmpty() ? "Standard" : profile.ports.size())
+                + "\nOS-Filter: " + (profile.osFilter.isBlank() ? "keiner" : profile.osFilter)
+                + "\nHostname-Filter: " + (profile.hnFilter.isBlank() ? "keiner" : profile.hnFilter)
+                + "\nAuto-Save: " + (profile.autoSave ? profile.category : "aus");
+    }
+
+    private static boolean validTargets(List<String> cidrs) {
+        long total = 0;
+        for (String cidr : cidrs) {
+            if (!IpValidator.isValidCidr(cidr)) return false;
+            total += NetworkScanner.estimatedHostCount(cidr);
+            if (total > NetworkScanner.MAX_SCAN_HOSTS) return false;
+        }
+        return true;
     }
 }

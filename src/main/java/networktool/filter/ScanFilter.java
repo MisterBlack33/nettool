@@ -13,7 +13,7 @@ public final class ScanFilter {
     public static List<ScanResult> filterByOS(List<ScanResult> results, String os) {
         String lower = os.toLowerCase();
         return results.stream()
-                .filter(r -> r.getOsGuess().toLowerCase().contains(lower))
+                .filter(r -> r.getOsGuess() != null && r.getOsGuess().toLowerCase().contains(lower))
                 .collect(Collectors.toList());
     }
 
@@ -26,14 +26,14 @@ public final class ScanFilter {
     public static List<ScanResult> filterByHostnameRegex(List<ScanResult> results, String regex) {
         Pattern pattern = Pattern.compile(regex, Pattern.CASE_INSENSITIVE);
         return results.stream()
-                .filter(r -> pattern.matcher(r.getHostname()).find())
+                .filter(r -> r.getHostname() != null && pattern.matcher(r.getHostname()).find())
                 .collect(Collectors.toList());
     }
 
     public static List<ScanResult> filterCombined(List<ScanResult> results, String os, int port) {
         String lower = os.toLowerCase();
         return results.stream()
-                .filter(r -> r.getOsGuess().toLowerCase().contains(lower))
+                .filter(r -> r.getOsGuess() != null && r.getOsGuess().toLowerCase().contains(lower))
                 .filter(r -> r.getOpenPorts().containsKey(port))
                 .collect(Collectors.toList());
     }

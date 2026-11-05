@@ -26,7 +26,12 @@ public final class NetworkInfo {
     }
 
     public static void scanWithFilter(String osFilter, String hostnameFilter) throws Exception {
-        runScan(osFilter, hostnameFilter);
+        scanWithFilterResults(osFilter, hostnameFilter);
+    }
+
+    public static List<HostResult> scanWithFilterResults(String osFilter, String hostnameFilter)
+            throws Exception {
+        return runScan(osFilter, hostnameFilter);
     }
 
     // ── private ───────────────────────────────────────────────────────────
@@ -43,17 +48,17 @@ public final class NetworkInfo {
         }
     }
 
-    private static void runScan(String osFilter, String hostnameFilter) throws Exception {
+    private static List<HostResult> runScan(String osFilter, String hostnameFilter) throws Exception {
         if (testMode) {
             HostResultPrinter.print(List.of(),
                     HostResultFilter.buildLabel(osFilter, hostnameFilter));
-            return;
+            return List.of();
         }
 
         List<String> subnets = SubnetDetector.getAllSubnets();
         if (subnets.isEmpty()) {
             System.out.println("Kein gültiges IPv4-Subnetz gefunden.");
-            return;
+            return List.of();
         }
 
         System.out.printf("Scanne %d /24-Subnetz(e)...%n", subnets.size());
@@ -62,5 +67,6 @@ public final class NetworkInfo {
         List<HostResult> found = NetworkHostScanner.scan(subnets);
         List<HostResult> filtered = HostResultFilter.filter(found, osFilter, hostnameFilter);
         HostResultPrinter.print(filtered, HostResultFilter.buildLabel(osFilter, hostnameFilter));
+        return filtered;
     }
 }

@@ -31,6 +31,7 @@ class GuiSecurityFindingsPanelTest {
         assertArrayEquals(new Object[]{"192.168.10.5", SecurityFinding.Category.KNOWN_VULNERABLE,
                 SecurityFinding.Severity.CRITICAL, SecurityFinding.Confidence.LOW,
                 SecurityFinding.Source.CVE_BANNER_MATCH,
-                GuiSecurityFindingsPanel.formatObservedAt(finding.observedAt()), "Banner matches CVE entry"}, row);
+                GuiSecurityFindingsPanel.formatObservedAt(finding.observedAt()), SecurityFinding.Status.OPEN,
+                "Banner matches CVE entry"}, row);
     }
 }

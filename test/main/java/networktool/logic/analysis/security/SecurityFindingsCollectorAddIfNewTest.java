@@ -52,4 +52,13 @@ class SecurityFindingsCollectorAddIfNewTest {
         assertEquals(1, c.getAll().size());
         assertEquals(first.observedAt(), c.getAll().get(0).observedAt());
     }
+
+    @Test void addIfNew_reopensResolvedObservation() {
+        SecurityFinding finding = f("1.1.1.1");
+        c.add(finding);
+        c.setStatus(finding, SecurityFinding.Status.RESOLVED);
+
+        assertTrue(c.addIfNew(finding));
+        assertEquals(SecurityFinding.Status.OPEN, c.getAll().get(0).status());
+    }
 }

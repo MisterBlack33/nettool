@@ -12,13 +12,18 @@ import main.java.networktool.util.TableConfig;
 
 import javax.swing.*;
 import javax.swing.border.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.regex.Pattern;
 
 import static main.java.networktool.theme.GuiTheme.*;
 
@@ -56,7 +61,10 @@ public final class GuiSecurityFindingsPanel {
         } else {
             reload(model);
         }
-        JTable table = TableConfig.buildTable(model, new int[]{120, 150, 80, 100, 180, 150, 360});
+        JTable table = TableConfig.buildTable(model, new int[]{120, 150, 80, 100, 180, 150, 100, 360});
+        table.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(model);
+        table.setRowSorter(sorter);
 
         JScrollPane sp = new JScrollPane(table);
         sp.setPreferredSize(new Dimension(0, 220));
@@ -65,7 +73,7 @@ public final class GuiSecurityFindingsPanel {
 
         JPanel outer = new JPanel(new BorderLayout(0, 6));
         outer.setBackground(BG);
-        outer.add(buildToolbar(model), BorderLayout.NORTH);
+        outer.add(buildToolbar(model, table, sorter), BorderLayout.NORTH);
         outer.add(sp, BorderLayout.CENTER);
 
         JTextPane pane = output.getOutputPane();
@@ -78,35 +86,79 @@ public final class GuiSecurityFindingsPanel {
 
     private static DefaultTableModel buildModel() {
         return new DefaultTableModel(new Object[0][],
-                new String[]{"IP", "Kategorie", "Stufe", "Konfidenz", "Quelle", "Beobachtet", "Beleg / Detail"}) {
+                new String[]{"IP", "Kategorie", "Stufe", "Konfidenz", "Quelle", "Beobachtet", "Status", "Beleg / Detail"}) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
     }
 
-    private static JPanel buildToolbar(DefaultTableModel model) {
+    private static JPanel buildToolbar(DefaultTableModel model, JTable table,
+                                       TableRowSorter<DefaultTableModel> sorter) {
         JPanel bar = new JPanel(new FlowLayout(FlowLayout.LEFT, 6, 4));
         bar.setBackground(PANEL_BG);
 
         JTextField ipField = new JTextField(16);
         ipField.setFont(MONO_S);
+        JTextField filterField = new JTextField(12);
+        filterField.setToolTipText("Findings nach IP, Kategorie, Status oder Detail filtern");
+        filterField.getDocument().addDocumentListener(new DocumentListener() {
+            @Override public void insertUpdate(DocumentEvent e) { applyFilter(); }
+            @Override public void removeUpdate(DocumentEvent e) { applyFilter(); }
+            @Override public void changedUpdate(DocumentEvent e) { applyFilter(); }
+            private void applyFilter() {
+                String query = filterField.getText().trim();
+                sorter.setRowFilter(query.isEmpty() ? null
+                        : RowFilter.regexFilter("(?i)" + Pattern.quote(query)));
+            }
+        });
 
         JButton tlsBtn   = smallBtn("TLS prüfen");
         JButton credBtn  = smallBtn("Default-Login prüfen");
         JButton exportBtn = smallBtn("CSV exportieren");
-        JButton clearBtn = smallBtn("Leeren");
+        JButton resolveBtn = smallBtn("Status umschalten");
+        JButton clearBtn = smallBtn("Verlauf leeren");
 
         tlsBtn.addActionListener(e -> runTls(ipField.getText().trim(), model));
         credBtn.addActionListener(e -> runCredentialCheck(ipField.getText().trim(), model));
         exportBtn.addActionListener(e -> exportCsv());
-        clearBtn.addActionListener(e -> { SecurityFindingsCollector.getInstance().clear(); reload(model); });
+        resolveBtn.addActionListener(e -> updateSelectedStatus(table, model));
+        clearBtn.addActionListener(e -> clearHistory(model));
 
         bar.add(new JLabel("IP:"));
         bar.add(ipField);
+        bar.add(new JLabel("Filter:"));
+        bar.add(filterField);
         bar.add(tlsBtn);
         bar.add(credBtn);
         bar.add(exportBtn);
+        bar.add(resolveBtn);
         bar.add(clearBtn);
         return bar;
+    }
+
+    private static void updateSelectedStatus(JTable table, DefaultTableModel model) {
+        int[] selectedRows = table.getSelectedRows();
+        if (selectedRows.length == 0) return;
+        SecurityFindingsCollector collector = SecurityFindingsCollector.getInstance();
+        List<SecurityFinding> findings = collector.getAll();
+        for (int selectedRow : selectedRows) {
+            int row = table.convertRowIndexToModel(selectedRow);
+            if (row < findings.size()) {
+                SecurityFinding finding = findings.get(row);
+                SecurityFinding.Status next = finding.status() == SecurityFinding.Status.OPEN
+                        ? SecurityFinding.Status.RESOLVED : SecurityFinding.Status.OPEN;
+                collector.setStatus(row, next);
+            }
+        }
+        reload(model);
+    }
+
+    private static void clearHistory(DefaultTableModel model) {
+        if (JOptionPane.showConfirmDialog(null,
+                "Gesamte lokale Findings-Historie dauerhaft löschen?",
+                "Verlauf leeren", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE)
+                != JOptionPane.YES_OPTION) return;
+        SecurityFindingsCollector.getInstance().clear();
+        reload(model);
     }
 
     private static void exportCsv() {
@@ -162,7 +214,7 @@ public final class GuiSecurityFindingsPanel {
 
     static Object[] toRow(SecurityFinding finding) {
         return new Object[]{finding.ip(), finding.category(), finding.severity(), finding.confidence(),
-                finding.source(), formatObservedAt(finding.observedAt()), finding.detail()};
+                finding.source(), formatObservedAt(finding.observedAt()), finding.status(), finding.detail()};
     }
 
     static String formatObservedAt(Instant observedAt) {

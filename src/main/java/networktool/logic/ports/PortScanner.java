@@ -78,6 +78,16 @@ public final class PortScanner {
         }
     }
 
+    public static Map<Integer, String> scanSimple(String host, int timeoutMs, List<Integer> ports) {
+        int timeout = timeoutMs > 0 ? timeoutMs : TIMEOUT_FAST;
+        try {
+            return doScan(host, List.copyOf(ports), timeout, false);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return new ConcurrentHashMap<>();
+        }
+    }
+
     public static boolean isOpen(String host, int port, int timeoutMs) {
         return probePort(host, port, timeoutMs > 0 ? timeoutMs : TIMEOUT_LAN) == PortState.OPEN;
     }
@@ -115,8 +125,16 @@ public final class PortScanner {
         }
 
         exec.shutdown();
-        if (!exec.awaitTermination(timeout + 500L, TimeUnit.MILLISECONDS)) {
+        try {
+            if (!exec.awaitTermination(timeout + 500L, TimeUnit.MILLISECONDS)) {
+                futures.forEach(future -> future.cancel(true));
+                exec.shutdownNow();
+            }
+        } catch (InterruptedException e) {
+            futures.forEach(future -> future.cancel(true));
             exec.shutdownNow();
+            Thread.currentThread().interrupt();
+            throw e;
         }
         return results;
     }

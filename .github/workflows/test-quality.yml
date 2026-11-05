@@ -51,7 +51,7 @@ jobs:
       - name: Run platform-independent smoke tests
         run: >-
           mvn --batch-mode
-          -Dtest=CliArgsTest,CliRunnerTest,CIDRUtilsBoundaryTest,CIDRUtilsExtTest,CIDRUtilsPropertyTest,Ipv6AddressUtilsTest,JsonCodecFuzzTest,HostSchemaVersionTest,HostSchemaMigrationV2Test,SafeCommandTest,IpValidatorTest,PlatformUtilsTest,PlatformSupportOsTest,PlatformSupportPropertyTest
+          -Dtest=CliArgsTest,CliRunnerTest,          CIDRUtilsBoundaryTest,CIDRUtilsExtTest,CIDRUtilsPropertyTest,Ipv6AddressUtilsTest,JsonCodecFuzzTest,HostSchemaVersionTest,HostSchemaMigrationV2Test,SafeCommandTest,IpValidatorTest,NetworkScannerInputValidationTest,PlatformUtilsTest,PlatformSupportOsTest,PlatformSupportPropertyTest
           test
   test:
     runs-on: windows-latest
