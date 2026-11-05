@@ -5,6 +5,8 @@ import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.junit.jupiter.api.parallel.Isolated;
 
+import java.time.Instant;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @Isolated
@@ -34,4 +36,20 @@ class SecurityFindingsCollectorAddIfNewTest {
     @Test void addIfNew_duplicate_false() { c.addIfNew(f("1.1.1.1")); assertFalse(c.addIfNew(f("1.1.1.1"))); }
     @Test void addIfNew_null_false()      { assertFalse(c.addIfNew(null)); }
     @Test void addIfNew_differentIp_both() { c.addIfNew(f("1.1.1.1")); c.addIfNew(f("2.2.2.2")); assertEquals(2, c.getAll().size()); }
+
+    @Test void addIfNew_sameEvidenceAtDifferentTimes_isDuplicate() {
+        SecurityFinding first = new SecurityFinding("1.1.1.1", SecurityFinding.Category.TLS_CERT,
+                SecurityFinding.Severity.WARN, "certificate expires soon",
+                SecurityFinding.Source.TLS_CERT_INSPECTOR, SecurityFinding.Confidence.CONFIRMED,
+                Instant.parse("2026-10-29T12:00:00Z"));
+        SecurityFinding later = new SecurityFinding("1.1.1.1", SecurityFinding.Category.TLS_CERT,
+                SecurityFinding.Severity.WARN, "certificate expires soon",
+                SecurityFinding.Source.TLS_CERT_INSPECTOR, SecurityFinding.Confidence.CONFIRMED,
+                Instant.parse("2026-10-29T13:00:00Z"));
+
+        assertTrue(c.addIfNew(first));
+        assertFalse(c.addIfNew(later));
+        assertEquals(1, c.getAll().size());
+        assertEquals(first.observedAt(), c.getAll().get(0).observedAt());
+    }
 }

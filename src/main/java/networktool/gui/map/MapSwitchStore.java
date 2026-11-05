@@ -9,7 +9,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Persistiert manuell markierte Switch-IPs in saves/networkdata/mapSwitches.json.
+ * Persistiert manuell markierte Switch-IPs im NetTool-Datenverzeichnis.
  * Lädt beim Start automatisch.
  */
 public final class MapSwitchStore {

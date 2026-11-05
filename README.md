@@ -38,8 +38,10 @@ on a particular machine.
 - Java Development Kit (JDK) 21 or later.
 - Apache Maven 3.8.9 or later (the project is built with Maven).
 - A graphical desktop environment to use the Swing interface.
-- Windows is the primary tested environment; some network operations use
-  Windows PowerShell. Behavior on other operating systems may differ.
+- Windows is the supported and fully tested desktop platform. CI also compiles
+  the application and runs a targeted platform-independent smoke-test set on
+  Linux and macOS; network operations on those systems are not yet guaranteed.
+  Some features depend on Windows PowerShell and Windows networking APIs.
 
 The project uses Maven Compiler Plugin with Java release 21. JUnit 5 is used
 for tests; JaCoCo measures coverage.
@@ -55,9 +57,19 @@ mvn clean test
 # Package the executable JAR
 mvn package
 
+# Build a portable Windows package with an included Java runtime
+.\tools\scripts\Build-WindowsPackage.ps1
+
 # Start the graphical application
 java -jar target/nettool-0.8.12.jar
 ```
+
+The Windows packaging script requires JDK 21+ with `jpackage` and a built
+application JAR. It creates `target/dist/nettool-<version>-windows-x64.zip`,
+including a launcher and Java runtime; unzip it and start `NetTool\NetTool.exe`.
+Application data stays in the user's `.nettool` directory, separate from the
+package. CI builds and smoke-tests this package on Windows and publishes it as
+a workflow artifact.
 
 With the current Maven coordinates, the executable JAR is
 `target/nettool-0.8.12.jar`. To print the supported
@@ -66,11 +78,25 @@ command-line options or version:
 ```powershell
 java -jar target/nettool-0.8.12.jar --help
 java -jar target/nettool-0.8.12.jar --version
+java -jar target/nettool-0.8.12.jar --profiles
+java -jar target/nettool-0.8.12.jar --profiles-json
 ```
 
-Starting without arguments opens the graphical application. The CLI currently
-provides help and version output; it does **not** provide a headless scanning
-mode.
+Starting without arguments opens the graphical application. `--profiles` lists
+saved scan profiles, and `--profiles-json` emits their names and CIDRs as JSON.
+Both are read-only local operations and send no network traffic. Active scans
+are intentionally not available in headless CLI mode.
+
+Security findings include their detection source, local observation time, and
+an evidence-confidence label. Confidence describes how directly the evidence
+supports a finding, not its severity: certificate expiry and a successful FTP
+anonymous login are marked confirmed, while a local banner-to-CVE match is
+low-confidence because a matching banner alone does not prove a vulnerability.
+HTTP 200 responses are medium-confidence evidence, not proof by themselves.
+Findings are kept in memory for the current application session and can be
+explicitly exported as a semicolon-delimited CSV from the Security-Findings
+panel. The export includes evidence metadata and is written only to the
+user-selected location.
 
 ## Tests
 
@@ -110,20 +136,26 @@ workflow, CI behavior, and guidance for interpreting skipped tests.
 
 ## Data and local files
 
-At runtime, NetTool stores application data under `saves/` in the project
-directory:
+At runtime, NetTool stores application data in the current user's home
+directory under `.nettool/` (for example `%USERPROFILE%\.nettool` on Windows).
+The legacy project-local `saves/` directory is copied into this location on
+first startup; existing destination files are kept, and the old files are not
+deleted automatically. To use a different location, set the Java system
+property `-Dnettool.dataDir=<path>`:
 
 | Directory | Contents |
 |---|---|
-| `saves/userdata/` | User/account data |
-| `saves/networkdata/` | Saved networks, hosts, and related inventory |
-| `saves/profiles/` | Scan profiles |
-| `saves/logs/` | Audit and debug logs |
-| `saves/cache/` | Local caches and application settings |
+| `.nettool/userdata/` | User/account data |
+| `.nettool/networkdata/` | Saved networks, hosts, and related inventory |
+| `.nettool/profiles/` | Scan profiles |
+| `.nettool/logs/` | Audit and debug logs |
+| `.nettool/cache/` | Local caches and application settings |
 
 These files are local application state, not source code. Do not publish
 personal or sensitive network inventories, account data, logs, or backups.
-The `saves/` directory is ignored by Git.
+Runtime contents under the repository's `saves/` directory are ignored by Git;
+only an empty placeholder is retained. The ignore rule does not remove older
+copies from Git history.
 
 ## Repository layout
 

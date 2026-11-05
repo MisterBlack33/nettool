@@ -7,8 +7,9 @@ context-report.md
 .kotlin
 
 ### NetTool Laufzeitdaten ###
-# Gespeicherte Projekt-/Netzwerkdaten werden versioniert; Passwort-Hashes nicht.
-/saves/userdata/users.json
+# Laufzeitdaten können Zugangsdaten, Logs und private Netzwerk-Inventare enthalten.
+/saves/*
+!/saves/.gitkeep
 
 # tmp bleibt als leerer Ordner erhalten; temporäre Inhalte werden nicht versioniert.
 /tmp/*

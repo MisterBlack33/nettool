@@ -12,7 +12,7 @@ import javax.swing.*;
 
 /**
  * Einstiegspunkt der Anwendung.
- * CLI-Vertrag (--help/--version) siehe {@link CliArgs}/{@link CliRunner};
+ * CLI-Vertrag (--help/--version/--profiles) siehe {@link CliArgs}/{@link CliRunner};
  * ohne Argumente bzw. bei GUI_START läuft wie zuvor direkt in die GUI.
  */
 public final class Main {

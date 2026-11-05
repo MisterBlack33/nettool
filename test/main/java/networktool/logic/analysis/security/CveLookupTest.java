@@ -10,6 +10,8 @@ class CveLookupTest {
         var f = CveLookup.classify("1.1.1.1", "220 vsftpd 2.3.4 ready");
         assertTrue(f.isPresent());
         assertEquals(SecurityFinding.Category.KNOWN_VULNERABLE, f.get().category());
+        assertEquals(SecurityFinding.Source.CVE_BANNER_MATCH, f.get().source());
+        assertEquals(SecurityFinding.Confidence.LOW, f.get().confidence());
         assertTrue(f.get().detail().contains("CVE-2011-2523"));
     }
 

@@ -10,7 +10,7 @@ import java.util.*;
 
 /**
  * Speichert und lädt Scan-Profile als JSON.
- * Datei: saves/profiles/scanProfiles.json (siehe {@link StorageLocations}).
+ * Datei: profiles/scanProfiles.json im NetTool-Datenverzeichnis.
  * Singleton, thread-sicher.
  */
 public final class ScanProfileStore {

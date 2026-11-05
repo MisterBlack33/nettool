@@ -11,6 +11,48 @@ permissions:
   contents: read
 
 jobs:
+  package-windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Build application JAR
+        run: mvn --batch-mode -DskipTests package
+      - name: Build and smoke-test portable package
+        shell: pwsh
+        run: ./tools/scripts/Build-WindowsPackage.ps1
+      - name: Archive portable package
+        uses: actions/upload-artifact@v4
+        with:
+          name: nettool-windows-x64
+          path: target/dist/nettool-*-windows-x64.zip
+          if-no-files-found: error
+  cross-platform-smoke:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+      - name: Compile application and tests
+        run: mvn --batch-mode -DskipTests package
+      - name: Run platform-independent smoke tests
+        run: >-
+          mvn --batch-mode
+          -Dtest=CliArgsTest,CliRunnerTest,CIDRUtilsBoundaryTest,CIDRUtilsExtTest,CIDRUtilsPropertyTest,Ipv6AddressUtilsTest,JsonCodecFuzzTest,HostSchemaVersionTest,HostSchemaMigrationV2Test,SafeCommandTest,IpValidatorTest,PlatformUtilsTest,PlatformSupportOsTest,PlatformSupportPropertyTest
+          test
   test:
     runs-on: windows-latest
     timeout-minutes: 120

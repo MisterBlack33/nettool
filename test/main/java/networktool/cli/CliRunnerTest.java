@@ -1,9 +1,11 @@
 package main.java.networktool.cli;
 
+import main.java.networktool.model.ScanProfile;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -21,6 +23,52 @@ class CliRunnerTest {
         int code = CliRunner.run(CliArgs.parse(new String[]{"--version"}), new PrintStream(buf));
         assertEquals(CliRunner.EXIT_OK, code);
         assertTrue(buf.toString().contains("NetTool"));
+    }
+
+    @Test void profiles_printsNamesAndCidrsWithoutNetworkScan() {
+        ScanProfile profile = new ScanProfile("Home");
+        profile.cidrs.add("192.168.10.0/24");
+        ByteArrayOutputStream buf = new ByteArrayOutputStream();
+
+        int code = CliRunner.run(CliArgs.parse(new String[]{"--profiles"}),
+                new PrintStream(buf), () -> List.of(profile));
+
+        assertEquals(CliRunner.EXIT_OK, code);
+        assertTrue(buf.toString().contains("Home"));
+        assertTrue(buf.toString().contains("192.168.10.0/24"));
+    }
+
+    @Test void profiles_emptyPrintsHelpfulMessage() {
+        ByteArrayOutputStream buf = new ByteArrayOutputStream();
+
+        int code = CliRunner.run(CliArgs.parse(new String[]{"--profiles"}),
+                new PrintStream(buf), List::of);
+
+        assertEquals(CliRunner.EXIT_OK, code);
+        assertTrue(buf.toString().contains("Keine gespeicherten Scan-Profile"));
+    }
+
+    @Test void profiles_jsonEmitsValidEscapedJsonShape() {
+        ScanProfile profile = new ScanProfile("Home \"main\"\n");
+        profile.cidrs.add("192.168.10.0/24\\test");
+        ByteArrayOutputStream buf = new ByteArrayOutputStream();
+
+        int code = CliRunner.run(CliArgs.parse(new String[]{"--profiles-json"}),
+                new PrintStream(buf), () -> List.of(profile));
+
+        assertEquals(CliRunner.EXIT_OK, code);
+        assertEquals("[{\"name\":\"Home \\\"main\\\"\\n\",\"cidrs\":[\"192.168.10.0/24\\\\test\"]}]",
+                buf.toString().trim());
+    }
+
+    @Test void profiles_jsonEmptyListEmitsEmptyArray() {
+        ByteArrayOutputStream buf = new ByteArrayOutputStream();
+
+        int code = CliRunner.run(CliArgs.parse(new String[]{"--profiles-json"}),
+                new PrintStream(buf), List::of);
+
+        assertEquals(CliRunner.EXIT_OK, code);
+        assertEquals("[]", buf.toString().trim());
     }
 
     @Test void noArgs_signalsGuiStart() {

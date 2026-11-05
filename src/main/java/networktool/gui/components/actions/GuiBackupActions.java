@@ -14,7 +14,7 @@ import java.nio.file.Path;
 
 import static main.java.networktool.theme.GuiTheme.*;
 
-/** Test-Suite-Aktion "Backup/Restore" des saves/-Verzeichnisses (Menü-ID "45"). */
+/** Test-Suite-Aktion für Backup und Wiederherstellung des NetTool-Datenverzeichnisses. */
 public final class GuiBackupActions {
 
     private static final String BACKUP_DIR = "backups";
@@ -23,7 +23,7 @@ public final class GuiBackupActions {
 
     public static void handle(GuiInputPanel input, GuiOutputPanel output, GuiMenuHandler handler) {
         String[] options = {"Backup erstellen", "Backup wiederherstellen"};
-        int choice = JOptionPane.showOptionDialog(null, "saves/-Verzeichnis:", "Backup",
+        int choice = JOptionPane.showOptionDialog(null, "NetTool-Datenverzeichnis:", "Backup",
                 JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[0]);
         if (choice < 0) return;
         Path root = StorageLocations.root();

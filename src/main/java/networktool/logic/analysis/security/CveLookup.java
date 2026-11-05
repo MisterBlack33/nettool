@@ -5,6 +5,7 @@ import main.java.networktool.storage.JsonCodec;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +25,9 @@ public final class CveLookup {
         for (Entry e : ENTRIES) {
             if (banner.contains(e.pattern())) {
                 return Optional.of(new SecurityFinding(ip, SecurityFinding.Category.KNOWN_VULNERABLE,
-                        SecurityFinding.Severity.CRITICAL, e.cve() + ": " + e.desc()));
+                        SecurityFinding.Severity.CRITICAL, e.cve() + ": " + e.desc(),
+                        SecurityFinding.Source.CVE_BANNER_MATCH, SecurityFinding.Confidence.LOW,
+                        Instant.now()));
             }
         }
         return Optional.empty();

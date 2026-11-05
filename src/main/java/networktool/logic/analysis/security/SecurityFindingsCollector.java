@@ -31,10 +31,19 @@ public final class SecurityFindingsCollector implements FindingsSource {
     public boolean addIfNew(SecurityFinding finding) {
         if (finding == null) return false;
         synchronized (findings) {
-            if (findings.contains(finding)) return false;
+            if (findings.stream().anyMatch(existing -> sameObservation(existing, finding))) return false;
             findings.add(finding);
             return true;
         }
+    }
+
+    private static boolean sameObservation(SecurityFinding first, SecurityFinding second) {
+        return first.ip().equals(second.ip())
+                && first.category() == second.category()
+                && first.severity() == second.severity()
+                && first.detail().equals(second.detail())
+                && first.source() == second.source()
+                && first.confidence() == second.confidence();
     }
 
     @Override

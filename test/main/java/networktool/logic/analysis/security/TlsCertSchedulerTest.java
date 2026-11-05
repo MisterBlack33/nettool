@@ -68,7 +68,9 @@ class TlsCertSchedulerTest {
     @Test void stabilize_expired_and_selfSigned() {
         SecurityFinding expired = new SecurityFinding("1.1.1.1", SecurityFinding.Category.TLS_CERT,
                 SecurityFinding.Severity.CRITICAL, "Zertifikat abgelaufen seit 3 Tag(en)");
-        assertEquals("Zertifikat abgelaufen", TlsCertScheduler.stabilize(expired).detail());
+        SecurityFinding stable = TlsCertScheduler.stabilize(expired);
+        assertEquals("Zertifikat abgelaufen", stable.detail());
+        assertEquals(expired.observedAt(), stable.observedAt());
         SecurityFinding self = new SecurityFinding("1.1.1.1", SecurityFinding.Category.TLS_CERT,
                 SecurityFinding.Severity.WARN, "Self-signed Zertifikat: CN=x");
         assertSame(self, TlsCertScheduler.stabilize(self));

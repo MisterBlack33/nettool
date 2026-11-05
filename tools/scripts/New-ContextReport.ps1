@@ -32,7 +32,7 @@ $generatedDirectoryNames = @(
     'target', 'out', 'build', 'dist', 'node_modules', '.gradle',
     '.next', '.nuxt', '.pytest_cache', '__pycache__', 'coverage'
 )
-$runtimeDirectoryNames = @('tmp', '.test-results')
+$runtimeDirectoryNames = @('tmp', '.test-results', 'saves')
 $files = New-Object 'System.Collections.Generic.List[object]'
 $directories = New-Object 'System.Collections.Generic.List[string]'
 $excludedDirectories = New-Object 'System.Collections.Generic.List[object]'
@@ -192,11 +192,14 @@ if ($gitCommand) {
         if ($LASTEXITCODE -eq 0 -and $gitRoot.Count -gt 0) {
             $branch = @(& $gitCommand.Source branch --show-current 2>$null)
             $commit = @(& $gitCommand.Source log -1 --format='%h %s' 2>$null)
-            $status = @(& $gitCommand.Source status --short --untracked-files=normal 2>$null)
+            $status = @(
+                & $gitCommand.Source status --short --untracked-files=normal 2>$null |
+                    Where-Object { $_ -notmatch '(^|[\\/\s"])saves([\\/]|$)' }
+            )
             $gitLines += 'Git-Repository: erkannt (lokaler Pfad aus Datenschutzgründen ausgelassen)'
             if ($branch.Count -gt 0) { $gitLines += "Branch: $($branch[0])" }
             if ($commit.Count -gt 0) { $gitLines += "HEAD: $($commit[0])" }
-            $gitLines += "Working-tree entries: $($status.Count)"
+            $gitLines += "Working-tree entries (ohne saves/-Pfade): $($status.Count)"
             if ($status.Count -gt 0) {
                 $gitLines += '```text'
                 $gitLines += $status

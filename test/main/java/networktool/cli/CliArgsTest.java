@@ -32,6 +32,20 @@ class CliArgsTest {
         assertEquals(CliArgs.Command.VERSION, CliArgs.parse(new String[]{"-v"}).command);
     }
 
+    @Test void profiles_selectsReadOnlyProfilesCommand() {
+        assertEquals(CliArgs.Command.PROFILES, CliArgs.parse(new String[]{"--profiles"}).command);
+    }
+
+    @Test void profilesJson_selectsMachineReadableCommand() {
+        assertEquals(CliArgs.Command.PROFILES_JSON, CliArgs.parse(new String[]{"--profiles-json"}).command);
+    }
+
+    @Test void profilesCommandWithExtraArgument_isRejectedAsUnknown() {
+        CliArgs parsed = CliArgs.parse(new String[]{"--profiles", "--unexpected"});
+        assertEquals(CliArgs.Command.GUI, parsed.command);
+        assertTrue(parsed.hasUnknownArgs());
+    }
+
     @Test void unknownArg_keptAsGuiWithUnknownList() {
         CliArgs r = CliArgs.parse(new String[]{"--bogus"});
         assertEquals(CliArgs.Command.GUI, r.command);
@@ -51,6 +65,8 @@ class CliArgsTest {
     @Test void hasUnknownArgs_falseForHelpAndVersion() {
         assertFalse(CliArgs.parse(new String[]{"--help"}).hasUnknownArgs());
         assertFalse(CliArgs.parse(new String[]{"--version"}).hasUnknownArgs());
+        assertFalse(CliArgs.parse(new String[]{"--profiles"}).hasUnknownArgs());
+        assertFalse(CliArgs.parse(new String[]{"--profiles-json"}).hasUnknownArgs());
     }
 
     @Test void hasUnknownArgs_falseForEmptyGui() {

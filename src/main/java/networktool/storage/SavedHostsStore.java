@@ -10,7 +10,7 @@ import java.util.*;
 
 /**
  * Thread-sicherer Speicher für gespeicherte Hosts mit Datei-Persistenz (Binärformat).
- * Speicherort: saves/networkdata/saved_hosts.bin (siehe {@link StorageLocations}).
+ * Speicherort: networkdata/saved_hosts.bin im NetTool-Datenverzeichnis.
  */
 public final class SavedHostsStore {
 

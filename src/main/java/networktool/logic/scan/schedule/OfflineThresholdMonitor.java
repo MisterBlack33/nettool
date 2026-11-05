@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 
 /**
  * Meldet gespeicherte Hosts, die länger als eine Schwelle (Stunden) offline sind.
- * "Zuletzt gesehen" überlebt Neustarts (saves/cache/offlineTracker.tsv).
+ * "Zuletzt gesehen" überlebt Neustarts (cache/offlineTracker.tsv).
  * Jeder Alarm wird zusätzlich im Debug-Log persistiert.
  */
 public final class OfflineThresholdMonitor {

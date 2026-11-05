@@ -7,7 +7,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
 import java.util.*;
 
-/** Lädt/speichert {@code saves/networkdata/hostTags.json}. Package-private I/O für {@link HostTagStore}. */
+/** Package-private I/O für {@link HostTagStore}. */
 final class HostTagPersistence {
 
     private static final String FILE_NAME = "hostTags.json";

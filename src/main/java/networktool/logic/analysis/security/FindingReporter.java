@@ -13,7 +13,8 @@ final class FindingReporter {
     boolean report(SecurityFinding finding) {
         if (!sink.addIfNew(finding)) return false;
         AuditLogger.getInstance().log("SECURITY_ALERT_" + finding.category().name(),
-                finding.ip() + " " + finding.detail());
+                finding.ip() + " source=" + finding.source()
+                        + " confidence=" + finding.confidence() + " " + finding.detail());
         return true;
     }
 }

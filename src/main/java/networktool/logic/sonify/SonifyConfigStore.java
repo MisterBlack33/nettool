@@ -8,7 +8,7 @@ import java.nio.file.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/** Persistiert {@link SonifyConfig} über App-Neustarts hinweg (saves/cache/sonifyConfig.json). */
+/** Persistiert {@link SonifyConfig} über App-Neustarts hinweg im Cache. */
 public final class SonifyConfigStore {
 
     private static final String FILE_NAME = "sonifyConfig.json";

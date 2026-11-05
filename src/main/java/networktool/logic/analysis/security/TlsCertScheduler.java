@@ -63,7 +63,8 @@ public final class TlsCertScheduler {
     static SecurityFinding stabilize(SecurityFinding f) {
         if (f.detail().startsWith(SELF_SIGNED_PREFIX)) return f;
         String detail = f.severity() == SecurityFinding.Severity.CRITICAL ? EXPIRED_DETAIL : EXPIRING_DETAIL;
-        return new SecurityFinding(f.ip(), f.category(), f.severity(), detail);
+        return new SecurityFinding(f.ip(), f.category(), f.severity(), detail, f.source(), f.confidence(),
+                f.observedAt());
     }
 
     static List<String> savedTlsHosts() {

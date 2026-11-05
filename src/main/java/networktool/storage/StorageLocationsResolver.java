@@ -6,7 +6,7 @@ public final class StorageLocationsResolver {
 
     private StorageLocationsResolver() {}
 
-    /** Standard-Datenverzeichnis für Netzwerk-nahe Stores (saves/networkdata). */
+    /** Standard-Datenverzeichnis für Netzwerk-nahe Stores. */
     public static Path resolveDataDir() { return StorageLocations.networkData(); }
 
     public static String extractJsonStr(String json, String field) {

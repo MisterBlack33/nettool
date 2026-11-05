@@ -4,19 +4,20 @@
 
 ## Überblick
 
-- Erfasst am: 2026-10-10 00:12:31 +02:00
+- Erfasst am: 2026-10-28 22:09:14 +01:00
 - Projektordner: nettool
-- Dateien im erfassten Umfang: 633
-- Ordner im erfassten Umfang: 133
-- Java-Dateien: 586
+- Dateien im erfassten Umfang: 625
+- Ordner im erfassten Umfang: 125
+- Java-Dateien: 587
 - Erkannte Java-Packages: 61
-- Datenmenge der erfassten Dateien: 3.37 MiB
+- Datenmenge der erfassten Dateien: 3.08 MiB
 
 ### Umfang und Ausschlüsse
 
 `.git`-Interna und Verzeichnis-Links werden immer ausgelassen. Generierte Build-/Cache-Ordner sowie lokale Laufzeitdaten werden standardmäßig ausgelassen; die Liste zeigt die erkannten Ausschlüsse. Inhalte dieser Ordner werden nicht aufgelistet.
 
 - `.git` — Git internals
+- `saves` — Laufzeit-/lokale Daten (mit -IncludeRuntimeData einschließen)
 - `target` — generierte/build-Dateien (mit -IncludeGenerated einschließen)
 - `tmp` — temporärer Ordner (Inhalte werden nicht versioniert)
 - `tools\output` — Skriptausgaben (werden separat versioniert)
@@ -40,36 +41,48 @@ Direkte Maven-Abhängigkeiten aus `pom.xml` (keine transitiven Abhängigkeiten):
 
 Git-Repository: erkannt (lokaler Pfad aus Datenschutzgründen ausgelassen)
 Branch: master
-HEAD: a5be3b2 some changes
-Working-tree entries: 8
+HEAD: 160862e stuff
+Working-tree entries (ohne saves/-Pfade): 22
 ```text
+ M .github/workflows/test-quality.yml
  M .gitignore
- M docs/testing.md
-D  "tmp/Aufzeichnung 2026-10-01 214952.mp4"
+ M .idea/misc.xml
+ M README.md
+ M pom.xml
+ M src/main/java/networktool/gui/components/actions/GuiBackupActions.java
+ M src/main/java/networktool/gui/map/MapSwitchStore.java
+ M src/main/java/networktool/gui/panels/tags/HostTagPersistence.java
+ M src/main/java/networktool/logic/analysis/probe/BandwidthHistoryStore.java
+ M src/main/java/networktool/logic/scan/schedule/OfflineThresholdMonitor.java
+ M src/main/java/networktool/logic/sonify/SonifyConfigStore.java
+ M src/main/java/networktool/storage/BackupManager.java
+ M src/main/java/networktool/storage/SavedHostsStore.java
+ M src/main/java/networktool/storage/StorageLocations.java
+ M src/main/java/networktool/storage/StorageLocationsResolver.java
+ M src/main/java/networktool/storage/StorageUtils.java
+ M src/main/java/networktool/storage/profile/ScanProfileStore.java
  M tools/README.md
  M tools/output/context-report.md
  M tools/scripts/New-ContextReport.ps1
-?? saves/
-?? tmp/
+?? test/main/java/networktool/storage/StorageLocationsTest.java
+?? tools/scripts/Build-WindowsPackage.ps1
 ```
 
 ## Dateitypen
 
 | Endung | Anzahl | Gesamtgröße (MiB) |
 |---|---:|---:|
-| `.bin` | 2 | 1.32 |
 | `.gitignore` | 2 | 0 |
-| `.gitkeep` | 1 | 0 |
 | `.ico` | 1 | 0.08 |
-| `.java` | 586 | 1.76 |
+| `.java` | 587 | 1.72 |
 | `.js` | 2 | 0.01 |
-| `.json` | 10 | 0 |
-| `.log` | 2 | 0.08 |
+| `.json` | 1 | 0 |
+| `.log` | 4 | 1.14 |
 | `.md` | 5 | 0.03 |
 | `.properties` | 1 | 0 |
-| `.ps1` | 8 | 0.06 |
+| `.ps1` | 9 | 0.07 |
 | `.txt` | 1 | 0 |
-| `.xml` | 8 | 0.03 |
+| `.xml` | 8 | 0.02 |
 | `.yaml` | 2 | 0 |
 | `.yml` | 2 | 0 |
 
@@ -77,26 +90,26 @@ D  "tmp/Aufzeichnung 2026-10-01 214952.mp4"
 
 | Größe (MiB) | Pfad |
 |---:|---|
-| 1.32 | `saves\networkdata\oui_cache.bin` |
+| 0.56 | `replay_pid74832.log` |
+| 0.45 | `replay_pid77032.log` |
 | 0.08 | `src\main\resources\icon.ico` |
-| 0.06 | `saves\logs\debug.log` |
+| 0.07 | `hs_err_pid74832.log` |
+| 0.06 | `hs_err_pid77032.log` |
 | 0.02 | `test\networktool\logic\ScanInfraTest.java` |
-| 0.02 | `.idea\workspace.xml` |
 | 0.02 | `tools\scripts\New-ContextReport.ps1` |
 | 0.02 | `src\main\java\networktool\gui\panels\saved\GuiSavedHostsPanel.java` |
 | 0.02 | `tools\scripts\New-CoverageChart.ps1` |
-| 0.01 | `src\main\java\networktool\security\UserAuth.java` |
 | 0.01 | `test\networktool\filter\FilterTest.java` |
-| 0.01 | `saves\logs\audit.log` |
+| 0.01 | `src\main\java\networktool\security\UserAuth.java` |
 | 0.01 | `test\main\java\networktool\storage\JsonHelperFuzzTest.java` |
 | 0.01 | `src\main\java\networktool\logic\analysis\os\OsBannerAnalyzer.java` |
 | 0.01 | `test\main\java\networktool\gui\map\NetworkMapTest.java` |
 | 0.01 | `test\networktool\logic\LogicTest.java` |
 | 0.01 | `src\main\java\networktool\logic\analysis\os\OsProbeUdp.java` |
 | 0.01 | `src\main\java\networktool\logic\ports\BannerProtocolProbes.java` |
-| 0.01 | `test\networktool\security\SecurityTest.java` |
 | 0.01 | `test\main\java\networktool\gui\map\MapTopologyTest.java` |
-| 0.01 | `test\main\java\networktool\security\AuditLoggerTest.java` |
+| 0.01 | `test\networktool\security\SecurityTest.java` |
+| 0.01 | `.idea\workspace.xml` |
 
 ## Java-Packages (61)
 
@@ -162,20 +175,12 @@ D  "tmp/Aufzeichnung 2026-10-01 214952.mp4"
 - `networktool.transfer`
 - `networktool.util`
 
-## Ordnerinventar (133)
+## Ordnerinventar (125)
 
 - `.github`
 - `.github\workflows`
 - `.idea`
 - `docs`
-- `saves`
-- `saves\cache`
-- `saves\cache\bandwidthHistory`
-- `saves\logs`
-- `saves\networkdata`
-- `saves\networkdata\savedHostsTags`
-- `saves\profiles`
-- `saves\userdata`
 - `src`
 - `src\main`
 - `src\main\java`
@@ -298,645 +303,637 @@ D  "tmp/Aufzeichnung 2026-10-01 214952.mp4"
 - `tools`
 - `tools\scripts`
 
-## Dateiinventar (633)
+## Dateiinventar (625)
 
 Quelltext-Inhalte werden absichtlich nicht ausgegeben. Größen sind Byte-genau; Zeitstempel sind lokale Dateisystem-Zeit.
 
 | Größe (Bytes) | Geändert | Pfad |
 |---:|---|---|
-| 700 | 2026-10-03 17:59 | `.github\copilot-instructions.md` |
-| 1275 | 2026-10-07 15:05 | `.github\workflows\qodana_code_quality.yml` |
-| 1260 | 2026-10-09 21:54 | `.github\workflows\test-quality.yml` |
-| 827 | 2026-10-10 00:08 | `.gitignore` |
-| 238 | 2026-09-21 10:30 | `.idea\.gitignore` |
-| 247 | 2026-09-21 10:30 | `.idea\codeInsightSettings.xml` |
-| 710 | 2026-10-03 17:59 | `.idea\compiler.xml` |
-| 431 | 2026-09-21 10:30 | `.idea\encodings.xml` |
-| 864 | 2026-10-03 17:59 | `.idea\jarRepositories.xml` |
-| 659 | 2026-09-21 10:30 | `.idea\misc.xml` |
-| 185 | 2026-09-21 10:30 | `.idea\vcs.xml` |
-| 17919 | 2026-10-10 00:02 | `.idea\workspace.xml` |
-| 5416 | 2026-10-10 00:09 | `docs\testing.md` |
-| 10556 | 2026-10-03 17:59 | `pom.xml` |
-| 1943 | 2026-10-07 15:05 | `qodana.yaml` |
-| 6560 | 2026-10-09 21:54 | `README.md` |
-| 52 | 2026-10-09 23:49 | `saves\cache\sonifyConfig.json` |
-| 13600 | 2026-10-06 13:02 | `saves\logs\audit.log` |
-| 66372 | 2026-10-06 13:01 | `saves\logs\debug.log` |
-| 2 | 2026-10-09 23:49 | `saves\networkdata\mapSwitches.json` |
-| 1382958 | 2026-09-23 14:31 | `saves\networkdata\oui_cache.bin` |
-| 4 | 2026-09-21 10:56 | `saves\networkdata\saved_hosts.bin` |
-| 767 | 2026-10-09 23:49 | `saves\networkdata\savedHostsTags\__junit__FixImportCat.json` |
-| 442 | 2026-10-09 22:44 | `saves\networkdata\savedHostsTags\__junit__ImportCat.json` |
-| 496 | 2026-10-09 23:49 | `saves\networkdata\savedHostsTags\all.json` |
-| 259 | 2026-10-09 23:49 | `saves\networkdata\savedHostsTags\b___junit__ws_b_import.json` |
-| 240 | 2026-10-09 23:49 | `saves\networkdata\savedHostsTags\Import.json` |
-| 23 | 2026-10-09 23:49 | `saves\profiles\scanProfiles.json` |
-| 0 | 2026-10-10 00:08 | `saves\userdata\.gitkeep` |
-| 574 | 2026-09-23 15:31 | `saves\userdata\users.json` |
-| 1409 | 2026-09-28 12:53 | `src\main\java\networktool\cli\CliArgs.java` |
-| 1854 | 2026-09-28 12:53 | `src\main\java\networktool\cli\CliRunner.java` |
-| 883 | 2026-09-21 10:30 | `src\main\java\networktool\filter\ClipboardUtil.java` |
-| 1846 | 2026-09-21 10:30 | `src\main\java\networktool\filter\HostResultFilter.java` |
-| 1894 | 2026-09-21 10:30 | `src\main\java\networktool\filter\HostResultPrinter.java` |
-| 1471 | 2026-09-21 10:30 | `src\main\java\networktool\filter\JsonExporter.java` |
-| 584 | 2026-09-21 10:30 | `src\main\java\networktool\filter\OutputRenderer.java` |
-| 518 | 2026-09-21 10:30 | `src\main\java\networktool\filter\OutputRendererRegistry.java` |
-| 1501 | 2026-09-21 10:30 | `src\main\java\networktool\filter\ScanFilter.java` |
-| 1272 | 2026-09-21 10:30 | `src\main\java\networktool\filter\TablePrinter.java` |
-| 2348 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\actions\GuiBackupActions.java` |
-| 5831 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\actions\GuiContextMenu.java` |
-| 7136 | 2026-10-03 17:59 | `src\main\java\networktool\gui\components\actions\GuiDataIOActions.java` |
-| 8003 | 2026-10-03 17:59 | `src\main\java\networktool\gui\components\actions\GuiDiagnosticsActions.java` |
-| 3221 | 2026-10-03 17:59 | `src\main\java\networktool\gui\components\actions\GuiOfflineMonitorActions.java` |
-| 4173 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\actions\GuiRemoteActions.java` |
-| 1185 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\actions\GuiTagFilterActions.java` |
-| 1266 | 2026-10-03 17:59 | `src\main\java\networktool\gui\components\actions\GuiWebhookActions.java` |
-| 2175 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\actions\NtfyTopicPrompt.java` |
-| 4089 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\actions\RemoteDeviceDialogs.java` |
-| 2394 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\BandwidthHistoryChart.java` |
-| 3646 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\GuiNetworkBar.java` |
-| 5857 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\GuiProgressBar.java` |
-| 9015 | 2026-09-23 15:49 | `src\main\java\networktool\gui\components\GuiSidebar.java` |
-| 1736 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\GuiStatusBar.java` |
-| 3329 | 2026-09-23 15:49 | `src\main\java\networktool\gui\components\map\GuiNetworkMap.java` |
-| 5235 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\map\GuiNetworkMapChrome.java` |
-| 3862 | 2026-09-23 15:49 | `src\main\java\networktool\gui\components\map\GuiNetworkMapScanTasks.java` |
-| 1841 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\PingGraphRenderer.java` |
-| 1896 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\scan\GuiArpSnifferActions.java` |
-| 2808 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\scan\GuiForeignNetActions.java` |
-| 5727 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\scan\GuiHopAnalysis.java` |
-| 1686 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\scan\GuiIpv6ScanActions.java` |
-| 2135 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\scan\GuiMapExportActions.java` |
-| 849 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\scan\GuiMapHeatmapActions.java` |
-| 1529 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\scan\GuiPdfExportActions.java` |
-| 5567 | 2026-09-23 15:49 | `src\main\java\networktool\gui\components\scan\GuiScanActions.java` |
-| 3745 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\scan\GuiScanCompareActions.java` |
-| 5722 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\scan\GuiScanProfileActions.java` |
-| 1178 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\scan\GuiScanTimelineActions.java` |
-| 4248 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\scan\GuiSchedulerActions.java` |
-| 4739 | 2026-10-03 17:59 | `src\main\java\networktool\gui\components\scan\GuiSecurityAutomationActions.java` |
-| 2219 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\scan\GuiSnmpActions.java` |
-| 3139 | 2026-10-03 17:59 | `src\main\java\networktool\gui\components\scan\GuiSonifyActions.java` |
-| 2926 | 2026-10-03 17:59 | `src\main\java\networktool\gui\components\scan\GuiTrafficSpectrogramActions.java` |
-| 2638 | 2026-10-03 17:59 | `src\main\java\networktool\gui\components\scan\GuiTrafficVisualizerActions.java` |
-| 4155 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\scan\GuiWolSchedulerActions.java` |
-| 9412 | 2026-09-23 15:49 | `src\main\java\networktool\gui\components\SidebarAccordion.java` |
-| 9291 | 2026-09-23 15:49 | `src\main\java\networktool\gui\components\SidebarAdminButton.java` |
-| 1520 | 2026-09-23 15:49 | `src\main\java\networktool\gui\components\SidebarDebugButton.java` |
-| 7656 | 2026-09-23 15:49 | `src\main\java\networktool\gui\components\SidebarPowerMenu.java` |
-| 6909 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\table\GuiSearchBar.java` |
-| 7502 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\table\GuiTableRenderer.java` |
-| 3063 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\table\SearchResultRow.java` |
-| 573 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\terminal\GuiSshTerminal.java` |
-| 2710 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\terminal\SshConnectionWorker.java` |
-| 6000 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\terminal\SshTerminalWindowBuilder.java` |
-| 1569 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\terminal\TerminalChrome.java` |
-| 1282 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\TrafficSpectrogramPanel.java` |
-| 2541 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\TrafficSpectrogramRenderer.java` |
-| 1290 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\TrafficVisualizerPanel.java` |
-| 2544 | 2026-09-21 10:30 | `src\main\java\networktool\gui\components\TrafficWaveformRenderer.java` |
-| 5392 | 2026-09-21 10:30 | `src\main\java\networktool\gui\core\GUI.java` |
-| 3988 | 2026-09-23 15:49 | `src\main\java\networktool\gui\core\GuiDebugMode.java` |
-| 995 | 2026-10-03 17:59 | `src\main\java\networktool\gui\core\GuiErrorPresenter.java` |
-| 3134 | 2026-09-21 10:30 | `src\main\java\networktool\gui\core\GuiFrameLayout.java` |
-| 473 | 2026-09-21 10:30 | `src\main\java\networktool\gui\core\GuiMenuContext.java` |
-| 3796 | 2026-09-23 15:49 | `src\main\java\networktool\gui\core\GuiMenuDispatch.java` |
-| 10837 | 2026-10-03 17:59 | `src\main\java\networktool\gui\core\GuiMenuHandler.java` |
-| 814 | 2026-09-21 10:30 | `src\main\java\networktool\gui\core\GuiMenuRegistry.java` |
-| 2064 | 2026-09-21 10:30 | `src\main\java\networktool\gui\core\GuiRestartFlow.java` |
-| 1807 | 2026-09-21 10:30 | `src\main\java\networktool\gui\core\GuiStartupTasks.java` |
-| 1366 | 2026-10-03 17:59 | `src\main\java\networktool\gui\core\GuiStatusReporter.java` |
-| 677 | 2026-09-23 15:49 | `src\main\java\networktool\gui\core\GuiTestSuiteMenus.java` |
-| 833 | 2026-10-03 17:59 | `src\main\java\networktool\gui\core\GuiToggleAction.java` |
-| 3163 | 2026-09-21 10:30 | `src\main\java\networktool\gui\core\GuiWindowActions.java` |
-| 1090 | 2026-09-23 15:49 | `src\main\java\networktool\gui\core\TestSuiteAutomationMenu.java` |
-| 1703 | 2026-09-21 10:30 | `src\main\java\networktool\gui\core\TestSuiteDataMenu.java` |
-| 923 | 2026-09-21 10:30 | `src\main\java\networktool\gui\core\TestSuiteReportingMenu.java` |
-| 952 | 2026-09-21 10:30 | `src\main\java\networktool\gui\core\TestSuiteScanningMenu.java` |
-| 678 | 2026-09-21 10:30 | `src\main\java\networktool\gui\core\TestSuiteSecurityMenu.java` |
-| 2862 | 2026-09-23 15:49 | `src\main\java\networktool\gui\dashboard\GuiDashboardPanel.java` |
-| 1085 | 2026-09-21 10:30 | `src\main\java\networktool\gui\dashboard\GuiDashboardStats.java` |
-| 1117 | 2026-09-21 10:30 | `src\main\java\networktool\gui\dashboard\GuiScanDeltaChart.java` |
-| 2558 | 2026-09-21 10:30 | `src\main\java\networktool\gui\dashboard\GuiScanDeltaChartRenderer.java` |
-| 1186 | 2026-09-21 10:30 | `src\main\java\networktool\gui\dashboard\GuiScanTimelineChart.java` |
-| 2187 | 2026-09-21 10:30 | `src\main\java\networktool\gui\dashboard\GuiScanTimelineChartRenderer.java` |
-| 2525 | 2026-09-21 10:30 | `src\main\java\networktool\gui\hostdetails\HostDetailRows.java` |
-| 3897 | 2026-09-21 10:30 | `src\main\java\networktool\gui\hostdetails\HostDetailsPanel.java` |
-| 4008 | 2026-09-21 10:30 | `src\main\java\networktool\gui\hostdetails\HostInfoTab.java` |
-| 2862 | 2026-09-21 10:30 | `src\main\java\networktool\gui\hostdetails\HostNotesTab.java` |
-| 5117 | 2026-09-21 10:30 | `src\main\java\networktool\gui\hostdetails\HostPingTab.java` |
-| 3841 | 2026-09-21 10:30 | `src\main\java\networktool\gui\hostdetails\HostPortsTab.java` |
-| 4346 | 2026-09-21 10:30 | `src\main\java\networktool\gui\hostdetails\HostSaveDialog.java` |
-| 1904 | 2026-09-21 10:30 | `src\main\java\networktool\gui\login\GuiLoginRateLimiter.java` |
-| 2027 | 2026-09-21 10:30 | `src\main\java\networktool\gui\login\LoginButtons.java` |
-| 1636 | 2026-09-21 10:30 | `src\main\java\networktool\gui\login\LoginChoiceScreen.java` |
-| 1861 | 2026-09-21 10:30 | `src\main\java\networktool\gui\login\LoginFormBuilder.java` |
-| 1700 | 2026-09-21 10:30 | `src\main\java\networktool\gui\login\LoginFormLayout.java` |
-| 2209 | 2026-09-21 10:30 | `src\main\java\networktool\gui\login\LoginInputs.java` |
-| 1468 | 2026-09-21 10:30 | `src\main\java\networktool\gui\login\LoginLockoutWatcher.java` |
-| 3786 | 2026-09-21 10:30 | `src\main\java\networktool\gui\login\LoginScreens.java` |
-| 1395 | 2026-09-21 10:30 | `src\main\java\networktool\gui\login\LoginShakeEffect.java` |
-| 5476 | 2026-09-21 10:30 | `src\main\java\networktool\gui\login\RegisterScreen.java` |
-| 8645 | 2026-09-21 10:30 | `src\main\java\networktool\gui\map\MapCanvas.java` |
-| 2850 | 2026-09-21 10:30 | `src\main\java\networktool\gui\map\MapContextMenu.java` |
-| 3841 | 2026-09-21 10:30 | `src\main\java\networktool\gui\map\MapDeviceSignatures.java` |
-| 4924 | 2026-09-21 10:30 | `src\main\java\networktool\gui\map\MapEdgeBuilder.java` |
-| 4593 | 2026-09-21 10:30 | `src\main\java\networktool\gui\map\MapExporter.java` |
-| 925 | 2026-09-21 10:30 | `src\main\java\networktool\gui\map\MapHeatmapRenderer.java` |
-| 717 | 2026-09-21 10:30 | `src\main\java\networktool\gui\map\MapHeatmapSettings.java` |
-| 5532 | 2026-09-21 10:30 | `src\main\java\networktool\gui\map\MapHopDiscovery.java` |
-| 3335 | 2026-09-21 10:30 | `src\main\java\networktool\gui\map\MapLayout.java` |
-| 2675 | 2026-09-21 10:30 | `src\main\java\networktool\gui\map\MapLegend.java` |
-| 4964 | 2026-09-23 15:49 | `src\main\java\networktool\gui\map\MapNodeCollector.java` |
-| 3947 | 2026-09-21 10:30 | `src\main\java\networktool\gui\map\MapNodeStyle.java` |
-| 5599 | 2026-09-21 10:30 | `src\main\java\networktool\gui\map\MapRenderer.java` |
-| 571 | 2026-09-21 10:30 | `src\main\java\networktool\gui\map\MapSnapshot.java` |
-| 2764 | 2026-09-21 10:30 | `src\main\java\networktool\gui\map\MapSwitchStore.java` |
-| 6929 | 2026-09-21 10:30 | `src\main\java\networktool\gui\map\MapTopology.java` |
-| 1835 | 2026-09-21 10:30 | `src\main\java\networktool\gui\map\MapTrafficHeatmap.java` |
-| 1339 | 2026-09-21 10:30 | `src\main\java\networktool\gui\map\MapTrafficLoad.java` |
-| 3547 | 2026-09-21 10:30 | `src\main\java\networktool\gui\notification\LocalToast.java` |
-| 1270 | 2026-09-21 10:30 | `src\main\java\networktool\gui\notification\NotificationListener.java` |
-| 3137 | 2026-09-21 10:30 | `src\main\java\networktool\gui\notification\NotificationTcpServer.java` |
-| 2468 | 2026-09-21 10:30 | `src\main\java\networktool\gui\notification\NtfyJsonParser.java` |
-| 5520 | 2026-09-21 10:30 | `src\main\java\networktool\gui\notification\NtfySubscriptionManager.java` |
-| 6264 | 2026-10-03 17:59 | `src\main\java\networktool\gui\notification\NtfySubscriptions.java` |
-| 5149 | 2026-09-21 10:30 | `src\main\java\networktool\gui\panels\audit\GuiAuditLegend.java` |
-| 7452 | 2026-09-21 10:30 | `src\main\java\networktool\gui\panels\audit\GuiAuditPanel.java` |
-| 4986 | 2026-09-21 10:30 | `src\main\java\networktool\gui\panels\audit\GuiAuditTable.java` |
-| 3347 | 2026-09-23 15:49 | `src\main\java\networktool\gui\panels\bandwidth\GuiBandwidthHistoryPanel.java` |
-| 4228 | 2026-09-21 10:30 | `src\main\java\networktool\gui\panels\GuiInputPanel.java` |
-| 2598 | 2026-09-21 10:30 | `src\main\java\networktool\gui\panels\GuiNetworkDialogs.java` |
-| 6130 | 2026-09-21 10:30 | `src\main\java\networktool\gui\panels\GuiOutputPanel.java` |
-| 2419 | 2026-09-21 10:30 | `src\main\java\networktool\gui\panels\OutputStreamRedirector.java` |
-| 4746 | 2026-09-21 10:30 | `src\main\java\networktool\gui\panels\privacy\GuiPrivacyPanel.java` |
-| 8222 | 2026-09-21 10:30 | `src\main\java\networktool\gui\panels\privacy\PrivacyNetworkActions.java` |
-| 2787 | 2026-09-21 10:30 | `src\main\java\networktool\gui\panels\privacy\PrivacyPanelStyle.java` |
-| 16505 | 2026-09-23 15:49 | `src\main\java\networktool\gui\panels\saved\GuiSavedHostsPanel.java` |
-| 3649 | 2026-09-21 10:30 | `src\main\java\networktool\gui\panels\saved\SavedHostsBulkActions.java` |
-| 2859 | 2026-09-21 10:30 | `src\main\java\networktool\gui\panels\saved\SavedHostsManualAdd.java` |
-| 3498 | 2026-09-21 10:30 | `src\main\java\networktool\gui\panels\saved\SavedHostsMoveMenu.java` |
-| 1518 | 2026-09-21 10:30 | `src\main\java\networktool\gui\panels\saved\SavedHostsStyle.java` |
-| 1364 | 2026-09-21 10:30 | `src\main\java\networktool\gui\panels\saved\SavedHostsTagFilter.java` |
-| 5785 | 2026-09-23 15:49 | `src\main\java\networktool\gui\panels\security\GuiSecurityFindingsPanel.java` |
-| 3233 | 2026-09-21 10:30 | `src\main\java\networktool\gui\panels\tags\HostTagPersistence.java` |
-| 2976 | 2026-09-21 10:30 | `src\main\java\networktool\gui\panels\tags\HostTagStore.java` |
-| 319 | 2026-09-21 10:30 | `src\main\java\networktool\gui\security\NoteDecryptionException.java` |
-| 4638 | 2026-09-28 12:53 | `src\main\java\networktool\gui\security\NoteEncryption.java` |
-| 684 | 2026-09-21 10:30 | `src\main\java\networktool\logging\DebugLogEntry.java` |
-| 1663 | 2026-09-21 10:30 | `src\main\java\networktool\logging\DebugLogFile.java` |
-| 2350 | 2026-09-21 10:30 | `src\main\java\networktool\logging\DebugLogger.java` |
-| 1582 | 2026-09-21 10:30 | `src\main\java\networktool\logging\LogEntry.java` |
-| 6186 | 2026-09-21 10:30 | `src\main\java\networktool\logging\LogFileBase.java` |
-| 8114 | 2026-10-03 17:59 | `src\main\java\networktool\logic\analysis\discovery\ArpMonitor.java` |
-| 3948 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\discovery\DhcpOptionAnalyzer.java` |
-| 8232 | 2026-10-03 17:59 | `src\main\java\networktool\logic\analysis\discovery\MdnsDiscovery.java` |
-| 5030 | 2026-10-03 17:59 | `src\main\java\networktool\logic\analysis\discovery\UpnpDiscovery.java` |
-| 2962 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\os\ExtendedOsDetector.java` |
-| 12470 | 2026-10-03 17:59 | `src\main\java\networktool\logic\analysis\os\OsBannerAnalyzer.java` |
-| 509 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\os\OsDetectionLogger.java` |
-| 8772 | 2026-10-03 17:59 | `src\main\java\networktool\logic\analysis\os\OsDetectionPipeline.java` |
-| 612 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\os\OsDetectionStepRunner.java` |
-| 2947 | 2026-10-03 17:59 | `src\main\java\networktool\logic\analysis\os\OsDetector.java` |
-| 5857 | 2026-10-03 17:59 | `src\main\java\networktool\logic\analysis\os\OsDetectorArp.java` |
-| 8728 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\os\OsDetectorHostname.java` |
-| 5386 | 2026-10-03 17:59 | `src\main\java\networktool\logic\analysis\os\OsDetectorPorts.java` |
-| 3415 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\os\OsFingerprint.java` |
-| 2182 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\os\OsParallelStepRunner.java` |
-| 4664 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\os\OsPortClassifier.java` |
-| 11842 | 2026-10-03 17:59 | `src\main\java\networktool\logic\analysis\os\OsProbeUdp.java` |
-| 1108 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\os\OsSignature.java` |
-| 313 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\os\ScanDepth.java` |
-| 2213 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\probe\BandwidthHistoryEntry.java` |
-| 3375 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\probe\BandwidthHistoryStore.java` |
-| 3716 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\probe\IcmpAnalyzer.java` |
-| 9548 | 2026-10-03 17:59 | `src\main\java\networktool\logic\analysis\probe\IpInspector.java` |
-| 9244 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\probe\OuiDatabase.java` |
-| 5694 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\probe\OuiUpdater.java` |
-| 9612 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\probe\PingMonitor.java` |
-| 2443 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\probe\PingUtil.java` |
-| 5132 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\probe\TracerouteRenderer.java` |
-| 3642 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\probe\TracerouteRunner.java` |
-| 2067 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\probe\VlanDetector.java` |
-| 3360 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\probe\WakeOnLan.java` |
-| 2051 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\security\CveLookup.java` |
-| 2969 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\security\DefaultCredentialProbe.java` |
-| 4721 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\security\DhcpDiscoverProbe.java` |
-| 1300 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\security\DhcpOfferTracker.java` |
-| 679 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\security\FindingReporter.java` |
-| 236 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\security\FindingsSource.java` |
-| 774 | 2026-10-03 17:59 | `src\main\java\networktool\logic\analysis\security\FindingsSourceRegistry.java` |
-| 1534 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\security\PeriodicJob.java` |
-| 2061 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\security\RogueDhcpDetector.java` |
-| 3041 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\security\ScanSecurityHook.java` |
-| 504 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\security\SecurityFinding.java` |
-| 1630 | 2026-10-03 17:59 | `src\main\java\networktool\logic\analysis\security\SecurityFindingsCollector.java` |
-| 2980 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\security\TlsCertInspector.java` |
-| 3133 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\security\TlsCertScheduler.java` |
-| 3704 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\snmp\BerReader.java` |
-| 757 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\snmp\BerTag.java` |
-| 2677 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\snmp\BerWriter.java` |
-| 2548 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\snmp\SnmpMessages.java` |
-| 2422 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\snmp\SnmpOid.java` |
-| 2614 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\snmp\SnmpPortTable.java` |
-| 289 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\snmp\SnmpProtocolException.java` |
-| 260 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\snmp\SnmpTransport.java` |
-| 190 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\snmp\SnmpVarBind.java` |
-| 2126 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\snmp\SnmpWalker.java` |
-| 1606 | 2026-09-21 10:30 | `src\main\java\networktool\logic\analysis\snmp\UdpSnmpTransport.java` |
-| 1130 | 2026-10-03 17:59 | `src\main\java\networktool\logic\error\ScanContext.java` |
-| 1389 | 2026-10-03 17:59 | `src\main\java\networktool\logic\error\ScanFailure.java` |
-| 5059 | 2026-10-03 17:59 | `src\main\java\networktool\logic\messaging\MessageDelivery.java` |
-| 2138 | 2026-10-03 17:59 | `src\main\java\networktool\logic\messaging\MessageDeliverySsh.java` |
-| 2501 | 2026-10-03 17:59 | `src\main\java\networktool\logic\messaging\MessageDeliveryWinRm.java` |
-| 5731 | 2026-10-03 17:59 | `src\main\java\networktool\logic\messaging\MessageSender.java` |
-| 3175 | 2026-10-03 17:59 | `src\main\java\networktool\logic\messaging\WebhookDelivery.java` |
-| 3209 | 2026-09-21 10:30 | `src\main\java\networktool\logic\ports\BannerGrabber.java` |
-| 11485 | 2026-10-03 17:59 | `src\main\java\networktool\logic\ports\BannerProtocolProbes.java` |
-| 3061 | 2026-09-21 10:30 | `src\main\java\networktool\logic\ports\BannerText.java` |
-| 6627 | 2026-10-03 17:59 | `src\main\java\networktool\logic\ports\PortScanner.java` |
-| 3039 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\host\ArpNeighborSource.java` |
-| 296 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\host\ArpSighting.java` |
-| 3123 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\host\ArpSniffer.java` |
-| 8173 | 2026-10-03 17:59 | `src\main\java\networktool\logic\scan\host\HostAliveChecker.java` |
-| 1938 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\host\Ipv6HostProbe.java` |
-| 2959 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\host\Ipv6HostRange.java` |
-| 2820 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\host\Ipv6NeighborSource.java` |
-| 2204 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\host\NetworkDiscoverySweep.java` |
-| 4188 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\host\NetworkHostArpResolver.java` |
-| 3101 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\host\NetworkHostnameResolver.java` |
-| 3394 | 2026-10-03 17:59 | `src\main\java\networktool\logic\scan\host\NetworkHostScanner.java` |
-| 7294 | 2026-10-03 17:59 | `src\main\java\networktool\logic\scan\host\NetworkHostScanOrchestrator.java` |
-| 2707 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\host\NetworkInfo.java` |
-| 3414 | 2026-10-03 17:59 | `src\main\java\networktool\logic\scan\host\NetworkScanner.java` |
-| 2046 | 2026-09-28 12:53 | `src\main\java\networktool\logic\scan\host\NetworkScannerIpScan.java` |
-| 3564 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\host\NetworkScannerV6.java` |
-| 3214 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\host\PingSweep.java` |
-| 3219 | 2026-10-03 17:59 | `src\main\java\networktool\logic\scan\host\ScanErrorClassifier.java` |
-| 2455 | 2026-10-03 17:59 | `src\main\java\networktool\logic\scan\host\ScanProgress.java` |
-| 5678 | 2026-09-21 10:32 | `src\main\java\networktool\logic\scan\host\SubnetDetector.java` |
-| 1245 | 2026-09-21 10:33 | `src\main\java\networktool\logic\scan\host\TailscaleRouteParser.java` |
-| 3054 | 2026-09-21 10:33 | `src\main\java\networktool\logic\scan\host\TailscaleRouteSource.java` |
-| 3403 | 2026-10-03 17:59 | `src\main\java\networktool\logic\scan\remote\RemoteNetGateway.java` |
-| 4992 | 2026-10-03 17:59 | `src\main\java\networktool\logic\scan\remote\RemoteNetProbe.java` |
-| 8044 | 2026-10-03 17:59 | `src\main\java\networktool\logic\scan\remote\RemoteNetScanner.java` |
-| 3400 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\schedule\AdaptiveTimeoutEstimator.java` |
-| 322 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\schedule\ArpCacheEntry.java` |
-| 1391 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\schedule\LastScanCache.java` |
-| 10053 | 2026-10-03 17:59 | `src\main\java\networktool\logic\scan\schedule\MapTrafficObserver.java` |
-| 1877 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\schedule\OfflineAliveProbe.java` |
-| 4569 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\schedule\OfflineThresholdMonitor.java` |
-| 1568 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\schedule\OfflineTracker.java` |
-| 1865 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\schedule\OfflineTrackerStore.java` |
-| 6285 | 2026-10-03 17:59 | `src\main\java\networktool\logic\scan\schedule\PortChangeMonitor.java` |
-| 8605 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\schedule\ScanDelta.java` |
-| 2901 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\schedule\ScanHistory.java` |
-| 3480 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\schedule\ScanRateLimiter.java` |
-| 6770 | 2026-10-03 17:59 | `src\main\java\networktool\logic\scan\schedule\ScanScheduler.java` |
-| 720 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\schedule\SubnetStats.java` |
-| 242 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\schedule\WolSchedule.java` |
-| 3436 | 2026-09-21 10:30 | `src\main\java\networktool\logic\scan\schedule\WolScheduler.java` |
-| 782 | 2026-09-21 10:30 | `src\main\java\networktool\logic\ScanOutcome.java` |
-| 1577 | 2026-09-21 10:30 | `src\main\java\networktool\logic\sonify\ActiveInterfaceDetector.java` |
-| 575 | 2026-09-21 10:30 | `src\main\java\networktool\logic\sonify\BitEncoder.java` |
-| 1586 | 2026-09-21 10:30 | `src\main\java\networktool\logic\sonify\InterfaceStatsReader.java` |
-| 1230 | 2026-09-21 10:30 | `src\main\java\networktool\logic\sonify\PlainTone.java` |
-| 613 | 2026-09-21 10:30 | `src\main\java\networktool\logic\sonify\SonifyConfig.java` |
-| 2160 | 2026-09-21 10:30 | `src\main\java\networktool\logic\sonify\SonifyConfigStore.java` |
-| 259 | 2026-09-21 10:30 | `src\main\java\networktool\logic\sonify\ToneDuration.java` |
-| 258 | 2026-09-21 10:30 | `src\main\java\networktool\logic\sonify\ToneFrequency.java` |
-| 2363 | 2026-09-21 10:30 | `src\main\java\networktool\logic\sonify\ToneGenerator.java` |
-| 2965 | 2026-09-21 10:30 | `src\main\java\networktool\logic\sonify\TrafficSonifier.java` |
-| 631 | 2026-09-21 10:30 | `src\main\java\networktool\logic\sonify\TrafficTone.java` |
-| 3559 | 2026-09-21 10:30 | `src\main\java\networktool\logic\TimeoutConfig.java` |
-| 221 | 2026-09-21 10:30 | `src\main\java\networktool\logic\visualize\TrafficSample.java` |
-| 3672 | 2026-09-21 10:30 | `src\main\java\networktool\logic\visualize\TrafficVisualizer.java` |
-| 1394 | 2026-09-21 10:30 | `src\main\java\networktool\logic\windows\PowerShellRunner.java` |
-| 1802 | 2026-09-21 10:30 | `src\main\java\networktool\logic\windows\PsArpResolver.java` |
-| 1555 | 2026-09-21 10:30 | `src\main\java\networktool\logic\windows\PsCidrResolver.java` |
-| 1716 | 2026-09-21 10:30 | `src\main\java\networktool\logic\windows\PsInterfaceStatsResolver.java` |
-| 1344 | 2026-09-21 10:30 | `src\main\java\networktool\logic\windows\PsNetScanResolver.java` |
-| 1053 | 2026-10-03 17:59 | `src\main\java\networktool\logic\windows\PsPortScanResolver.java` |
-| 2012 | 2026-09-28 12:53 | `src\main\java\networktool\Main.java` |
-| 1431 | 2026-09-21 10:30 | `src\main\java\networktool\model\HostResult.java` |
-| 850 | 2026-09-21 10:30 | `src\main\java\networktool\model\ScanProfile.java` |
-| 773 | 2026-09-21 10:30 | `src\main\java\networktool\model\ScanResult.java` |
-| 1199 | 2026-09-21 10:30 | `src\main\java\networktool\security\AuditLogEntry.java` |
-| 1645 | 2026-09-21 10:30 | `src\main\java\networktool\security\AuditLogFile.java` |
-| 5509 | 2026-10-03 17:59 | `src\main\java\networktool\security\AuditLogger.java` |
-| 5176 | 2026-09-21 10:30 | `src\main\java\networktool\security\LoginDialog.java` |
-| 7929 | 2026-10-03 17:59 | `src\main\java\networktool\security\SecurityMonitor.java` |
-| 1306 | 2026-09-28 12:53 | `src\main\java\networktool\security\SessionAdminRateLimiter.java` |
-| 14252 | 2026-10-03 17:59 | `src\main\java\networktool\security\UserAuth.java` |
-| 4724 | 2026-09-23 15:49 | `src\main\java\networktool\security\UserAuthPersistence.java` |
-| 3568 | 2026-09-21 10:30 | `src\main\java\networktool\storage\BackupManager.java` |
-| 1065 | 2026-09-21 10:30 | `src\main\java\networktool\storage\export\DataExporter.java` |
-| 3822 | 2026-09-21 10:30 | `src\main\java\networktool\storage\export\DataExportFormatters.java` |
-| 858 | 2026-09-21 10:30 | `src\main\java\networktool\storage\export\DataExportImport.java` |
-| 2992 | 2026-09-28 12:53 | `src\main\java\networktool\storage\export\DataImporter.java` |
-| 1538 | 2026-09-21 10:30 | `src\main\java\networktool\storage\export\ExportFiles.java` |
-| 4629 | 2026-09-21 10:30 | `src\main\java\networktool\storage\export\HtmlReportBuilder.java` |
-| 4551 | 2026-09-21 10:30 | `src\main\java\networktool\storage\export\PdfDocument.java` |
-| 1165 | 2026-09-21 10:30 | `src\main\java\networktool\storage\export\PdfHostLines.java` |
-| 1158 | 2026-09-21 10:30 | `src\main\java\networktool\storage\export\PdfReportBuilder.java` |
-| 7781 | 2026-09-21 10:30 | `src\main\java\networktool\storage\JsonCodec.java` |
-| 6755 | 2026-09-21 10:30 | `src\main\java\networktool\storage\JsonHelper.java` |
-| 6131 | 2026-09-21 10:30 | `src\main\java\networktool\storage\network\HostJsonBuilder.java` |
-| 1830 | 2026-09-21 10:30 | `src\main\java\networktool\storage\network\HostSchemaMigration.java` |
-| 3286 | 2026-09-28 12:53 | `src\main\java\networktool\storage\network\NetworkRegistry.java` |
-| 8586 | 2026-09-28 12:53 | `src\main\java\networktool\storage\network\NetworkStore.java` |
-| 3894 | 2026-09-21 10:30 | `src\main\java\networktool\storage\network\NetworkStoreHostOps.java` |
-| 1480 | 2026-09-21 10:30 | `src\main\java\networktool\storage\network\NetworkStoreNtfy.java` |
-| 5930 | 2026-09-21 10:30 | `src\main\java\networktool\storage\network\NetworkStorePersistence.java` |
-| 1826 | 2026-09-21 10:30 | `src\main\java\networktool\storage\NotificationHistory.java` |
-| 8153 | 2026-09-21 10:30 | `src\main\java\networktool\storage\profile\ScanProfileStore.java` |
-| 7105 | 2026-09-21 10:30 | `src\main\java\networktool\storage\SavedHostsStore.java` |
-| 2487 | 2026-09-21 10:30 | `src\main\java\networktool\storage\StorageLocations.java` |
-| 546 | 2026-09-21 10:30 | `src\main\java\networktool\storage\StorageLocationsResolver.java` |
-| 522 | 2026-09-21 10:30 | `src\main\java\networktool\storage\StorageUtils.java` |
-| 3321 | 2026-09-21 10:30 | `src\main\java\networktool\storage\TestConstants.java` |
-| 880 | 2026-09-21 10:30 | `src\main\java\networktool\theme\GuiColorPalette.java` |
-| 5463 | 2026-09-21 10:30 | `src\main\java\networktool\theme\GuiTheme.java` |
-| 3099 | 2026-09-21 10:30 | `src\main\java\networktool\theme\GuiThemeDark.java` |
-| 3096 | 2026-09-21 10:30 | `src\main\java\networktool\theme\GuiThemeLight.java` |
-| 4870 | 2026-09-21 10:30 | `src\main\java\networktool\transfer\BandwidthHttpProbe.java` |
-| 2225 | 2026-09-21 10:30 | `src\main\java\networktool\transfer\BandwidthTester.java` |
-| 1482 | 2026-09-21 10:30 | `src\main\java\networktool\transfer\FileClient.java` |
-| 1822 | 2026-09-21 10:30 | `src\main\java\networktool\transfer\FileReceiver.java` |
-| 1311 | 2026-09-21 10:30 | `src\main\java\networktool\transfer\FileServer.java` |
-| 1916 | 2026-09-21 10:30 | `src\main\java\networktool\transfer\LatencyProbe.java` |
-| 5452 | 2026-09-21 10:30 | `src\main\java\networktool\util\AppIcon.java` |
-| 3390 | 2026-09-21 10:30 | `src\main\java\networktool\util\ButtonFactory.java` |
-| 2516 | 2026-09-28 12:53 | `src\main\java\networktool\util\CIDRUtils.java` |
-| 2389 | 2026-09-21 10:30 | `src\main\java\networktool\util\ContextMenuActions.java` |
-| 3176 | 2026-09-21 10:30 | `src\main\java\networktool\util\Ipv6AddressUtils.java` |
-| 1793 | 2026-09-21 10:30 | `src\main\java\networktool\util\IpValidator.java` |
-| 5211 | 2026-10-03 17:59 | `src\main\java\networktool\util\PlatformSupport.java` |
-| 4003 | 2026-09-21 10:30 | `src\main\java\networktool\util\PlatformUtils.java` |
-| 1504 | 2026-09-21 10:30 | `src\main\java\networktool\util\SafeCommand.java` |
-| 557 | 2026-10-03 17:59 | `src\main\java\networktool\util\StatusTags.java` |
-| 7770 | 2026-09-21 10:30 | `src\main\java\networktool\util\TableConfig.java` |
-| 480 | 2026-09-21 10:30 | `src\main\resources\cve-table.json` |
-| 80274 | 2026-09-21 10:30 | `src\main\resources\icon.ico` |
-| 1972 | 2026-09-28 12:53 | `test\main\java\networktool\cli\CliArgsTest.java` |
-| 1885 | 2026-09-28 12:53 | `test\main\java\networktool\cli\CliRunnerTest.java` |
-| 1445 | 2026-09-21 10:30 | `test\main\java\networktool\gui\components\actions\GuiBackupActionsTest.java` |
-| 1148 | 2026-10-03 17:59 | `test\main\java\networktool\gui\components\actions\GuiDataIOActionsTest.java` |
-| 4044 | 2026-10-03 17:59 | `test\main\java\networktool\gui\components\actions\GuiOfflineMonitorActionsTest.java` |
-| 1070 | 2026-09-21 10:30 | `test\main\java\networktool\gui\components\actions\GuiTagFilterActionsTest.java` |
-| 2201 | 2026-10-03 17:59 | `test\main\java\networktool\gui\components\actions\GuiWebhookActionsTest.java` |
-| 1970 | 2026-09-21 10:30 | `test\main\java\networktool\gui\components\BandwidthHistoryChartTest.java` |
-| 1813 | 2026-09-28 12:53 | `test\main\java\networktool\gui\components\GuiProgressBarTest.java` |
-| 1937 | 2026-09-21 10:30 | `test\main\java\networktool\gui\components\GuiSidebarAccessTest.java` |
-| 1161 | 2026-09-21 10:30 | `test\main\java\networktool\gui\components\GuiSidebarTest.java` |
-| 1404 | 2026-09-28 12:53 | `test\main\java\networktool\gui\components\GuiStatusBarTest.java` |
-| 1497 | 2026-09-21 10:30 | `test\main\java\networktool\gui\components\scan\GuiArpSnifferActionsTest.java` |
-| 1695 | 2026-09-21 10:30 | `test\main\java\networktool\gui\components\scan\GuiIpv6ScanActionsTest.java` |
-| 3920 | 2026-10-03 17:59 | `test\main\java\networktool\gui\components\scan\GuiSecurityAutomationActionsTest.java` |
-| 1799 | 2026-09-21 10:30 | `test\main\java\networktool\gui\components\scan\GuiSnmpActionsTest.java` |
-| 2313 | 2026-09-21 10:30 | `test\main\java\networktool\gui\components\scan\GuiTrafficSpectrogramActionsTest.java` |
-| 2304 | 2026-09-21 10:30 | `test\main\java\networktool\gui\components\scan\GuiTrafficVisualizerActionsTest.java` |
-| 1658 | 2026-09-21 10:30 | `test\main\java\networktool\gui\components\scan\GuiWolSchedulerActionsTest.java` |
-| 2492 | 2026-09-21 10:30 | `test\main\java\networktool\gui\components\scan\GuiWorkstreamCActionsTest.java` |
-| 5131 | 2026-09-21 10:30 | `test\main\java\networktool\gui\components\SidebarAccordionTest.java` |
-| 1206 | 2026-09-21 10:30 | `test\main\java\networktool\gui\components\SidebarAdminButtonTest.java` |
-| 1386 | 2026-09-21 10:30 | `test\main\java\networktool\gui\components\table\SearchResultRowTest.java` |
-| 2453 | 2026-09-21 10:30 | `test\main\java\networktool\gui\components\TrafficSpectrogramRendererTest.java` |
-| 2976 | 2026-09-21 10:30 | `test\main\java\networktool\gui\components\TrafficWaveformRendererTest.java` |
-| 2101 | 2026-10-03 17:59 | `test\main\java\networktool\gui\core\GuiErrorPresenterTest.java` |
-| 3319 | 2026-09-28 12:53 | `test\main\java\networktool\gui\core\GuiMenuDispatchTest.java` |
-| 3646 | 2026-10-03 17:59 | `test\main\java\networktool\gui\core\GuiMenuHandlerAsyncTest.java` |
-| 2096 | 2026-09-21 10:30 | `test\main\java\networktool\gui\core\GuiMenuRegistryTest.java` |
-| 987 | 2026-10-03 17:59 | `test\main\java\networktool\gui\core\GuiStatusReporterTest.java` |
-| 828 | 2026-09-23 15:49 | `test\main\java\networktool\gui\core\GuiTestSuiteMenusTest.java` |
-| 964 | 2026-10-03 17:59 | `test\main\java\networktool\gui\core\GuiToggleActionTest.java` |
-| 2120 | 2026-09-21 10:30 | `test\main\java\networktool\gui\core\GuiWindowActionsTest.java` |
-| 534 | 2026-09-21 10:30 | `test\main\java\networktool\gui\dashboard\GuiDashboardPanelTest.java` |
-| 1873 | 2026-09-21 10:30 | `test\main\java\networktool\gui\dashboard\GuiDashboardStatsTest.java` |
-| 2972 | 2026-09-21 10:30 | `test\main\java\networktool\gui\dashboard\GuiScanDeltaChartRendererTest.java` |
-| 3584 | 2026-09-21 10:30 | `test\main\java\networktool\gui\dashboard\GuiScanTimelineChartRendererTest.java` |
-| 9005 | 2026-09-21 10:30 | `test\main\java\networktool\gui\map\GuiNetworkMapTest.java` |
-| 458 | 2026-09-21 10:30 | `test\main\java\networktool\gui\map\MapContextMenuTest.java` |
-| 1652 | 2026-09-21 10:30 | `test\main\java\networktool\gui\map\MapDeviceSignaturesTest.java` |
-| 5095 | 2026-09-21 10:30 | `test\main\java\networktool\gui\map\MapEdgeBuilderTest.java` |
-| 4897 | 2026-09-21 10:30 | `test\main\java\networktool\gui\map\MapExporterTest.java` |
-| 1663 | 2026-09-21 10:30 | `test\main\java\networktool\gui\map\MapHeatmapRendererTest.java` |
-| 665 | 2026-09-21 10:30 | `test\main\java\networktool\gui\map\MapHeatmapSettingsTest.java` |
-| 3267 | 2026-09-28 12:53 | `test\main\java\networktool\gui\map\MapLayoutTest.java` |
-| 469 | 2026-09-21 10:30 | `test\main\java\networktool\gui\map\MapLegendTest.java` |
-| 3770 | 2026-09-21 10:30 | `test\main\java\networktool\gui\map\MapNodeStyleTest.java` |
-| 678 | 2026-09-21 10:30 | `test\main\java\networktool\gui\map\MapSnapshotTest.java` |
-| 11199 | 2026-09-21 10:30 | `test\main\java\networktool\gui\map\MapTopologyTest.java` |
-| 1897 | 2026-09-21 10:30 | `test\main\java\networktool\gui\map\MapTrafficHeatmapTest.java` |
-| 1144 | 2026-09-21 10:30 | `test\main\java\networktool\gui\map\MapTrafficLoadTest.java` |
-| 12375 | 2026-10-03 17:59 | `test\main\java\networktool\gui\map\NetworkMapTest.java` |
-| 1468 | 2026-09-21 10:30 | `test\main\java\networktool\gui\notification\NotificationListenerPackageTest.java` |
-| 2576 | 2026-09-21 10:30 | `test\main\java\networktool\gui\notification\NtfyJsonParserTest.java` |
-| 3516 | 2026-09-21 10:30 | `test\main\java\networktool\gui\panels\audit\GuiAuditPanelTest.java` |
-| 969 | 2026-10-03 17:59 | `test\main\java\networktool\gui\panels\bandwidth\GuiBandwidthHistoryPanelTest.java` |
-| 2099 | 2026-09-28 12:53 | `test\main\java\networktool\gui\panels\GuiOutputPanelTest.java` |
-| 2871 | 2026-09-28 12:53 | `test\main\java\networktool\gui\panels\OutputStreamRedirectorTest.java` |
-| 1540 | 2026-09-21 10:30 | `test\main\java\networktool\gui\panels\saved\SavedHostsBulkActionsTest.java` |
-| 2278 | 2026-09-21 10:30 | `test\main\java\networktool\gui\panels\saved\SavedHostsTagFilterTest.java` |
-| 675 | 2026-09-21 10:30 | `test\main\java\networktool\gui\panels\security\GuiSecurityFindingsPanelTest.java` |
-| 3204 | 2026-09-21 10:30 | `test\main\java\networktool\gui\panels\tags\HostTagStoreTest.java` |
-| 1453 | 2026-09-28 12:53 | `test\main\java\networktool\gui\security\NoteEncryptionPasswordPolicyTest.java` |
-| 1719 | 2026-09-21 10:30 | `test\main\java\networktool\gui\security\NoteEncyptionExceptionTest.java` |
-| 4543 | 2026-09-21 10:30 | `test\main\java\networktool\logging\DebugLoggerTest.java` |
-| 1828 | 2026-09-21 10:30 | `test\main\java\networktool\logging\LogEntryTest.java` |
-| 3084 | 2026-09-21 10:30 | `test\main\java\networktool\logging\LogFileBaseTest.java` |
-| 374 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\discovery\ArpMonitorLoggingTest.java` |
-| 2202 | 2026-09-28 12:53 | `test\main\java\networktool\logic\analysis\discovery\DhcpOptionAnalyzerExtTest.java` |
-| 10426 | 2026-10-03 17:59 | `test\main\java\networktool\logic\analysis\discovery\NetworkDiscoveryTest.java` |
-| 1358 | 2026-10-03 17:59 | `test\main\java\networktool\logic\analysis\os\ExtendedOsDetectorTest.java` |
-| 979 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\os\OsBannerAnalyzerTest.java` |
-| 1975 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\os\OsDetectionLoggerTest.java` |
-| 2012 | 2026-10-03 17:59 | `test\main\java\networktool\logic\analysis\os\OsDetectionPipelineDepthTest.java` |
-| 2098 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\os\OsDetectionPipelineTest.java` |
-| 961 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\os\OsDetectionStepRunnerTest.java` |
-| 1723 | 2026-09-28 12:53 | `test\main\java\networktool\logic\analysis\os\OsDetectorArpTest.java` |
-| 2927 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\os\OsDetectorDelegationTest.java` |
-| 1853 | 2026-10-03 17:59 | `test\main\java\networktool\logic\analysis\os\OsDetectorDepthOverloadTest.java` |
-| 1433 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\os\OsDetectorFixTest.java` |
-| 5549 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\os\OsDetectorHostnameTest.java` |
-| 2954 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\os\OsDetectorPackageTest.java` |
-| 1097 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\os\OsDetectorPortsTest.java` |
-| 7137 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\os\OsFingerprintTest.java` |
-| 4324 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\os\OsParallelStepRunnerTest.java` |
-| 5164 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\os\OsPortClassifierTest.java` |
-| 10434 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\os\OsProbeUdpTest.java` |
-| 1768 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\os\OsSignatureTest.java` |
-| 529 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\os\ScanDepthTest.java` |
-| 1653 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\probe\BandwidthHistoryEntryTest.java` |
-| 2191 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\probe\BandwidthHistoryStoreTest.java` |
-| 1855 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\probe\IpInspectorExtTest.java` |
-| 1351 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\probe\TracerouteRunnerFixTest.java` |
-| 2552 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\probe\TracerouteRunnerPackageTest.java` |
-| 1511 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\probe\VlanDetectorTest.java` |
-| 1211 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\security\CveLookupTest.java` |
-| 856 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\security\DefaultCredentialProbeTest.java` |
-| 3286 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\security\DhcpDiscoverProbeTest.java` |
-| 1405 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\security\DhcpOfferTrackerTest.java` |
-| 1058 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\security\FindingReporterTest.java` |
-| 2621 | 2026-10-03 17:59 | `test\main\java\networktool\logic\analysis\security\FindingsSourceRegistryTest.java` |
-| 1637 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\security\PeriodicJobTest.java` |
-| 2140 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\security\RogueDhcpDetectorTest.java` |
-| 2900 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\security\ScanSecurityHookTest.java` |
-| 1351 | 2026-10-03 17:59 | `test\main\java\networktool\logic\analysis\security\SecurityFindingsCollectorAddIfNewTest.java` |
-| 2578 | 2026-10-03 17:59 | `test\main\java\networktool\logic\analysis\security\SecurityFindingsCollectorTest.java` |
-| 1152 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\security\SecurityFindingTest.java` |
-| 662 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\security\TlsCertInspectorTest.java` |
-| 2957 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\security\TlsCertSchedulerTest.java` |
-| 3287 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\snmp\BerCodecTest.java` |
-| 2338 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\snmp\FakeSnmpAgent.java` |
-| 3015 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\snmp\SnmpMessagesTest.java` |
-| 2510 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\snmp\SnmpOidTest.java` |
-| 2925 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\snmp\SnmpPortTableTest.java` |
-| 2913 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\snmp\SnmpWalkerTest.java` |
-| 1774 | 2026-09-21 10:30 | `test\main\java\networktool\logic\analysis\snmp\UdpSnmpTransportTest.java` |
-| 2310 | 2026-10-03 17:59 | `test\main\java\networktool\logic\error\ScanFailureTest.java` |
-| 2063 | 2026-09-21 10:30 | `test\main\java\networktool\logic\messaging\MessageDeliveryInjectionTest.java` |
-| 851 | 2026-09-21 10:30 | `test\main\java\networktool\logic\messaging\MessageDeliverySshTest.java` |
-| 928 | 2026-09-21 10:30 | `test\main\java\networktool\logic\messaging\MessageDeliveryWinRmTest.java` |
-| 2505 | 2026-10-03 17:59 | `test\main\java\networktool\logic\messaging\MessagingPackageTest.java` |
-| 3740 | 2026-10-03 17:59 | `test\main\java\networktool\logic\messaging\WebhookDeliveryTest.java` |
-| 1405 | 2026-10-03 17:59 | `test\main\java\networktool\logic\ports\BannerProtocolProbesLoggingTest.java` |
-| 2744 | 2026-10-03 17:59 | `test\main\java\networktool\logic\ports\PortScannerFixTest.java` |
-| 5152 | 2026-10-03 17:59 | `test\main\java\networktool\logic\ports\PortsPackageTest.java` |
-| 1791 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\host\ArpNeighborSourceTest.java` |
-| 4040 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\host\ArpSnifferTest.java` |
-| 2316 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\host\HostAliveCheckerRateLimitTest.java` |
-| 861 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\host\Ipv6HostProbeTest.java` |
-| 2240 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\host\Ipv6HostRangeTest.java` |
-| 1663 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\host\Ipv6NeighborSourceTest.java` |
-| 830 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\host\NetworkDiscoverySweepTest.java` |
-| 475 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\host\NetworkHostScannerPackageTest.java` |
-| 2932 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\host\NetworkScannerV6Test.java` |
-| 814 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\host\NetworkTimeoutTestBase.java` |
-| 4925 | 2026-10-03 17:59 | `test\main\java\networktool\logic\scan\host\ScanErrorClassifierTest.java` |
-| 1871 | 2026-09-21 10:35 | `test\main\java\networktool\logic\scan\host\SubnetDetectorRouteTest.java` |
-| 1993 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\host\SubnetDetectorTest.java` |
-| 1809 | 2026-09-21 10:34 | `test\main\java\networktool\logic\scan\host\TailscaleRouteParserTest.java` |
-| 1232 | 2026-09-21 10:35 | `test\main\java\networktool\logic\scan\host\TailscaleRouteSourceTest.java` |
-| 2089 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\remote\RemoteNetScannerPackageTest.java` |
-| 5289 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\schedule\AdaptiveTimeoutEstimatorTest.java` |
-| 1211 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\schedule\ArpCacheEntryTest.java` |
-| 1465 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\schedule\MapTrafficObserverTest.java` |
-| 842 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\schedule\OfflineAliveProbeTest.java` |
-| 3985 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\schedule\OfflineThresholdMonitorTest.java` |
-| 1281 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\schedule\OfflineTrackerStoreTest.java` |
-| 1917 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\schedule\OfflineTrackerTest.java` |
-| 3476 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\schedule\ScanRateLimiterTest.java` |
-| 2093 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\schedule\ScanSchedulerFixTest.java` |
-| 3349 | 2026-09-28 12:53 | `test\main\java\networktool\logic\scan\schedule\ScanSchedulerLifecycleRegressionTest.java` |
-| 2377 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\schedule\ScanSchedulerPackageTest.java` |
-| 4894 | 2026-09-21 10:30 | `test\main\java\networktool\logic\scan\schedule\WolSchedulerTest.java` |
-| 963 | 2026-09-21 10:30 | `test\main\java\networktool\logic\ScanOutcomeTest.java` |
-| 832 | 2026-09-21 10:30 | `test\main\java\networktool\logic\sonify\BitEncoderTest.java` |
-| 490 | 2026-09-21 10:30 | `test\main\java\networktool\logic\sonify\InterfaceStatsReaderTest.java` |
-| 522 | 2026-09-21 10:30 | `test\main\java\networktool\logic\sonify\PlainToneTest.java` |
-| 675 | 2026-09-21 10:30 | `test\main\java\networktool\logic\sonify\SonifyConfigStoreTest.java` |
-| 586 | 2026-09-21 10:30 | `test\main\java\networktool\logic\sonify\SonifyConfigTest.java` |
-| 755 | 2026-09-21 10:30 | `test\main\java\networktool\logic\sonify\ToneGeneratorTest.java` |
-| 921 | 2026-09-21 10:30 | `test\main\java\networktool\logic\sonify\TrafficSonifierConfigTest.java` |
-| 1221 | 2026-09-21 10:30 | `test\main\java\networktool\logic\sonify\TrafficSonifierTest.java` |
-| 1152 | 2026-09-21 10:30 | `test\main\java\networktool\logic\sonify\TrafficToneTest.java` |
-| 1212 | 2026-09-21 10:30 | `test\main\java\networktool\logic\visualize\TrafficSampleTest.java` |
-| 5008 | 2026-09-21 10:30 | `test\main\java\networktool\logic\visualize\TrafficVisualizerTest.java` |
-| 635 | 2026-09-21 10:30 | `test\main\java\networktool\logic\windows\PowerShellRunnerTest.java` |
-| 438 | 2026-09-21 10:30 | `test\main\java\networktool\logic\windows\PsArpResolverTest.java` |
-| 495 | 2026-09-21 10:30 | `test\main\java\networktool\logic\windows\PsCidrResolverTest.java` |
-| 745 | 2026-09-21 10:30 | `test\main\java\networktool\logic\windows\PsNetScanResolverTest.java` |
-| 990 | 2026-09-21 10:30 | `test\main\java\networktool\logic\windows\PsPortScanResolverTest.java` |
-| 1410 | 2026-09-21 10:30 | `test\main\java\networktool\logic\windows\PsResolverInjectionTest.java` |
-| 5835 | 2026-10-03 17:59 | `test\main\java\networktool\MainTest.java` |
-| 1684 | 2026-09-28 12:53 | `test\main\java\networktool\model\ModelEdgeCaseTest.java` |
-| 2200 | 2026-09-21 10:30 | `test\main\java\networktool\security\AuditLoggerSessionAdminTest.java` |
-| 10914 | 2026-09-21 10:30 | `test\main\java\networktool\security\AuditLoggerTest.java` |
-| 1740 | 2026-09-21 10:30 | `test\main\java\networktool\security\UserAuthDefaultWarningTest.java` |
-| 2120 | 2026-09-21 10:30 | `test\main\java\networktool\security\UserAuthPasswordPolicyTest.java` |
-| 1690 | 2026-09-28 12:53 | `test\main\java\networktool\security\UserAuthSessionAdminLockoutTest.java` |
-| 2917 | 2026-09-23 15:49 | `test\main\java\networktool\security\UserAuthSessionAdminTest.java` |
-| 4637 | 2026-09-21 10:30 | `test\main\java\networktool\storage\BackupManagerTest.java` |
-| 3433 | 2026-09-21 10:30 | `test\main\java\networktool\storage\export\DataExporterPackageTest.java` |
-| 1764 | 2026-09-21 10:30 | `test\main\java\networktool\storage\export\DataImporterFixTest.java` |
-| 4638 | 2026-09-28 12:53 | `test\main\java\networktool\storage\export\DataImporterRegressionTest.java` |
-| 1285 | 2026-09-21 10:30 | `test\main\java\networktool\storage\export\ExportFilesTest.java` |
-| 2547 | 2026-09-21 10:30 | `test\main\java\networktool\storage\export\ExportImportTest.java` |
-| 1220 | 2026-09-21 10:30 | `test\main\java\networktool\storage\export\PdfHostLinesTest.java` |
-| 4306 | 2026-09-21 10:30 | `test\main\java\networktool\storage\export\PdfReportBuilderTest.java` |
-| 6620 | 2026-09-21 10:30 | `test\main\java\networktool\storage\JsonCodecFuzzTest.java` |
-| 13427 | 2026-09-21 10:30 | `test\main\java\networktool\storage\JsonHelperFuzzTest.java` |
-| 4010 | 2026-09-21 10:30 | `test\main\java\networktool\storage\network\HostJsonBuilderTest.java` |
-| 2415 | 2026-09-21 10:30 | `test\main\java\networktool\storage\network\HostSchemaMigrationV2Test.java` |
-| 2361 | 2026-09-21 10:30 | `test\main\java\networktool\storage\network\HostSchemaVersionTest.java` |
-| 4653 | 2026-09-21 10:30 | `test\main\java\networktool\storage\network\NetworkRegistryTest.java` |
-| 2903 | 2026-09-21 10:30 | `test\main\java\networktool\storage\network\NetworkStoreFixTest.java` |
-| 3249 | 2026-09-21 10:30 | `test\main\java\networktool\storage\network\NetworkStoreIsolationTest.java` |
-| 5238 | 2026-09-28 12:53 | `test\main\java\networktool\storage\network\NetworkStorePersistenceCorruptionTest.java` |
-| 2261 | 2026-09-28 12:53 | `test\main\java\networktool\storage\network\NetworkStorePersistenceEdgeTest.java` |
-| 3249 | 2026-09-21 10:30 | `test\main\java\networktool\storage\network\NetworkStorePersistencePackageTest.java` |
-| 1365 | 2026-09-28 12:53 | `test\main\java\networktool\theme\GuiThemePaletteTest.java` |
-| 2514 | 2026-09-28 12:53 | `test\main\java\networktool\theme\GuiThemeTest.java` |
-| 1383 | 2026-09-21 10:30 | `test\main\java\networktool\transfer\BandwidthTesterActiveTest.java` |
-| 7462 | 2026-09-28 12:53 | `test\main\java\networktool\transfer\FileTransferRegressionTest.java` |
-| 2110 | 2026-09-28 12:53 | `test\main\java\networktool\util\ButtonFactoryTest.java` |
-| 2698 | 2026-09-28 12:53 | `test\main\java\networktool\util\CIDRUtilsBoundaryTest.java` |
-| 1511 | 2026-09-21 10:30 | `test\main\java\networktool\util\CIDRUtilsExtTest.java` |
-| 1622 | 2026-09-21 10:30 | `test\main\java\networktool\util\CIDRUtilsPropertyTest.java` |
-| 3325 | 2026-09-21 10:30 | `test\main\java\networktool\util\Ipv6AddressUtilsTest.java` |
-| 1517 | 2026-09-28 12:53 | `test\main\java\networktool\util\PlatformSupportNtfyTopicTest.java` |
-| 1107 | 2026-09-28 12:53 | `test\main\java\networktool\util\PlatformSupportOsTest.java` |
-| 1551 | 2026-09-21 10:30 | `test\main\java\networktool\util\PlatformSupportPropertyTest.java` |
-| 1112 | 2026-09-21 10:30 | `test\main\java\networktool\util\PlatformSupportSubnetTest.java` |
-| 1094 | 2026-09-21 10:30 | `test\main\java\networktool\util\PlatformUtilsSubnetTest.java` |
-| 3568 | 2026-09-28 12:53 | `test\main\java\networktool\util\PlatformUtilsTest.java` |
-| 1779 | 2026-09-21 10:30 | `test\main\java\networktool\util\SafeCommandTest.java` |
-| 798 | 2026-10-03 17:59 | `test\main\java\networktool\util\StatusTagsTest.java` |
-| 3091 | 2026-09-28 12:53 | `test\main\java\networktool\util\TableConfigExtTest.java` |
-| 1633 | 2026-09-21 10:30 | `test\main\java\networktool\util\TableConfigFixTest.java` |
-| 2549 | 2026-09-28 12:53 | `test\main\java\networktool\util\TableConfigRendererTest.java` |
-| 5983 | 2026-09-21 10:30 | `test\networktool\cli\CliTest.java` |
-| 2195 | 2026-09-21 10:30 | `test\networktool\filter\FilterExtTest.java` |
-| 14165 | 2026-09-21 10:30 | `test\networktool\filter\FilterTest.java` |
-| 1987 | 2026-09-21 10:30 | `test\networktool\gui\GuiLoginRateLimiterPackageTest.java` |
-| 9382 | 2026-09-21 10:30 | `test\networktool\gui\panels\PrivacyNetworkActionsTest.java` |
-| 5413 | 2026-09-21 10:30 | `test\networktool\logic\AnalysisTest.java` |
-| 12218 | 2026-09-21 10:30 | `test\networktool\logic\LogicTest.java` |
-| 1037 | 2026-09-21 10:30 | `test\networktool\logic\MessagingTest.java` |
-| 3414 | 2026-10-03 17:59 | `test\networktool\logic\scan\host\HostAliveCheckerTest.java` |
-| 2025 | 2026-09-21 10:30 | `test\networktool\logic\scan\host\SubnetDetectorExtTest.java` |
-| 2975 | 2026-09-21 10:30 | `test\networktool\logic\scan\schedule\LastScanCacheFixTest.java` |
-| 22244 | 2026-09-21 10:30 | `test\networktool\logic\ScanInfraTest.java` |
-| 8032 | 2026-09-21 10:30 | `test\networktool\logic\ScanNetworkTest.java` |
-| 1577 | 2026-09-21 10:30 | `test\networktool\logic\TrafficVisualizerIntegrationTest.java` |
-| 6629 | 2026-09-21 10:30 | `test\networktool\misc\MiscTest.java` |
-| 7578 | 2026-09-21 10:30 | `test\networktool\model\ModelTest.java` |
-| 6211 | 2026-09-21 10:30 | `test\networktool\network\NetworkTest.java` |
-| 2310 | 2026-09-21 10:30 | `test\networktool\security\SecurityMonitorTest.java` |
-| 11381 | 2026-10-03 17:59 | `test\networktool\security\SecurityTest.java` |
-| 3208 | 2026-09-21 10:30 | `test\networktool\storage\ScanProfileStoreExtTest.java` |
-| 3111 | 2026-09-21 10:30 | `test\networktool\storage\StorageExtTest.java` |
-| 6903 | 2026-09-21 10:30 | `test\networktool\storage\StorageTest.java` |
-| 2717 | 2026-09-21 10:30 | `test\networktool\transfer\TransferTest.java` |
-| 1249 | 2026-09-21 10:30 | `test\networktool\util\PollHelper.java` |
-| 5738 | 2026-09-21 10:30 | `test\networktool\util\UtilTest.java` |
-| 291 | 2026-10-03 17:59 | `test\resources\junit-platform.properties` |
-| 5675 | 2026-09-21 10:31 | `tools\clean_code_guide.md` |
-| 1751 | 2026-09-21 10:31 | `tools\clean_code_guide.yaml` |
-| 8151 | 2026-10-10 00:12 | `tools\README.md` |
-| 2731 | 2026-10-09 22:58 | `tools\script fast access.txt` |
-| 7229 | 2026-10-09 16:22 | `tools\scripts\chart-range.js` |
-| 1149 | 2026-10-09 14:28 | `tools\scripts\chart-tooltip.js` |
-| 7271 | 2026-10-09 21:54 | `tools\scripts\Find-DeadCode.ps1` |
-| 2141 | 2026-10-09 21:53 | `tools\scripts\Measure-TestRuntime.ps1` |
-| 16876 | 2026-10-10 00:09 | `tools\scripts\New-ContextReport.ps1` |
-| 15834 | 2026-10-09 21:54 | `tools\scripts\New-CoverageChart.ps1` |
-| 1090 | 2026-10-09 22:54 | `tools\scripts\Run-Coverage.ps1` |
-| 9569 | 2026-10-09 21:53 | `tools\scripts\Update-TestCoverageHistory.ps1` |
-| 9157 | 2026-10-09 22:58 | `tools\scripts\Update-TestRuntimeHistory.ps1` |
-| 5342 | 2026-10-10 00:00 | `tools\scripts\Verify-TestSuite.ps1` |
+| 689 | 2026-10-02 12:20 | `.github\copilot-instructions.md` |
+| 1313 | 2026-10-10 17:05 | `.github\workflows\qodana_code_quality.yml` |
+| 1962 | 2026-10-28 22:05 | `.github\workflows\test-quality.yml` |
+| 831 | 2026-10-28 20:59 | `.gitignore` |
+| 228 | 2026-10-02 12:20 | `.idea\.gitignore` |
+| 240 | 2026-10-02 12:20 | `.idea\codeInsightSettings.xml` |
+| 710 | 2026-10-02 12:26 | `.idea\compiler.xml` |
+| 423 | 2026-10-02 12:20 | `.idea\encodings.xml` |
+| 864 | 2026-10-02 12:26 | `.idea\jarRepositories.xml` |
+| 651 | 2026-10-02 12:26 | `.idea\misc.xml` |
+| 180 | 2026-10-02 12:20 | `.idea\vcs.xml` |
+| 10703 | 2026-10-28 21:09 | `.idea\workspace.xml` |
+| 5416 | 2026-10-10 17:05 | `docs\testing.md` |
+| 74741 | 2026-10-28 22:09 | `hs_err_pid74832.log` |
+| 67782 | 2026-10-28 22:09 | `hs_err_pid77032.log` |
+| 10534 | 2026-10-28 22:06 | `pom.xml` |
+| 1992 | 2026-10-10 17:05 | `qodana.yaml` |
+| 7575 | 2026-10-28 22:07 | `README.md` |
+| 582180 | 2026-10-28 22:09 | `replay_pid74832.log` |
+| 472747 | 2026-10-28 22:09 | `replay_pid77032.log` |
+| 1371 | 2026-10-02 12:20 | `src\main\java\networktool\cli\CliArgs.java` |
+| 1802 | 2026-10-02 12:20 | `src\main\java\networktool\cli\CliRunner.java` |
+| 856 | 2026-10-02 12:20 | `src\main\java\networktool\filter\ClipboardUtil.java` |
+| 1801 | 2026-10-02 12:20 | `src\main\java\networktool\filter\HostResultFilter.java` |
+| 1843 | 2026-10-02 12:20 | `src\main\java\networktool\filter\HostResultPrinter.java` |
+| 1432 | 2026-10-02 12:20 | `src\main\java\networktool\filter\JsonExporter.java` |
+| 565 | 2026-10-02 12:20 | `src\main\java\networktool\filter\OutputRenderer.java` |
+| 502 | 2026-10-02 12:20 | `src\main\java\networktool\filter\OutputRendererRegistry.java` |
+| 1462 | 2026-10-02 12:20 | `src\main\java\networktool\filter\ScanFilter.java` |
+| 1234 | 2026-10-02 12:20 | `src\main\java\networktool\filter\TablePrinter.java` |
+| 2310 | 2026-10-28 21:00 | `src\main\java\networktool\gui\components\actions\GuiBackupActions.java` |
+| 5698 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\actions\GuiContextMenu.java` |
+| 6993 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\actions\GuiDataIOActions.java` |
+| 7842 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\actions\GuiDiagnosticsActions.java` |
+| 3146 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\actions\GuiOfflineMonitorActions.java` |
+| 4065 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\actions\GuiRemoteActions.java` |
+| 1158 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\actions\GuiTagFilterActions.java` |
+| 1236 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\actions\GuiWebhookActions.java` |
+| 2115 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\actions\NtfyTopicPrompt.java` |
+| 3998 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\actions\RemoteDeviceDialogs.java` |
+| 2335 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\BandwidthHistoryChart.java` |
+| 3562 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\GuiNetworkBar.java` |
+| 5696 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\GuiProgressBar.java` |
+| 8826 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\GuiSidebar.java` |
+| 1684 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\GuiStatusBar.java` |
+| 3241 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\map\GuiNetworkMap.java` |
+| 5105 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\map\GuiNetworkMapChrome.java` |
+| 3769 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\map\GuiNetworkMapScanTasks.java` |
+| 1790 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\PingGraphRenderer.java` |
+| 1854 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\scan\GuiArpSnifferActions.java` |
+| 2753 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\scan\GuiForeignNetActions.java` |
+| 5602 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\scan\GuiHopAnalysis.java` |
+| 1645 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\scan\GuiIpv6ScanActions.java` |
+| 2087 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\scan\GuiMapExportActions.java` |
+| 828 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\scan\GuiMapHeatmapActions.java` |
+| 1492 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\scan\GuiPdfExportActions.java` |
+| 5460 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\scan\GuiScanActions.java` |
+| 3668 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\scan\GuiScanCompareActions.java` |
+| 5608 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\scan\GuiScanProfileActions.java` |
+| 1148 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\scan\GuiScanTimelineActions.java` |
+| 4159 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\scan\GuiSchedulerActions.java` |
+| 4634 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\scan\GuiSecurityAutomationActions.java` |
+| 2166 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\scan\GuiSnmpActions.java` |
+| 3075 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\scan\GuiSonifyActions.java` |
+| 2864 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\scan\GuiTrafficSpectrogramActions.java` |
+| 2581 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\scan\GuiTrafficVisualizerActions.java` |
+| 4068 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\scan\GuiWolSchedulerActions.java` |
+| 9202 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\SidebarAccordion.java` |
+| 9077 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\SidebarAdminButton.java` |
+| 1476 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\SidebarDebugButton.java` |
+| 7484 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\SidebarPowerMenu.java` |
+| 6739 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\table\GuiSearchBar.java` |
+| 7332 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\table\GuiTableRenderer.java` |
+| 2987 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\table\SearchResultRow.java` |
+| 556 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\terminal\GuiSshTerminal.java` |
+| 2649 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\terminal\SshConnectionWorker.java` |
+| 5846 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\terminal\SshTerminalWindowBuilder.java` |
+| 1525 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\terminal\TerminalChrome.java` |
+| 1245 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\TrafficSpectrogramPanel.java` |
+| 2479 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\TrafficSpectrogramRenderer.java` |
+| 1251 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\TrafficVisualizerPanel.java` |
+| 2475 | 2026-10-02 12:20 | `src\main\java\networktool\gui\components\TrafficWaveformRenderer.java` |
+| 5270 | 2026-10-02 12:20 | `src\main\java\networktool\gui\core\GUI.java` |
+| 3884 | 2026-10-02 12:20 | `src\main\java\networktool\gui\core\GuiDebugMode.java` |
+| 974 | 2026-10-02 12:20 | `src\main\java\networktool\gui\core\GuiErrorPresenter.java` |
+| 3070 | 2026-10-02 12:20 | `src\main\java\networktool\gui\core\GuiFrameLayout.java` |
+| 464 | 2026-10-02 12:20 | `src\main\java\networktool\gui\core\GuiMenuContext.java` |
+| 3697 | 2026-10-02 12:20 | `src\main\java\networktool\gui\core\GuiMenuDispatch.java` |
+| 10634 | 2026-10-02 12:20 | `src\main\java\networktool\gui\core\GuiMenuHandler.java` |
+| 786 | 2026-10-02 12:20 | `src\main\java\networktool\gui\core\GuiMenuRegistry.java` |
+| 2007 | 2026-10-02 12:20 | `src\main\java\networktool\gui\core\GuiRestartFlow.java` |
+| 1759 | 2026-10-02 12:20 | `src\main\java\networktool\gui\core\GuiStartupTasks.java` |
+| 1328 | 2026-10-02 12:20 | `src\main\java\networktool\gui\core\GuiStatusReporter.java` |
+| 659 | 2026-10-02 12:20 | `src\main\java\networktool\gui\core\GuiTestSuiteMenus.java` |
+| 806 | 2026-10-02 12:20 | `src\main\java\networktool\gui\core\GuiToggleAction.java` |
+| 3091 | 2026-10-02 12:20 | `src\main\java\networktool\gui\core\GuiWindowActions.java` |
+| 1070 | 2026-10-02 12:20 | `src\main\java\networktool\gui\core\TestSuiteAutomationMenu.java` |
+| 1670 | 2026-10-02 12:20 | `src\main\java\networktool\gui\core\TestSuiteDataMenu.java` |
+| 904 | 2026-10-02 12:20 | `src\main\java\networktool\gui\core\TestSuiteReportingMenu.java` |
+| 933 | 2026-10-02 12:20 | `src\main\java\networktool\gui\core\TestSuiteScanningMenu.java` |
+| 663 | 2026-10-02 12:20 | `src\main\java\networktool\gui\core\TestSuiteSecurityMenu.java` |
+| 2790 | 2026-10-02 12:20 | `src\main\java\networktool\gui\dashboard\GuiDashboardPanel.java` |
+| 1061 | 2026-10-02 12:20 | `src\main\java\networktool\gui\dashboard\GuiDashboardStats.java` |
+| 1083 | 2026-10-02 12:20 | `src\main\java\networktool\gui\dashboard\GuiScanDeltaChart.java` |
+| 2494 | 2026-10-02 12:20 | `src\main\java\networktool\gui\dashboard\GuiScanDeltaChartRenderer.java` |
+| 1150 | 2026-10-02 12:20 | `src\main\java\networktool\gui\dashboard\GuiScanTimelineChart.java` |
+| 2136 | 2026-10-02 12:20 | `src\main\java\networktool\gui\dashboard\GuiScanTimelineChartRenderer.java` |
+| 2464 | 2026-10-02 12:20 | `src\main\java\networktool\gui\hostdetails\HostDetailRows.java` |
+| 3803 | 2026-10-02 12:20 | `src\main\java\networktool\gui\hostdetails\HostDetailsPanel.java` |
+| 3922 | 2026-10-02 12:20 | `src\main\java\networktool\gui\hostdetails\HostInfoTab.java` |
+| 2790 | 2026-10-02 12:20 | `src\main\java\networktool\gui\hostdetails\HostNotesTab.java` |
+| 4982 | 2026-10-02 12:20 | `src\main\java\networktool\gui\hostdetails\HostPingTab.java` |
+| 3737 | 2026-10-02 12:20 | `src\main\java\networktool\gui\hostdetails\HostPortsTab.java` |
+| 4254 | 2026-10-02 12:20 | `src\main\java\networktool\gui\hostdetails\HostSaveDialog.java` |
+| 1846 | 2026-10-02 12:20 | `src\main\java\networktool\gui\login\GuiLoginRateLimiter.java` |
+| 1973 | 2026-10-02 12:20 | `src\main\java\networktool\gui\login\LoginButtons.java` |
+| 1592 | 2026-10-02 12:20 | `src\main\java\networktool\gui\login\LoginChoiceScreen.java` |
+| 1808 | 2026-10-02 12:20 | `src\main\java\networktool\gui\login\LoginFormBuilder.java` |
+| 1646 | 2026-10-02 12:20 | `src\main\java\networktool\gui\login\LoginFormLayout.java` |
+| 2148 | 2026-10-02 12:20 | `src\main\java\networktool\gui\login\LoginInputs.java` |
+| 1423 | 2026-10-02 12:20 | `src\main\java\networktool\gui\login\LoginLockoutWatcher.java` |
+| 3693 | 2026-10-02 12:20 | `src\main\java\networktool\gui\login\LoginScreens.java` |
+| 1353 | 2026-10-02 12:20 | `src\main\java\networktool\gui\login\LoginShakeEffect.java` |
+| 5341 | 2026-10-02 12:20 | `src\main\java\networktool\gui\login\RegisterScreen.java` |
+| 8435 | 2026-10-02 12:20 | `src\main\java\networktool\gui\map\MapCanvas.java` |
+| 2779 | 2026-10-02 12:20 | `src\main\java\networktool\gui\map\MapContextMenu.java` |
+| 3754 | 2026-10-02 12:20 | `src\main\java\networktool\gui\map\MapDeviceSignatures.java` |
+| 4809 | 2026-10-02 12:20 | `src\main\java\networktool\gui\map\MapEdgeBuilder.java` |
+| 4501 | 2026-10-02 12:20 | `src\main\java\networktool\gui\map\MapExporter.java` |
+| 900 | 2026-10-02 12:20 | `src\main\java\networktool\gui\map\MapHeatmapRenderer.java` |
+| 696 | 2026-10-02 12:20 | `src\main\java\networktool\gui\map\MapHeatmapSettings.java` |
+| 5408 | 2026-10-02 12:20 | `src\main\java\networktool\gui\map\MapHopDiscovery.java` |
+| 3256 | 2026-10-02 12:20 | `src\main\java\networktool\gui\map\MapLayout.java` |
+| 2610 | 2026-10-02 12:20 | `src\main\java\networktool\gui\map\MapLegend.java` |
+| 4849 | 2026-10-02 12:20 | `src\main\java\networktool\gui\map\MapNodeCollector.java` |
+| 3844 | 2026-10-02 12:20 | `src\main\java\networktool\gui\map\MapNodeStyle.java` |
+| 5467 | 2026-10-02 12:20 | `src\main\java\networktool\gui\map\MapRenderer.java` |
+| 555 | 2026-10-02 12:20 | `src\main\java\networktool\gui\map\MapSnapshot.java` |
+| 2671 | 2026-10-28 21:00 | `src\main\java\networktool\gui\map\MapSwitchStore.java` |
+| 6785 | 2026-10-02 12:20 | `src\main\java\networktool\gui\map\MapTopology.java` |
+| 1791 | 2026-10-02 12:20 | `src\main\java\networktool\gui\map\MapTrafficHeatmap.java` |
+| 1298 | 2026-10-02 12:20 | `src\main\java\networktool\gui\map\MapTrafficLoad.java` |
+| 3461 | 2026-10-02 12:20 | `src\main\java\networktool\gui\notification\LocalToast.java` |
+| 1234 | 2026-10-02 12:20 | `src\main\java\networktool\gui\notification\NotificationListener.java` |
+| 3059 | 2026-10-02 12:20 | `src\main\java\networktool\gui\notification\NotificationTcpServer.java` |
+| 2402 | 2026-10-02 12:20 | `src\main\java\networktool\gui\notification\NtfyJsonParser.java` |
+| 5382 | 2026-10-02 12:20 | `src\main\java\networktool\gui\notification\NtfySubscriptionManager.java` |
+| 6113 | 2026-10-02 12:20 | `src\main\java\networktool\gui\notification\NtfySubscriptions.java` |
+| 5038 | 2026-10-02 12:20 | `src\main\java\networktool\gui\panels\audit\GuiAuditLegend.java` |
+| 7280 | 2026-10-02 12:20 | `src\main\java\networktool\gui\panels\audit\GuiAuditPanel.java` |
+| 4871 | 2026-10-02 12:20 | `src\main\java\networktool\gui\panels\audit\GuiAuditTable.java` |
+| 3272 | 2026-10-02 12:20 | `src\main\java\networktool\gui\panels\bandwidth\GuiBandwidthHistoryPanel.java` |
+| 4111 | 2026-10-02 12:20 | `src\main\java\networktool\gui\panels\GuiInputPanel.java` |
+| 2532 | 2026-10-02 12:20 | `src\main\java\networktool\gui\panels\GuiNetworkDialogs.java` |
+| 5984 | 2026-10-02 12:20 | `src\main\java\networktool\gui\panels\GuiOutputPanel.java` |
+| 2361 | 2026-10-02 12:20 | `src\main\java\networktool\gui\panels\OutputStreamRedirector.java` |
+| 4650 | 2026-10-02 12:20 | `src\main\java\networktool\gui\panels\privacy\GuiPrivacyPanel.java` |
+| 8047 | 2026-10-02 12:20 | `src\main\java\networktool\gui\panels\privacy\PrivacyNetworkActions.java` |
+| 2712 | 2026-10-02 12:20 | `src\main\java\networktool\gui\panels\privacy\PrivacyPanelStyle.java` |
+| 16154 | 2026-10-02 12:20 | `src\main\java\networktool\gui\panels\saved\GuiSavedHostsPanel.java` |
+| 3573 | 2026-10-02 12:20 | `src\main\java\networktool\gui\panels\saved\SavedHostsBulkActions.java` |
+| 2806 | 2026-10-02 12:20 | `src\main\java\networktool\gui\panels\saved\SavedHostsManualAdd.java` |
+| 3419 | 2026-10-02 12:20 | `src\main\java\networktool\gui\panels\saved\SavedHostsMoveMenu.java` |
+| 1474 | 2026-10-02 12:20 | `src\main\java\networktool\gui\panels\saved\SavedHostsStyle.java` |
+| 1331 | 2026-10-02 12:20 | `src\main\java\networktool\gui\panels\saved\SavedHostsTagFilter.java` |
+| 5651 | 2026-10-02 12:20 | `src\main\java\networktool\gui\panels\security\GuiSecurityFindingsPanel.java` |
+| 3099 | 2026-10-28 21:00 | `src\main\java\networktool\gui\panels\tags\HostTagPersistence.java` |
+| 2895 | 2026-10-02 12:20 | `src\main\java\networktool\gui\panels\tags\HostTagStore.java` |
+| 311 | 2026-10-02 12:20 | `src\main\java\networktool\gui\security\NoteDecryptionException.java` |
+| 4542 | 2026-10-02 12:20 | `src\main\java\networktool\gui\security\NoteEncryption.java` |
+| 665 | 2026-10-02 12:20 | `src\main\java\networktool\logging\DebugLogEntry.java` |
+| 1617 | 2026-10-02 12:20 | `src\main\java\networktool\logging\DebugLogFile.java` |
+| 2276 | 2026-10-02 12:20 | `src\main\java\networktool\logging\DebugLogger.java` |
+| 1540 | 2026-10-02 12:20 | `src\main\java\networktool\logging\LogEntry.java` |
+| 6042 | 2026-10-02 12:20 | `src\main\java\networktool\logging\LogFileBase.java` |
+| 7920 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\discovery\ArpMonitor.java` |
+| 3840 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\discovery\DhcpOptionAnalyzer.java` |
+| 8026 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\discovery\MdnsDiscovery.java` |
+| 4909 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\discovery\UpnpDiscovery.java` |
+| 2893 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\os\ExtendedOsDetector.java` |
+| 12236 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\os\OsBannerAnalyzer.java` |
+| 492 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\os\OsDetectionLogger.java` |
+| 8574 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\os\OsDetectionPipeline.java` |
+| 595 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\os\OsDetectionStepRunner.java` |
+| 2876 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\os\OsDetector.java` |
+| 5717 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\os\OsDetectorArp.java` |
+| 8595 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\os\OsDetectorHostname.java` |
+| 5263 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\os\OsDetectorPorts.java` |
+| 3336 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\os\OsFingerprint.java` |
+| 2127 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\os\OsParallelStepRunner.java` |
+| 4585 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\os\OsPortClassifier.java` |
+| 11606 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\os\OsProbeUdp.java` |
+| 1075 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\os\OsSignature.java` |
+| 303 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\os\ScanDepth.java` |
+| 2156 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\probe\BandwidthHistoryEntry.java` |
+| 3304 | 2026-10-28 21:00 | `src\main\java\networktool\logic\analysis\probe\BandwidthHistoryStore.java` |
+| 3605 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\probe\IcmpAnalyzer.java` |
+| 9355 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\probe\IpInspector.java` |
+| 9106 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\probe\OuiDatabase.java` |
+| 5562 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\probe\OuiUpdater.java` |
+| 9377 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\probe\PingMonitor.java` |
+| 2379 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\probe\PingUtil.java` |
+| 5026 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\probe\TracerouteRenderer.java` |
+| 3552 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\probe\TracerouteRunner.java` |
+| 2016 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\probe\VlanDetector.java` |
+| 3278 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\probe\WakeOnLan.java` |
+| 2000 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\security\CveLookup.java` |
+| 2906 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\security\DefaultCredentialProbe.java` |
+| 4609 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\security\DhcpDiscoverProbe.java` |
+| 1264 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\security\DhcpOfferTracker.java` |
+| 660 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\security\FindingReporter.java` |
+| 228 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\security\FindingsSource.java` |
+| 753 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\security\FindingsSourceRegistry.java` |
+| 1485 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\security\PeriodicJob.java` |
+| 2008 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\security\RogueDhcpDetector.java` |
+| 2967 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\security\ScanSecurityHook.java` |
+| 491 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\security\SecurityFinding.java` |
+| 1577 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\security\SecurityFindingsCollector.java` |
+| 2911 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\security\TlsCertInspector.java` |
+| 3058 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\security\TlsCertScheduler.java` |
+| 3599 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\snmp\BerReader.java` |
+| 735 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\snmp\BerTag.java` |
+| 2603 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\snmp\BerWriter.java` |
+| 2494 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\snmp\SnmpMessages.java` |
+| 2356 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\snmp\SnmpOid.java` |
+| 2548 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\snmp\SnmpPortTable.java` |
+| 280 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\snmp\SnmpProtocolException.java` |
+| 251 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\snmp\SnmpTransport.java` |
+| 186 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\snmp\SnmpVarBind.java` |
+| 2071 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\snmp\SnmpWalker.java` |
+| 1562 | 2026-10-02 12:20 | `src\main\java\networktool\logic\analysis\snmp\UdpSnmpTransport.java` |
+| 1097 | 2026-10-02 12:20 | `src\main\java\networktool\logic\error\ScanContext.java` |
+| 1349 | 2026-10-02 12:20 | `src\main\java\networktool\logic\error\ScanFailure.java` |
+| 4952 | 2026-10-02 12:20 | `src\main\java\networktool\logic\messaging\MessageDelivery.java` |
+| 2093 | 2026-10-02 12:20 | `src\main\java\networktool\logic\messaging\MessageDeliverySsh.java` |
+| 2452 | 2026-10-02 12:20 | `src\main\java\networktool\logic\messaging\MessageDeliveryWinRm.java` |
+| 5613 | 2026-10-02 12:20 | `src\main\java\networktool\logic\messaging\MessageSender.java` |
+| 3095 | 2026-10-02 12:20 | `src\main\java\networktool\logic\messaging\WebhookDelivery.java` |
+| 3147 | 2026-10-02 12:20 | `src\main\java\networktool\logic\ports\BannerGrabber.java` |
+| 11234 | 2026-10-02 12:20 | `src\main\java\networktool\logic\ports\BannerProtocolProbes.java` |
+| 2977 | 2026-10-02 12:20 | `src\main\java\networktool\logic\ports\BannerText.java` |
+| 6462 | 2026-10-02 12:20 | `src\main\java\networktool\logic\ports\PortScanner.java` |
+| 2964 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\ArpNeighborSource.java` |
+| 287 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\ArpSighting.java` |
+| 3030 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\ArpSniffer.java` |
+| 7976 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\HostAliveChecker.java` |
+| 1885 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\Ipv6HostProbe.java` |
+| 2882 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\Ipv6HostRange.java` |
+| 2750 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\Ipv6NeighborSource.java` |
+| 2155 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\NetworkDiscoverySweep.java` |
+| 4089 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\NetworkHostArpResolver.java` |
+| 3024 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\NetworkHostnameResolver.java` |
+| 3314 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\NetworkHostScanner.java` |
+| 7138 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\NetworkHostScanOrchestrator.java` |
+| 2642 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\NetworkInfo.java` |
+| 3335 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\NetworkScanner.java` |
+| 1997 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\NetworkScannerIpScan.java` |
+| 3474 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\NetworkScannerV6.java` |
+| 3133 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\PingSweep.java` |
+| 3135 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\ScanErrorClassifier.java` |
+| 2385 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\ScanProgress.java` |
+| 5552 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\SubnetDetector.java` |
+| 1213 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\TailscaleRouteParser.java` |
+| 2976 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\host\TailscaleRouteSource.java` |
+| 3329 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\remote\RemoteNetGateway.java` |
+| 4888 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\remote\RemoteNetProbe.java` |
+| 7869 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\remote\RemoteNetScanner.java` |
+| 3319 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\schedule\AdaptiveTimeoutEstimator.java` |
+| 314 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\schedule\ArpCacheEntry.java` |
+| 1354 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\schedule\LastScanCache.java` |
+| 9805 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\schedule\MapTrafficObserver.java` |
+| 1824 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\schedule\OfflineAliveProbe.java` |
+| 4448 | 2026-10-28 21:00 | `src\main\java\networktool\logic\scan\schedule\OfflineThresholdMonitor.java` |
+| 1519 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\schedule\OfflineTracker.java` |
+| 1817 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\schedule\OfflineTrackerStore.java` |
+| 6129 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\schedule\PortChangeMonitor.java` |
+| 8413 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\schedule\ScanDelta.java` |
+| 2829 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\schedule\ScanHistory.java` |
+| 3394 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\schedule\ScanRateLimiter.java` |
+| 6625 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\schedule\ScanScheduler.java` |
+| 694 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\schedule\SubnetStats.java` |
+| 236 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\schedule\WolSchedule.java` |
+| 3348 | 2026-10-02 12:20 | `src\main\java\networktool\logic\scan\schedule\WolScheduler.java` |
+| 761 | 2026-10-02 12:20 | `src\main\java\networktool\logic\ScanOutcome.java` |
+| 1535 | 2026-10-02 12:20 | `src\main\java\networktool\logic\sonify\ActiveInterfaceDetector.java` |
+| 553 | 2026-10-02 12:20 | `src\main\java\networktool\logic\sonify\BitEncoder.java` |
+| 1545 | 2026-10-02 12:20 | `src\main\java\networktool\logic\sonify\InterfaceStatsReader.java` |
+| 1197 | 2026-10-02 12:20 | `src\main\java\networktool\logic\sonify\PlainTone.java` |
+| 595 | 2026-10-02 12:20 | `src\main\java\networktool\logic\sonify\SonifyConfig.java` |
+| 2085 | 2026-10-28 21:00 | `src\main\java\networktool\logic\sonify\SonifyConfigStore.java` |
+| 248 | 2026-10-02 12:20 | `src\main\java\networktool\logic\sonify\ToneDuration.java` |
+| 247 | 2026-10-02 12:20 | `src\main\java\networktool\logic\sonify\ToneFrequency.java` |
+| 2306 | 2026-10-02 12:20 | `src\main\java\networktool\logic\sonify\ToneGenerator.java` |
+| 2890 | 2026-10-02 12:20 | `src\main\java\networktool\logic\sonify\TrafficSonifier.java` |
+| 614 | 2026-10-02 12:20 | `src\main\java\networktool\logic\sonify\TrafficTone.java` |
+| 3499 | 2026-10-02 12:20 | `src\main\java\networktool\logic\TimeoutConfig.java` |
+| 218 | 2026-10-02 12:20 | `src\main\java\networktool\logic\visualize\TrafficSample.java` |
+| 3575 | 2026-10-02 12:20 | `src\main\java\networktool\logic\visualize\TrafficVisualizer.java` |
+| 1359 | 2026-10-02 12:20 | `src\main\java\networktool\logic\windows\PowerShellRunner.java` |
+| 1760 | 2026-10-02 12:20 | `src\main\java\networktool\logic\windows\PsArpResolver.java` |
+| 1517 | 2026-10-02 12:20 | `src\main\java\networktool\logic\windows\PsCidrResolver.java` |
+| 1677 | 2026-10-02 12:20 | `src\main\java\networktool\logic\windows\PsInterfaceStatsResolver.java` |
+| 1309 | 2026-10-02 12:20 | `src\main\java\networktool\logic\windows\PsNetScanResolver.java` |
+| 1026 | 2026-10-02 12:20 | `src\main\java\networktool\logic\windows\PsPortScanResolver.java` |
+| 1956 | 2026-10-02 12:20 | `src\main\java\networktool\Main.java` |
+| 1386 | 2026-10-02 12:20 | `src\main\java\networktool\model\HostResult.java` |
+| 823 | 2026-10-02 12:20 | `src\main\java\networktool\model\ScanProfile.java` |
+| 751 | 2026-10-02 12:20 | `src\main\java\networktool\model\ScanResult.java` |
+| 1164 | 2026-10-02 12:20 | `src\main\java\networktool\security\AuditLogEntry.java` |
+| 1601 | 2026-10-02 12:20 | `src\main\java\networktool\security\AuditLogFile.java` |
+| 5364 | 2026-10-02 12:20 | `src\main\java\networktool\security\AuditLogger.java` |
+| 5046 | 2026-10-02 12:20 | `src\main\java\networktool\security\LoginDialog.java` |
+| 7749 | 2026-10-02 12:20 | `src\main\java\networktool\security\SecurityMonitor.java` |
+| 1265 | 2026-10-02 12:20 | `src\main\java\networktool\security\SessionAdminRateLimiter.java` |
+| 13934 | 2026-10-02 12:20 | `src\main\java\networktool\security\UserAuth.java` |
+| 4615 | 2026-10-02 12:20 | `src\main\java\networktool\security\UserAuthPersistence.java` |
+| 3481 | 2026-10-28 21:00 | `src\main\java\networktool\storage\BackupManager.java` |
+| 1031 | 2026-10-02 12:20 | `src\main\java\networktool\storage\export\DataExporter.java` |
+| 3729 | 2026-10-02 12:20 | `src\main\java\networktool\storage\export\DataExportFormatters.java` |
+| 841 | 2026-10-02 12:20 | `src\main\java\networktool\storage\export\DataExportImport.java` |
+| 2922 | 2026-10-02 12:20 | `src\main\java\networktool\storage\export\DataImporter.java` |
+| 1498 | 2026-10-02 12:20 | `src\main\java\networktool\storage\export\ExportFiles.java` |
+| 4533 | 2026-10-02 12:20 | `src\main\java\networktool\storage\export\HtmlReportBuilder.java` |
+| 4455 | 2026-10-02 12:20 | `src\main\java\networktool\storage\export\PdfDocument.java` |
+| 1130 | 2026-10-02 12:20 | `src\main\java\networktool\storage\export\PdfHostLines.java` |
+| 1123 | 2026-10-02 12:20 | `src\main\java\networktool\storage\export\PdfReportBuilder.java` |
+| 7594 | 2026-10-02 12:20 | `src\main\java\networktool\storage\JsonCodec.java` |
+| 6594 | 2026-10-02 12:20 | `src\main\java\networktool\storage\JsonHelper.java` |
+| 5998 | 2026-10-02 12:20 | `src\main\java\networktool\storage\network\HostJsonBuilder.java` |
+| 1792 | 2026-10-02 12:20 | `src\main\java\networktool\storage\network\HostSchemaMigration.java` |
+| 3190 | 2026-10-02 12:20 | `src\main\java\networktool\storage\network\NetworkRegistry.java` |
+| 8388 | 2026-10-02 12:20 | `src\main\java\networktool\storage\network\NetworkStore.java` |
+| 3805 | 2026-10-02 12:20 | `src\main\java\networktool\storage\network\NetworkStoreHostOps.java` |
+| 1440 | 2026-10-02 12:20 | `src\main\java\networktool\storage\network\NetworkStoreNtfy.java` |
+| 5805 | 2026-10-02 12:20 | `src\main\java\networktool\storage\network\NetworkStorePersistence.java` |
+| 1782 | 2026-10-02 12:20 | `src\main\java\networktool\storage\NotificationHistory.java` |
+| 7957 | 2026-10-28 21:00 | `src\main\java\networktool\storage\profile\ScanProfileStore.java` |
+| 6924 | 2026-10-28 21:00 | `src\main\java\networktool\storage\SavedHostsStore.java` |
+| 5469 | 2026-10-28 21:06 | `src\main\java\networktool\storage\StorageLocations.java` |
+| 509 | 2026-10-28 21:00 | `src\main\java\networktool\storage\StorageLocationsResolver.java` |
+| 486 | 2026-10-28 21:00 | `src\main\java\networktool\storage\StorageUtils.java` |
+| 3256 | 2026-10-02 12:20 | `src\main\java\networktool\storage\TestConstants.java` |
+| 839 | 2026-10-02 12:20 | `src\main\java\networktool\theme\GuiColorPalette.java` |
+| 5337 | 2026-10-02 12:20 | `src\main\java\networktool\theme\GuiTheme.java` |
+| 3043 | 2026-10-02 12:20 | `src\main\java\networktool\theme\GuiThemeDark.java` |
+| 3039 | 2026-10-02 12:20 | `src\main\java\networktool\theme\GuiThemeLight.java` |
+| 4749 | 2026-10-02 12:20 | `src\main\java\networktool\transfer\BandwidthHttpProbe.java` |
+| 2186 | 2026-10-02 12:20 | `src\main\java\networktool\transfer\BandwidthTester.java` |
+| 1432 | 2026-10-02 12:20 | `src\main\java\networktool\transfer\FileClient.java` |
+| 1773 | 2026-10-02 12:20 | `src\main\java\networktool\transfer\FileReceiver.java` |
+| 1267 | 2026-10-02 12:20 | `src\main\java\networktool\transfer\FileServer.java` |
+| 1859 | 2026-10-02 12:20 | `src\main\java\networktool\transfer\LatencyProbe.java` |
+| 5301 | 2026-10-02 12:20 | `src\main\java\networktool\util\AppIcon.java` |
+| 3308 | 2026-10-02 12:20 | `src\main\java\networktool\util\ButtonFactory.java` |
+| 2448 | 2026-10-02 12:20 | `src\main\java\networktool\util\CIDRUtils.java` |
+| 2334 | 2026-10-02 12:20 | `src\main\java\networktool\util\ContextMenuActions.java` |
+| 3099 | 2026-10-02 12:20 | `src\main\java\networktool\util\Ipv6AddressUtils.java` |
+| 1738 | 2026-10-02 12:20 | `src\main\java\networktool\util\IpValidator.java` |
+| 5099 | 2026-10-02 12:20 | `src\main\java\networktool\util\PlatformSupport.java` |
+| 3919 | 2026-10-02 12:20 | `src\main\java\networktool\util\PlatformUtils.java` |
+| 1450 | 2026-10-02 12:20 | `src\main\java\networktool\util\SafeCommand.java` |
+| 542 | 2026-10-02 12:20 | `src\main\java\networktool\util\StatusTags.java` |
+| 7605 | 2026-10-02 12:20 | `src\main\java\networktool\util\TableConfig.java` |
+| 473 | 2026-10-02 12:20 | `src\main\resources\cve-table.json` |
+| 80274 | 2026-10-02 12:20 | `src\main\resources\icon.ico` |
+| 1913 | 2026-10-02 12:20 | `test\main\java\networktool\cli\CliArgsTest.java` |
+| 1837 | 2026-10-02 12:20 | `test\main\java\networktool\cli\CliRunnerTest.java` |
+| 1406 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\actions\GuiBackupActionsTest.java` |
+| 1120 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\actions\GuiDataIOActionsTest.java` |
+| 3946 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\actions\GuiOfflineMonitorActionsTest.java` |
+| 1042 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\actions\GuiTagFilterActionsTest.java` |
+| 2139 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\actions\GuiWebhookActionsTest.java` |
+| 1923 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\BandwidthHistoryChartTest.java` |
+| 1760 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\GuiProgressBarTest.java` |
+| 1877 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\GuiSidebarAccessTest.java` |
+| 1127 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\GuiSidebarTest.java` |
+| 1359 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\GuiStatusBarTest.java` |
+| 1458 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\scan\GuiArpSnifferActionsTest.java` |
+| 1651 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\scan\GuiIpv6ScanActionsTest.java` |
+| 3832 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\scan\GuiSecurityAutomationActionsTest.java` |
+| 1754 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\scan\GuiSnmpActionsTest.java` |
+| 2251 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\scan\GuiTrafficSpectrogramActionsTest.java` |
+| 2243 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\scan\GuiTrafficVisualizerActionsTest.java` |
+| 1614 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\scan\GuiWolSchedulerActionsTest.java` |
+| 2425 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\scan\GuiWorkstreamCActionsTest.java` |
+| 5007 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\SidebarAccordionTest.java` |
+| 1169 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\SidebarAdminButtonTest.java` |
+| 1346 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\table\SearchResultRowTest.java` |
+| 2394 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\TrafficSpectrogramRendererTest.java` |
+| 2902 | 2026-10-02 12:20 | `test\main\java\networktool\gui\components\TrafficWaveformRendererTest.java` |
+| 2047 | 2026-10-02 12:20 | `test\main\java\networktool\gui\core\GuiErrorPresenterTest.java` |
+| 3253 | 2026-10-02 12:20 | `test\main\java\networktool\gui\core\GuiMenuDispatchTest.java` |
+| 3559 | 2026-10-02 12:20 | `test\main\java\networktool\gui\core\GuiMenuHandlerAsyncTest.java` |
+| 2039 | 2026-10-02 12:20 | `test\main\java\networktool\gui\core\GuiMenuRegistryTest.java` |
+| 961 | 2026-10-02 12:20 | `test\main\java\networktool\gui\core\GuiStatusReporterTest.java` |
+| 799 | 2026-10-02 12:20 | `test\main\java\networktool\gui\core\GuiTestSuiteMenusTest.java` |
+| 938 | 2026-10-02 12:20 | `test\main\java\networktool\gui\core\GuiToggleActionTest.java` |
+| 2058 | 2026-10-02 12:20 | `test\main\java\networktool\gui\core\GuiWindowActionsTest.java` |
+| 517 | 2026-10-02 12:20 | `test\main\java\networktool\gui\dashboard\GuiDashboardPanelTest.java` |
+| 1822 | 2026-10-02 12:20 | `test\main\java\networktool\gui\dashboard\GuiDashboardStatsTest.java` |
+| 2898 | 2026-10-02 12:20 | `test\main\java\networktool\gui\dashboard\GuiScanDeltaChartRendererTest.java` |
+| 3499 | 2026-10-02 12:20 | `test\main\java\networktool\gui\dashboard\GuiScanTimelineChartRendererTest.java` |
+| 8886 | 2026-10-02 12:20 | `test\main\java\networktool\gui\map\GuiNetworkMapTest.java` |
+| 444 | 2026-10-02 12:20 | `test\main\java\networktool\gui\map\MapContextMenuTest.java` |
+| 1613 | 2026-10-02 12:20 | `test\main\java\networktool\gui\map\MapDeviceSignaturesTest.java` |
+| 4984 | 2026-10-02 12:20 | `test\main\java\networktool\gui\map\MapEdgeBuilderTest.java` |
+| 4776 | 2026-10-02 12:20 | `test\main\java\networktool\gui\map\MapExporterTest.java` |
+| 1618 | 2026-10-02 12:20 | `test\main\java\networktool\gui\map\MapHeatmapRendererTest.java` |
+| 641 | 2026-10-02 12:20 | `test\main\java\networktool\gui\map\MapHeatmapSettingsTest.java` |
+| 3206 | 2026-10-02 12:20 | `test\main\java\networktool\gui\map\MapLayoutTest.java` |
+| 456 | 2026-10-02 12:20 | `test\main\java\networktool\gui\map\MapLegendTest.java` |
+| 3676 | 2026-10-02 12:20 | `test\main\java\networktool\gui\map\MapNodeStyleTest.java` |
+| 656 | 2026-10-02 12:20 | `test\main\java\networktool\gui\map\MapSnapshotTest.java` |
+| 11105 | 2026-10-02 12:20 | `test\main\java\networktool\gui\map\MapTopologyTest.java` |
+| 1839 | 2026-10-02 12:20 | `test\main\java\networktool\gui\map\MapTrafficHeatmapTest.java` |
+| 1112 | 2026-10-02 12:20 | `test\main\java\networktool\gui\map\MapTrafficLoadTest.java` |
+| 12098 | 2026-10-02 12:20 | `test\main\java\networktool\gui\map\NetworkMapTest.java` |
+| 1422 | 2026-10-02 12:20 | `test\main\java\networktool\gui\notification\NotificationListenerPackageTest.java` |
+| 2507 | 2026-10-02 12:20 | `test\main\java\networktool\gui\notification\NtfyJsonParserTest.java` |
+| 3467 | 2026-10-02 12:20 | `test\main\java\networktool\gui\panels\audit\GuiAuditPanelTest.java` |
+| 944 | 2026-10-02 12:20 | `test\main\java\networktool\gui\panels\bandwidth\GuiBandwidthHistoryPanelTest.java` |
+| 2034 | 2026-10-02 12:20 | `test\main\java\networktool\gui\panels\GuiOutputPanelTest.java` |
+| 2781 | 2026-10-02 12:20 | `test\main\java\networktool\gui\panels\OutputStreamRedirectorTest.java` |
+| 1496 | 2026-10-02 12:20 | `test\main\java\networktool\gui\panels\saved\SavedHostsBulkActionsTest.java` |
+| 2212 | 2026-10-02 12:20 | `test\main\java\networktool\gui\panels\saved\SavedHostsTagFilterTest.java` |
+| 656 | 2026-10-02 12:20 | `test\main\java\networktool\gui\panels\security\GuiSecurityFindingsPanelTest.java` |
+| 3106 | 2026-10-02 12:20 | `test\main\java\networktool\gui\panels\tags\HostTagStoreTest.java` |
+| 1414 | 2026-10-02 12:20 | `test\main\java\networktool\gui\security\NoteEncryptionPasswordPolicyTest.java` |
+| 1677 | 2026-10-02 12:20 | `test\main\java\networktool\gui\security\NoteEncyptionExceptionTest.java` |
+| 4415 | 2026-10-02 12:20 | `test\main\java\networktool\logging\DebugLoggerTest.java` |
+| 1780 | 2026-10-02 12:20 | `test\main\java\networktool\logging\LogEntryTest.java` |
+| 2996 | 2026-10-02 12:20 | `test\main\java\networktool\logging\LogFileBaseTest.java` |
+| 363 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\discovery\ArpMonitorLoggingTest.java` |
+| 2161 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\discovery\DhcpOptionAnalyzerExtTest.java` |
+| 10137 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\discovery\NetworkDiscoveryTest.java` |
+| 1316 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\os\ExtendedOsDetectorTest.java` |
+| 947 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\os\OsBannerAnalyzerTest.java` |
+| 1915 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\os\OsDetectionLoggerTest.java` |
+| 1959 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\os\OsDetectionPipelineDepthTest.java` |
+| 2032 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\os\OsDetectionPipelineTest.java` |
+| 936 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\os\OsDetectionStepRunnerTest.java` |
+| 1689 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\os\OsDetectorArpTest.java` |
+| 2837 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\os\OsDetectorDelegationTest.java` |
+| 1807 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\os\OsDetectorDepthOverloadTest.java` |
+| 1390 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\os\OsDetectorFixTest.java` |
+| 5457 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\os\OsDetectorHostnameTest.java` |
+| 2845 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\os\OsDetectorPackageTest.java` |
+| 1066 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\os\OsDetectorPortsTest.java` |
+| 7039 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\os\OsFingerprintTest.java` |
+| 4227 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\os\OsParallelStepRunnerTest.java` |
+| 5018 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\os\OsPortClassifierTest.java` |
+| 10368 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\os\OsProbeUdpTest.java` |
+| 1732 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\os\OsSignatureTest.java` |
+| 512 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\os\ScanDepthTest.java` |
+| 1612 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\probe\BandwidthHistoryEntryTest.java` |
+| 2127 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\probe\BandwidthHistoryStoreTest.java` |
+| 1788 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\probe\IpInspectorExtTest.java` |
+| 1315 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\probe\TracerouteRunnerFixTest.java` |
+| 2471 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\probe\TracerouteRunnerPackageTest.java` |
+| 1484 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\probe\VlanDetectorTest.java` |
+| 1174 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\security\CveLookupTest.java` |
+| 832 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\security\DefaultCredentialProbeTest.java` |
+| 3197 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\security\DhcpDiscoverProbeTest.java` |
+| 1362 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\security\DhcpOfferTrackerTest.java` |
+| 1025 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\security\FindingReporterTest.java` |
+| 2554 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\security\FindingsSourceRegistryTest.java` |
+| 1581 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\security\PeriodicJobTest.java` |
+| 2076 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\security\RogueDhcpDetectorTest.java` |
+| 2822 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\security\ScanSecurityHookTest.java` |
+| 1314 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\security\SecurityFindingsCollectorAddIfNewTest.java` |
+| 2507 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\security\SecurityFindingsCollectorTest.java` |
+| 1120 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\security\SecurityFindingTest.java` |
+| 641 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\security\TlsCertInspectorTest.java` |
+| 2881 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\security\TlsCertSchedulerTest.java` |
+| 3201 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\snmp\BerCodecTest.java` |
+| 2280 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\snmp\FakeSnmpAgent.java` |
+| 2952 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\snmp\SnmpMessagesTest.java` |
+| 2471 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\snmp\SnmpOidTest.java` |
+| 2855 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\snmp\SnmpPortTableTest.java` |
+| 2838 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\snmp\SnmpWalkerTest.java` |
+| 1728 | 2026-10-02 12:20 | `test\main\java\networktool\logic\analysis\snmp\UdpSnmpTransportTest.java` |
+| 2249 | 2026-10-02 12:20 | `test\main\java\networktool\logic\error\ScanFailureTest.java` |
+| 2008 | 2026-10-02 12:20 | `test\main\java\networktool\logic\messaging\MessageDeliveryInjectionTest.java` |
+| 824 | 2026-10-02 12:20 | `test\main\java\networktool\logic\messaging\MessageDeliverySshTest.java` |
+| 900 | 2026-10-02 12:20 | `test\main\java\networktool\logic\messaging\MessageDeliveryWinRmTest.java` |
+| 2434 | 2026-10-02 12:20 | `test\main\java\networktool\logic\messaging\MessagingPackageTest.java` |
+| 3639 | 2026-10-02 12:20 | `test\main\java\networktool\logic\messaging\WebhookDeliveryTest.java` |
+| 1360 | 2026-10-02 12:20 | `test\main\java\networktool\logic\ports\BannerProtocolProbesLoggingTest.java` |
+| 2654 | 2026-10-02 12:20 | `test\main\java\networktool\logic\ports\PortScannerFixTest.java` |
+| 4985 | 2026-10-02 12:20 | `test\main\java\networktool\logic\ports\PortsPackageTest.java` |
+| 1743 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\host\ArpNeighborSourceTest.java` |
+| 3920 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\host\ArpSnifferTest.java` |
+| 2251 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\host\HostAliveCheckerRateLimitTest.java` |
+| 836 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\host\Ipv6HostProbeTest.java` |
+| 2180 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\host\Ipv6HostRangeTest.java` |
+| 1617 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\host\Ipv6NeighborSourceTest.java` |
+| 805 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\host\NetworkDiscoverySweepTest.java` |
+| 458 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\host\NetworkHostScannerPackageTest.java` |
+| 2859 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\host\NetworkScannerV6Test.java` |
+| 794 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\host\NetworkTimeoutTestBase.java` |
+| 4804 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\host\ScanErrorClassifierTest.java` |
+| 1824 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\host\SubnetDetectorRouteTest.java` |
+| 1932 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\host\SubnetDetectorTest.java` |
+| 1761 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\host\TailscaleRouteParserTest.java` |
+| 1198 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\host\TailscaleRouteSourceTest.java` |
+| 2019 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\remote\RemoteNetScannerPackageTest.java` |
+| 5163 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\schedule\AdaptiveTimeoutEstimatorTest.java` |
+| 1178 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\schedule\ArpCacheEntryTest.java` |
+| 1426 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\schedule\MapTrafficObserverTest.java` |
+| 815 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\schedule\OfflineAliveProbeTest.java` |
+| 3862 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\schedule\OfflineThresholdMonitorTest.java` |
+| 1244 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\schedule\OfflineTrackerStoreTest.java` |
+| 1852 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\schedule\OfflineTrackerTest.java` |
+| 3380 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\schedule\ScanRateLimiterTest.java` |
+| 2037 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\schedule\ScanSchedulerFixTest.java` |
+| 3272 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\schedule\ScanSchedulerLifecycleRegressionTest.java` |
+| 2315 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\schedule\ScanSchedulerPackageTest.java` |
+| 4766 | 2026-10-02 12:20 | `test\main\java\networktool\logic\scan\schedule\WolSchedulerTest.java` |
+| 929 | 2026-10-02 12:20 | `test\main\java\networktool\logic\ScanOutcomeTest.java` |
+| 814 | 2026-10-02 12:20 | `test\main\java\networktool\logic\sonify\BitEncoderTest.java` |
+| 475 | 2026-10-02 12:20 | `test\main\java\networktool\logic\sonify\InterfaceStatsReaderTest.java` |
+| 507 | 2026-10-02 12:20 | `test\main\java\networktool\logic\sonify\PlainToneTest.java` |
+| 654 | 2026-10-02 12:20 | `test\main\java\networktool\logic\sonify\SonifyConfigStoreTest.java` |
+| 569 | 2026-10-02 12:20 | `test\main\java\networktool\logic\sonify\SonifyConfigTest.java` |
+| 734 | 2026-10-02 12:20 | `test\main\java\networktool\logic\sonify\ToneGeneratorTest.java` |
+| 891 | 2026-10-02 12:20 | `test\main\java\networktool\logic\sonify\TrafficSonifierConfigTest.java` |
+| 1193 | 2026-10-02 12:20 | `test\main\java\networktool\logic\sonify\TrafficSonifierTest.java` |
+| 1122 | 2026-10-02 12:20 | `test\main\java\networktool\logic\sonify\TrafficToneTest.java` |
+| 1175 | 2026-10-02 12:20 | `test\main\java\networktool\logic\visualize\TrafficSampleTest.java` |
+| 4872 | 2026-10-02 12:20 | `test\main\java\networktool\logic\visualize\TrafficVisualizerTest.java` |
+| 620 | 2026-10-02 12:20 | `test\main\java\networktool\logic\windows\PowerShellRunnerTest.java` |
+| 429 | 2026-10-02 12:20 | `test\main\java\networktool\logic\windows\PsArpResolverTest.java` |
+| 484 | 2026-10-02 12:20 | `test\main\java\networktool\logic\windows\PsCidrResolverTest.java` |
+| 728 | 2026-10-02 12:20 | `test\main\java\networktool\logic\windows\PsNetScanResolverTest.java` |
+| 963 | 2026-10-02 12:20 | `test\main\java\networktool\logic\windows\PsPortScanResolverTest.java` |
+| 1368 | 2026-10-02 12:20 | `test\main\java\networktool\logic\windows\PsResolverInjectionTest.java` |
+| 5672 | 2026-10-02 12:20 | `test\main\java\networktool\MainTest.java` |
+| 1652 | 2026-10-02 12:20 | `test\main\java\networktool\model\ModelEdgeCaseTest.java` |
+| 2137 | 2026-10-02 12:20 | `test\main\java\networktool\security\AuditLoggerSessionAdminTest.java` |
+| 10648 | 2026-10-02 12:20 | `test\main\java\networktool\security\AuditLoggerTest.java` |
+| 1685 | 2026-10-02 12:20 | `test\main\java\networktool\security\UserAuthDefaultWarningTest.java` |
+| 2065 | 2026-10-02 12:20 | `test\main\java\networktool\security\UserAuthPasswordPolicyTest.java` |
+| 1639 | 2026-10-02 12:20 | `test\main\java\networktool\security\UserAuthSessionAdminLockoutTest.java` |
+| 2830 | 2026-10-02 12:20 | `test\main\java\networktool\security\UserAuthSessionAdminTest.java` |
+| 4523 | 2026-10-02 12:20 | `test\main\java\networktool\storage\BackupManagerTest.java` |
+| 3371 | 2026-10-02 12:20 | `test\main\java\networktool\storage\export\DataExporterPackageTest.java` |
+| 1721 | 2026-10-02 12:20 | `test\main\java\networktool\storage\export\DataImporterFixTest.java` |
+| 4537 | 2026-10-02 12:20 | `test\main\java\networktool\storage\export\DataImporterRegressionTest.java` |
+| 1248 | 2026-10-02 12:20 | `test\main\java\networktool\storage\export\ExportFilesTest.java` |
+| 2496 | 2026-10-02 12:20 | `test\main\java\networktool\storage\export\ExportImportTest.java` |
+| 1184 | 2026-10-02 12:20 | `test\main\java\networktool\storage\export\PdfHostLinesTest.java` |
+| 4190 | 2026-10-02 12:20 | `test\main\java\networktool\storage\export\PdfReportBuilderTest.java` |
+| 6481 | 2026-10-02 12:20 | `test\main\java\networktool\storage\JsonCodecFuzzTest.java` |
+| 13289 | 2026-10-02 12:20 | `test\main\java\networktool\storage\JsonHelperFuzzTest.java` |
+| 3922 | 2026-10-02 12:20 | `test\main\java\networktool\storage\network\HostJsonBuilderTest.java` |
+| 2349 | 2026-10-02 12:20 | `test\main\java\networktool\storage\network\HostSchemaMigrationV2Test.java` |
+| 2296 | 2026-10-02 12:20 | `test\main\java\networktool\storage\network\HostSchemaVersionTest.java` |
+| 4556 | 2026-10-02 12:20 | `test\main\java\networktool\storage\network\NetworkRegistryTest.java` |
+| 2830 | 2026-10-02 12:20 | `test\main\java\networktool\storage\network\NetworkStoreFixTest.java` |
+| 3169 | 2026-10-02 12:20 | `test\main\java\networktool\storage\network\NetworkStoreIsolationTest.java` |
+| 5127 | 2026-10-02 12:20 | `test\main\java\networktool\storage\network\NetworkStorePersistenceCorruptionTest.java` |
+| 2218 | 2026-10-02 12:20 | `test\main\java\networktool\storage\network\NetworkStorePersistenceEdgeTest.java` |
+| 3177 | 2026-10-02 12:20 | `test\main\java\networktool\storage\network\NetworkStorePersistencePackageTest.java` |
+| 1889 | 2026-10-28 21:00 | `test\main\java\networktool\storage\StorageLocationsTest.java` |
+| 1344 | 2026-10-02 12:20 | `test\main\java\networktool\theme\GuiThemePaletteTest.java` |
+| 2473 | 2026-10-02 12:20 | `test\main\java\networktool\theme\GuiThemeTest.java` |
+| 1340 | 2026-10-02 12:20 | `test\main\java\networktool\transfer\BandwidthTesterActiveTest.java` |
+| 7288 | 2026-10-02 12:20 | `test\main\java\networktool\transfer\FileTransferRegressionTest.java` |
+| 2063 | 2026-10-02 12:20 | `test\main\java\networktool\util\ButtonFactoryTest.java` |
+| 2628 | 2026-10-02 12:20 | `test\main\java\networktool\util\CIDRUtilsBoundaryTest.java` |
+| 1469 | 2026-10-02 12:20 | `test\main\java\networktool\util\CIDRUtilsExtTest.java` |
+| 1583 | 2026-10-02 12:20 | `test\main\java\networktool\util\CIDRUtilsPropertyTest.java` |
+| 3270 | 2026-10-02 12:20 | `test\main\java\networktool\util\Ipv6AddressUtilsTest.java` |
+| 1494 | 2026-10-02 12:20 | `test\main\java\networktool\util\PlatformSupportNtfyTopicTest.java` |
+| 1082 | 2026-10-02 12:20 | `test\main\java\networktool\util\PlatformSupportOsTest.java` |
+| 1511 | 2026-10-02 12:20 | `test\main\java\networktool\util\PlatformSupportPropertyTest.java` |
+| 1089 | 2026-10-02 12:20 | `test\main\java\networktool\util\PlatformSupportSubnetTest.java` |
+| 1072 | 2026-10-02 12:20 | `test\main\java\networktool\util\PlatformUtilsSubnetTest.java` |
+| 3529 | 2026-10-02 12:20 | `test\main\java\networktool\util\PlatformUtilsTest.java` |
+| 1732 | 2026-10-02 12:20 | `test\main\java\networktool\util\SafeCommandTest.java` |
+| 776 | 2026-10-02 12:20 | `test\main\java\networktool\util\StatusTagsTest.java` |
+| 3033 | 2026-10-02 12:20 | `test\main\java\networktool\util\TableConfigExtTest.java` |
+| 1585 | 2026-10-02 12:20 | `test\main\java\networktool\util\TableConfigFixTest.java` |
+| 2503 | 2026-10-02 12:20 | `test\main\java\networktool\util\TableConfigRendererTest.java` |
+| 5868 | 2026-10-02 12:20 | `test\networktool\cli\CliTest.java` |
+| 2133 | 2026-10-02 12:20 | `test\networktool\filter\FilterExtTest.java` |
+| 13978 | 2026-10-02 12:20 | `test\networktool\filter\FilterTest.java` |
+| 1926 | 2026-10-02 12:20 | `test\networktool\gui\GuiLoginRateLimiterPackageTest.java` |
+| 9275 | 2026-10-02 12:20 | `test\networktool\gui\panels\PrivacyNetworkActionsTest.java` |
+| 5238 | 2026-10-02 12:20 | `test\networktool\logic\AnalysisTest.java` |
+| 11954 | 2026-10-02 12:20 | `test\networktool\logic\LogicTest.java` |
+| 1000 | 2026-10-02 12:20 | `test\networktool\logic\MessagingTest.java` |
+| 3326 | 2026-10-02 12:20 | `test\networktool\logic\scan\host\HostAliveCheckerTest.java` |
+| 1973 | 2026-10-02 12:20 | `test\networktool\logic\scan\host\SubnetDetectorExtTest.java` |
+| 2896 | 2026-10-02 12:20 | `test\networktool\logic\scan\schedule\LastScanCacheFixTest.java` |
+| 21994 | 2026-10-02 12:20 | `test\networktool\logic\ScanInfraTest.java` |
+| 7912 | 2026-10-02 12:20 | `test\networktool\logic\ScanNetworkTest.java` |
+| 1530 | 2026-10-02 12:20 | `test\networktool\logic\TrafficVisualizerIntegrationTest.java` |
+| 6497 | 2026-10-02 12:20 | `test\networktool\misc\MiscTest.java` |
+| 7416 | 2026-10-02 12:20 | `test\networktool\model\ModelTest.java` |
+| 6074 | 2026-10-02 12:20 | `test\networktool\network\NetworkTest.java` |
+| 2233 | 2026-10-02 12:20 | `test\networktool\security\SecurityMonitorTest.java` |
+| 11042 | 2026-10-02 12:20 | `test\networktool\security\SecurityTest.java` |
+| 3125 | 2026-10-02 12:20 | `test\networktool\storage\ScanProfileStoreExtTest.java` |
+| 3039 | 2026-10-02 12:20 | `test\networktool\storage\StorageExtTest.java` |
+| 6784 | 2026-10-02 12:20 | `test\networktool\storage\StorageTest.java` |
+| 2634 | 2026-10-02 12:20 | `test\networktool\transfer\TransferTest.java` |
+| 1210 | 2026-10-02 12:20 | `test\networktool\util\PollHelper.java` |
+| 5633 | 2026-10-02 12:20 | `test\networktool\util\UtilTest.java` |
+| 286 | 2026-10-02 12:20 | `test\resources\junit-platform.properties` |
+| 5377 | 2026-10-02 12:20 | `tools\clean_code_guide.md` |
+| 1691 | 2026-10-02 12:20 | `tools\clean_code_guide.yaml` |
+| 8735 | 2026-10-28 22:05 | `tools\README.md` |
+| 2731 | 2026-10-10 17:05 | `tools\script fast access.txt` |
+| 4956 | 2026-10-28 22:08 | `tools\scripts\Build-WindowsPackage.ps1` |
+| 7393 | 2026-10-10 17:05 | `tools\scripts\chart-range.js` |
+| 1180 | 2026-10-10 17:05 | `tools\scripts\chart-tooltip.js` |
+| 7271 | 2026-10-10 17:05 | `tools\scripts\Find-DeadCode.ps1` |
+| 2141 | 2026-10-10 17:05 | `tools\scripts\Measure-TestRuntime.ps1` |
+| 17019 | 2026-10-28 21:05 | `tools\scripts\New-ContextReport.ps1` |
+| 15834 | 2026-10-10 17:05 | `tools\scripts\New-CoverageChart.ps1` |
+| 1090 | 2026-10-10 17:05 | `tools\scripts\Run-Coverage.ps1` |
+| 9569 | 2026-10-10 17:05 | `tools\scripts\Update-TestCoverageHistory.ps1` |
+| 9157 | 2026-10-10 17:05 | `tools\scripts\Update-TestRuntimeHistory.ps1` |
+| 5342 | 2026-10-10 17:05 | `tools\scripts\Verify-TestSuite.ps1` |
 
 ## Projekt-README
 
@@ -1000,9 +997,19 @@ mvn clean test
 # Package the executable JAR
 mvn package
 
+# Build a portable Windows package with an included Java runtime
+.\tools\scripts\Build-WindowsPackage.ps1
+
 # Start the graphical application
 java -jar target/nettool-0.8.12.jar
 ```
+
+The Windows packaging script requires JDK 21+ with `jpackage` and a built
+application JAR. It creates `target/dist/nettool-<version>-windows-x64.zip`,
+including a launcher and Java runtime; unzip it and start `NetTool\NetTool.exe`.
+Application data stays in the user's `.nettool` directory, separate from the
+package. CI builds and smoke-tests this package on Windows and publishes it as
+a workflow artifact.
 
 With the current Maven coordinates, the executable JAR is
 `target/nettool-0.8.12.jar`. To print the supported
@@ -1055,20 +1062,26 @@ workflow, CI behavior, and guidance for interpreting skipped tests.
 
 ## Data and local files
 
-At runtime, NetTool stores application data under `saves/` in the project
-directory:
+At runtime, NetTool stores application data in the current user's home
+directory under `.nettool/` (for example `%USERPROFILE%\.nettool` on Windows).
+The legacy project-local `saves/` directory is copied into this location on
+first startup; existing destination files are kept, and the old files are not
+deleted automatically. To use a different location, set the Java system
+property `-Dnettool.dataDir=<path>`:
 
 | Directory | Contents |
 |---|---|
-| `saves/userdata/` | User/account data |
-| `saves/networkdata/` | Saved networks, hosts, and related inventory |
-| `saves/profiles/` | Scan profiles |
-| `saves/logs/` | Audit and debug logs |
-| `saves/cache/` | Local caches and application settings |
+| `.nettool/userdata/` | User/account data |
+| `.nettool/networkdata/` | Saved networks, hosts, and related inventory |
+| `.nettool/profiles/` | Scan profiles |
+| `.nettool/logs/` | Audit and debug logs |
+| `.nettool/cache/` | Local caches and application settings |
 
 These files are local application state, not source code. Do not publish
 personal or sensitive network inventories, account data, logs, or backups.
-The `saves/` directory is ignored by Git.
+Runtime contents under the repository's `saves/` directory are ignored by Git;
+only an empty placeholder is retained. The ignore rule does not remove older
+copies from Git history.
 
 ## Repository layout
 
@@ -2263,477 +2276,5 @@ Quelle: `tools\output\test_coverage_notes.csv`
 "34","2026-10-07 10:52:33","mtest korrigiert: immer volle Testsuite"
 "35","2026-10-07 10:55:52","test1"
 "41","2026-10-09 16:33:06","sliders"
-
-```
-
-## Coverage: target\site\jacoco\jacoco.csv
-
-Quelle: `target\site\jacoco\jacoco.csv`
-
-```csv
-GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
-nettool,main.java.networktool.logic.error,ScanContext,0,72,0,6,0,11,0,9,0,6
-nettool,main.java.networktool.logic.error,ScanFailure,0,80,1,7,0,16,1,7,0,4
-nettool,main.java.networktool.cli,CliRunner,0,40,0,5,0,10,0,6,0,3
-nettool,main.java.networktool.cli,CliArgs.Command,0,21,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.cli,CliArgs,0,98,0,22,0,12,0,16,0,5
-nettool,main.java.networktool.storage.network,NetworkRegistry,7,239,7,27,0,45,7,23,0,13
-nettool,main.java.networktool.storage.network,NetworkStorePersistence,22,271,3,25,6,54,3,25,0,14
-nettool,main.java.networktool.storage.network,HostSchemaMigration,2,45,2,10,0,9,2,6,0,2
-nettool,main.java.networktool.storage.network,NetworkStore.Holder,0,5,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.storage.network,NetworkStoreHostOps,98,188,18,11,10,33,20,18,7,16
-nettool,main.java.networktool.storage.network,NetworkStoreNtfy,6,68,1,7,2,14,1,5,0,2
-nettool,main.java.networktool.storage.network,NetworkStore.SortField,0,21,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.storage.network,HostJsonBuilder,10,459,17,53,0,76,17,27,0,9
-nettool,main.java.networktool.storage.network,NetworkStore,142,368,22,30,24,78,25,37,9,27
-nettool,main.java.networktool.gui.core,TestSuiteDataMenu,58,31,0,0,9,7,8,1,8,1
-nettool,main.java.networktool.gui.core,GuiDebugMode,232,2,30,0,49,1,24,1,7,1
-nettool,main.java.networktool.gui.core,GuiMenuHandler,393,293,12,8,40,63,57,10,50,7
-nettool,main.java.networktool.gui.core,GuiRestartFlow,64,0,2,0,26,0,7,0,6,0
-nettool,main.java.networktool.gui.core,GuiWindowActions.new AbstractAction() {...},10,0,0,0,2,0,2,0,2,0
-nettool,main.java.networktool.gui.core,GuiWindowActions.new AbstractAction() {...},10,0,0,0,2,0,2,0,2,0
-nettool,main.java.networktool.gui.core,GuiWindowActions.new WindowAdapter() {...},10,0,0,0,2,0,2,0,2,0
-nettool,main.java.networktool.gui.core,GuiWindowActions.new AbstractAction() {...},10,0,0,0,2,0,2,0,2,0
-nettool,main.java.networktool.gui.core,GuiWindowActions.new AbstractAction() {...},10,0,0,0,2,0,2,0,2,0
-nettool,main.java.networktool.gui.core,GuiErrorPresenter,0,20,0,7,0,8,0,7,0,1
-nettool,main.java.networktool.gui.core,GuiToggleAction,0,16,0,2,0,5,0,2,0,1
-nettool,main.java.networktool.gui.core,GuiStatusReporter,6,41,0,0,2,12,1,4,1,4
-nettool,main.java.networktool.gui.core,GUI,226,0,8,0,48,0,21,0,17,0
-nettool,main.java.networktool.gui.core,TestSuiteScanningMenu,26,21,0,0,0,5,4,1,4,1
-nettool,main.java.networktool.gui.core,GuiMenuRegistry,0,38,0,2,0,10,0,6,0,5
-nettool,main.java.networktool.gui.core,GuiStartupTasks,53,0,8,0,20,0,7,0,3,0
-nettool,main.java.networktool.gui.core,TestSuiteAutomationMenu,33,26,0,0,0,6,5,1,5,1
-nettool,main.java.networktool.gui.core,GuiMenuContext,0,15,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.gui.core,TestSuiteSecurityMenu,16,16,0,0,0,4,3,1,3,1
-nettool,main.java.networktool.gui.core,GuiWindowActions,110,0,6,0,27,0,7,0,4,0
-nettool,main.java.networktool.gui.core,GuiToggleAction.Parameters,0,24,0,0,0,5,0,1,0,1
-nettool,main.java.networktool.gui.core,GuiFrameLayout,118,0,0,0,23,0,4,0,4,0
-nettool,main.java.networktool.gui.core,GuiMenuDispatch,71,60,19,13,28,21,11,6,0,1
-nettool,main.java.networktool.gui.core,GuiTestSuiteMenus,0,16,0,0,0,6,0,1,0,1
-nettool,main.java.networktool.gui.core,TestSuiteReportingMenu,20,21,0,0,0,5,4,1,4,1
-nettool,main.java.networktool.gui.components.scan,GuiPdfExportActions,12,20,0,0,3,4,2,1,2,1
-nettool,main.java.networktool.gui.components.scan,GuiHopAnalysis.new DefaultTableModel() {...},7,0,0,0,2,0,2,0,2,0
-nettool,main.java.networktool.gui.components.scan,GuiTrafficSpectrogramActions,17,80,4,2,3,24,4,6,1,6
-nettool,main.java.networktool.gui.components.scan,GuiHopAnalysis,381,0,30,0,66,0,19,0,4,0
-nettool,main.java.networktool.gui.components.scan,GuiSchedulerActions,213,0,20,0,44,0,19,0,8,0
-nettool,main.java.networktool.gui.components.scan,GuiScanProfileActions,328,0,34,0,62,0,35,0,17,0
-nettool,main.java.networktool.gui.components.scan,GuiMapExportActions,47,42,4,0,6,7,4,3,2,3
-nettool,main.java.networktool.gui.components.scan,GuiArpSnifferActions,26,46,4,4,4,13,4,4,2,2
-nettool,main.java.networktool.gui.components.scan,GuiIpv6ScanActions,23,23,0,2,4,7,2,3,2,2
-nettool,main.java.networktool.gui.components.scan,GuiScanCompareActions,233,0,16,0,39,0,18,0,10,0
-nettool,main.java.networktool.gui.components.scan,GuiSnmpActions,41,38,2,6,10,9,5,7,4,4
-nettool,main.java.networktool.gui.components.scan,GuiScanActions,232,0,14,0,51,0,26,0,19,0
-nettool,main.java.networktool.gui.components.scan,GuiWolSchedulerActions,158,48,12,6,33,8,15,5,8,2
-nettool,main.java.networktool.gui.components.scan,GuiMapHeatmapActions,0,25,0,6,0,5,0,4,0,1
-nettool,main.java.networktool.gui.components.scan,GuiForeignNetActions,163,0,17,0,28,0,20,0,10,0
-nettool,main.java.networktool.gui.components.scan,GuiTrafficVisualizerActions,17,81,4,2,3,24,4,6,1,6
-nettool,main.java.networktool.gui.components.scan,GuiSecurityAutomationActions,42,139,5,21,11,36,7,16,3,7
-nettool,main.java.networktool.gui.components.scan,GuiSonifyActions,163,0,8,0,32,0,14,0,10,0
-nettool,main.java.networktool.gui.components.scan,GuiScanTimelineActions,0,39,0,2,0,12,0,3,0,2
-nettool,main.java.networktool.gui.notification,NtfySubscriptions,272,45,44,2,69,13,28,5,5,5
-nettool,main.java.networktool.gui.notification,LocalToast,83,68,4,4,26,7,5,4,2,3
-nettool,main.java.networktool.gui.notification,NotificationTcpServer,85,35,8,2,27,13,7,4,2,4
-nettool,main.java.networktool.gui.notification,NtfyJsonParser.NtfyEvent,0,3,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.gui.notification,NtfyJsonParser,37,171,14,26,5,36,14,10,0,2
-nettool,main.java.networktool.gui.notification,NotificationListener,3,9,0,0,2,7,1,3,1,3
-nettool,main.java.networktool.gui.notification,NtfySubscriptionManager,285,0,42,0,74,0,31,0,10,0
-nettool,main.java.networktool.gui.dashboard,GuiDashboardPanel,30,191,4,4,3,35,6,5,2,5
-nettool,main.java.networktool.gui.dashboard,GuiDashboardStats.Snapshot,0,15,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.gui.dashboard,GuiScanDeltaChart,20,33,0,4,5,9,1,4,1,2
-nettool,main.java.networktool.gui.dashboard,GuiDashboardStats,0,26,0,0,0,7,0,1,0,1
-nettool,main.java.networktool.gui.dashboard,GuiScanTimelineChartRenderer,0,149,2,6,0,21,2,6,0,4
-nettool,main.java.networktool.gui.dashboard,GuiScanTimelineChart,20,33,0,4,5,9,1,4,1,2
-nettool,main.java.networktool.gui.dashboard,GuiScanDeltaChartRenderer,3,192,3,12,1,30,3,10,0,4
-nettool,main.java.networktool.storage,StorageLocationsResolver,0,9,0,0,0,3,0,3,0,3
-nettool,main.java.networktool.storage,JsonCodec,66,580,32,98,11,109,31,49,0,12
-nettool,main.java.networktool.storage,SavedHostsStore,48,441,17,37,10,89,17,31,0,21
-nettool,main.java.networktool.storage,NotificationHistory.Holder,0,5,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.storage,NotificationHistory,0,72,0,2,0,13,0,8,0,7
-nettool,main.java.networktool.storage,BackupManager,0,198,0,14,0,35,0,16,0,9
-nettool,main.java.networktool.storage,StorageUtils,9,0,0,0,3,0,3,0,3,0
-nettool,main.java.networktool.storage,NotificationHistory.Entry,0,15,0,0,0,6,0,1,0,1
-nettool,main.java.networktool.storage,JsonHelper,391,155,76,30,67,34,52,15,7,4
-nettool,main.java.networktool.storage,SavedHostsStore.Holder,0,5,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.storage,StorageLocations,42,67,9,5,9,13,8,8,2,7
-nettool,main.java.networktool.logic.analysis.security,TlsCertScheduler.Holder,0,8,0,0,0,2,0,1,0,1
-nettool,main.java.networktool.logic.analysis.security,RogueDhcpDetector,0,83,0,8,0,19,0,10,0,6
-nettool,main.java.networktool.logic.analysis.security,CveLookup.Entry,0,12,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic.analysis.security,DhcpOfferTracker,0,64,0,2,0,11,0,7,0,6
-nettool,main.java.networktool.logic.analysis.security,DefaultCredentialProbe,135,14,8,0,21,6,5,2,1,2
-nettool,main.java.networktool.logic.analysis.security,SecurityFindingsCollector,13,61,0,6,5,15,1,10,1,7
-nettool,main.java.networktool.logic.analysis.security,SecurityFinding.Severity,0,21,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic.analysis.security,DhcpDiscoverProbe,47,210,3,19,11,41,4,13,1,5
-nettool,main.java.networktool.logic.analysis.security,ScanSecurityHook,11,105,0,6,3,21,1,12,1,9
-nettool,main.java.networktool.logic.analysis.security,SecurityFinding,0,27,0,4,0,4,0,3,0,1
-nettool,main.java.networktool.logic.analysis.security,RogueDhcpDetector.Holder,3,10,0,0,1,2,1,1,1,1
-nettool,main.java.networktool.logic.analysis.security,FindingsSourceRegistry,3,18,0,4,1,4,1,5,1,3
-nettool,main.java.networktool.logic.analysis.security,ScanSecurityHook.Holder,0,8,0,0,0,2,0,1,0,1
-nettool,main.java.networktool.logic.analysis.security,SecurityFinding.Category,0,27,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic.analysis.security,TlsCertInspector,108,44,11,3,18,8,9,4,3,3
-nettool,main.java.networktool.logic.analysis.security,FindingReporter,0,26,0,2,0,5,0,3,0,2
-nettool,main.java.networktool.logic.analysis.security,CveLookup,12,109,6,14,2,20,5,9,0,4
-nettool,main.java.networktool.logic.analysis.security,PeriodicJob,0,80,0,8,0,21,0,10,0,6
-nettool,main.java.networktool.logic.analysis.security,TlsCertScheduler,3,151,0,12,0,28,1,17,1,11
-nettool,main.java.networktool.logic.messaging,MessageDeliverySsh,87,17,7,3,17,6,4,2,0,1
-nettool,main.java.networktool.logic.messaging,MessageSender,113,92,29,5,21,35,20,7,3,7
-nettool,main.java.networktool.logic.messaging,WebhookDelivery,2,136,2,18,0,32,2,12,0,4
-nettool,main.java.networktool.logic.messaging,MessageDeliveryWinRm,65,17,3,3,14,6,2,2,0,1
-nettool,main.java.networktool.logic.messaging,MessageDelivery,77,116,6,8,20,26,6,7,1,5
-nettool,main.java.networktool.gui.components,SidebarPowerMenu.new MouseAdapter() {...},16,0,0,0,3,0,3,0,3,0
-nettool,main.java.networktool.gui.components,SidebarPowerMenu.new MouseAdapter() {...},46,6,0,0,6,1,2,1,2,1
-nettool,main.java.networktool.gui.components,SidebarAccordion.new MouseAdapter() {...},22,21,0,0,2,1,2,1,2,1
-nettool,main.java.networktool.gui.components,SidebarAccordion.new MouseAdapter() {...},27,12,2,0,5,1,3,1,2,1
-nettool,main.java.networktool.gui.components,SidebarAccordion.new MouseAdapter() {...},28,12,0,0,4,1,2,1,2,1
-nettool,main.java.networktool.gui.components,TrafficSpectrogramPanel,20,36,1,1,6,8,2,3,1,3
-nettool,main.java.networktool.gui.components,TrafficVisualizerPanel,22,34,1,1,6,9,2,3,1,3
-nettool,main.java.networktool.gui.components,BandwidthHistoryChart,6,178,1,11,0,28,1,9,0,4
-nettool,main.java.networktool.gui.components,GuiStatusBar,18,126,3,3,0,24,3,5,0,5
-nettool,main.java.networktool.gui.components,SidebarAccordion.GroupEntry,4,114,3,9,1,21,4,6,1,3
-nettool,main.java.networktool.gui.components,GuiProgressBar,6,396,3,13,0,77,3,17,0,12
-nettool,main.java.networktool.gui.components,SidebarAccordion,24,497,6,36,0,80,7,26,1,11
-nettool,main.java.networktool.gui.components,SidebarPowerMenu.StatusDot,173,37,15,1,21,10,9,3,1,3
-nettool,main.java.networktool.gui.components,SidebarAccordion.AccessLevel,0,15,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.gui.components,SidebarPowerMenu,230,145,6,2,41,22,13,3,9,3
-nettool,main.java.networktool.gui.components,GuiSidebar,21,1225,0,12,8,66,3,16,3,10
-nettool,main.java.networktool.gui.components,GuiProgressBar.RoundedProgressBarUI,107,0,2,0,21,0,4,0,3,0
-nettool,main.java.networktool.gui.components,SidebarAdminButton,548,114,6,6,126,19,19,5,16,2
-nettool,main.java.networktool.gui.components,TrafficWaveformRenderer,6,198,1,13,0,30,1,11,0,5
-nettool,main.java.networktool.gui.components,SidebarDebugButton,18,73,3,3,4,16,4,3,1,3
-nettool,main.java.networktool.gui.components,TrafficSpectrogramRenderer,0,183,1,11,0,24,1,10,0,5
-nettool,main.java.networktool.gui.components,GuiNetworkBar.new MouseAdapter() {...},48,0,0,0,5,0,3,0,3,0
-nettool,main.java.networktool.gui.components,SidebarAccordion.SectionKind,0,15,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.gui.components,GuiNetworkBar,261,0,6,0,40,0,10,0,7,0
-nettool,main.java.networktool.gui.components,TrafficWaveformRenderer.BarDirection,0,15,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.gui.components,PingGraphRenderer,206,0,20,0,26,0,13,0,3,0
-nettool,main.java.networktool.logic.scan.remote,RemoteNetScanner.ReachResult,12,0,0,0,5,0,1,0,1,0
-nettool,main.java.networktool.logic.scan.remote,RemoteNetProbe,309,0,24,0,60,0,23,0,11,0
-nettool,main.java.networktool.logic.scan.remote,RemoteNetGateway,152,85,17,7,27,15,13,3,2,2
-nettool,main.java.networktool.logic.scan.remote,RemoteNetScanner,358,127,37,13,71,26,29,9,9,3
-nettool,main.java.networktool.gui.components.terminal,SshTerminalWindowBuilder,511,0,6,0,90,0,18,0,15,0
-nettool,main.java.networktool.gui.components.terminal,SshTerminalWindowBuilder.new WindowAdapter() {...},10,0,0,0,2,0,2,0,2,0
-nettool,main.java.networktool.gui.components.terminal,GuiSshTerminal,10,0,0,0,2,0,2,0,2,0
-nettool,main.java.networktool.gui.components.terminal,SshConnectionWorker,113,0,4,0,24,0,4,0,2,0
-nettool,main.java.networktool.gui.components.terminal,TerminalChrome,89,0,0,0,20,0,4,0,4,0
-nettool,main.java.networktool.logic.analysis.probe,VlanDetector,6,76,1,15,3,15,1,11,0,4
-nettool,main.java.networktool.logic.analysis.probe,BandwidthHistoryStore.Holder,0,5,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic.analysis.probe,OuiUpdater,290,0,30,0,68,0,25,0,10,0
-nettool,main.java.networktool.logic.analysis.probe,PingUtil,89,0,4,0,27,0,5,0,3,0
-nettool,main.java.networktool.logic.analysis.probe,WakeOnLan,118,118,13,11,25,16,12,6,3,3
-nettool,main.java.networktool.logic.analysis.probe,TracerouteRunner.HopInfo,0,67,0,4,0,11,0,4,0,2
-nettool,main.java.networktool.logic.analysis.probe,PingMonitor,768,0,60,0,131,0,39,0,9,0
-nettool,main.java.networktool.logic.analysis.probe,BandwidthHistoryStore,23,147,1,11,5,29,1,13,0,8
-nettool,main.java.networktool.logic.analysis.probe,TracerouteRunner,29,221,11,27,0,43,11,11,0,3
-nettool,main.java.networktool.logic.analysis.probe,OuiDatabase,0,2508,0,4,0,19,0,5,0,3
-nettool,main.java.networktool.logic.analysis.probe,BandwidthHistoryEntry,10,187,8,26,1,31,8,16,0,7
-nettool,main.java.networktool.logic.analysis.probe,PingMonitor.new JPanel() {...},23,0,0,0,4,0,2,0,2,0
-nettool,main.java.networktool.logic.analysis.probe,IpInspector,468,0,38,0,131,0,39,0,20,0
-nettool,main.java.networktool.logic.analysis.probe,TracerouteRenderer.new DefaultTableModel() {...},13,0,2,0,3,0,4,0,3,0
-nettool,main.java.networktool.logic.analysis.probe,TracerouteRenderer.new JTable() {...},55,0,12,0,8,0,8,0,2,0
-nettool,main.java.networktool.logic.analysis.probe,TracerouteRenderer,380,0,22,0,46,0,20,0,9,0
-nettool,main.java.networktool.logic.analysis.probe,IcmpAnalyzer,175,0,18,0,35,0,15,0,6,0
-nettool,main.java.networktool.logic.analysis.probe,IcmpAnalyzer.Result,55,24,4,0,4,1,5,1,3,1
-nettool,main.java.networktool.logic.ports,BannerText,143,0,51,0,55,0,48,0,2,0
-nettool,main.java.networktool.logic.ports,BannerGrabber,120,0,28,0,29,0,27,0,3,0
-nettool,main.java.networktool.logic.ports,PortScanner,57,545,9,19,15,72,11,19,3,13
-nettool,main.java.networktool.logic.ports,PortScanner.PortState,0,21,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic.ports,BannerProtocolProbes,920,30,66,0,157,8,40,2,7,2
-nettool,main.java.networktool.logic.visualize,TrafficVisualizer,49,121,5,11,10,33,4,20,1,15
-nettool,main.java.networktool.logic.visualize,TrafficSample,0,12,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.gui.panels.privacy,PrivacyNetworkActions,409,245,32,26,51,55,28,18,1,16
-nettool,main.java.networktool.gui.panels.privacy,GuiPrivacyPanel,39,277,4,4,5,56,9,5,5,5
-nettool,main.java.networktool.gui.panels.privacy,GuiPrivacyPanel.new JScrollPane() {...},0,26,0,0,0,4,0,1,0,1
-nettool,main.java.networktool.gui.panels.privacy,PrivacyPanelStyle.new MouseAdapter() {...},10,6,0,0,2,1,2,1,2,1
-nettool,main.java.networktool.gui.panels.privacy,PrivacyPanelStyle,6,221,1,3,0,35,1,6,0,5
-nettool,main.java.networktool.storage.export,DataExportFormatters,0,273,0,10,0,48,0,18,0,13
-nettool,main.java.networktool.storage.export,PdfDocument,7,262,0,12,2,45,0,17,0,11
-nettool,main.java.networktool.storage.export,DataImporter,3,225,7,37,0,37,7,19,0,4
-nettool,main.java.networktool.storage.export,HtmlReportBuilder,23,257,11,19,2,59,11,11,0,7
-nettool,main.java.networktool.storage.export,ExportFiles,7,58,1,3,1,10,1,4,0,3
-nettool,main.java.networktool.storage.export,PdfHostLines,0,75,0,8,0,11,0,8,0,4
-nettool,main.java.networktool.storage.export,DataExporter,7,15,0,0,2,5,1,5,1,5
-nettool,main.java.networktool.storage.export,DataExportImport,0,15,0,0,0,5,0,5,0,5
-nettool,main.java.networktool.storage.export,PdfReportBuilder,0,43,0,4,0,7,0,5,0,3
-nettool,main.java.networktool.logic.analysis.snmp,SnmpProtocolException,0,4,0,0,0,2,0,1,0,1
-nettool,main.java.networktool.logic.analysis.snmp,BerReader.Element,0,143,0,14,0,22,0,13,0,6
-nettool,main.java.networktool.logic.analysis.snmp,BerReader,0,185,3,21,0,24,3,15,0,6
-nettool,main.java.networktool.logic.analysis.snmp,SnmpOid,0,210,0,24,0,27,0,21,0,9
-nettool,main.java.networktool.logic.analysis.snmp,SnmpPortTable.Row,0,69,0,6,0,5,0,6,0,3
-nettool,main.java.networktool.logic.analysis.snmp,BerWriter,0,201,0,14,0,32,0,14,0,7
-nettool,main.java.networktool.logic.analysis.snmp,SnmpVarBind,0,9,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic.analysis.snmp,UdpSnmpTransport,0,64,0,0,0,15,0,3,0,3
-nettool,main.java.networktool.logic.analysis.snmp,SnmpWalker,0,105,0,12,0,22,0,11,0,5
-nettool,main.java.networktool.logic.analysis.snmp,SnmpPortTable,0,110,0,6,0,21,0,8,0,5
-nettool,main.java.networktool.logic.analysis.snmp,SnmpMessages,0,171,0,16,0,26,0,13,0,4
-nettool,main.java.networktool.storage.profile,ScanProfileStore.Holder,0,5,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.storage.profile,ScanProfileStore,226,399,42,30,37,68,29,29,2,20
-nettool,main.java.networktool.gui.panels.audit,GuiAuditPanel.ToolbarRefs,0,18,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.gui.panels.audit,GuiAuditTable.new DefaultTableModel() {...},2,5,0,0,1,1,1,1,1,1
-nettool,main.java.networktool.gui.panels.audit,GuiAuditTable.new JTable() {...},80,4,12,0,13,1,8,1,2,1
-nettool,main.java.networktool.gui.panels.audit,GuiAuditTable,25,261,15,39,5,37,14,20,1,5
-nettool,main.java.networktool.gui.panels.audit,GuiAuditPanel,155,390,13,3,25,76,13,10,5,10
-nettool,main.java.networktool.gui.panels.audit,GuiAuditPanel.new DocumentListener() {...},9,6,0,0,3,1,3,1,3,1
-nettool,main.java.networktool.gui.panels.audit,GuiAuditPanel.new MouseAdapter() {...},10,6,0,0,2,1,2,1,2,1
-nettool,main.java.networktool.gui.panels.audit,GuiAuditLegend,23,729,4,2,5,47,3,4,1,3
-nettool,main.java.networktool.gui.hostdetails,HostDetailRows.new MouseAdapter() {...},44,0,4,0,5,0,5,0,3,0
-nettool,main.java.networktool.gui.hostdetails,HostDetailRows,166,0,4,0,27,0,6,0,4,0
-nettool,main.java.networktool.gui.hostdetails,HostPingTab,428,0,24,0,80,0,23,0,11,0
-nettool,main.java.networktool.gui.hostdetails,HostNotesTab,204,0,8,0,37,0,11,0,7,0
-nettool,main.java.networktool.gui.hostdetails,HostDetailsPanel,307,0,12,0,51,0,12,0,6,0
-nettool,main.java.networktool.gui.hostdetails,HostPingTab.new JPanel() {...},22,0,0,0,4,0,2,0,2,0
-nettool,main.java.networktool.gui.hostdetails,HostInfoTab,248,0,26,0,49,0,21,0,8,0
-nettool,main.java.networktool.gui.hostdetails,HostPortsTab,305,0,4,0,64,0,10,0,8,0
-nettool,main.java.networktool.gui.hostdetails,HostSaveDialog,217,0,24,0,42,0,18,0,6,0
-nettool,main.java.networktool.gui.components.actions,GuiRemoteActions,272,0,64,0,50,0,44,0,12,0
-nettool,main.java.networktool.gui.components.actions,GuiContextMenu.new MouseAdapter() {...},23,0,0,0,3,0,3,0,3,0
-nettool,main.java.networktool.gui.components.actions,GuiContextMenu.new MouseAdapter() {...},16,0,0,0,3,0,3,0,3,0
-nettool,main.java.networktool.gui.components.actions,GuiContextMenu,372,0,12,0,63,0,28,0,22,0
-nettool,main.java.networktool.gui.components.actions,RemoteDeviceDialogs,430,0,4,0,56,0,15,0,13,0
-nettool,main.java.networktool.gui.components.actions,GuiRemoteActions.WebPort,29,0,4,0,2,0,4,0,2,0
-nettool,main.java.networktool.gui.components.actions,GuiDiagnosticsActions,393,0,34,0,95,0,41,0,23,0
-nettool,main.java.networktool.gui.components.actions,GuiTagFilterActions,4,32,1,5,0,7,2,4,1,2
-nettool,main.java.networktool.gui.components.actions,GuiWebhookActions,21,31,0,4,1,8,3,4,3,2
-nettool,main.java.networktool.gui.components.actions,GuiBackupActions,73,33,4,0,10,8,6,2,4,2
-nettool,main.java.networktool.gui.components.actions,GuiDataIOActions,430,21,18,2,75,6,28,3,17,2
-nettool,main.java.networktool.gui.components.actions,NtfyTopicPrompt,74,0,8,0,17,0,7,0,3,0
-nettool,main.java.networktool.gui.components.actions,GuiDataIOActions.new DefaultTableModel() {...},7,0,0,0,2,0,2,0,2,0
-nettool,main.java.networktool.gui.components.actions,GuiOfflineMonitorActions,22,111,4,16,3,35,7,11,3,5
-nettool,main.java.networktool.gui.panels.tags,HostTagPersistence,19,200,4,14,4,36,4,9,0,4
-nettool,main.java.networktool.gui.panels.tags,HostTagPersistence.HostTagEntry,3,17,1,1,0,3,1,1,0,1
-nettool,main.java.networktool.gui.panels.tags,HostTagStore.Holder,0,5,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.gui.panels.tags,HostTagStore,1,191,3,15,0,41,3,20,0,14
-nettool,main.java.networktool.gui.security,NoteDecryptionException,0,5,0,0,0,2,0,1,0,1
-nettool,main.java.networktool.gui.security,NoteEncryption,9,200,1,17,3,39,1,16,0,8
-nettool,main.java.networktool.logic.scan.schedule,ScanHistory.Entry,0,22,0,0,0,6,0,2,0,2
-nettool,main.java.networktool.logic.scan.schedule,ScanDelta.ChangeType,0,33,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic.scan.schedule,PortChangeMonitor,311,0,24,0,76,0,26,0,14,0
-nettool,main.java.networktool.logic.scan.schedule,WolScheduler,5,153,0,10,0,35,1,17,1,12
-nettool,main.java.networktool.logic.scan.schedule,ScanHistory.Holder,0,5,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic.scan.schedule,WolScheduler.Holder,0,6,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic.scan.schedule,WolSchedule,0,12,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic.scan.schedule,ScanDelta.DeltaEntry,0,15,0,0,0,4,0,1,0,1
-nettool,main.java.networktool.logic.scan.schedule,ScanHistory,0,85,1,7,0,15,1,12,0,9
-nettool,main.java.networktool.logic.scan.schedule,OfflineThresholdMonitor,18,240,1,19,7,50,3,27,2,18
-nettool,main.java.networktool.logic.scan.schedule,ScanRateLimiter.Holder,0,5,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic.scan.schedule,OfflineAliveProbe,4,98,0,10,3,18,0,9,0,4
-nettool,main.java.networktool.logic.scan.schedule,LastScanCache,2,80,1,7,0,14,1,9,0,6
-nettool,main.java.networktool.logic.scan.schedule,ScanRateLimiter,1,140,1,5,0,36,1,11,0,9
-nettool,main.java.networktool.logic.scan.schedule,OfflineTracker,0,110,0,6,0,22,0,13,0,10
-nettool,main.java.networktool.logic.scan.schedule,AdaptiveTimeoutEstimator,1,122,1,15,0,26,1,18,0,11
-nettool,main.java.networktool.logic.scan.schedule,SubnetStats,2,65,1,1,0,12,1,5,0,5
-nettool,main.java.networktool.logic.scan.schedule,ScanScheduler.Holder,5,0,0,0,1,0,1,0,1,0
-nettool,main.java.networktool.logic.scan.schedule,MapTrafficObserver.NodeRole,0,33,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic.scan.schedule,OfflineThresholdMonitor.Holder,0,5,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic.scan.schedule,PortChangeMonitor.Holder,5,0,0,0,1,0,1,0,1,0
-nettool,main.java.networktool.logic.scan.schedule,ArpCacheEntry,0,23,0,2,0,2,0,3,0,2
-nettool,main.java.networktool.logic.scan.schedule,OfflineTrackerStore,0,104,0,6,0,18,0,7,0,4
-nettool,main.java.networktool.logic.scan.schedule,ScanDelta,39,491,4,49,2,83,5,42,1,18
-nettool,main.java.networktool.logic.scan.schedule,AdaptiveTimeoutEstimator.Holder,0,5,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic.scan.schedule,LastScanCache.CachedHost,0,12,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic.scan.schedule,ScanScheduler,378,0,34,0,78,0,36,0,19,0
-nettool,main.java.networktool.logic.scan.schedule,MapTrafficObserver,117,423,13,11,24,78,13,19,3,17
-nettool,main.java.networktool.gui.map,MapHeatmapRenderer,0,48,0,6,0,8,0,4,0,1
-nettool,main.java.networktool.gui.map,MapContextMenu.new MouseAdapter() {...},16,0,0,0,3,0,3,0,3,0
-nettool,main.java.networktool.gui.map,MapTrafficLoad,0,47,0,11,0,14,0,10,0,3
-nettool,main.java.networktool.gui.map,MapHeatmapSettings.Holder,0,5,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.gui.map,MapSnapshot,0,26,0,0,0,4,0,2,0,2
-nettool,main.java.networktool.gui.map,MapTrafficHeatmap,2,140,1,9,0,17,1,9,0,5
-nettool,main.java.networktool.gui.map,MapLayout,0,283,0,20,0,40,0,22,0,12
-nettool,main.java.networktool.gui.map,MapContextMenu,206,0,14,0,34,0,14,0,7,0
-nettool,main.java.networktool.gui.map,MapHeatmapSettings,0,20,0,2,0,5,0,5,0,4
-nettool,main.java.networktool.gui.map,MapTopology,22,450,36,74,1,65,34,39,1,17
-nettool,main.java.networktool.gui.map,MapLegend,0,369,0,2,0,18,0,3,0,2
-nettool,main.java.networktool.gui.map,MapSwitchStore,21,144,3,9,4,36,3,10,0,7
-nettool,main.java.networktool.gui.map,MapHopDiscovery,39,173,14,26,7,36,13,15,1,7
-nettool,main.java.networktool.gui.map,MapCanvas.new MouseMotionAdapter() {...},22,6,2,0,5,1,3,1,2,1
-nettool,main.java.networktool.gui.map,MapCanvas.new MouseAdapter() {...},49,6,4,0,8,1,6,1,4,1
-nettool,main.java.networktool.gui.map,MapExporter,0,332,0,17,0,48,0,15,0,6
-nettool,main.java.networktool.gui.map,MapRenderer,533,0,29,0,70,0,22,0,7,0
-nettool,main.java.networktool.gui.map,MapLegend.new JPanel() {...},30,3,0,0,6,1,1,1,1,1
-nettool,main.java.networktool.gui.map,MapNodeStyle,113,198,34,51,12,42,25,29,1,7
-nettool,main.java.networktool.gui.map,MapDeviceSignatures,0,761,0,0,0,13,0,1,0,1
-nettool,main.java.networktool.gui.map,MapNodeCollector,122,151,34,17,22,30,26,8,1,6
-nettool,main.java.networktool.gui.map,MapEdgeBuilder,31,211,5,19,5,38,5,20,1,12
-nettool,main.java.networktool.gui.map,MapCanvas,432,168,30,6,65,37,35,12,19,10
-nettool,main.java.networktool.logic.windows,PsArpResolver,0,82,1,9,0,19,1,9,0,5
-nettool,main.java.networktool.logic.windows,PsPortScanResolver,46,7,6,2,6,2,6,1,2,1
-nettool,main.java.networktool.logic.windows,PsCidrResolver,3,78,4,8,0,16,4,5,0,3
-nettool,main.java.networktool.logic.windows,PsNetScanResolver,17,29,4,4,3,7,3,4,0,3
-nettool,main.java.networktool.logic.windows,PowerShellRunner,7,74,2,4,0,11,2,4,0,3
-nettool,main.java.networktool.logic.windows,PsInterfaceStatsResolver,5,88,4,10,1,18,4,6,0,3
-nettool,main.java.networktool.util,ButtonFactory,0,161,0,0,0,30,0,6,0,6
-nettool,main.java.networktool.util,Ipv6AddressUtils,0,188,1,31,0,29,1,23,0,8
-nettool,main.java.networktool.util,IpValidator,20,90,5,19,4,18,6,11,1,4
-nettool,main.java.networktool.util,TableConfig.new JTable() {...},90,14,18,4,12,2,10,4,1,2
-nettool,main.java.networktool.util,TableConfig.new JTable() {...},1,64,1,9,0,11,1,6,0,2
-nettool,main.java.networktool.util,TableConfig.new JTable() {...},45,51,11,7,5,10,7,5,0,3
-nettool,main.java.networktool.util,AppIcon,396,0,54,0,73,0,34,0,7,0
-nettool,main.java.networktool.util,ContextMenuActions,89,0,16,0,22,0,12,0,4,0
-nettool,main.java.networktool.util,SafeCommand,7,59,1,1,1,15,2,7,1,7
-nettool,main.java.networktool.util,TableConfig,0,404,1,5,0,65,1,11,0,9
-nettool,main.java.networktool.util,CIDRUtils.new AbstractList() {...},4,26,2,2,0,4,2,3,0,3
-nettool,main.java.networktool.util,ButtonFactory.new MouseAdapter() {...},0,24,0,0,0,3,0,3,0,3
-nettool,main.java.networktool.util,ButtonFactory.new MouseAdapter() {...},0,20,0,0,0,3,0,3,0,3
-nettool,main.java.networktool.util,PlatformUtils,2,192,7,35,0,38,7,30,0,16
-nettool,main.java.networktool.util,CIDRUtils,0,200,0,10,0,28,0,10,0,5
-nettool,main.java.networktool.util,PlatformSupport,80,249,28,38,11,43,20,32,2,17
-nettool,main.java.networktool.logic,TimeoutConfig,0,7,0,0,0,3,0,1,0,1
-nettool,main.java.networktool.logic,ScanOutcome.Failure,0,6,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic,ScanOutcome.Success,0,6,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic,ScanOutcome,0,26,0,2,0,4,0,5,0,4
-nettool,main.java.networktool.gui.components.table,SearchResultRow,200,35,14,12,26,3,8,8,1,2
-nettool,main.java.networktool.gui.components.table,GuiTableRenderer.new MouseAdapter() {...},88,6,22,0,18,1,12,1,1,1
-nettool,main.java.networktool.gui.components.table,GuiTableRenderer.new DefaultTableModel() {...},2,8,0,0,1,1,1,1,1,1
-nettool,main.java.networktool.gui.components.table,SearchResultRow.new MouseAdapter() {...},49,0,2,0,7,0,5,0,4,0
-nettool,main.java.networktool.gui.components.table,GuiSearchBar,144,315,10,6,29,59,11,7,4,6
-nettool,main.java.networktool.gui.components.table,GuiSearchBar.new MouseAdapter() {...},10,6,0,0,2,1,2,1,2,1
-nettool,main.java.networktool.gui.components.table,GuiSearchBar.new DocumentListener() {...},12,6,0,0,3,1,3,1,3,1
-nettool,main.java.networktool.gui.components.table,GuiSearchBar.new KeyAdapter() {...},8,6,2,0,2,1,2,1,1,1
-nettool,main.java.networktool.gui.components.table,GuiTableRenderer,177,185,11,3,27,44,16,8,9,8
-nettool,main.java.networktool.logic.sonify,SonifyConfigStore,8,102,2,4,2,20,2,4,0,3
-nettool,main.java.networktool.logic.sonify,ToneDuration,0,25,0,0,0,4,0,2,0,2
-nettool,main.java.networktool.logic.sonify,PlainTone,1,75,0,6,1,15,0,4,0,1
-nettool,main.java.networktool.logic.sonify,InterfaceStatsReader,57,10,5,1,10,2,4,2,1,2
-nettool,main.java.networktool.logic.sonify,ToneGenerator,116,29,12,6,24,5,9,4,2,2
-nettool,main.java.networktool.logic.sonify,SonifyConfig,0,30,0,0,0,7,0,2,0,2
-nettool,main.java.networktool.logic.sonify,TrafficTone,0,27,0,4,0,4,0,4,0,2
-nettool,main.java.networktool.logic.sonify,ToneFrequency,0,25,0,0,0,4,0,2,0,2
-nettool,main.java.networktool.logic.sonify,TrafficSonifier,49,149,8,10,10,32,6,16,1,12
-nettool,main.java.networktool.logic.sonify,BitEncoder,0,35,0,4,0,5,0,3,0,1
-nettool,main.java.networktool.logic.sonify,ActiveInterfaceDetector,54,31,15,3,12,5,10,3,1,3
-nettool,main.java.networktool.gui.panels.bandwidth,GuiBandwidthHistoryPanel,164,0,12,0,33,0,10,0,4,0
-nettool,main.java.networktool.gui.panels.bandwidth,GuiBandwidthHistoryPanel.new JPanel() {...},17,0,0,0,5,0,2,0,2,0
-nettool,main.java.networktool.gui.panels.bandwidth,GuiBandwidthHistoryPanel.new JPanel() {...},23,0,0,0,5,0,2,0,2,0
-nettool,main.java.networktool.gui.panels.saved,SavedHostsStyle,84,0,4,0,15,0,6,0,4,0
-nettool,main.java.networktool.gui.panels.saved,GuiSavedHostsPanel.new MouseAdapter() {...},56,0,10,0,8,0,7,0,2,0
-nettool,main.java.networktool.gui.panels.saved,GuiSavedHostsPanel.new DefaultTableModel() {...},33,0,10,0,3,0,8,0,3,0
-nettool,main.java.networktool.gui.panels.saved,SavedHostsBulkActions,156,44,15,9,29,8,15,5,7,1
-nettool,main.java.networktool.gui.panels.saved,SavedHostsStyle.new MouseAdapter() {...},16,0,0,0,3,0,3,0,3,0
-nettool,main.java.networktool.gui.panels.saved,SavedHostsMoveMenu,221,0,16,0,40,0,12,0,4,0
-nettool,main.java.networktool.gui.panels.saved,SavedHostsManualAdd,165,0,30,0,27,0,20,0,5,0
-nettool,main.java.networktool.gui.panels.saved,SavedHostsTagFilter,0,72,0,10,0,7,0,12,0,7
-nettool,main.java.networktool.gui.panels.saved,SavedHostsMoveMenu.new MouseAdapter() {...},26,0,0,0,3,0,3,0,3,0
-nettool,main.java.networktool.gui.panels.saved,SavedHostsMoveMenu.new MouseAdapter() {...},37,0,0,0,3,0,3,0,3,0
-nettool,main.java.networktool.gui.panels.saved,GuiSavedHostsPanel,1214,0,71,0,200,0,78,0,42,0
-nettool,main.java.networktool.filter,OutputRendererRegistry,9,2,2,0,3,1,3,1,2,1
-nettool,main.java.networktool.filter,TablePrinter,7,79,3,3,2,16,2,4,0,3
-nettool,main.java.networktool.filter,ClipboardUtil,22,6,1,3,7,1,1,2,0,1
-nettool,main.java.networktool.filter,HostResultFilter,0,132,4,30,0,20,4,17,0,4
-nettool,main.java.networktool.filter,HostResultPrinter,9,119,3,5,2,20,2,7,0,5
-nettool,main.java.networktool.filter,JsonExporter,6,59,0,2,2,13,0,4,0,3
-nettool,main.java.networktool.filter,ScanFilter,0,79,0,0,0,16,0,9,0,9
-nettool,main.java.networktool.transfer,BandwidthHttpProbe.Result,15,0,0,0,2,0,2,0,2,0
-nettool,main.java.networktool.transfer,BandwidthHttpProbe,263,0,22,0,55,0,21,0,10,0
-nettool,main.java.networktool.transfer,BandwidthTester,98,0,6,0,15,0,6,0,3,0
-nettool,main.java.networktool.transfer,LatencyProbe.Result,19,0,0,0,2,0,2,0,2,0
-nettool,main.java.networktool.transfer,FileClient,78,0,4,0,21,0,4,0,2,0
-nettool,main.java.networktool.transfer,LatencyProbe,162,0,16,0,24,0,13,0,5,0
-nettool,main.java.networktool.transfer,FileReceiver,87,0,4,0,21,0,6,0,4,0
-nettool,main.java.networktool.transfer,FileServer,56,0,2,0,20,0,4,0,3,0
-nettool,main.java.networktool.gui.panels,OutputStreamRedirector,36,116,15,29,0,15,15,10,0,3
-nettool,main.java.networktool.gui.panels,GuiInputPanel,200,62,2,0,39,18,8,4,7,4
-nettool,main.java.networktool.gui.panels,OutputStreamRedirector.new OutputStream() {...},0,57,0,10,0,12,0,8,0,3
-nettool,main.java.networktool.gui.panels,GuiOutputPanel.new MouseAdapter() {...},11,9,0,0,2,1,2,1,2,1
-nettool,main.java.networktool.gui.panels,GuiNetworkDialogs,80,0,14,0,12,0,10,0,3,0
-nettool,main.java.networktool.gui.panels,GuiOutputPanel,60,308,5,9,9,68,7,15,2,13
-nettool,main.java.networktool.model,HostResult,0,79,1,7,0,16,1,9,0,6
-nettool,main.java.networktool.model,ScanResult,0,27,0,0,0,10,0,5,0,5
-nettool,main.java.networktool.model,ScanProfile,0,63,0,6,0,14,0,5,0,2
-nettool,main.java.networktool.theme,GuiThemeLight,0,194,0,0,0,43,0,22,0,22
-nettool,main.java.networktool.theme,GuiThemeDark,0,194,0,0,0,43,0,22,0,22
-nettool,main.java.networktool.theme,GuiTheme,1,360,19,47,0,70,19,33,0,19
-nettool,main.java.networktool.logic.scan.host,NetworkInfo,104,0,8,0,34,0,10,0,6,0
-nettool,main.java.networktool.logic.scan.host,Ipv6HostProbe,15,44,0,0,6,10,0,5,0,5
-nettool,main.java.networktool.logic.scan.host,ScanErrorClassifier,0,114,1,33,0,26,1,21,0,5
-nettool,main.java.networktool.logic.scan.host,ScanProgress,180,0,12,0,31,0,11,0,5,0
-nettool,main.java.networktool.logic.scan.host,PingSweep,126,111,12,6,18,27,10,5,2,4
-nettool,main.java.networktool.logic.scan.host,NetworkDiscoverySweep,10,93,0,2,0,16,0,9,0,8
-nettool,main.java.networktool.logic.scan.host,TailscaleRouteParser,0,52,0,10,0,11,0,8,0,3
-nettool,main.java.networktool.logic.scan.host,HostAliveChecker,63,444,11,31,16,88,10,25,1,13
-nettool,main.java.networktool.logic.scan.host,NetworkHostnameResolver,233,0,36,0,42,0,23,0,5,0
-nettool,main.java.networktool.logic.scan.host,ArpSniffer,0,145,0,10,0,40,0,17,0,12
-nettool,main.java.networktool.logic.scan.host,ScanErrorClassifier.Kind,0,51,0,0,0,3,0,1,0,1
-nettool,main.java.networktool.logic.scan.host,NetworkScannerV6,3,157,0,6,2,36,0,12,0,9
-nettool,main.java.networktool.logic.scan.host,ArpSighting,0,19,0,2,0,2,0,3,0,2
-nettool,main.java.networktool.logic.scan.host,Ipv6HostRange,7,145,0,6,2,24,0,12,0,9
-nettool,main.java.networktool.logic.scan.host,NetworkHostArpResolver,227,103,27,7,34,17,18,5,3,3
-nettool,main.java.networktool.logic.scan.host,Ipv6NeighborSource,89,50,5,9,13,11,4,7,1,3
-nettool,main.java.networktool.logic.scan.host,ArpSniffer.Holder,0,6,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic.scan.host,NetworkScannerIpScan,92,0,6,0,24,0,6,0,3,0
-nettool,main.java.networktool.logic.scan.host,TailscaleRouteSource,13,129,0,4,5,22,0,13,0,11
-nettool,main.java.networktool.logic.scan.host,SubnetDetector,27,394,15,55,3,62,15,33,0,13
-nettool,main.java.networktool.logic.scan.host,NetworkScanner,159,0,10,0,37,0,11,0,6,0
-nettool,main.java.networktool.logic.scan.host,NetworkHostScanOrchestrator,410,0,54,0,85,0,43,0,16,0
-nettool,main.java.networktool.logic.scan.host,NetworkHostScanner,141,3,16,0,32,1,14,1,6,1
-nettool,main.java.networktool.logic.scan.host,ArpNeighborSource,86,63,7,9,18,10,6,7,2,3
-nettool,main.java.networktool.gui.components.map,GuiNetworkMap,105,8,6,0,26,2,6,2,3,2
-nettool,main.java.networktool.gui.components.map,GuiNetworkMap.NodeType,0,27,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.gui.components.map,GuiNetworkMapScanTasks,110,13,14,0,38,3,12,2,5,2
-nettool,main.java.networktool.gui.components.map,GuiNetworkMapChrome,351,0,8,0,67,0,14,0,10,0
-nettool,main.java.networktool.gui.components.map,GuiNetworkMap.Node,0,15,0,0,0,3,0,1,0,1
-nettool,main.java.networktool.gui.components.map,GuiNetworkMap.EdgeType,0,21,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.gui.components.map,GuiNetworkMap.Edge,0,12,0,0,0,3,0,1,0,1
-nettool,main.java.networktool.gui.components.map,GuiNetworkMapChrome.new MouseAdapter() {...},44,0,4,0,5,0,5,0,3,0
-nettool,main.java.networktool.gui.components.map,GuiNetworkMapChrome.new JLayeredPane() {...},43,0,0,0,7,0,2,0,2,0
-nettool,main.java.networktool,Main,37,15,2,2,15,7,4,2,2,2
-nettool,main.java.networktool.logging,LogFileBase,89,291,17,35,15,63,17,21,0,10
-nettool,main.java.networktool.logging,DebugLogFile,0,109,0,10,0,17,0,13,0,8
-nettool,main.java.networktool.logging,DebugLogger,6,137,5,7,0,37,5,18,0,17
-nettool,main.java.networktool.logging,LogEntry,2,96,1,13,0,20,1,9,0,3
-nettool,main.java.networktool.logging,DebugLogger.Holder,0,5,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logging,DebugLogEntry,0,51,0,6,0,7,0,6,0,3
-nettool,main.java.networktool.gui.login,RegisterScreen.new DocumentListener() {...},15,0,0,0,4,0,4,0,4,0
-nettool,main.java.networktool.gui.login,LoginFormBuilder,139,0,4,0,24,0,5,0,3,0
-nettool,main.java.networktool.gui.login,LoginScreens,187,0,4,0,44,0,10,0,8,0
-nettool,main.java.networktool.gui.login,GuiLoginRateLimiter,0,72,0,6,0,18,0,10,0,7
-nettool,main.java.networktool.gui.login,LoginShakeEffect,105,0,4,0,16,0,5,0,3,0
-nettool,main.java.networktool.gui.login,LoginInputs,159,0,0,0,29,0,5,0,5,0
-nettool,main.java.networktool.gui.login,LoginButtons.new MouseAdapter() {...},16,0,0,0,3,0,3,0,3,0
-nettool,main.java.networktool.gui.login,LoginButtons,122,0,0,0,26,0,3,0,3,0
-nettool,main.java.networktool.gui.login,LoginLockoutWatcher,48,0,4,0,18,0,6,0,4,0
-nettool,main.java.networktool.gui.login,LoginChoiceScreen,104,0,0,0,19,0,4,0,4,0
-nettool,main.java.networktool.gui.login,RegisterScreen,304,0,18,0,71,0,24,0,14,0
-nettool,main.java.networktool.gui.login,LoginFormLayout,119,0,4,0,28,0,6,0,4,0
-nettool,main.java.networktool.gui.panels.security,GuiSecurityFindingsPanel.new DefaultTableModel() {...},2,5,0,0,1,1,1,1,1,1
-nettool,main.java.networktool.gui.panels.security,GuiSecurityFindingsPanel,194,253,8,2,22,51,16,8,11,8
-nettool,main.java.networktool.logic.analysis.os,OsProbeUdp,447,691,84,0,76,35,47,10,5,10
-nettool,main.java.networktool.logic.analysis.os,OsParallelStepRunner.NamedStep,0,9,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic.analysis.os,ScanDepth,0,21,0,0,0,4,0,1,0,1
-nettool,main.java.networktool.logic.analysis.os,ExtendedOsDetector,137,0,13,0,28,0,18,0,11,0
-nettool,main.java.networktool.logic.analysis.os,OsDetectionLogger,0,36,0,2,0,4,0,2,0,1
-nettool,main.java.networktool.logic.analysis.os,OsDetector,66,23,16,4,10,5,13,4,4,3
-nettool,main.java.networktool.logic.analysis.os,OsSignature,0,50,0,10,0,10,0,9,0,4
-nettool,main.java.networktool.logic.analysis.os,OsDetectorHostname,56,679,73,197,0,97,71,73,0,9
-nettool,main.java.networktool.logic.analysis.os,OsDetectionPipeline,539,0,54,0,90,0,55,0,28,0
-nettool,main.java.networktool.logic.analysis.os,OsPortClassifier,25,403,29,95,1,45,27,38,0,3
-nettool,main.java.networktool.logic.analysis.os,OsParallelStepRunner,0,99,0,6,0,22,0,9,0,6
-nettool,main.java.networktool.logic.analysis.os,OsDetectionPipeline.Step,39,0,0,0,1,0,1,0,1,0
-nettool,main.java.networktool.logic.analysis.os,OsBannerAnalyzer,783,96,91,1,121,25,52,12,6,12
-nettool,main.java.networktool.logic.analysis.os,OsDetector.Confidence,0,21,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic.analysis.os,OsDetector.OsResult,21,0,0,0,4,0,2,0,2,0
-nettool,main.java.networktool.logic.analysis.os,OsDetectorPorts,148,321,18,4,25,41,10,12,0,11
-nettool,main.java.networktool.logic.analysis.os,OsDetectionStepRunner,0,17,0,0,0,4,0,1,0,1
-nettool,main.java.networktool.logic.analysis.os,OsFingerprint,48,159,28,36,3,31,22,19,0,9
-nettool,main.java.networktool.logic.analysis.os,OsDetectorArp,416,88,33,17,64,16,25,10,7,3
-nettool,main.java.networktool.logic.analysis.discovery,DhcpOptionAnalyzer.Result,0,9,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic.analysis.discovery,MdnsDiscovery,208,373,23,15,42,46,15,12,2,6
-nettool,main.java.networktool.logic.analysis.discovery,MdnsDiscovery.ServiceRecord,57,0,14,0,11,0,9,0,2,0
-nettool,main.java.networktool.logic.analysis.discovery,ArpMonitor.Holder,0,5,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.logic.analysis.discovery,UpnpDiscovery.Device,65,18,20,0,12,1,11,1,1,1
-nettool,main.java.networktool.logic.analysis.discovery,DhcpOptionAnalyzer,66,191,5,21,14,36,5,12,1,3
-nettool,main.java.networktool.logic.analysis.discovery,ArpMonitor,350,56,44,2,80,16,39,5,16,5
-nettool,main.java.networktool.logic.analysis.discovery,UpnpDiscovery,14,174,4,8,5,37,4,6,0,4
-nettool,main.java.networktool.security,SecurityMonitor,143,345,31,37,22,88,26,36,3,25
-nettool,main.java.networktool.security,SecurityMonitor.Holder,0,5,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.security,LoginDialog,264,0,18,0,71,0,26,0,17,0
-nettool,main.java.networktool.security,AuditLogger.Holder,0,5,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.security,UserAuth.Holder,0,5,0,0,0,1,0,1,0,1
-nettool,main.java.networktool.security,AuditLogger.LogEntry,0,31,0,2,0,5,0,3,0,2
-nettool,main.java.networktool.security,LoginDialog.new WindowAdapter() {...},6,0,0,0,2,0,2,0,2,0
-nettool,main.java.networktool.security,AuditLogEntry,2,72,1,9,0,16,1,7,0,3
-nettool,main.java.networktool.security,AuditLogger,21,214,7,17,5,61,8,25,1,20
-nettool,main.java.networktool.security,UserAuth,73,688,18,76,24,139,20,66,2,37
-nettool,main.java.networktool.security,SessionAdminRateLimiter,0,42,0,4,0,11,0,7,0,5
-nettool,main.java.networktool.security,AuditLogFile,0,77,0,2,0,12,0,9,0,8
-nettool,main.java.networktool.security,UserAuthPersistence,66,341,19,35,9,58,18,15,0,6
 
 ```

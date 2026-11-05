@@ -24,6 +24,9 @@ $invariant = [cultureinfo]::InvariantCulture
 $expectedColumns = @('Run', 'Timestamp', 'Name', 'TimeSec', 'Tests', 'Failures', 'Errors', 'Skipped', 'File')
 
 if (-not $SkipTestRun) {
+    $mavenResolver = Join-Path $PSScriptRoot 'Get-MavenExecutable.ps1'
+    . $mavenResolver
+    $maven = Get-MavenExecutable
     $arguments = @('--batch-mode', 'clean', 'test')
     if ($IncludeSlow) {
         $arguments += '-Pnightly'
@@ -31,7 +34,7 @@ if (-not $SkipTestRun) {
 
     Push-Location $ProjectRoot
     try {
-        & mvn @arguments
+        & $maven @arguments
         if ($LASTEXITCODE -ne 0) {
             throw "Maven failed with exit code $LASTEXITCODE; runtime history was not updated."
         }

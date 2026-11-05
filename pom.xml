@@ -71,6 +71,10 @@
                     <forkedProcessTimeoutInSeconds>900</forkedProcessTimeoutInSeconds>
                     <argLine>@{argLine} -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8 -Xmx512m -Xms128m</argLine>
                     <excludedGroups>${surefire.excludedGroups}</excludedGroups>
+                    <systemPropertyVariables>
+                        <nettool.dataDir>${project.build.directory}/test-data</nettool.dataDir>
+                        <nettool.skipLegacyMigration>true</nettool.skipLegacyMigration>
+                    </systemPropertyVariables>
                 </configuration>
             </plugin>
 
@@ -84,7 +88,6 @@
                             <mainClass>main.java.networktool.Main</mainClass>
                         </manifest>
                     </archive>
-                    <finalName>nettool</finalName>
                 </configuration>
             </plugin>
 
@@ -95,7 +98,14 @@
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>3.3.2</version>
                 <configuration>
+                    <excludeDefaultDirectories>true</excludeDefaultDirectories>
                     <filesets>
+                        <fileset>
+                            <directory>${project.build.directory}</directory>
+                            <excludes>
+                                <exclude>dist/**</exclude>
+                            </excludes>
+                        </fileset>
                         <fileset>
                             <directory>out</directory>
                         </fileset>

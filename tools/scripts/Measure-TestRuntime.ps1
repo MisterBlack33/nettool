@@ -13,9 +13,12 @@ if (-not (Test-Path $pomPath)) {
 
 if (-not $SkipTestRun) {
     Write-Host "Starte mvn test zum Sammeln der Laufzeitdaten..."
+    $mavenResolver = Join-Path $PSScriptRoot 'Get-MavenExecutable.ps1'
+    . $mavenResolver
+    $maven = Get-MavenExecutable
     Push-Location $repoRoot
     try {
-        & mvn test -DtrimStackTrace=false
+        & $maven test -DtrimStackTrace=false
         if ($LASTEXITCODE -ne 0) {
             throw "mvn test failed with exit code $LASTEXITCODE"
         }

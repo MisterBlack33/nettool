@@ -5,18 +5,28 @@ import main.java.networktool.gui.panels.GuiOutputPanel;
 import main.java.networktool.logic.analysis.security.DefaultCredentialProbe;
 import main.java.networktool.logic.analysis.security.SecurityFinding;
 import main.java.networktool.logic.analysis.security.SecurityFindingsCollector;
+import main.java.networktool.logic.analysis.security.SecurityFindingsExporter;
 import main.java.networktool.logic.analysis.security.TlsCertInspector;
+import main.java.networktool.security.AuditLogger;
 import main.java.networktool.util.TableConfig;
 
 import javax.swing.*;
 import javax.swing.border.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 import static main.java.networktool.theme.GuiTheme.*;
 
 /** Test-Suite-Panel: listet Security-Findings, erlaubt manuelle Host-Checks (Menü-ID "27"). */
 public final class GuiSecurityFindingsPanel {
+
+    private static final DateTimeFormatter OBSERVED_AT_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").withZone(ZoneId.systemDefault());
 
     private GuiSecurityFindingsPanel() {}
 
@@ -37,13 +47,16 @@ public final class GuiSecurityFindingsPanel {
 
         DefaultTableModel model = buildModel();
         if (debug) {
-            model.addRow(new Object[]{"192.168.10.10", "TLS", "MEDIUM", "Zertifikat läuft in 21 Tagen ab"});
-            model.addRow(new Object[]{"192.168.10.20", "Default-Credentials", "HIGH", "Beispielbefund: Standardkonto erkannt"});
-            model.addRow(new Object[]{"192.168.10.30", "Offener Port", "LOW", "Port 8080 erreichbar"});
+            model.addRow(new Object[]{"192.168.10.10", "TLS_CERT", "WARN", "CONFIRMED",
+                    "TLS_CERT_INSPECTOR", "Beispielzeit", "Zertifikat läuft in 21 Tagen ab"});
+            model.addRow(new Object[]{"192.168.10.20", "DEFAULT_CREDENTIALS", "CRITICAL", "MEDIUM",
+                    "DEFAULT_CREDENTIAL_PROBE", "Beispielzeit", "HTTP-Login erhielt HTTP 200"});
+            model.addRow(new Object[]{"192.168.10.30", "KNOWN_VULNERABLE", "CRITICAL", "LOW",
+                    "CVE_BANNER_MATCH", "Beispielzeit", "Beispiel: Banner passt zu lokalem CVE-Eintrag"});
         } else {
             reload(model);
         }
-        JTable table = TableConfig.buildTable(model, new int[]{130, 150, 90, 300});
+        JTable table = TableConfig.buildTable(model, new int[]{120, 150, 80, 100, 180, 150, 360});
 
         JScrollPane sp = new JScrollPane(table);
         sp.setPreferredSize(new Dimension(0, 220));
@@ -64,7 +77,8 @@ public final class GuiSecurityFindingsPanel {
     }
 
     private static DefaultTableModel buildModel() {
-        return new DefaultTableModel(new Object[0][], new String[]{"IP", "Kategorie", "Stufe", "Detail"}) {
+        return new DefaultTableModel(new Object[0][],
+                new String[]{"IP", "Kategorie", "Stufe", "Konfidenz", "Quelle", "Beobachtet", "Beleg / Detail"}) {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
     }
@@ -78,18 +92,42 @@ public final class GuiSecurityFindingsPanel {
 
         JButton tlsBtn   = smallBtn("TLS prüfen");
         JButton credBtn  = smallBtn("Default-Login prüfen");
+        JButton exportBtn = smallBtn("CSV exportieren");
         JButton clearBtn = smallBtn("Leeren");
 
         tlsBtn.addActionListener(e -> runTls(ipField.getText().trim(), model));
         credBtn.addActionListener(e -> runCredentialCheck(ipField.getText().trim(), model));
+        exportBtn.addActionListener(e -> exportCsv());
         clearBtn.addActionListener(e -> { SecurityFindingsCollector.getInstance().clear(); reload(model); });
 
         bar.add(new JLabel("IP:"));
         bar.add(ipField);
         bar.add(tlsBtn);
         bar.add(credBtn);
+        bar.add(exportBtn);
         bar.add(clearBtn);
         return bar;
+    }
+
+    private static void exportCsv() {
+        JFileChooser chooser = new JFileChooser();
+        chooser.setSelectedFile(new java.io.File("nettool-security-findings.csv"));
+        if (chooser.showSaveDialog(null) != JFileChooser.APPROVE_OPTION) return;
+
+        Path file = chooser.getSelectedFile().toPath();
+        if (java.nio.file.Files.exists(file)
+                && JOptionPane.showConfirmDialog(null, "Datei überschreiben?",
+                "CSV exportieren", JOptionPane.YES_NO_OPTION) != JOptionPane.YES_OPTION) return;
+
+        try {
+            SecurityFindingsExporter.exportCsv(file, SecurityFindingsCollector.getInstance().getAll());
+            AuditLogger.getInstance().log("SECURITY_FINDINGS_EXPORT", file.toString());
+            JOptionPane.showMessageDialog(null, "Sicherheitsbefunde exportiert:\n" + file,
+                    "CSV exportieren", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "CSV-Export fehlgeschlagen:\n" + e.getMessage(),
+                    "CSV exportieren", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     private static void runTls(String ip, DefaultTableModel model) {
@@ -119,7 +157,16 @@ public final class GuiSecurityFindingsPanel {
     private static void reload(DefaultTableModel model) {
         model.setRowCount(0);
         for (SecurityFinding f : SecurityFindingsCollector.getInstance().getAll())
-            model.addRow(new Object[]{f.ip(), f.category(), f.severity(), f.detail()});
+            model.addRow(toRow(f));
+    }
+
+    static Object[] toRow(SecurityFinding finding) {
+        return new Object[]{finding.ip(), finding.category(), finding.severity(), finding.confidence(),
+                finding.source(), formatObservedAt(finding.observedAt()), finding.detail()};
+    }
+
+    static String formatObservedAt(Instant observedAt) {
+        return OBSERVED_AT_FORMAT.format(observedAt);
     }
 
     private static JButton smallBtn(String text) {

@@ -34,7 +34,7 @@ Metadaten und Git-Status zum Erstellungszeitpunkt.
 | `-RootPath <Pfad>` | Repository-Root relativ zum Skript | Projektordner, der inventarisiert wird. |
 | `-OutputPath <Pfad>` | `tools\output\context-report.md` | Vollständiger oder relativer (zum aktuellen Arbeitsverzeichnis) Zielpfad des Markdown-Berichts. |
 | `-IncludeGenerated` | aus | Nimmt typische generierte Ordner wie `target`, `build`, `dist`, `out`, `node_modules` und Cache-Verzeichnisse in die Inventarisierung auf. |
-| `-IncludeRuntimeData` | aus | Nimmt temporäre Laufzeitordner wie `tmp` und `.test-results` in die Inventarisierung auf. `saves/` ist standardmäßig enthalten. `tools/output/` bleibt als Ausgabeordner des Berichts ausgeschlossen. |
+| `-IncludeRuntimeData` | aus | Nimmt lokale Laufzeitordner wie `tmp`, `.test-results` und `saves/` in die Inventarisierung auf. `saves/` ist standardmäßig ausgeschlossen; Git-Statusdetails unter diesem Pfad werden immer ausgeblendet. `tools/output/` bleibt als Ausgabeordner des Berichts ausgeschlossen. |
 | `-TopLargeFiles <1..100>` | `20` | Anzahl der größten erfassten Dateien im Größenüberblick. |
 
 Beispiele:
@@ -82,15 +82,19 @@ Property dort deklariert ist.
 
 `.git`-Interna und Verzeichnis-Links werden immer ausgelassen. Standardmäßig
 werden typische Build-/Cache-Verzeichnisse und temporäre Laufzeitdaten nicht
-durchlaufen. `saves/` und `tools/output/` sind im Git versioniert; der
-Kontextbericht listet `saves/` mit auf, lässt aber `tools/output/` aus, um
-seine eigenen Ausgaben nicht in das Inventar aufzunehmen. Es gibt keine
-persönlichen Benutzerprofile zum Teilen; `saves/userdata/users.json` ist ein
-lokaler Zugangsdaten-Speicher für die optionale Admin-Freischaltung und
-enthält Passwort-Hashes. Diese Datei bleibt deshalb absichtlich aus Git
-ausgeschlossen. `tmp/` bleibt im Repository leer; Inhalte darin werden
-ignoriert. Die ausgeschlossenen Verzeichnisse werden mit ihrem Namen und
-Grund im Bericht festgehalten. `.git` bleibt immer ausgeschlossen.
+durchlaufen. `saves/` kann ältere lokale Laufzeitdaten enthalten und wird nicht
+mehr versioniert; nur ein leerer Platzhalter bleibt erhalten. Die aktuelle
+Anwendung speichert Laufzeitdaten standardmäßig im Benutzerverzeichnis
+`~/.nettool/` und kopiert beim ersten Start vorhandene projektlokale
+`saves/`-Dateien, ohne sie dort automatisch zu löschen. Der Kontextbericht
+schließt `saves/` standardmäßig aus und blendet entsprechende Git-Statuspfade
+aus. `-IncludeRuntimeData` nimmt den Inhalt bewusst in die Dateiliste auf;
+Berichte mit dieser Option sollten nicht veröffentlicht werden. `tools/output/`
+ist versioniert, wird aber aus dem Kontextbericht ausgeschlossen, damit der
+Bericht seine eigenen Ausgaben nicht inventarisiert. `tmp/` bleibt im
+Repository leer; Inhalte darin werden ignoriert. Die ausgeschlossenen
+Verzeichnisse werden mit ihrem Namen und Grund im Bericht festgehalten. `.git`
+bleibt immer ausgeschlossen.
 
 Ein vollständiges Dateiinventar kann selbst umfangreich sein. Für eine
 kleinere Anfrage an einen Coding-Assistenten kann man den Bericht als Wegweiser
@@ -125,6 +129,7 @@ laden). Das Skript selbst ist auch ohne Profil direkt ausführbar.
 
 | Skript | Zweck |
 |---|---|
+| `scripts/Build-WindowsPackage.ps1` | Erstellt und smoke-testet ein portables Windows-Paket mit eingebettetem Java-Laufzeitsystem unter `target/dist/`. Erfordert ein zuvor gebautes Maven-JAR sowie JDK 21+ mit `jpackage`. |
 | `scripts/Verify-TestSuite.ps1` | Führt die Testsuite aus und prüft, dass Maven- und Surefire-Ergebnisse tatsächlich einen sauberen Testlauf belegen. Unterstützt gezielte Selektoren, Slow-Tests und optionale Verify-Prüfung. Ergebnisse landen in `output/test-results/`. |
 | `scripts/Run-Coverage.ps1` | Führt die vollständige Test-/Coverage-Auswertung aus und aktualisiert Laufzeit- und Coverage-Ausgaben in `output/`. |
 | `scripts/Measure-TestRuntime.ps1` | Liest Surefire-XML-Berichte aus und erzeugt `output/test_runtime_hotspots.csv`. |

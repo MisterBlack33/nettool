@@ -8,8 +8,12 @@ Aus dem Repository-Root:
 .\tools\scripts\Verify-TestSuite.ps1
 ```
 
-Standardmäßig führt das Skript `mvn --batch-mode clean test` aus. `clean`
-verhindert, dass alte Surefire-Berichte einen aktuellen Lauf vortäuschen. Ein
+Standardmäßig führt das Skript `mvn --batch-mode clean test` aus. Maven wird
+zuerst über `PATH`, danach über `MAVEN_HOME`/`M2_HOME` und schließlich über
+das mitgelieferte Maven einer IntelliJ-IDE-Installation gesucht. `clean`
+verhindert, dass alte Surefire-Berichte einen aktuellen Lauf vortäuschen;
+das portable Paket unter `target/dist/` bleibt dabei erhalten, damit ein
+gegebenenfalls noch laufender Windows-Launcher den Testlauf nicht blockiert. Ein
 Lauf gilt nur dann als erfolgreich, wenn Maven erfolgreich beendet wurde,
 gültige Surefire-XMLs vorhanden sind, mindestens ein Test ausgeführt wurde und
 die Berichte keine Fehler, Fehlschläge oder wiederholten Flaky-Failures
@@ -88,6 +92,13 @@ Ergebnisse im Git-Verlauf fest. Testzusammenfassungen speichern Java-Version
 und Anbieter, aber keinen lokalen JDK-Installationspfad. Temporäre
 Surefire-Berichte unter `target/` bleiben ausgeschlossen. Nur ein wirklich
 ausgeführter und sauber beendeter Maven-Lauf zählt als bestanden.
+
+Windows bleibt die unterstützte und vollständig getestete Desktop-Plattform.
+Auf Ubuntu und macOS kompiliert CI Anwendung und Tests und führt zusätzlich
+eine gezielte Auswahl plattformunabhängiger Smoke-Tests aus. Diese Läufe
+prüfen portable Logik und Build-Kompatibilität; sie sind keine Freigabe der
+betriebssystemspezifischen Netzwerk-, PowerShell- oder GUI-Funktionen auf
+diesen Plattformen.
 
 Die vorhandene JaCoCo-Prüfung bleibt Teil von `verify`. Für gezielte Prüfung,
 ob Tests auf Verhaltensänderungen reagieren, kann zusätzlich das bereits

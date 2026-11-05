@@ -50,9 +50,12 @@ if (-not (Get-Module -ListAvailable -Name ImportExcel)) {
 Import-Module ImportExcel
 
 if ($RunTests) {
+    $mavenResolver = Join-Path $PSScriptRoot 'Get-MavenExecutable.ps1'
+    . $mavenResolver
+    $maven = Get-MavenExecutable
     Push-Location $ProjectRoot
     try {
-        & mvn --batch-mode clean test -Pnightly
+        & $maven --batch-mode clean test -Pnightly
         if ($LASTEXITCODE -ne 0) {
             throw "mvn clean test -Pnightly failed with exit code $LASTEXITCODE"
         }

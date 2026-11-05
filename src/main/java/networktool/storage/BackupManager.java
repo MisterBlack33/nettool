@@ -14,7 +14,7 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 /**
- * Sichert/stellt das saves/-Verzeichnis als ZIP. Vor jeder Wiederherstellung wird
+ * Sichert/stellt ein Datenverzeichnis als ZIP. Vor jeder Wiederherstellung wird
  * der aktuelle Stand gesichert, damit bestehende Daten nie ungesichert überschrieben werden.
  */
 public final class BackupManager {

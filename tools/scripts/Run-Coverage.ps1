@@ -11,6 +11,9 @@ $runtimeScript = Join-Path $PSScriptRoot 'Measure-TestRuntime.ps1'
 $runtimeHistoryScript = Join-Path $PSScriptRoot 'Update-TestRuntimeHistory.ps1'
 $historyScript = Join-Path $PSScriptRoot 'Update-TestCoverageHistory.ps1'
 $chartScript = Join-Path $PSScriptRoot 'New-CoverageChart.ps1'
+$mavenResolver = Join-Path $PSScriptRoot 'Get-MavenExecutable.ps1'
+. $mavenResolver
+$maven = Get-MavenExecutable
 
 Push-Location $repoRoot
 try {
@@ -19,7 +22,7 @@ try {
         throw "Verify-TestSuite failed with exit code $LASTEXITCODE"
     }
 
-    & mvn --batch-mode clean validate compile test -Pnightly
+    & $maven --batch-mode clean validate compile test -Pnightly
     if ($LASTEXITCODE -ne 0) {
         throw "Full Maven coverage run failed with exit code $LASTEXITCODE"
     }

@@ -1,5 +1,6 @@
 package main.java.networktool.logic.analysis.security;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +32,8 @@ final class DhcpOfferTracker {
 
     private static SecurityFinding toFinding(String ip) {
         return new SecurityFinding(ip, SecurityFinding.Category.ROGUE_DHCP,
-                SecurityFinding.Severity.CRITICAL, "Unbekannter DHCP-Server antwortet auf Discover");
+                SecurityFinding.Severity.CRITICAL, "Nicht freigegebener DHCP-Server antwortet auf Discover",
+                SecurityFinding.Source.ROGUE_DHCP_DETECTOR, SecurityFinding.Confidence.HIGH,
+                Instant.now());
     }
 }

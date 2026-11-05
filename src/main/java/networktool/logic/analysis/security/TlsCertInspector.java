@@ -3,6 +3,7 @@ package main.java.networktool.logic.analysis.security;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 import java.net.InetSocketAddress;
+import java.security.GeneralSecurityException;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.Instant;
@@ -44,23 +45,37 @@ public final class TlsCertInspector {
     private static SecurityFinding evaluate(String ip, X509Certificate cert) {
         if (isSelfSigned(cert)) {
             return new SecurityFinding(ip, SecurityFinding.Category.TLS_CERT, SecurityFinding.Severity.WARN,
-                    "Self-signed Zertifikat: " + cert.getSubjectX500Principal().getName());
+                    "Self-signed Zertifikat: " + cert.getSubjectX500Principal().getName(),
+                    SecurityFinding.Source.TLS_CERT_INSPECTOR, SecurityFinding.Confidence.CONFIRMED,
+                    Instant.now());
         }
         long daysLeft = daysUntilExpiry(cert);
         if (daysLeft < 0) {
             return new SecurityFinding(ip, SecurityFinding.Category.TLS_CERT, SecurityFinding.Severity.CRITICAL,
-                    "Zertifikat abgelaufen seit " + (-daysLeft) + " Tag(en)");
+                    "Zertifikat abgelaufen seit " + (-daysLeft) + " Tag(en)",
+                    SecurityFinding.Source.TLS_CERT_INSPECTOR, SecurityFinding.Confidence.CONFIRMED,
+                    Instant.now());
         }
         if (daysLeft <= EXPIRY_WARN_DAYS) {
             return new SecurityFinding(ip, SecurityFinding.Category.TLS_CERT, SecurityFinding.Severity.WARN,
-                    "Zertifikat läuft in " + daysLeft + " Tag(en) ab");
+                    "Zertifikat läuft in " + daysLeft + " Tag(en) ab",
+                    SecurityFinding.Source.TLS_CERT_INSPECTOR, SecurityFinding.Confidence.CONFIRMED,
+                    Instant.now());
         }
         return new SecurityFinding(ip, SecurityFinding.Category.TLS_CERT, SecurityFinding.Severity.INFO,
-                "Zertifikat gültig bis " + cert.getNotAfter());
+                "Zertifikat gültig bis " + cert.getNotAfter(),
+                SecurityFinding.Source.TLS_CERT_INSPECTOR, SecurityFinding.Confidence.CONFIRMED,
+                Instant.now());
     }
 
     private static boolean isSelfSigned(X509Certificate cert) {
-        return cert.getSubjectX500Principal().equals(cert.getIssuerX500Principal());
+        if (!cert.getSubjectX500Principal().equals(cert.getIssuerX500Principal())) return false;
+        try {
+            cert.verify(cert.getPublicKey());
+            return true;
+        } catch (GeneralSecurityException e) {
+            return false;
+        }
     }
 
     private static long daysUntilExpiry(X509Certificate cert) {

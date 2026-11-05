@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 
 /**
  * Persistiert Bandbreiten-Messungen (Down/Up-Mbps) je Host als NDJSON,
- * eine Datei pro IP unter saves/cache/bandwidthHistory/. Rotation hält
+ * eine Datei pro IP im Unterverzeichnis cache/bandwidthHistory/. Rotation hält
  * die letzten {@link #MAX_ENTRIES} Einträge je Host.
  */
 public final class BandwidthHistoryStore {

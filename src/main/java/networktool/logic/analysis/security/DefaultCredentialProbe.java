@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Optional;
 
@@ -34,7 +35,9 @@ public final class DefaultCredentialProbe {
             String resp = in.readLine();
             if (resp != null && resp.startsWith("230")) {
                 return Optional.of(new SecurityFinding(ip, SecurityFinding.Category.DEFAULT_CREDENTIALS,
-                        SecurityFinding.Severity.CRITICAL, "FTP: anonymer Login möglich"));
+                        SecurityFinding.Severity.CRITICAL, "FTP: anonymer Login möglich",
+                        SecurityFinding.Source.DEFAULT_CREDENTIAL_PROBE, SecurityFinding.Confidence.CONFIRMED,
+                        Instant.now()));
             }
         } catch (Exception ignored) {}
         return Optional.empty();
@@ -51,7 +54,9 @@ public final class DefaultCredentialProbe {
             String status = readStatusLine(s);
             if (status != null && status.contains(" 200 ")) {
                 return Optional.of(new SecurityFinding(ip, SecurityFinding.Category.DEFAULT_CREDENTIALS,
-                        SecurityFinding.Severity.CRITICAL, "HTTP: Login " + user + "/" + pass + " akzeptiert"));
+                        SecurityFinding.Severity.CRITICAL, "HTTP: Login " + user + "/" + pass + " erhielt HTTP 200",
+                        SecurityFinding.Source.DEFAULT_CREDENTIAL_PROBE, SecurityFinding.Confidence.MEDIUM,
+                        Instant.now()));
             }
         } catch (Exception ignored) {}
         return Optional.empty();

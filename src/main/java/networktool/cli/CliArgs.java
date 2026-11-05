@@ -5,11 +5,12 @@ import java.util.List;
 
 /**
  * Parst die produktiven CLI-Argumente. Reines Parsing, keine Seiteneffekte.
- * Vertrag: --help/-h, --version/-v. Ohne (bekannte) Argumente startet die GUI.
+ * Ohne Argumente oder mit unbekannten Argumenten bleibt die GUI der Aufrufer-
+ * Vertrag; unbekannte Optionen werden vor dem GUI-Start zurückgewiesen.
  */
 public final class CliArgs {
 
-    public enum Command { HELP, VERSION, GUI }
+    public enum Command { HELP, VERSION, PROFILES, PROFILES_JSON, GUI }
 
     public final Command command;
     public final List<String> unknown;
@@ -21,6 +22,10 @@ public final class CliArgs {
 
     public static CliArgs parse(String[] args) {
         if (args == null || args.length == 0) return new CliArgs(Command.GUI, List.of());
+        if (args.length == 1) {
+            if ("--profiles".equals(args[0])) return new CliArgs(Command.PROFILES, List.of());
+            if ("--profiles-json".equals(args[0])) return new CliArgs(Command.PROFILES_JSON, List.of());
+        }
         for (String arg : args) {
             if (isHelp(arg)) return new CliArgs(Command.HELP, List.of());
             if (isVersion(arg)) return new CliArgs(Command.VERSION, List.of());

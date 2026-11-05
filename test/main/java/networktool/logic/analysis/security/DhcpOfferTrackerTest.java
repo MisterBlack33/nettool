@@ -25,6 +25,9 @@ class DhcpOfferTrackerTest {
         assertEquals("10.0.0.66", f.get(0).ip());
         assertEquals(SecurityFinding.Category.ROGUE_DHCP, f.get(0).category());
         assertEquals(SecurityFinding.Severity.CRITICAL, f.get(0).severity());
+        assertEquals(SecurityFinding.Source.ROGUE_DHCP_DETECTOR, f.get(0).source());
+        assertEquals(SecurityFinding.Confidence.HIGH, f.get(0).confidence());
+        assertNotNull(f.get(0).observedAt());
     }
 
     @Test void sameRogue_reportedOnce() {

@@ -20,8 +20,10 @@ if (Test-Path $summaryPath) {
     Remove-Item -LiteralPath $summaryPath -Force
 }
 
-$maven = Get-Command mvn -ErrorAction Stop
-$mavenVersionOutput = @(& $maven.Source --version)
+$mavenResolver = Join-Path $PSScriptRoot 'Get-MavenExecutable.ps1'
+. $mavenResolver
+$maven = Get-MavenExecutable
+$mavenVersionOutput = @(& $maven --version)
 if ($LASTEXITCODE -ne 0) {
     throw 'Unable to determine Maven and Java versions.'
 }
@@ -57,7 +59,7 @@ try {
     for ($run = 1; $run -le $Runs; $run++) {
         Write-Host "`nRun $run/$Runs - $scope"
         $timer = [System.Diagnostics.Stopwatch]::StartNew()
-        & $maven.Source @mavenArguments
+        & $maven @mavenArguments
         $exitCode = $LASTEXITCODE
         if ($exitCode -ne 0) {
             throw "Maven failed on run $run with exit code $exitCode. No passing result is reported."
